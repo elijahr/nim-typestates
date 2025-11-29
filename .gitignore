@@ -1,0 +1,34 @@
+# Dependencies and their artifacts
+## Ignore Nim cache
+nimcache/
+## Ignore Nimble cache
+nimblecache/
+## Ignore Nimble dependencies
+nimbledeps/
+
+# Temporary documents
+## Ignore generated HTML documentation
+htmldocs/
+## Ignore temporary plan documents
+docs/plans/
+
+# Compiled files
+## Ignore binary files
+bin/
+## Ignore compiled files in src
+src/*
+## Ignore compiled files in tests
+tests/*
+
+# Unignore source files
+## Unignore directories in src
+!src/**/
+## Unignore Nim source files in src
+!src/**/*.nim
+## Unignore directories in tests
+!tests/**/
+## Unignore Nim source files in tests
+!tests/**/*.nim
+
+# Misc
+.DS_Store
