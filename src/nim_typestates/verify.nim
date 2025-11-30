@@ -1,8 +1,9 @@
 ## Verification utilities for typestate checking.
 ##
 ## Provides:
+##
 ## - Compile-time proc registration for validation
-## - `verifyTypestates()` macro for in-module verification
+## - ``verifyTypestates()`` macro for in-module verification
 ## - CLI tool support for full-project verification
 
 import std/[macros, options, strformat]
@@ -10,11 +11,20 @@ import types, registry
 
 type
   ProcKind* = enum
-    pkTransition
-    pkNotATransition
-    pkUnmarked
+    ## Classification of procs operating on state types.
+    pkTransition       ## Marked with ``{.transition.}``
+    pkNotATransition   ## Marked with ``{.notATransition.}``
+    pkUnmarked         ## No pragma specified
 
   RegisteredProc* = object
+    ## Information about a proc registered for verification.
+    ##
+    ## :var name: The proc name
+    ## :var sourceState: The first parameter's state type
+    ## :var destStates: Return type state(s)
+    ## :var kind: How the proc is marked
+    ## :var declaredAt: Source location
+    ## :var modulePath: Module where declared
     name*: string
     sourceState*: string
     destStates*: seq[string]
@@ -23,31 +33,38 @@ type
     modulePath*: string
 
 var registeredProcs* {.compileTime.}: seq[RegisteredProc]
+  ## Compile-time list of all procs registered for verification.
 
 proc registerProc*(info: RegisteredProc) {.compileTime.} =
+  ## Register a proc for later verification.
+  ##
+  ## :param info: The proc information to register
   registeredProcs.add info
 
 macro verifyTypestates*(): untyped =
   ## Verify all registered typestates and procs.
   ##
   ## Call at the end of a module to check:
+  ##
   ## - All transitions are valid
   ## - All procs on state types are properly marked (if strictTransitions)
   ## - No external transitions on sealed typestates
   ##
-  ## **Usage:**
-  ## ```nim
-  ## import nim_typestates
+  ## :returns: Empty statement list (validation is compile-time only)
+  ## :raises: Compile-time error if verification fails
   ##
-  ## typestate File:
-  ##   states Closed, Open
-  ##   transitions:
-  ##     Closed -> Open
+  ## Example::
   ##
-  ## proc open(f: Closed): Open {.transition.} = ...
+  ##   import nim_typestates
   ##
-  ## verifyTypestates()  # Validates everything above
-  ## ```
+  ##   typestate File:
+  ##     states Closed, Open
+  ##     transitions:
+  ##       Closed -> Open
+  ##
+  ##   proc open(f: Closed): Open {.transition.} = ...
+  ##
+  ##   verifyTypestates()  # Validates everything above
 
   result = newStmtList()
 

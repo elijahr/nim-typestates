@@ -7,7 +7,7 @@ Real-world patterns where typestates prevent expensive bugs.
 
 ## Payment Processing
 
-The payment processing flow is a perfect typestate example because mistakes are **expensive**. Charge before authorization? Chargeback. Refund twice? Money gone.
+Payment processing requires strict ordering: authorize before capture, capture before refund. Typestates prevent costly mistakes like double-capture or refunds before capture.
 
 ```nim
 import nim_typestates
@@ -78,7 +78,7 @@ let settled = captured.settle()
 
 ## Database Connection Pool
 
-Connection pool bugs are among the most painful to debug. "Connection already closed" in production at 3 AM, anyone?
+Connection pools have invariants that are easy to violate: don't query pooled connections, don't return connections mid-transaction, don't commit without a transaction.
 
 ```nim
 import nim_typestates
@@ -150,7 +150,7 @@ let returned = afterTx.release()
 
 ## HTTP Request Lifecycle
 
-HTTP requests have a strict lifecycle. Writing body after sending headers? Reading response before request sent? These are runtime mysteries no more.
+HTTP requests follow a strict sequence: set headers, send headers, send body, await response. Typestates enforce this ordering at compile time.
 
 ```nim
 import nim_typestates
@@ -227,7 +227,7 @@ echo "Status: ", req.statusCode()
 
 ## OAuth Authentication
 
-OAuth flows are notoriously easy to mess up. Using an expired token? Calling API before auth? Refreshing with invalid token?
+OAuth requires authenticated tokens for API calls and refresh tokens to renew expired access. Typestates prevent calls with missing or expired credentials.
 
 ```nim
 import nim_typestates
@@ -301,7 +301,7 @@ let refreshed = expired.refresh()
 
 ## Robot Arm Controller
 
-Hardware control is where typestates **really** shine. Wrong operation order can damage expensive equipment or cause safety hazards.
+Hardware control requires strict operation sequences. Moving without homing can crash into limits; powering off during movement can damage motors.
 
 ```nim
 import nim_typestates
@@ -379,7 +379,7 @@ let off = done.powerOff()
 
 ## Order Fulfillment
 
-E-commerce order bugs are expensive and embarrassing. Ship before payment? Double-ship? Refund unshipped orders?
+Order fulfillment has a fixed sequence: place, pay, ship, deliver. Typestates ensure orders can't be shipped before payment or shipped twice.
 
 ```nim
 import nim_typestates
@@ -455,7 +455,7 @@ let order = Cart(Order())
 
 ## Document Workflow
 
-Content publishing has strict rules. Publishing without review? Editing published content? Skipping approvals?
+Document publishing enforces a review process: draft, review, approve, publish. Typestates prevent publishing without approval or editing published content.
 
 ```nim
 import nim_typestates

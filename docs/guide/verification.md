@@ -25,18 +25,41 @@ proc close(...) {.transition.} = ...
 verifyTypestates()  # Validates everything above
 ```
 
-## CLI Verification Tool
+## CLI Tool
 
-For full-project analysis, use the nimble task:
+The library installs a `nim-typestates` binary for project-wide verification and visualization.
+
+### Verify
+
+Check that all procs on state types are properly marked:
+
+```bash
+nim-typestates verify src/
+nim-typestates verify src/ tests/
+```
+
+### Generate GraphViz DOT
+
+Export state machine diagrams:
+
+```bash
+nim-typestates dot src/ > typestates.dot
+nim-typestates dot src/ | dot -Tpng -o typestates.png
+```
+
+### Adding a Nimble Task
+
+Add this to your project's `.nimble` file:
+
+```nim
+task verify, "Verify typestate rules":
+  exec "nim-typestates verify src/"
+```
+
+Then run:
 
 ```bash
 nimble verify
-```
-
-Or specify paths:
-
-```bash
-nim c -r src/nim_typestates/cli.nim src/ tests/
 ```
 
 ### CI Integration
@@ -44,12 +67,12 @@ nim c -r src/nim_typestates/cli.nim src/ tests/
 ```yaml
 # GitHub Actions
 - name: Verify typestates
-  run: nimble verify
+  run: nim-typestates verify src/
 
 # CircleCI
 - run:
     name: Verify typestates
-    command: nimble verify
+    command: nim-typestates verify src/
 ```
 
 ### Output
