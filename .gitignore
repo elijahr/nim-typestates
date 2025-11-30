@@ -30,5 +30,12 @@ tests/*
 ## Unignore Nim source files in tests
 !tests/**/*.nim
 
+# Python
+.venv/
+
+# Generated docs
+docs/api/
+site/
+
 # Misc
 .DS_Store

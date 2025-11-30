@@ -1,14 +1,11 @@
-## Module-level analysis for detecting unmarked transitions.
+## Module-level analysis for typestate validation.
 ##
-## TODO: Implement detection of procs that:
-## - Take a state type and return a different state type
-## - Are not marked with {.transition.}
+## This module is now implemented via:
+## - Compile-time checking in `pragmas.nim` (strictTransitions, isSealed)
+## - `verifyTypestates()` macro in `verify.nim`
+## - CLI tool in `cli.nim` for full-project analysis
 ##
-## This requires either:
-## - A post-compilation pass
-## - Integration with nim check
-## - A separate analyzer tool
-##
-## For now, this is a placeholder for future implementation.
+## See the verify module for the implementation.
 
-# Placeholder for future implementation
+import verify
+export verify

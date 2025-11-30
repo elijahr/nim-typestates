@@ -9,3 +9,8 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 2.0.0"
+
+# Tasks
+
+task verify, "Verify typestate rules in source files":
+  exec "nim c -r src/nim_typestates/cli.nim src/"
