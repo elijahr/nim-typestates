@@ -68,8 +68,10 @@
 ## See Also
 ## --------
 ##
-## - `Typestate Pattern <https://cliffle.com/blog/rust-typestate/>`_
+## - `Typestate Pattern in Rust <https://cliffle.com/blog/rust-typestate/>`_
+## - `typestate crate for Rust <https://github.com/rustype/typestate>`_
 ## - `Plaid Language <http://www.cs.cmu.edu/~aldrich/plaid/>`_
+## - `Typestate: A Programming Language Concept (Strom & Yemini, 1986) <https://doi.org/10.1109/TSE.1986.6312929>`_
 
 import std/macros
 import nim_typestates/[types, parser, registry, pragmas, codegen]

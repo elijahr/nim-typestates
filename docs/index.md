@@ -77,6 +77,13 @@ requires "nim_typestates >= 0.1.0"
 - [Examples](guide/examples.md) - Real-world patterns
 - [API Reference](api.md) - Generated API docs
 
+## References
+
+- [Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/) - Excellent introduction to typestates
+- [typestate crate for Rust](https://github.com/rustype/typestate) - Similar macro-based approach in Rust
+- [Plaid Language](http://www.cs.cmu.edu/~aldrich/plaid/) - CMU's typestate-oriented programming language
+- [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929) - Original paper introducing typestates
+
 ## License
 
 MIT
