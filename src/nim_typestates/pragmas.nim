@@ -2,10 +2,10 @@
 ##
 ## This module provides the pragmas that users apply to their procs:
 ##
-## - ``{.transition.}`` - Mark a proc as a state transition (validated)
-## - ``{.notATransition.}`` - Mark a proc as intentionally not a transition
+## - `{.transition.}` - Mark a proc as a state transition (validated)
+## - `{.notATransition.}` - Mark a proc as intentionally not a transition
 ##
-## The ``{.transition.}`` pragma performs compile-time validation to ensure
+## The `{.transition.}` pragma performs compile-time validation to ensure
 ## that only declared transitions are implemented.
 
 import std/[macros, options, strformat, tables]
@@ -20,8 +20,8 @@ var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
 proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compileTime.} =
   ## Register states from a sealed typestate for external checking.
   ##
-  ## :param modulePath: The module filename where the typestate is defined
-  ## :param stateNames: List of state type names to register
+  ## - `modulePath`: The module filename where the typestate is defined
+  ## - `stateNames`: List of state type names to register
   if modulePath notin sealedTypestateModules:
     sealedTypestateModules[modulePath] = @[]
   for state in stateNames:
@@ -31,9 +31,9 @@ proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compil
 proc isStateFromSealedTypestate*(stateName: string, currentModule: string): Option[string] {.compileTime.} =
   ## Check if a state is from a sealed typestate defined in another module.
   ##
-  ## :param stateName: The state type name to check
-  ## :param currentModule: The current module's filename
-  ## :returns: ``some(modulePath)`` if from external sealed typestate, ``none`` otherwise
+  ## - `stateName`: The state type name to check
+  ## - `currentModule`: The current module's filename
+  ## - Returns: `some(modulePath)` if from external sealed typestate, `none` otherwise
   for modulePath, states in sealedTypestateModules:
     if modulePath != currentModule and stateName in states:
       return some(modulePath)
@@ -44,12 +44,12 @@ proc extractTypeName(node: NimNode): string =
   ##
   ## Handles various node types:
   ##
-  ## - ``nnkIdent``: Simple identifier like ``Closed``
-  ## - ``nnkSym``: Symbol reference (after type resolution)
-  ## - ``nnkBracketExpr``: Generic type like ``seq[T]`` (extracts base)
+  ## - `nnkIdent`: Simple identifier like `Closed`
+  ## - `nnkSym`: Symbol reference (after type resolution)
+  ## - `nnkBracketExpr`: Generic type like `seq[T]` (extracts base)
   ##
-  ## :param node: AST node representing a type
-  ## :returns: The string name of the type
+  ## - `node`: AST node representing a type
+  ## - Returns: The string name of the type
   case node.kind
   of nnkIdent:
     result = node.strVal
@@ -64,10 +64,10 @@ proc extractTypeName(node: NimNode): string =
 proc extractAllTypeNames(node: NimNode): seq[string] =
   ## Extract all type names from a type AST node.
   ##
-  ## Handles union types like ``A | B | C`` by returning all components.
+  ## Handles union types like `A | B | C` by returning all components.
   ##
-  ## :param node: AST node representing a type (possibly a union)
-  ## :returns: Sequence of all type names in the type
+  ## - `node`: AST node representing a type (possibly a union)
+  ## - Returns: Sequence of all type names in the type
   case node.kind
   of nnkInfix:
     # Union type like `A | B`
@@ -98,24 +98,28 @@ macro transition*(procDef: untyped): untyped =
   ## - Return type must be a valid transition target from that state
   ## - The transition must be declared in the typestate block
   ##
-  ## :param procDef: The proc definition to validate
-  ## :returns: The unmodified proc definition (if validation passes)
-  ## :raises: Compile-time error if transition is invalid
+  ## - `procDef`: The proc definition to validate
+  ## - Returns: The unmodified proc definition (if validation passes)
+  ## - Raises: Compile-time error if transition is invalid
   ##
-  ## Example::
+  ## Example:
   ##
-  ##   proc open(f: Closed): Open {.transition.} =
-  ##     result = Open(f)
+  ## ```nim
+  ## proc open(f: Closed): Open {.transition.} =
+  ##   result = Open(f)
   ##
-  ##   proc close(f: Open): Closed {.transition.} =
-  ##     result = Closed(f)
+  ## proc close(f: Open): Closed {.transition.} =
+  ##   result = Closed(f)
+  ## ```
   ##
-  ## Error example::
+  ## Error example:
   ##
-  ##   Error: Undeclared transition: Open -> Locked
-  ##     Typestate 'File' does not declare this transition.
-  ##     Valid transitions from 'Open': @["Closed"]
-  ##     Hint: Add 'Open -> Locked' to the transitions block.
+  ## ```
+  ## Error: Undeclared transition: Open -> Locked
+  ##   Typestate 'File' does not declare this transition.
+  ##   Valid transitions from 'Open': @["Closed"]
+  ##   Hint: Add 'Open -> Locked' to the transitions block.
+  ## ```
   result = procDef
 
   # Extract signature info
@@ -158,7 +162,7 @@ template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.
   ##
   ## Use this pragma for procs that operate on state types but don't
-  ## change the state. This is required when ``strictTransitions`` is
+  ## change the state. This is required when `strictTransitions` is
   ## enabled on the typestate.
   ##
   ## When to use:
@@ -167,11 +171,13 @@ template notATransition*() {.pragma.}
   ## - Procs that perform I/O without changing state
   ## - Procs that modify the underlying data without state transition
   ##
-  ## Example::
+  ## Example:
   ##
-  ##   # Side effects without state change
-  ##   proc write(f: Open, data: string) {.notATransition.} =
-  ##     rawWrite(f.handle, data)
+  ## ```nim
+  ## # Side effects without state change
+  ## proc write(f: Open, data: string) {.notATransition.} =
+  ##   rawWrite(f.handle, data)
   ##
-  ##   # Pure functions don't need this (use ``func`` instead)
-  ##   func path(f: Open): string = f.File.path
+  ## # Pure functions don't need this (use `func` instead)
+  ## func path(f: Open): string = f.File.path
+  ## ```

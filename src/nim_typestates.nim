@@ -4,74 +4,69 @@
 ## time with clear error messages. Define valid states and transitions, then
 ## let the compiler enforce that your code follows them.
 ##
-## Quick Start
-## -----------
+## ## Quick Start
 ##
-## ::
+## ```nim
+## import nim_typestates
 ##
-##   import nim_typestates
+## # 1. Define your base type and state types
+## type
+##   File = object
+##     path: string
+##     handle: int
+##   Closed = distinct File
+##   Open = distinct File
 ##
-##   # 1. Define your base type and state types
-##   type
-##     File = object
-##       path: string
-##       handle: int
-##     Closed = distinct File
-##     Open = distinct File
+## # 2. Declare the typestate
+## typestate File:
+##   states Closed, Open
+##   transitions:
+##     Closed -> Open
+##     Open -> Closed
 ##
-##   # 2. Declare the typestate
-##   typestate File:
-##     states Closed, Open
-##     transitions:
-##       Closed -> Open
-##       Open -> Closed
+## # 3. Implement transitions with validation
+## proc open(f: Closed, path: string): Open {.transition.} =
+##   result = Open(f)
+##   result.File.handle = rawOpen(path)
 ##
-##   # 3. Implement transitions with validation
-##   proc open(f: Closed, path: string): Open {.transition.} =
-##     result = Open(f)
-##     result.File.handle = rawOpen(path)
+## proc close(f: Open): Closed {.transition.} =
+##   rawClose(f.File.handle)
+##   result = Closed(f)
 ##
-##   proc close(f: Open): Closed {.transition.} =
-##     rawClose(f.File.handle)
-##     result = Closed(f)
+## # 4. Use it - the compiler enforces valid transitions!
+## var f = Closed(File(path: "/tmp/test"))
+## let opened = f.open("/tmp/test")
+## let closed = opened.close()
+## # opened.open(...)  # Won't compile - Open can't transition to Open!
+## ```
 ##
-##   # 4. Use it - the compiler enforces valid transitions!
-##   var f = Closed(File(path: "/tmp/test"))
-##   let opened = f.open("/tmp/test")
-##   let closed = opened.close()
-##   # opened.open(...)  # Won't compile - Open can't transition to Open!
-##
-## Features
-## --------
+## ## Features
 ##
 ## - **Compile-time validation**: Invalid transitions fail at compile time
-## - **Branching transitions**: ``Closed -> Open | Errored``
-## - **Wildcard transitions**: ``* -> Closed`` (any state can close)
-## - **Generated helpers**: ``FileState`` enum, ``FileStates`` union type
+## - **Branching transitions**: `Closed -> Open | Errored`
+## - **Wildcard transitions**: `* -> Closed` (any state can close)
+## - **Generated helpers**: `FileState` enum, `FileStates` union type
 ## - **Clear error messages**: Shows valid transitions when you make a mistake
 ##
-## Pragmas
-## -------
+## ## Pragmas
 ##
-## - ``{.transition.}`` - Mark a proc as a state transition (validated)
-## - ``{.notATransition.}`` - Mark a proc that operates on state but doesn't transition
+## - `{.transition.}` - Mark a proc as a state transition (validated)
+## - `{.notATransition.}` - Mark a proc that operates on state but doesn't transition
 ##
-## Generated Types
-## ---------------
+## ## Generated Types
 ##
-## For ``typestate File:``, the macro generates:
+## For `typestate File:`, the macro generates:
 ##
-## - ``FileState`` - enum with ``fsClosed``, ``fsOpen``, etc.
-## - ``FileStates`` - union type ``Closed | Open | ...``
-## - ``state()`` procs for runtime state inspection
+## - `FileState` - enum with `fsClosed`, `fsOpen`, etc.
+## - `FileStates` - union type `Closed | Open | ...`
+## - `state()` procs for runtime state inspection
 ##
-## See Also
-## --------
+## ## See Also
 ##
-## - `Typestate Pattern in Rust <https://cliffle.com/blog/rust-typestate/>`_
-## - `typestate crate for Rust <https://github.com/rustype/typestate>`_
-## - `Plaid Language <http://www.cs.cmu.edu/~aldrich/plaid/>`_
-## - `Typestate: A Programming Language Concept (Strom & Yemini, 1986) <https://doi.org/10.1109/TSE.1986.6312929>`_
+## - [Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/)
+## - [typestate crate for Rust](https://github.com/rustype/typestate)
+## - [Plaid Language](http://www.cs.cmu.edu/~aldrich/plaid/)
+## - [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929)
 
 import std/macros
 import nim_typestates/[types, parser, registry, pragmas, codegen]
@@ -90,28 +85,30 @@ macro typestate*(name: untyped, body: untyped): untyped =
   ## :param body: The states and transitions declarations
   ## :returns: Generated helper types (enum, union, state procs)
   ##
-  ## Basic syntax::
+  ## Basic syntax:
   ##
-  ##   typestate File:
-  ##     states Closed, Open, Errored
-  ##     transitions:
-  ##       Closed -> Open | Errored    # Branching
-  ##       Open -> Closed
-  ##       * -> Closed                 # Wildcard
+  ## ```nim
+  ## typestate File:
+  ##   states Closed, Open, Errored
+  ##   transitions:
+  ##     Closed -> Open | Errored    # Branching
+  ##     Open -> Closed
+  ##     * -> Closed                 # Wildcard
+  ## ```
   ##
   ## What it generates:
   ##
-  ## - ``FileState`` enum with ``fsClosed``, ``fsOpen``, ``fsErrored``
-  ## - ``FileStates`` union type for generic procs
-  ## - ``state()`` procs for runtime inspection
+  ## - `FileState` enum with `fsClosed`, `fsOpen`, `fsErrored`
+  ## - `FileStates` union type for generic procs
+  ## - `state()` procs for runtime inspection
   ##
   ## Transition syntax:
   ##
-  ## - ``A -> B`` - Simple transition
-  ## - ``A -> B | C`` - Branching (can go to B or C)
-  ## - ``* -> X`` - Wildcard (any state can go to X)
+  ## - `A -> B` - Simple transition
+  ## - `A -> B | C` - Branching (can go to B or C)
+  ## - `* -> X` - Wildcard (any state can go to X)
   ##
-  ## See also: ``{.transition.}`` pragma for implementing transitions
+  ## See also: `{.transition.}` pragma for implementing transitions
 
   # Parse the typestate body
   let graph = parseTypestateBody(name, body)

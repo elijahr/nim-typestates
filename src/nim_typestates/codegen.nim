@@ -3,11 +3,11 @@
 ## This module generates the helper types and procs that make typestates
 ## easier to use at runtime:
 ##
-## - **State enum**: ``FileState = enum fsClosed, fsOpen, ...``
-## - **Union type**: ``FileStates = Closed | Open | ...``
-## - **State procs**: ``proc state(f: Closed): FileState``
+## - **State enum**: `FileState = enum fsClosed, fsOpen, ...`
+## - **Union type**: `FileStates = Closed | Open | ...`
+## - **State procs**: `proc state(f: Closed): FileState`
 ##
-## These are generated automatically by the ``typestate`` macro.
+## These are generated automatically by the `typestate` macro.
 
 import std/[macros, sequtils, tables]
 import types
@@ -15,16 +15,18 @@ import types
 proc generateStateEnum*(graph: TypestateGraph): NimNode =
   ## Generate a runtime enum representing all states.
   ##
-  ## For a typestate named ``File`` with states ``Closed``, ``Open``, ``Errored``,
-  ## generates::
+  ## For a typestate named `File` with states `Closed`, `Open`, `Errored`,
+  ## generates:
   ##
-  ##   type FileState* = enum
-  ##     fsClosed, fsOpen, fsErrored
+  ## ```nim
+  ## type FileState* = enum
+  ##   fsClosed, fsOpen, fsErrored
+  ## ```
   ##
-  ## The enum values are prefixed with ``fs`` to avoid naming conflicts.
+  ## The enum values are prefixed with `fs` to avoid naming conflicts.
   ##
-  ## :param graph: The typestate graph to generate from
-  ## :returns: AST for the enum type definition
+  ## - `graph`: The typestate graph to generate from
+  ## - Returns: AST for the enum type definition
   let enumName = ident(graph.name & "State")
 
   var enumFields = nnkEnumTy.newTree(newEmptyNode())
@@ -44,22 +46,26 @@ proc generateStateEnum*(graph: TypestateGraph): NimNode =
 proc generateUnionType*(graph: TypestateGraph): NimNode =
   ## Generate a type alias for "any state" using Nim's union types.
   ##
-  ## For a typestate named ``File`` with states ``Closed``, ``Open``, ``Errored``,
-  ## generates::
+  ## For a typestate named `File` with states `Closed`, `Open`, `Errored`,
+  ## generates:
   ##
-  ##   type FileStates* = Closed | Open | Errored
+  ## ```nim
+  ## type FileStates* = Closed | Open | Errored
+  ## ```
   ##
   ## This union type is useful for procs that can accept any state,
-  ## such as a generic ``close`` proc.
+  ## such as a generic `close` proc.
   ##
-  ## :param graph: The typestate graph to generate from
-  ## :returns: AST for the union type definition
+  ## - `graph`: The typestate graph to generate from
+  ## - Returns: AST for the union type definition
   ##
-  ## Example usage::
+  ## Example usage:
   ##
-  ##   proc forceClose[S: FileStates](f: S): Closed =
-  ##     # Works with any state
-  ##     result = Closed(f.File)
+  ## ```nim
+  ## proc forceClose[S: FileStates](f: S): Closed =
+  ##   # Works with any state
+  ##   result = Closed(f.File)
+  ## ```
   let unionName = ident(graph.name & "States")
 
   var stateNames = toSeq(graph.states.keys)
@@ -93,23 +99,27 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   )
 
 proc generateStateProcs*(graph: TypestateGraph): NimNode =
-  ## Generate ``state()`` procs for runtime state inspection.
+  ## Generate `state()` procs for runtime state inspection.
   ##
-  ## For each state, generates a proc that returns the enum value::
+  ## For each state, generates a proc that returns the enum value:
   ##
-  ##   proc state*(f: Closed): FileState = fsClosed
-  ##   proc state*(f: Open): FileState = fsOpen
-  ##   proc state*(f: Errored): FileState = fsErrored
+  ## ```nim
+  ## proc state*(f: Closed): FileState = fsClosed
+  ## proc state*(f: Open): FileState = fsOpen
+  ## proc state*(f: Errored): FileState = fsErrored
+  ## ```
   ##
-  ## This enables runtime state checking when needed::
+  ## This enables runtime state checking when needed:
   ##
-  ##   case someState.state
-  ##   of fsClosed: echo "File is closed"
-  ##   of fsOpen: echo "File is open"
-  ##   of fsErrored: echo "File has error"
+  ## ```nim
+  ## case someState.state
+  ## of fsClosed: echo "File is closed"
+  ## of fsOpen: echo "File is open"
+  ## of fsErrored: echo "File has error"
+  ## ```
   ##
-  ## :param graph: The typestate graph to generate from
-  ## :returns: AST for all state() proc definitions
+  ## - `graph`: The typestate graph to generate from
+  ## - Returns: AST for all state() proc definitions
   result = newStmtList()
 
   let enumName = ident(graph.name & "State")
@@ -126,15 +136,15 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
-  ## This is the main entry point called by the ``typestate`` macro.
+  ## This is the main entry point called by the `typestate` macro.
   ## It generates:
   ##
-  ## 1. State enum (``FileState``)
-  ## 2. Union type (``FileStates``)
-  ## 3. State procs (``state()`` for each state)
+  ## 1. State enum (`FileState`)
+  ## 2. Union type (`FileStates`)
+  ## 3. State procs (`state()` for each state)
   ##
-  ## :param graph: The typestate graph to generate from
-  ## :returns: AST containing all generated definitions
+  ## - `graph`: The typestate graph to generate from
+  ## - Returns: AST containing all generated definitions
   result = newStmtList()
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)

@@ -73,6 +73,10 @@ nav:
     - Verification: guide/verification.md
   - API Reference: api.md
 
+watch:
+  - docs
+  - src  # Reload when Nim source files change
+
 extra:
   version:
     provider: mike

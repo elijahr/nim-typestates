@@ -1,11 +1,11 @@
 ## Parser for the typestate DSL.
 ##
-## This module transforms the AST from a ``typestate`` macro invocation into
-## a ``TypestateGraph`` structure. It handles parsing of:
+## This module transforms the AST from a `typestate` macro invocation into
+## a `TypestateGraph` structure. It handles parsing of:
 ##
-## - State declarations (``states Closed, Open, Errored``)
-## - Transition declarations (``Closed -> Open | Errored``)
-## - Wildcard transitions (``* -> Closed``)
+## - State declarations (`states Closed, Open, Errored`)
+## - Transition declarations (`Closed -> Open | Errored`)
+## - Wildcard transitions (`* -> Closed`)
 ##
 ## The parser operates at compile-time within macro context.
 ##
@@ -17,19 +17,21 @@ import types
 proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ## Parse a states declaration and add states to the graph.
   ##
-  ## Accepts both command syntax (``states Closed, Open``) and
-  ## call syntax (``states(Closed, Open)``).
+  ## Accepts both command syntax (`states Closed, Open`) and
+  ## call syntax (`states(Closed, Open)`).
   ##
-  ## :param graph: The typestate graph to populate
-  ## :param node: AST node of the states declaration
-  ## :raises: Compile-time error if syntax is invalid
+  ## - `graph`: The typestate graph to populate
+  ## - `node`: AST node of the states declaration
+  ## - Raises: Compile-time error if syntax is invalid
   ##
-  ## Example AST input::
+  ## Example AST input:
   ##
-  ##   Command
-  ##     Ident "states"
-  ##     Ident "Closed"
-  ##     Ident "Open"
+  ## ```
+  ## Command
+  ##   Ident "states"
+  ##   Ident "Closed"
+  ##   Ident "Open"
+  ## ```
   if node.kind notin {nnkCall, nnkCommand}:
     error("Expected call or command for states", node)
 
@@ -43,16 +45,16 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
 proc collectBranchTargets(node: NimNode): seq[string] =
   ## Recursively collect all target states from a branching expression.
   ##
-  ## Handles the ``|`` operator for branching transitions like ``Open | Errored``.
+  ## Handles the `|` operator for branching transitions like `Open | Errored`.
   ##
-  ## :param node: AST node representing the target(s)
-  ## :returns: Sequence of state names
+  ## - `node`: AST node representing the target(s)
+  ## - Returns: Sequence of state names
   ##
   ## Examples:
   ##
-  ## - ``Open`` -> ``@["Open"]``
-  ## - ``Open | Errored`` -> ``@["Open", "Errored"]``
-  ## - ``A | B | C`` -> ``@["A", "B", "C"]``
+  ## - `Open` -> `@["Open"]`
+  ## - `Open | Errored` -> `@["Open", "Errored"]`
+  ## - `A | B | C` -> `@["A", "B", "C"]`
   case node.kind
   of nnkIdent:
     result = @[node.strVal]
@@ -69,31 +71,35 @@ proc parseTransition*(node: NimNode): Transition =
   ##
   ## Supports three forms:
   ##
-  ## - **Simple**: ``Closed -> Open``
-  ## - **Branching**: ``Closed -> Open | Errored``
-  ## - **Wildcard**: ``* -> Closed``
+  ## - **Simple**: `Closed -> Open`
+  ## - **Branching**: `Closed -> Open | Errored`
+  ## - **Wildcard**: `* -> Closed`
   ##
-  ## :param node: AST node of the transition expression
-  ## :returns: A ``Transition`` object
-  ## :raises: Compile-time error if syntax is invalid
+  ## - `node`: AST node of the transition expression
+  ## - Returns: A `Transition` object
+  ## - Raises: Compile-time error if syntax is invalid
   ##
-  ## Example AST for ``Closed -> Open | Errored``::
+  ## Example AST for `Closed -> Open | Errored`:
   ##
+  ## ```
+  ## Infix
+  ##   Ident "->"
+  ##   Ident "Closed"
   ##   Infix
+  ##     Ident "|"
+  ##     Ident "Open"
+  ##     Ident "Errored"
+  ## ```
+  ##
+  ## Example AST for `* -> Closed` (wildcard parsed as nested prefix):
+  ##
+  ## ```
+  ## Prefix
+  ##   Ident "*"
+  ##   Prefix
   ##     Ident "->"
   ##     Ident "Closed"
-  ##     Infix
-  ##       Ident "|"
-  ##       Ident "Open"
-  ##       Ident "Errored"
-  ##
-  ## Example AST for ``* -> Closed`` (wildcard parsed as nested prefix)::
-  ##
-  ##   Prefix
-  ##     Ident "*"
-  ##     Prefix
-  ##       Ident "->"
-  ##       Ident "Closed"
+  ## ```
 
   # Handle wildcard syntax: * -> X parses as nested Prefix nodes
   if node.kind == nnkPrefix and node[0].strVal == "*":
@@ -143,11 +149,11 @@ proc parseTransition*(node: NimNode): Transition =
   )
 
 proc parseFlag(graph: var TypestateGraph, node: NimNode) =
-  ## Parse a flag assignment like ``strictTransitions = false``.
+  ## Parse a flag assignment like `strictTransitions = false`.
   ##
-  ## :param graph: The typestate graph to update
-  ## :param node: AST node of the assignment
-  ## :raises: Compile-time error for unknown flags
+  ## - `graph`: The typestate graph to update
+  ## - `node`: AST node of the assignment
+  ## - Raises: Compile-time error for unknown flags
   expectKind(node, nnkAsgn)
 
   let flagName = node[0].strVal
@@ -169,15 +175,17 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.
   ##
-  ## :param graph: The typestate graph to populate
-  ## :param node: AST node of the transitions block
-  ## :raises: Compile-time error if block is empty or malformed
+  ## - `graph`: The typestate graph to populate
+  ## - `node`: AST node of the transitions block
+  ## - Raises: Compile-time error if block is empty or malformed
   ##
-  ## Example input::
+  ## Example input:
   ##
-  ##   transitions:
-  ##     Closed -> Open
-  ##     Open -> Closed
+  ## ```nim
+  ## transitions:
+  ##   Closed -> Open
+  ##   Open -> Closed
+  ## ```
   expectKind(node, nnkCall)
 
   # node[0] is "transitions", node[1] is the statement list
@@ -195,20 +203,22 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## Parse a complete typestate block body into a TypestateGraph.
   ##
   ## This is the main entry point for parsing. It processes the full
-  ## body of a ``typestate`` macro invocation.
+  ## body of a `typestate` macro invocation.
   ##
-  ## :param name: The typestate name identifier (e.g., ``File``)
-  ## :param body: The statement list containing states and transitions
-  ## :returns: A fully populated ``TypestateGraph``
-  ## :raises: Compile-time error for invalid syntax
+  ## - `name`: The typestate name identifier (e.g., `File`)
+  ## - `body`: The statement list containing states and transitions
+  ## - Returns: A fully populated `TypestateGraph`
+  ## - Raises: Compile-time error for invalid syntax
   ##
-  ## Example::
+  ## Example:
   ##
-  ##   typestate File:          # name = "File"
-  ##     states Closed, Open    # parsed by parseStates
-  ##     transitions:           # parsed by parseTransitionsBlock
-  ##       Closed -> Open
-  ##       Open -> Closed
+  ## ```nim
+  ## typestate File:          # name = "File"
+  ##   states Closed, Open    # parsed by parseStates
+  ##   transitions:           # parsed by parseTransitionsBlock
+  ##     Closed -> Open
+  ##     Open -> Closed
+  ## ```
   expectKind(name, nnkIdent)
   result = TypestateGraph(
     name: name.strVal,

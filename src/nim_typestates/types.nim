@@ -3,8 +3,8 @@
 ## This module defines the internal representation of typestates, states,
 ## and transitions used during compile-time validation.
 ##
-## These types are primarily used internally by the ``typestate`` macro and
-## ``{.transition.}`` pragma. Most users won't interact with them directly.
+## These types are primarily used internally by the `typestate` macro and
+## `{.transition.}` pragma. Most users won't interact with them directly.
 
 import std/[macros, tables]
 
@@ -13,11 +13,11 @@ type
     ## Represents a single state in a typestate machine.
     ##
     ## Each state corresponds to a distinct type that the user defines.
-    ## For example, in a file typestate, ``Closed`` and ``Open`` would each
-    ## be represented by a ``State`` object.
+    ## For example, in a file typestate, `Closed` and `Open` would each
+    ## be represented by a `State` object.
     ##
-    ## :var name: The string name of the state (e.g., "Closed", "Open")
-    ## :var typeName: The AST node representing the type identifier
+    ## - `name`: The string name of the state (e.g., "Closed", "Open")
+    ## - `typeName`: The AST node representing the type identifier
     name*: string
     typeName*: NimNode
 
@@ -26,25 +26,27 @@ type
     ##
     ## Transitions define which state changes are allowed. They can be:
     ##
-    ## - **Simple**: ``Closed -> Open`` (one source, one destination)
-    ## - **Branching**: ``Closed -> Open | Errored`` (one source, multiple destinations)
-    ## - **Wildcard**: ``* -> Closed`` (any state can transition to Closed)
+    ## - **Simple**: `Closed -> Open` (one source, one destination)
+    ## - **Branching**: `Closed -> Open | Errored` (one source, multiple destinations)
+    ## - **Wildcard**: `* -> Closed` (any state can transition to Closed)
     ##
-    ## :var fromState: Source state name, or "*" for wildcard
-    ## :var toStates: List of valid destination states
-    ## :var isWildcard: True if this is a wildcard transition (``* -> X``)
-    ## :var declaredAt: Source location for error messages
+    ## - `fromState`: Source state name, or "*" for wildcard
+    ## - `toStates`: List of valid destination states
+    ## - `isWildcard`: True if this is a wildcard transition (`* -> X`)
+    ## - `declaredAt`: Source location for error messages
     ##
-    ## Example::
+    ## Example:
     ##
-    ##   # This DSL:
-    ##   # Closed -> Open | Errored
-    ##   # Becomes:
-    ##   Transition(
-    ##     fromState: "Closed",
-    ##     toStates: @["Open", "Errored"],
-    ##     isWildcard: false
-    ##   )
+    ## ```nim
+    ## # This DSL:
+    ## # Closed -> Open | Errored
+    ## # Becomes:
+    ## Transition(
+    ##   fromState: "Closed",
+    ##   toStates: @["Open", "Errored"],
+    ##   isWildcard: false
+    ## )
+    ## ```
     fromState*: string
     toStates*: seq[string]
     isWildcard*: bool
@@ -57,21 +59,23 @@ type
     ## a typestate declaration. It is built by the parser from the DSL syntax
     ## and stored in the compile-time registry for later validation.
     ##
-    ## :var name: The base type name (e.g., "File" in ``typestate File:``)
-    ## :var states: Map of state names to State objects
-    ## :var transitions: List of all declared transitions
-    ## :var isSealed: If true, no extensions allowed from other modules
-    ## :var strictTransitions: If true, all procs on states must be categorized
-    ## :var declaredAt: Source location of the typestate declaration
-    ## :var declaredInModule: Module filename where typestate was declared
+    ## - `name`: The base type name (e.g., "File" in `typestate File:`)
+    ## - `states`: Map of state names to State objects
+    ## - `transitions`: List of all declared transitions
+    ## - `isSealed`: If true, no extensions allowed from other modules
+    ## - `strictTransitions`: If true, all procs on states must be categorized
+    ## - `declaredAt`: Source location of the typestate declaration
+    ## - `declaredInModule`: Module filename where typestate was declared
     ##
-    ## Example::
+    ## Example:
     ##
-    ##   typestate File:
-    ##     states Closed, Open
-    ##     transitions:
-    ##       Closed -> Open
-    ##       Open -> Closed
+    ## ```nim
+    ## typestate File:
+    ##   states Closed, Open
+    ##   transitions:
+    ##     Closed -> Open
+    ##     Open -> Closed
+    ## ```
     ##
     ## Creates a TypestateGraph with name="File", two states, and two transitions.
     name*: string
@@ -83,24 +87,26 @@ type
     declaredInModule*: string
 
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
-  ## Check if a transition from ``fromState`` to ``toState`` is valid.
+  ## Check if a transition from `fromState` to `toState` is valid.
   ##
   ## This proc checks both explicit transitions and wildcard transitions.
   ## A transition is valid if there's an explicit transition
-  ## ``fromState -> toState``, or there's a wildcard transition ``* -> toState``.
+  ## `fromState -> toState`, or there's a wildcard transition `* -> toState`.
   ##
-  ## :param graph: The typestate graph to check
-  ## :param fromState: The source state name
-  ## :param toState: The destination state name
-  ## :returns: ``true`` if the transition is allowed, ``false`` otherwise
+  ## - `graph`: The typestate graph to check
+  ## - `fromState`: The source state name
+  ## - `toState`: The destination state name
+  ## - Returns: `true` if the transition is allowed, `false` otherwise
   ##
-  ## Example::
+  ## Example:
   ##
-  ##   # Given: Closed -> Open, * -> Closed
-  ##   graph.hasTransition("Closed", "Open")   # true
-  ##   graph.hasTransition("Open", "Closed")   # true (via wildcard)
-  ##   graph.hasTransition("Closed", "Closed") # true (via wildcard)
-  ##   graph.hasTransition("Open", "Open")     # false (not declared)
+  ## ```nim
+  ## # Given: Closed -> Open, * -> Closed
+  ## graph.hasTransition("Closed", "Open")   # true
+  ## graph.hasTransition("Open", "Closed")   # true (via wildcard)
+  ## graph.hasTransition("Closed", "Closed") # true (via wildcard)
+  ## graph.hasTransition("Open", "Open")     # false (not declared)
+  ## ```
   for t in graph.transitions:
     if t.isWildcard or t.fromState == fromState:
       if toState in t.toStates:
@@ -110,18 +116,20 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
 proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
   ## Get all valid destination states from a given state.
   ##
-  ## This includes both explicit transitions from ``fromState`` and
+  ## This includes both explicit transitions from `fromState` and
   ## destinations reachable via wildcard transitions.
   ##
-  ## :param graph: The typestate graph to query
-  ## :param fromState: The source state to check transitions from
-  ## :returns: A sequence of state names that can be transitioned to
+  ## - `graph`: The typestate graph to query
+  ## - `fromState`: The source state to check transitions from
+  ## - Returns: A sequence of state names that can be transitioned to
   ##
-  ## Example::
+  ## Example:
   ##
-  ##   # Given: Closed -> Open | Errored, * -> Closed
-  ##   graph.validDestinations("Closed")  # @["Open", "Errored", "Closed"]
-  ##   graph.validDestinations("Open")    # @["Closed"]
+  ## ```nim
+  ## # Given: Closed -> Open | Errored, * -> Closed
+  ## graph.validDestinations("Closed")  # @["Open", "Errored", "Closed"]
+  ## graph.validDestinations("Open")    # @["Closed"]
+  ## ```
   result = @[]
   for t in graph.transitions:
     if t.isWildcard or t.fromState == fromState:

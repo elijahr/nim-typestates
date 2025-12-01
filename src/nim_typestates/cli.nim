@@ -1,9 +1,11 @@
 ## Command-line tool for nim-typestates.
 ##
-## Usage::
+## Usage:
 ##
-##   nim-typestates verify [paths...]
-##   nim-typestates dot [paths...]
+## ```nim
+## nim-typestates verify [paths...]
+## nim-typestates dot [paths...]
+## ```
 ##
 ## Parses source files and verifies typestate rules or generates DOT output.
 
@@ -13,9 +15,9 @@ type
   ParsedTransition* = object
     ## A transition parsed from source code.
     ##
-    ## :var fromState: Source state name, or "*" for wildcard
-    ## :var toStates: List of destination state names
-    ## :var isWildcard: True if this is a wildcard transition
+    ## - `fromState`: Source state name, or "*" for wildcard
+    ## - `toStates`: List of destination state names
+    ## - `isWildcard`: True if this is a wildcard transition
     fromState*: string
     toStates*: seq[string]
     isWildcard*: bool
@@ -23,11 +25,11 @@ type
   ParsedTypestate* = object
     ## A typestate definition parsed from source code.
     ##
-    ## :var name: The typestate name (e.g., "File")
-    ## :var states: List of state type names
-    ## :var transitions: List of parsed transitions
-    ## :var isSealed: Whether the typestate is sealed
-    ## :var strictTransitions: Whether strict mode is enabled
+    ## - `name`: The typestate name (e.g., "File")
+    ## - `states`: List of state type names
+    ## - `transitions`: List of parsed transitions
+    ## - `isSealed`: Whether the typestate is sealed
+    ## - `strictTransitions`: Whether strict mode is enabled
     name*: string
     states*: seq[string]
     transitions*: seq[ParsedTransition]
@@ -37,10 +39,10 @@ type
   VerifyResult* = object
     ## Results from verifying source files.
     ##
-    ## :var errors: List of error messages
-    ## :var warnings: List of warning messages
-    ## :var transitionsChecked: Count of transitions validated
-    ## :var filesChecked: Count of files processed
+    ## - `errors`: List of error messages
+    ## - `warnings`: List of warning messages
+    ## - `transitionsChecked`: Count of transitions validated
+    ## - `filesChecked`: Count of files processed
     errors*: seq[string]
     warnings*: seq[string]
     transitionsChecked*: int
@@ -49,16 +51,16 @@ type
   ParseResult* = object
     ## Results from parsing source files for typestates.
     ##
-    ## :var typestates: List of parsed typestate definitions
-    ## :var filesChecked: Count of files processed
+    ## - `typestates`: List of parsed typestate definitions
+    ## - `filesChecked`: Count of files processed
     typestates*: seq[ParsedTypestate]
     filesChecked*: int
 
 proc parseTypestatesFromFile(path: string): ParseResult =
   ## Parse a Nim file and extract typestate definitions.
   ##
-  ## :param path: Path to the Nim source file
-  ## :returns: Parsed typestates and file count
+  ## - `path`: Path to the Nim source file
+  ## - Returns: Parsed typestates and file count
   result = ParseResult()
   result.filesChecked = 1
 
@@ -136,8 +138,8 @@ proc parseTypestatesFromFile(path: string): ParseResult =
 proc parseTypestates*(paths: seq[string]): ParseResult =
   ## Parse all Nim files in the given paths for typestates.
   ##
-  ## :param paths: List of file or directory paths to scan
-  ## :returns: All parsed typestates and total file count
+  ## - `paths`: List of file or directory paths to scan
+  ## - Returns: All parsed typestates and total file count
   result = ParseResult()
 
   for path in paths:
@@ -156,23 +158,25 @@ proc generateDot*(ts: ParsedTypestate): string =
   ## Generate GraphViz DOT output for a typestate.
   ##
   ## Creates a directed graph representation suitable for rendering
-  ## with ``dot``, ``neato``, or other GraphViz tools.
+  ## with `dot`, `neato`, or other GraphViz tools.
   ##
-  ## :param ts: The parsed typestate to visualize
-  ## :returns: DOT format string
+  ## - `ts`: The parsed typestate to visualize
+  ## - Returns: DOT format string
   ##
-  ## Example output::
+  ## Example output:
   ##
-  ##   digraph File {
-  ##     rankdir=LR;
-  ##     node [shape=box];
+  ## ```
+  ## digraph File {
+  ##   rankdir=LR;
+  ##   node [shape=box];
   ##
-  ##     Closed;
-  ##     Open;
+  ##   Closed;
+  ##   Open;
   ##
-  ##     Closed -> Open;
-  ##     Open -> Closed;
-  ##   }
+  ##   Closed -> Open;
+  ##   Open -> Closed;
+  ## }
+  ## ```
   var lines: seq[string] = @[]
 
   lines.add "digraph " & ts.name & " {"
@@ -203,10 +207,10 @@ proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
                 typestateStrict: Table[string, bool]): VerifyResult =
   ## Verify procs in a file against known typestates.
   ##
-  ## :param path: Path to the Nim source file
-  ## :param typestateStates: Map of typestate name to state names
-  ## :param typestateStrict: Map of typestate name to strictTransitions flag
-  ## :returns: Verification results with errors and warnings
+  ## - `path`: Path to the Nim source file
+  ## - `typestateStates`: Map of typestate name to state names
+  ## - `typestateStrict`: Map of typestate name to strictTransitions flag
+  ## - Returns: Verification results with errors and warnings
   result = VerifyResult()
   result.filesChecked = 1
 
@@ -243,10 +247,10 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## Verify all Nim files in the given paths.
   ##
   ## Checks that all procs operating on state types are properly marked
-  ## with ``{.transition.}`` or ``{.notATransition.}``.
+  ## with `{.transition.}` or `{.notATransition.}`.
   ##
-  ## :param paths: List of file or directory paths to verify
-  ## :returns: Verification results with errors, warnings, and counts
+  ## - `paths`: List of file or directory paths to verify
+  ## - Returns: Verification results with errors, warnings, and counts
   result = VerifyResult()
 
   # First pass: collect all typestates
