@@ -128,8 +128,27 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
     let stateIdent = ident(stateName)
     let fieldName = ident("fs" & stateName)
 
-    let procDef = quote do:
-      proc state*(f: `stateIdent`): `enumName` = `fieldName`
+    # Build proc with doc comment manually since quote doesn't support ##
+    let docComment = newCommentStmtNode(
+      "Runtime state inspection for " & stateName & ".\n" &
+      "Returns the enum value for pattern matching in case expressions."
+    )
+    let procDef = nnkProcDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident("state")),
+      newEmptyNode(),
+      newEmptyNode(),
+      nnkFormalParams.newTree(
+        enumName,
+        nnkIdentDefs.newTree(
+          ident("f"),
+          stateIdent,
+          newEmptyNode()
+        )
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      nnkStmtList.newTree(docComment, fieldName)
+    )
 
     result.add procDef
 

@@ -19,6 +19,8 @@ bin/
 src/*
 ## Ignore compiled files in tests
 tests/*
+## Ignore compiled files in examples
+examples/*
 
 # Unignore source files
 ## Unignore directories in src
@@ -29,6 +31,10 @@ tests/*
 !tests/**/
 ## Unignore Nim source files in tests
 !tests/**/*.nim
+## Unignore directories in examples
+!examples/**/
+## Unignore Nim source files in examples
+!examples/**/*.nim
 
 # Python
 .venv/

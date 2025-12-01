@@ -29,6 +29,10 @@ verifyTypestates()  # Validates everything above
 
 The library installs a `nim-typestates` binary for project-wide verification and visualization.
 
+The CLI uses Nim's AST parser for accurate extraction of typestate definitions, correctly handling comments, whitespace, and complex syntax.
+
+**Important:** Files must be valid Nim syntax. Syntax errors cause verification to fail immediately with a clear error message. This is intentional - a verification tool should not silently skip files it cannot parse.
+
 ### Verify
 
 Check that all procs on state types are properly marked:
@@ -77,10 +81,26 @@ nimble verify
 
 ### Output
 
+Successful verification:
+
+```
+Checked 15 files, 42 transitions
+
+All checks passed!
+```
+
+Errors found:
+
 ```
 Checked 15 files, 42 transitions
 WARNING: src/legacy.nim:45 - Unmarked proc on state 'Open'
 ERROR: src/user.nim:23 - Unmarked proc on sealed state 'Payment'
 
 1 error(s) found
+```
+
+Syntax errors:
+
+```
+ERROR: Parse error in src/broken.nim: invalid indentation
 ```

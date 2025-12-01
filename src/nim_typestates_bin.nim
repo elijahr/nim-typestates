@@ -1,7 +1,7 @@
 ## Binary entry point for nim-typestates CLI.
 ## Installed as `nim-typestates` command.
 
-import std/[os, parseopt, strutils]
+import std/[os, strutils]
 import nim_typestates/cli
 
 proc showHelp() =
@@ -19,6 +19,11 @@ proc showHelp() =
   echo "  nim-typestates verify src/"
   echo "  nim-typestates dot src/ > typestates.dot"
   echo "  nim-typestates dot src/ | dot -Tpng -o typestates.png"
+  echo ""
+  echo "Notes:"
+  echo "  Files must be valid Nim syntax. Syntax errors cause verification"
+  echo "  to fail with a clear error message. Uses Nim's AST parser for"
+  echo "  accurate extraction of typestate definitions."
 
 proc showVersion() =
   echo "nim-typestates 0.1.0"
@@ -46,35 +51,43 @@ when isMainModule:
     quit(0)
 
   of "verify":
-    let result = verify(paths)
+    try:
+      let result = verify(paths)
 
-    echo "Checked ", result.filesChecked, " files, ", result.transitionsChecked, " transitions"
+      echo "Checked ", result.filesChecked, " files, ", result.transitionsChecked, " transitions"
 
-    for warning in result.warnings:
-      echo "WARNING: ", warning
+      for warning in result.warnings:
+        echo "WARNING: ", warning
 
-    for error in result.errors:
-      echo "ERROR: ", error
+      for error in result.errors:
+        echo "ERROR: ", error
 
-    if result.errors.len > 0:
-      echo "\n", result.errors.len, " error(s) found"
+      if result.errors.len > 0:
+        echo "\n", result.errors.len, " error(s) found"
+        quit(1)
+      else:
+        echo "\nAll checks passed!"
+        quit(0)
+    except ParseError as e:
+      echo "ERROR: ", e.msg
       quit(1)
-    else:
-      echo "\nAll checks passed!"
-      quit(0)
 
   of "dot":
-    let parseResult = parseTypestates(paths)
+    try:
+      let parseResult = parseTypestates(paths)
 
-    if parseResult.typestates.len == 0:
-      echo "No typestates found in ", paths.join(", ")
+      if parseResult.typestates.len == 0:
+        echo "No typestates found in ", paths.join(", ")
+        quit(1)
+
+      for ts in parseResult.typestates:
+        echo generateDot(ts)
+        echo ""
+
+      quit(0)
+    except ParseError as e:
+      echo "ERROR: ", e.msg
       quit(1)
-
-    for ts in parseResult.typestates:
-      echo generateDot(ts)
-      echo ""
-
-    quit(0)
 
   else:
     echo "Unknown command: ", command

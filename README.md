@@ -103,6 +103,7 @@ proc write(f: Open, data: string) {.notATransition.} =
 - **Compile-time validation** — Invalid transitions fail to compile
 - **Branching transitions** — `Open -> Closed | Error`
 - **Wildcard transitions** — `* -> Closed` (any state can transition)
+- **Self-transitions** — `Open -> Open` for state-preserving operations
 - **Strict mode** — All procs on states must be explicitly marked
 - **Sealed typestates** — External modules can only add read-only operations
 - **CLI tool** — Project-wide verification and GraphViz export

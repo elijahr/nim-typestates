@@ -7,35 +7,19 @@
 ## nim-typestates dot [paths...]
 ## ```
 ##
-## Parses source files and verifies typestate rules or generates DOT output.
+## Parses source files using Nim's AST parser and verifies typestate rules
+## or generates DOT output.
+##
+## **Note:** Files must be valid Nim syntax. Parse errors cause verification
+## to fail loudly with a clear error message.
 
-import std/[os, strutils, sequtils, tables, strformat]
+import std/[os, strutils, tables, strformat]
+import ast_parser
+
+# Re-export types from ast_parser for API compatibility
+export ParsedTransition, ParsedTypestate, ParseResult, ParseError
 
 type
-  ParsedTransition* = object
-    ## A transition parsed from source code.
-    ##
-    ## - `fromState`: Source state name, or "*" for wildcard
-    ## - `toStates`: List of destination state names
-    ## - `isWildcard`: True if this is a wildcard transition
-    fromState*: string
-    toStates*: seq[string]
-    isWildcard*: bool
-
-  ParsedTypestate* = object
-    ## A typestate definition parsed from source code.
-    ##
-    ## - `name`: The typestate name (e.g., "File")
-    ## - `states`: List of state type names
-    ## - `transitions`: List of parsed transitions
-    ## - `isSealed`: Whether the typestate is sealed
-    ## - `strictTransitions`: Whether strict mode is enabled
-    name*: string
-    states*: seq[string]
-    transitions*: seq[ParsedTransition]
-    isSealed*: bool
-    strictTransitions*: bool
-
   VerifyResult* = object
     ## Results from verifying source files.
     ##
@@ -48,111 +32,16 @@ type
     transitionsChecked*: int
     filesChecked*: int
 
-  ParseResult* = object
-    ## Results from parsing source files for typestates.
-    ##
-    ## - `typestates`: List of parsed typestate definitions
-    ## - `filesChecked`: Count of files processed
-    typestates*: seq[ParsedTypestate]
-    filesChecked*: int
-
-proc parseTypestatesFromFile(path: string): ParseResult =
-  ## Parse a Nim file and extract typestate definitions.
-  ##
-  ## - `path`: Path to the Nim source file
-  ## - Returns: Parsed typestates and file count
-  result = ParseResult()
-  result.filesChecked = 1
-
-  if not fileExists(path):
-    return
-
-  let content = readFile(path)
-  let lines = content.splitLines()
-
-  var inTypestateBlock = false
-  var inTransitionsBlock = false
-  var currentTypestate: ParsedTypestate
-  var blockIndent = 0
-
-  for line in lines:
-    let trimmed = line.strip()
-
-    # Detect typestate block start
-    if trimmed.startsWith("typestate "):
-      inTypestateBlock = true
-      inTransitionsBlock = false
-      currentTypestate = ParsedTypestate(
-        name: trimmed.split(" ")[1].replace(":", ""),
-        states: @[],
-        transitions: @[],
-        isSealed: true,
-        strictTransitions: true
-      )
-      blockIndent = line.len - line.strip(trailing = false).len
-
-    # Detect states declaration
-    if inTypestateBlock and trimmed.startsWith("states "):
-      let statesPart = trimmed.replace("states ", "")
-      currentTypestate.states = statesPart.split(",").mapIt(it.strip())
-
-    # Detect transitions block
-    if inTypestateBlock and trimmed == "transitions:":
-      inTransitionsBlock = true
-      continue
-
-    # Parse transition lines
-    if inTransitionsBlock and "->" in trimmed:
-      let parts = trimmed.split("->")
-      if parts.len == 2:
-        let fromPart = parts[0].strip()
-        let toPart = parts[1].strip()
-        let toStates = toPart.split("|").mapIt(it.strip())
-        currentTypestate.transitions.add ParsedTransition(
-          fromState: fromPart,
-          toStates: toStates,
-          isWildcard: fromPart == "*"
-        )
-
-    # Detect flags
-    if inTypestateBlock and "isSealed = false" in trimmed:
-      currentTypestate.isSealed = false
-    if inTypestateBlock and "strictTransitions = false" in trimmed:
-      currentTypestate.strictTransitions = false
-
-    # Detect end of typestate block (next top-level declaration)
-    if inTypestateBlock and trimmed.len > 0:
-      let currentIndent = line.len - line.strip(trailing = false).len
-      if currentIndent <= blockIndent and not trimmed.startsWith("typestate"):
-        if trimmed.startsWith("proc ") or trimmed.startsWith("func ") or
-           trimmed.startsWith("type ") or trimmed.startsWith("import "):
-          inTypestateBlock = false
-          inTransitionsBlock = false
-          if currentTypestate.states.len > 0:
-            result.typestates.add currentTypestate
-
-  # Don't forget the last typestate if file ends
-  if inTypestateBlock and currentTypestate.states.len > 0:
-    result.typestates.add currentTypestate
-
 proc parseTypestates*(paths: seq[string]): ParseResult =
   ## Parse all Nim files in the given paths for typestates.
   ##
+  ## Uses Nim's AST parser for accurate extraction. Fails loudly on
+  ## files with syntax errors.
+  ##
   ## - `paths`: List of file or directory paths to scan
   ## - Returns: All parsed typestates and total file count
-  result = ParseResult()
-
-  for path in paths:
-    if path.endsWith(".nim"):
-      let fileResult = parseTypestatesFromFile(path)
-      result.typestates.add fileResult.typestates
-      result.filesChecked += fileResult.filesChecked
-    elif dirExists(path):
-      for file in walkDirRec(path):
-        if file.endsWith(".nim"):
-          let fileResult = parseTypestatesFromFile(file)
-          result.typestates.add fileResult.typestates
-          result.filesChecked += fileResult.filesChecked
+  ## - Raises: ParseError on syntax errors
+  result = parseTypestatesAst(paths)
 
 proc generateDot*(ts: ParsedTypestate): string =
   ## Generate GraphViz DOT output for a typestate.
@@ -246,14 +135,19 @@ proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
 proc verify*(paths: seq[string]): VerifyResult =
   ## Verify all Nim files in the given paths.
   ##
-  ## Checks that all procs operating on state types are properly marked
-  ## with `{.transition.}` or `{.notATransition.}`.
+  ## Uses Nim's AST parser to extract typestates, then checks that all
+  ## procs operating on state types are properly marked with
+  ## `{.transition.}` or `{.notATransition.}`.
+  ##
+  ## **Note:** Files with syntax errors cause verification to fail
+  ## immediately with a clear error message.
   ##
   ## - `paths`: List of file or directory paths to verify
   ## - Returns: Verification results with errors, warnings, and counts
+  ## - Raises: ParseError on syntax errors
   result = VerifyResult()
 
-  # First pass: collect all typestates
+  # First pass: collect all typestates using AST parser
   let parseResult = parseTypestates(paths)
   var typestateStates: Table[string, seq[string]]
   var typestateStrict: Table[string, bool]

@@ -86,6 +86,19 @@ type
     declaredAt*: LineInfo
     declaredInModule*: string
 
+proc `==`*(a, b: Transition): bool =
+  ## Compare two transitions for equality.
+  ##
+  ## Two transitions are equal if they have the same source state,
+  ## destination states, and wildcard status. The declaration location
+  ## is not considered for equality.
+  ##
+  ## - `a`, `b`: Transitions to compare
+  ## - Returns: `true` if transitions are semantically equivalent
+  a.fromState == b.fromState and
+    a.toStates == b.toStates and
+    a.isWildcard == b.isWildcard
+
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Check if a transition from `fromState` to `toState` is valid.
   ##
