@@ -523,6 +523,179 @@ let doc = Draft(Document(title: "Q4 Strategy"))
 
 ---
 
+## Generic Patterns
+
+The following examples show reusable typestate patterns using generics. See [Generic Typestates](generics.md) for more on generic support.
+
+### Resource[T] Pattern
+
+A reusable pattern for any resource requiring acquire/release semantics. Works with file handles, locks, connections, memory allocations, or any RAII-style resource.
+
+```nim
+import nim_typestates
+
+type
+  Resource[T] = object
+    handle: T
+    name: string
+
+  Released[T] = distinct Resource[T]
+  Acquired[T] = distinct Resource[T]
+
+typestate Resource[T]:
+  states Released[T], Acquired[T]
+  transitions:
+    Released[T] -> Acquired[T]
+    Acquired[T] -> Released[T]
+
+proc acquire[T](r: Released[T], handle: T): Acquired[T] {.transition.} =
+  var res = Resource[T](r)
+  res.handle = handle
+  result = Acquired[T](res)
+
+proc release[T](r: Acquired[T]): Released[T] {.transition.} =
+  result = Released[T](Resource[T](r))
+
+proc use[T](r: Acquired[T]): T {.notATransition.} =
+  Resource[T](r).handle
+```
+
+Use with any resource type:
+
+```nim
+# File handles
+type FileHandle = object
+  fd: int
+  path: string
+
+var file = Released[FileHandle](Resource[FileHandle](name: "config"))
+let acquired = file.acquire(FileHandle(fd: 42, path: "/etc/config"))
+echo acquired.use().path  # OK
+let released = acquired.release()
+# released.use()  # COMPILE ERROR: can't use released resource
+
+# Database connections
+type DbConn = object
+  connString: string
+
+var db = Released[DbConn](Resource[DbConn](name: "postgres"))
+let conn = db.acquire(DbConn(connString: "postgresql://localhost/mydb"))
+# ...use connection...
+discard conn.release()
+
+# Locks
+type Lock = object
+  id: int
+
+var mutex = Released[Lock](Resource[Lock](name: "mutex"))
+let locked = mutex.acquire(Lock(id: 1))
+# ...critical section...
+discard locked.release()
+```
+
+**Pattern benefits:**
+
+- Compile-time prevention of use-after-release
+- Works with any resource type
+- Enforces acquire-before-use
+- Clean RAII semantics
+
+---
+
+### Pipeline[T] Pattern
+
+A reusable pattern for entities that progress through a fixed sequence of stages. Works for orders, documents, builds, deployments, or any linear workflow.
+
+```nim
+import nim_typestates
+
+type
+  Pipeline[T] = object
+    entity: T
+
+  Stage1[T] = distinct Pipeline[T]
+  Stage2[T] = distinct Pipeline[T]
+  Stage3[T] = distinct Pipeline[T]
+  Stage4[T] = distinct Pipeline[T]
+
+typestate Pipeline[T]:
+  states Stage1[T], Stage2[T], Stage3[T], Stage4[T]
+  transitions:
+    Stage1[T] -> Stage2[T]
+    Stage2[T] -> Stage3[T]
+    Stage3[T] -> Stage4[T]
+
+proc start[T](entity: T): Stage1[T] =
+  Stage1[T](Pipeline[T](entity: entity))
+
+proc advance12[T](p: Stage1[T]): Stage2[T] {.transition.} =
+  Stage2[T](Pipeline[T](p))
+
+proc advance23[T](p: Stage2[T]): Stage3[T] {.transition.} =
+  Stage3[T](Pipeline[T](p))
+
+proc advance34[T](p: Stage3[T]): Stage4[T] {.transition.} =
+  Stage4[T](Pipeline[T](p))
+
+proc entity[T](p: Stage1[T]): T {.notATransition.} = Pipeline[T](p).entity
+proc entity[T](p: Stage2[T]): T {.notATransition.} = Pipeline[T](p).entity
+proc entity[T](p: Stage3[T]): T {.notATransition.} = Pipeline[T](p).entity
+proc entity[T](p: Stage4[T]): T {.notATransition.} = Pipeline[T](p).entity
+```
+
+Apply to different domains with semantic aliases:
+
+```nim
+# Order fulfillment
+type Order = object
+  id: string
+  items: seq[string]
+
+type
+  OrderCart = Stage1[Order]      # Cart
+  OrderPaid = Stage2[Order]      # Paid
+  OrderShipped = Stage3[Order]   # Shipped
+  OrderDelivered = Stage4[Order] # Delivered
+
+let order = start(Order(id: "ORD-001"))
+let paid = order.advance12()      # Cart -> Paid
+let shipped = paid.advance23()    # Paid -> Shipped
+let delivered = shipped.advance34() # Shipped -> Delivered
+
+# order.advance23()  # COMPILE ERROR: can't skip Paid stage
+
+# CI/CD builds
+type Build = object
+  repo: string
+  commit: string
+
+type
+  BuildQueued = Stage1[Build]
+  BuildCompiling = Stage2[Build]
+  BuildTesting = Stage3[Build]
+  BuildDeployed = Stage4[Build]
+
+# Document review
+type Document = object
+  title: string
+  content: string
+
+type
+  DocDraft = Stage1[Document]
+  DocInReview = Stage2[Document]
+  DocApproved = Stage3[Document]
+  DocPublished = Stage4[Document]
+```
+
+**Pattern benefits:**
+
+- Enforces stage ordering at compile time
+- Prevents skipping stages
+- Single definition works for any entity type
+- Domain-specific naming via type aliases
+
+---
+
 ## Tips for Designing Typestates
 
 ### 1. Start with the State Diagram
