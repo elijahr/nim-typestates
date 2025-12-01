@@ -6,19 +6,54 @@
 ## These types are primarily used internally by the `typestate` macro and
 ## `{.transition.}` pragma. Most users won't interact with them directly.
 
-import std/[macros, tables]
+import std/[macros, tables, strutils]
+
+proc extractBaseName*(stateRepr: string): string =
+  ## Extract the base type name from a state repr string.
+  ##
+  ## Used for comparing state names when generic parameters may differ:
+  ##
+  ## - `"Empty"` -> `"Empty"`
+  ## - `"Empty[T]"` -> `"Empty"`
+  ## - `"Container[K, V]"` -> `"Container"`
+  ## - `"ref Closed"` -> `"Closed"`
+  ##
+  ## - `stateRepr`: Full state repr string
+  ## - Returns: Base name without generic parameters
+  result = stateRepr
+  # Strip ref/ptr prefix
+  if result.startsWith("ref "):
+    result = result[4..^1]
+  elif result.startsWith("ptr "):
+    result = result[4..^1]
+  # Strip generic parameters
+  let bracketPos = result.find('[')
+  if bracketPos >= 0:
+    result = result[0..<bracketPos]
+  # Strip module qualification
+  let dotPos = result.rfind('.')
+  if dotPos >= 0:
+    result = result[dotPos+1..^1]
+  result = result.strip()
 
 type
   State* = object
     ## Represents a single state in a typestate machine.
     ##
     ## Each state corresponds to a distinct type that the user defines.
-    ## For example, in a file typestate, `Closed` and `Open` would each
-    ## be represented by a `State` object.
+    ## States can be simple identifiers or generic types.
     ##
-    ## - `name`: The string name of the state (e.g., "Closed", "Open")
-    ## - `typeName`: The AST node representing the type identifier
+    ## - `name`: Base name for lookup (e.g., "Closed", "Container")
+    ## - `fullRepr`: Full type representation (e.g., "Closed", "Container[T]")
+    ## - `typeName`: The raw AST node for code generation
+    ##
+    ## Examples:
+    ##
+    ## - Simple: `name="Closed"`, `fullRepr="Closed"`
+    ## - Generic: `name="Container"`, `fullRepr="Container[T]"`
+    ## - Ref type: `name="Closed"`, `fullRepr="ref Closed"`
     name*: string
+    fullRepr*: string
     typeName*: NimNode
 
   Transition* = object
@@ -106,9 +141,12 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## A transition is valid if there's an explicit transition
   ## `fromState -> toState`, or there's a wildcard transition `* -> toState`.
   ##
+  ## Comparisons use base names to support generic types:
+  ## - `hasTransition(g, "Empty", "Full")` matches `Empty[T] -> Full[T]`
+  ##
   ## - `graph`: The typestate graph to check
-  ## - `fromState`: The source state name
-  ## - `toState`: The destination state name
+  ## - `fromState`: The source state name (base name or full repr)
+  ## - `toState`: The destination state name (base name or full repr)
   ## - Returns: `true` if the transition is allowed, `false` otherwise
   ##
   ## Example:
@@ -120,10 +158,14 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## graph.hasTransition("Closed", "Closed") # true (via wildcard)
   ## graph.hasTransition("Open", "Open")     # false (not declared)
   ## ```
+  let fromBase = extractBaseName(fromState)
+  let toBase = extractBaseName(toState)
   for t in graph.transitions:
-    if t.isWildcard or t.fromState == fromState:
-      if toState in t.toStates:
-        return true
+    let tFromBase = extractBaseName(t.fromState)
+    if t.isWildcard or tFromBase == fromBase:
+      for dest in t.toStates:
+        if extractBaseName(dest) == toBase:
+          return true
   return false
 
 proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
@@ -132,9 +174,12 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
   ## This includes both explicit transitions from `fromState` and
   ## destinations reachable via wildcard transitions.
   ##
+  ## Comparisons use base names to support generic types.
+  ## Returns base names for clearer error messages.
+  ##
   ## - `graph`: The typestate graph to query
   ## - `fromState`: The source state to check transitions from
-  ## - Returns: A sequence of state names that can be transitioned to
+  ## - Returns: A sequence of state base names that can be transitioned to
   ##
   ## Example:
   ##
@@ -144,8 +189,11 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
   ## graph.validDestinations("Open")    # @["Closed"]
   ## ```
   result = @[]
+  let fromBase = extractBaseName(fromState)
   for t in graph.transitions:
-    if t.isWildcard or t.fromState == fromState:
+    let tFromBase = extractBaseName(t.fromState)
+    if t.isWildcard or tFromBase == fromBase:
       for dest in t.toStates:
-        if dest notin result:
-          result.add dest
+        let destBase = extractBaseName(dest)
+        if destBase notin result:
+          result.add destBase

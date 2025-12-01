@@ -6,7 +6,7 @@
 ##
 ## This is a compile-fail test.
 
-import nim_typestates
+import ../src/nim_typestates
 
 type
   File = object

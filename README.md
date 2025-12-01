@@ -101,6 +101,7 @@ proc write(f: Open, data: string) {.notATransition.} =
 ## Features
 
 - **Compile-time validation** — Invalid transitions fail to compile
+- **Generic types** — `Container[T]` with states like `Empty[T]`, `Full[T]`
 - **Branching transitions** — `Open -> Closed | Error`
 - **Wildcard transitions** — `* -> Closed` (any state can transition)
 - **Self-transitions** — `Open -> Open` for state-preserving operations
@@ -127,6 +128,7 @@ nim-typestates dot src/ | dot -Tpng -o states.png
 
 - [Getting Started](https://elijahr.github.io/nim-typestates/guide/getting-started/)
 - [DSL Reference](https://elijahr.github.io/nim-typestates/guide/dsl-reference/)
+- [Generic Typestates](https://elijahr.github.io/nim-typestates/guide/generics/)
 - [Examples](https://elijahr.github.io/nim-typestates/guide/examples/)
 - [API Reference](https://elijahr.github.io/nim-typestates/api/)
 

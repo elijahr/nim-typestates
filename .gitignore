@@ -19,8 +19,10 @@ bin/
 src/*
 ## Ignore compiled files in tests
 tests/*
+tests/**/*
 ## Ignore compiled files in examples
 examples/*
+examples/**/*
 
 # Unignore source files
 ## Unignore directories in src

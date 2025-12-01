@@ -91,7 +91,10 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## specified state. Used by the `{.transition.}` pragma to determine
   ## which typestate graph to validate against.
   ##
-  ## - `stateName`: The state type name (e.g., "Closed", "Open")
+  ## Lookups use base names to support generic types:
+  ## - `findTypestateForState("Empty")` finds `typestate Container` with `Empty[T]`
+  ##
+  ## - `stateName`: The state type name (base name, e.g., "Closed", "Empty")
   ## - Returns: `some(graph)` if found, `none` if state is not in any typestate
   ##
   ## Example:
@@ -100,8 +103,13 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## # If File typestate has states Closed, Open:
   ## findTypestateForState("Closed")  # some(FileGraph)
   ## findTypestateForState("Unknown") # none
+  ##
+  ## # If Container typestate has states Empty[T], Full[T]:
+  ## findTypestateForState("Empty")   # some(ContainerGraph)
   ## ```
+  let searchBase = extractBaseName(stateName)
   for name, graph in typestateRegistry:
-    if stateName in graph.states:
-      return some(graph)
+    for stateKey, state in graph.states:
+      if state.name == searchBase:
+        return some(graph)
   return none(TypestateGraph)

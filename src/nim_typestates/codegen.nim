@@ -23,16 +23,23 @@ proc generateStateEnum*(graph: TypestateGraph): NimNode =
   ##   fsClosed, fsOpen, fsErrored
   ## ```
   ##
-  ## The enum values are prefixed with `fs` to avoid naming conflicts.
+  ## For generic typestates like `Container[T]` with states `Empty[T]`, `Full[T]`:
+  ##
+  ## ```nim
+  ## type ContainerState* = enum
+  ##   fsEmpty, fsFull
+  ## ```
+  ##
+  ## The enum values use base names (without type params) prefixed with `fs`.
   ##
   ## - `graph`: The typestate graph to generate from
   ## - Returns: AST for the enum type definition
   let enumName = ident(graph.name & "State")
 
   var enumFields = nnkEnumTy.newTree(newEmptyNode())
-  for stateName in graph.states.keys:
-    # Convert "Closed" to "fsClosed"
-    let fieldName = ident("fs" & stateName)
+  for state in graph.states.values:
+    # Use base name: "Empty" from "Empty[T]"
+    let fieldName = ident("fs" & state.name)
     enumFields.add fieldName
 
   result = nnkTypeSection.newTree(
@@ -53,41 +60,39 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   ## type FileStates* = Closed | Open | Errored
   ## ```
   ##
-  ## This union type is useful for procs that can accept any state,
-  ## such as a generic `close` proc.
+  ## For generic typestates like `Container[T]`:
+  ##
+  ## ```nim
+  ## type ContainerStates* = Empty[T] | Full[T]
+  ## ```
+  ##
+  ## This union type is useful for procs that can accept any state.
   ##
   ## - `graph`: The typestate graph to generate from
   ## - Returns: AST for the union type definition
-  ##
-  ## Example usage:
-  ##
-  ## ```nim
-  ## proc forceClose[S: FileStates](f: S): Closed =
-  ##   # Works with any state
-  ##   result = Closed(f.File)
-  ## ```
   let unionName = ident(graph.name & "States")
 
-  var stateNames = toSeq(graph.states.keys)
+  var states = toSeq(graph.states.values)
 
-  if stateNames.len == 0:
+  if states.len == 0:
     error("Typestate has no states")
 
   var unionType: NimNode
-  if stateNames.len == 1:
-    unionType = ident(stateNames[0])
+  if states.len == 1:
+    # Use the stored AST node directly
+    unionType = states[0].typeName.copyNimTree
   else:
-    # Build: State1 | State2 | State3
+    # Build: State1 | State2 | State3 using stored AST nodes
     unionType = nnkInfix.newTree(
       ident("|"),
-      ident(stateNames[0]),
-      ident(stateNames[1])
+      states[0].typeName.copyNimTree,
+      states[1].typeName.copyNimTree
     )
-    for i in 2 ..< stateNames.len:
+    for i in 2 ..< states.len:
       unionType = nnkInfix.newTree(
         ident("|"),
         unionType,
-        ident(stateNames[i])
+        states[i].typeName.copyNimTree
       )
 
   result = nnkTypeSection.newTree(
@@ -106,16 +111,13 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
   ## ```nim
   ## proc state*(f: Closed): FileState = fsClosed
   ## proc state*(f: Open): FileState = fsOpen
-  ## proc state*(f: Errored): FileState = fsErrored
   ## ```
   ##
-  ## This enables runtime state checking when needed:
+  ## For generic types:
   ##
   ## ```nim
-  ## case someState.state
-  ## of fsClosed: echo "File is closed"
-  ## of fsOpen: echo "File is open"
-  ## of fsErrored: echo "File has error"
+  ## proc state*[T](f: Empty[T]): ContainerState = fsEmpty
+  ## proc state*[T](f: Full[T]): ContainerState = fsFull
   ## ```
   ##
   ## - `graph`: The typestate graph to generate from
@@ -124,13 +126,15 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
 
   let enumName = ident(graph.name & "State")
 
-  for stateName in graph.states.keys:
-    let stateIdent = ident(stateName)
-    let fieldName = ident("fs" & stateName)
+  for state in graph.states.values:
+    # Use base name for enum field: "fsEmpty" from "Empty[T]"
+    let fieldName = ident("fs" & state.name)
+    # Use stored AST node for parameter type
+    let stateType = state.typeName.copyNimTree
 
-    # Build proc with doc comment manually since quote doesn't support ##
+    # Build proc with doc comment
     let docComment = newCommentStmtNode(
-      "Runtime state inspection for " & stateName & ".\n" &
+      "Runtime state inspection for " & state.name & ".\n" &
       "Returns the enum value for pattern matching in case expressions."
     )
     let procDef = nnkProcDef.newTree(
@@ -141,7 +145,7 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
         enumName,
         nnkIdentDefs.newTree(
           ident("f"),
-          stateIdent,
+          stateType,
           newEmptyNode()
         )
       ),
@@ -151,6 +155,13 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
     )
 
     result.add procDef
+
+proc hasGenericStates*(graph: TypestateGraph): bool =
+  ## Check if any states use generic type parameters.
+  for state in graph.states.values:
+    if state.typeName.kind == nnkBracketExpr:
+      return true
+  return false
 
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
@@ -162,9 +173,19 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 2. Union type (`FileStates`)
   ## 3. State procs (`state()` for each state)
   ##
+  ## **Note:** For generic typestates like `Container[T]`, helper generation
+  ## is currently skipped because the generated types would need to be
+  ## parameterized. The core typestate validation still works.
+  ##
   ## - `graph`: The typestate graph to generate from
   ## - Returns: AST containing all generated definitions
   result = newStmtList()
+
+  # Skip helper generation for generic typestates (for now)
+  # The type parameters aren't in scope for the generated code
+  if graph.hasGenericStates:
+    return
+
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)
   result.add generateStateProcs(graph)
