@@ -1,6 +1,6 @@
 ## Comprehensive integration test for all features
 
-import ../src/nim_typestates
+import ../src/typestates
 
 # Full-featured typestate with all defaults
 type

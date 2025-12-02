@@ -1,7 +1,7 @@
 ## Tests for the AST-based typestate parser.
 
 import std/unittest
-import ../src/nim_typestates/ast_parser
+import ../src/typestates/ast_parser
 
 suite "AST Parser":
   test "parse basic typestate":

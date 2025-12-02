@@ -7,72 +7,14 @@
 ## This approach is known as *correctness by construction*: invalid states
 ## become unrepresentable rather than checked at runtime.
 ##
-## ## Quick Start
+## **Exports:**
 ##
-## ```nim
-## import nim_typestates
-##
-## # 1. Define your base type and state types
-## type
-##   File = object
-##     path: string
-##     handle: int
-##   Closed = distinct File
-##   Open = distinct File
-##
-## # 2. Declare the typestate
-## typestate File:
-##   states Closed, Open
-##   transitions:
-##     Closed -> Open
-##     Open -> Closed
-##
-## # 3. Implement transitions with validation
-## proc open(f: Closed, path: string): Open {.transition.} =
-##   result = Open(f)
-##   result.File.handle = rawOpen(path)
-##
-## proc close(f: Open): Closed {.transition.} =
-##   rawClose(f.File.handle)
-##   result = Closed(f)
-##
-## # 4. Use it - the compiler enforces valid transitions!
-## var f = Closed(File(path: "/tmp/test"))
-## let opened = f.open("/tmp/test")
-## let closed = opened.close()
-## # opened.open(...)  # Won't compile - Open can't transition to Open!
-## ```
-##
-## ## Features
-##
-## - **Compile-time validation**: Invalid transitions fail at compile time
-## - **Branching transitions**: `Closed -> Open | Errored`
-## - **Wildcard transitions**: `* -> Closed` (any state can close)
-## - **Generated helpers**: `FileState` enum, `FileStates` union type
-## - **Clear error messages**: Shows valid transitions when you make a mistake
-##
-## ## Pragmas
-##
-## - `{.transition.}` - Mark a proc as a state transition (validated)
-## - `{.notATransition.}` - Mark a proc that operates on state but doesn't transition
-##
-## ## Generated Types
-##
-## For `typestate File:`, the macro generates:
-##
-## - `FileState` - enum with `fsClosed`, `fsOpen`, etc.
-## - `FileStates` - union type `Closed | Open | ...`
-## - `state()` procs for runtime state inspection
-##
-## ## See Also
-##
-## - [Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/)
-## - [typestate crate for Rust](https://github.com/rustype/typestate)
-## - [Plaid Language](http://www.cs.cmu.edu/~aldrich/plaid/)
-## - [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929)
+## - `typestate` macro - Declare states and transitions
+## - `{.transition.}` pragma - Mark and validate transition procs
+## - `{.notATransition.}` pragma - Mark non-transition procs
 
 import std/macros
-import nim_typestates/[types, parser, registry, pragmas, codegen]
+import typestates/[types, parser, registry, pragmas, codegen]
 
 export types, pragmas
 

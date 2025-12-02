@@ -4,13 +4,13 @@ Auto-generated API documentation from source code.
 
 ## Main Module
 
-::: nim_typestates
+::: typestates
 
 ---
 
 ## Module Overview
 
-### `nim_typestates`
+### `typestates`
 
 The main module. Import this to use the library.
 
@@ -20,7 +20,7 @@ The main module. Import this to use the library.
 - `transition` pragma - Mark and validate transition procs
 - `notATransition` pragma - Mark non-transition procs
 
-### `nim_typestates/types`
+### `typestates/types`
 
 Core type definitions (internal).
 
@@ -28,7 +28,7 @@ Core type definitions (internal).
 - `Transition` - Represents a valid transition
 - `TypestateGraph` - Complete typestate definition
 
-### `nim_typestates/parser`
+### `typestates/parser`
 
 DSL parser (internal).
 
@@ -36,7 +36,7 @@ DSL parser (internal).
 - `parseStates` - Parse states declaration
 - `parseTransition` - Parse single transition
 
-### `nim_typestates/registry`
+### `typestates/registry`
 
 Compile-time typestate storage (internal).
 
@@ -44,14 +44,14 @@ Compile-time typestate storage (internal).
 - `registerTypestate` - Add typestate to registry
 - `findTypestateForState` - Look up typestate by state name
 
-### `nim_typestates/pragmas`
+### `typestates/pragmas`
 
 Pragma implementations.
 
 - `transition` macro - Validates state transitions
 - `notATransition` template - Marks non-transitions
 
-### `nim_typestates/codegen`
+### `typestates/codegen`
 
 Code generation (internal).
 
@@ -59,7 +59,7 @@ Code generation (internal).
 - `generateUnionType` - Generate `FileStates` union
 - `generateStateProcs` - Generate `state()` procs
 
-### `nim_typestates/cli`
+### `typestates/cli`
 
 Command-line tool functionality.
 

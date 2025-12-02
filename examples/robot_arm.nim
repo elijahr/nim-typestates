@@ -9,7 +9,7 @@
 ##
 ## This example models a robotic arm controller with safety states.
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   RobotArm = object

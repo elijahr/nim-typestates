@@ -6,7 +6,7 @@
 ##
 ## Run: nim c -r examples/generic_resource.nim
 
-import ../src/nim_typestates
+import ../src/typestates
 
 # =============================================================================
 # Generic Resource Pattern

@@ -7,7 +7,7 @@ nim-typestates supports generic type parameters, enabling reusable typestate pat
 Define a typestate with type parameters:
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Container[T] = object

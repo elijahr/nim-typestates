@@ -1,5 +1,5 @@
 import std/[macros, tables]
-import ../src/nim_typestates/types
+import ../src/typestates/types
 
 static:
   block test_state_creation:

@@ -2,7 +2,7 @@
 ## Installed as `nim-typestates` command.
 
 import std/[os, strutils]
-import nim_typestates/cli
+import typestates/cli
 
 proc showHelp() =
   echo "nim-typestates - Compile-time typestate validation for Nim"

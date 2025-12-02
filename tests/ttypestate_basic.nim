@@ -1,5 +1,5 @@
-import ../src/nim_typestates
+import ../src/typestates
 
 # Minimal smoke test - just imports without error
 static:
-  echo "nim_typestates module loaded successfully"
+  echo "typestates module loaded successfully"

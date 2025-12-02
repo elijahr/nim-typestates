@@ -45,7 +45,7 @@ Now `Closed` and `Open` are incompatible types - you can't pass a `Closed` where
 Import the library and declare valid transitions:
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   File = object

@@ -1,6 +1,6 @@
 import std/[macros, tables]
-import ../src/nim_typestates/parser
-import ../src/nim_typestates/types
+import ../src/typestates/parser
+import ../src/typestates/types
 
 macro testParseStates(): untyped =
   # Simulate AST for: states: Closed, Open, Errored

@@ -8,7 +8,7 @@
 ##
 ## This example ensures compile-time safety for connection lifecycle.
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   DbConnection = object

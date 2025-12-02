@@ -51,7 +51,7 @@ plugins:
             show_signature: true
             heading_level: 3  # h3 so procs nest under h2 API section in TOC
             source_url: https://github.com/elijahr/nim-typestates
-            source_ref: main  # Change to tag for releases, e.g., v0.1.0
+            # source_ref auto-detected from git branch; set explicitly for releases
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -83,7 +83,7 @@ watch:
   - docs/guide
   - docs/api
   - src
-  - src/nim_typestates
+  - src/typestates
   - examples
 
 extra:

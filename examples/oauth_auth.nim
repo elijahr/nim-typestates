@@ -8,7 +8,7 @@
 ##
 ## This example models the Authorization Code + PKCE flow.
 
-import ../src/nim_typestates
+import ../src/typestates
 import std/strutils
 
 type

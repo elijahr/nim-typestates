@@ -1,4 +1,4 @@
-import ../../src/nim_typestates
+import ../../src/typestates
 
 type
   Payment* = object

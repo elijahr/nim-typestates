@@ -56,7 +56,7 @@ macro verifyTypestates*(): untyped =
   ## Example:
   ##
   ## ```nim
-  ## import nim_typestates
+  ## import typestates
   ##
   ## typestate File:
   ##   states Closed, Open

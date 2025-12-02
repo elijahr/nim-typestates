@@ -1,8 +1,8 @@
 # This tests the detection of unmarked transitions
 # The actual implementation requires module-level analysis
-# This is a placeholder test - see src/nim_typestates/analyzer.nim
+# This is a placeholder test - see src/typestates/analyzer.nim
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   File = object

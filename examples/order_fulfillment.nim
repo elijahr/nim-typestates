@@ -8,7 +8,7 @@
 ##
 ## This example models the complete order lifecycle.
 
-import ../src/nim_typestates
+import ../src/typestates
 import std/hashes
 
 type

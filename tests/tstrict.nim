@@ -2,7 +2,7 @@
 ## Note: strictTransitions is enforced via verifyTypestates() macro,
 ## not inline at each proc definition.
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   File = object

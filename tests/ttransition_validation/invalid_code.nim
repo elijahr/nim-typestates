@@ -1,6 +1,6 @@
 # This test should FAIL to compile - that's the expected behavior
 
-import ../../src/nim_typestates
+import ../../src/typestates
 
 type
   File = object

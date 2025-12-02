@@ -8,7 +8,7 @@
 ##
 ## This example models the full request/response lifecycle.
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   HttpRequest = object

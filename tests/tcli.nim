@@ -1,7 +1,7 @@
 ## Tests for CLI parsing and DOT generation
 
 import std/[strutils, os]
-import ../src/nim_typestates/cli
+import ../src/typestates/cli
 
 # Test parseTypestates with a fixture file
 block testParseTypestates:

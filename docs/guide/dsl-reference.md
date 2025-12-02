@@ -157,7 +157,7 @@ proc state*(f: Errored): FileState = fsErrored
 ## Complete Example
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Connection = object

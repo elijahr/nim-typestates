@@ -1,6 +1,6 @@
 ## Test self-transitions (A -> A)
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   Connection = object

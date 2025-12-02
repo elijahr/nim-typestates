@@ -10,7 +10,7 @@ Real-world patterns where typestates prevent expensive bugs.
 Payment processing requires strict ordering: authorize before capture, capture before refund. Typestates prevent costly mistakes like double-capture or refunds before capture.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Payment = object
@@ -81,7 +81,7 @@ let settled = captured.settle()
 Connection pools have invariants that are easy to violate: don't query pooled connections, don't return connections mid-transaction, don't commit without a transaction.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   DbConnection = object
@@ -153,7 +153,7 @@ let returned = afterTx.release()
 HTTP requests follow a strict sequence: set headers, send headers, send body, await response. Typestates enforce this ordering at compile time.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   HttpRequest = object
@@ -230,7 +230,7 @@ echo "Status: ", req.statusCode()
 OAuth requires authenticated tokens for API calls and refresh tokens to renew expired access. Typestates prevent calls with missing or expired credentials.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   OAuthSession = object
@@ -304,7 +304,7 @@ let refreshed = expired.refresh()
 Hardware control requires strict operation sequences. Moving without homing can crash into limits; powering off during movement can damage motors.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   RobotArm = object
@@ -382,7 +382,7 @@ let off = done.powerOff()
 Order fulfillment has a fixed sequence: place, pay, ship, deliver. Typestates ensure orders can't be shipped before payment or shipped twice.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Order = object
@@ -458,7 +458,7 @@ let order = Cart(Order())
 Document publishing enforces a review process: draft, review, approve, publish. Typestates prevent publishing without approval or editing published content.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Document = object
@@ -532,7 +532,7 @@ The following examples show reusable typestate patterns using generics. See [Gen
 A reusable pattern for any resource requiring acquire/release semantics. Works with file handles, locks, connections, memory allocations, or any RAII-style resource.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Resource[T] = object
@@ -607,7 +607,7 @@ discard locked.release()
 A reusable pattern for entities that progress through a fixed sequence of stages. Works for orders, documents, builds, deployments, or any linear workflow.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Pipeline[T] = object

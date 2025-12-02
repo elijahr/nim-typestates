@@ -14,7 +14,7 @@ The `{.transition.}` and `{.notATransition.}` pragmas validate at compile time:
 For comprehensive in-module verification:
 
 ```nim
-import nim_typestates
+import typestates
 
 typestate File:
   states Closed, Open

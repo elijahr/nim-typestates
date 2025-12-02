@@ -13,7 +13,7 @@
 ## - Capture an already-captured payment
 ## - Authorize an already-authorized payment
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   Payment = object

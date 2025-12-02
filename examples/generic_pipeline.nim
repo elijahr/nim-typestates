@@ -6,7 +6,7 @@
 ##
 ## Run: nim c -r examples/generic_pipeline.nim
 
-import ../src/nim_typestates
+import ../src/typestates
 
 # =============================================================================
 # Generic Pipeline Pattern (4-stage)

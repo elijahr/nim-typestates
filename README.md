@@ -7,7 +7,7 @@ Compile-time state machine validation for Nim.
 nim-typestates encodes state machines in Nim's type system. Invalid state transitions become compile-time errors instead of runtime bugs.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   Payment = object
@@ -76,7 +76,7 @@ requires "nim_typestates >= 0.1.0"
 ### Define states as distinct types
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   File = object

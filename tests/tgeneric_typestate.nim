@@ -2,7 +2,7 @@
 ##
 ## Verifies that typestates with generic type parameters work correctly.
 
-import ../src/nim_typestates
+import ../src/typestates
 
 # Test 1: Basic generic typestate
 type

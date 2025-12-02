@@ -8,7 +8,7 @@
 ##
 ## This example models a multi-stage document review workflow.
 
-import ../src/nim_typestates
+import ../src/typestates
 import std/hashes
 
 type

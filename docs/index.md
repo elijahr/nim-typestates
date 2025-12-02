@@ -7,7 +7,7 @@ Compile-time typestate validation for Nim.
 **nim-typestates** is a Nim library that enforces state machine patterns at compile time. Define your valid states and transitions, and the compiler ensures your code follows them.
 
 ```nim
-import nim_typestates
+import typestates
 
 type
   File = object

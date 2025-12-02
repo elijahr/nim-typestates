@@ -1,6 +1,6 @@
 import std/[macros, tables]
-import ../src/nim_typestates/registry
-import ../src/nim_typestates/types
+import ../src/typestates/registry
+import ../src/typestates/types
 
 macro testRegistry(): untyped =
   var graph = TypestateGraph(name: "File")

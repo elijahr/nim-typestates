@@ -1,6 +1,6 @@
 ## Test typestate extension when isSealed = false
 
-import ../src/nim_typestates
+import ../src/typestates
 
 type
   Connection = object

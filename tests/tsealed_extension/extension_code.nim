@@ -1,7 +1,7 @@
 ## Test that sealed typestates cannot be extended.
 ## This test should FAIL to compile - that's expected.
 
-import ../../src/nim_typestates
+import ../../src/typestates
 
 type
   Payment = object
