@@ -165,3 +165,5 @@ proc describe[S: FileStates](f: S): string =
 
 - [DSL Reference](dsl-reference.md) - Learn about branching, wildcards, and more
 - [Examples](examples.md) - See real-world patterns
+
+For details on what the compiler verifies, see [Formal Guarantees](formal-guarantees.md).

@@ -1,6 +1,6 @@
 import std/[osproc, strutils]
 
-let (output, exitCode) = execCmdEx("nim c tests/ttransition_validation.nim")
+let (output, exitCode) = execCmdEx("nim c tests/ttransition_validation/invalid_code.nim")
 
 if exitCode == 0:
   echo "FAIL: Expected compilation to fail but it succeeded"

@@ -36,6 +36,10 @@ let closed = opened.close()
 # let bad = opened.open()
 ```
 
+The compiler verifies that your code follows the declared protocol. If it
+compiles, invalid state transitions are impossible. See
+[Formal Guarantees](guide/formal-guarantees.md) for details.
+
 ## Why typestates?
 
 Traditional runtime state machines have problems:

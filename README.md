@@ -38,6 +38,27 @@ let captured = authed.capture()
 # let bad = payment.capture()
 ```
 
+## Guarantees
+
+The `typestate` macro and `{.transition.}` pragma enforce state machine
+rules at compile time. A program that compiles has been verified by the
+compiler to contain no invalid state transitions.
+
+### Verified at compile time
+
+- **Protocol adherence**: Operations are only callable in valid states
+- **Transition validity**: All `{.transition.}` procs follow declared paths
+- **State exclusivity**: Each object occupies exactly one state
+
+### Not verified
+
+- **Functional correctness**: The implementation of each proc
+- **Specification accuracy**: Whether the declared state machine matches
+  the intended real-world protocol
+
+The compiler verifies that your code follows the declared protocol.
+It does not verify that the protocol itself is correct.
+
 ## Installation
 
 ```bash
@@ -100,7 +121,7 @@ proc write(f: Open, data: string) {.notATransition.} =
 
 ## Features
 
-- **Compile-time validation** — Invalid transitions fail to compile
+- **Compile-time verification** — Invalid transitions are compilation errors
 - **Generic types** — `Container[T]` with states like `Empty[T]`, `Full[T]`
 - **Branching transitions** — `Open -> Closed | Error`
 - **Wildcard transitions** — `* -> Closed` (any state can transition)
@@ -129,6 +150,7 @@ nim-typestates dot src/ | dot -Tpng -o states.png
 - [Getting Started](https://elijahr.github.io/nim-typestates/guide/getting-started/)
 - [DSL Reference](https://elijahr.github.io/nim-typestates/guide/dsl-reference/)
 - [Generic Typestates](https://elijahr.github.io/nim-typestates/guide/generics/)
+- [Formal Guarantees](https://elijahr.github.io/nim-typestates/guide/formal-guarantees/)
 - [Examples](https://elijahr.github.io/nim-typestates/guide/examples/)
 - [API Reference](https://elijahr.github.io/nim-typestates/api/)
 

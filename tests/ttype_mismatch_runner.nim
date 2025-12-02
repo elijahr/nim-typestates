@@ -5,7 +5,7 @@
 
 import std/[osproc, strutils]
 
-let (output, exitCode) = execCmdEx("nim c --path:src tests/ttype_mismatch.nim 2>&1")
+let (output, exitCode) = execCmdEx("nim c --path:src tests/ttype_mismatch/mismatch_code.nim 2>&1")
 
 if exitCode == 0:
   echo "FAIL: Expected compilation to fail but it succeeded"

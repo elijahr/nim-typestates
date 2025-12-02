@@ -5,6 +5,7 @@ nim-typestates provides multiple verification layers.
 ## Compile-Time Checking
 
 The `{.transition.}` and `{.notATransition.}` pragmas validate at compile time:
+
 - Transitions match declared state machine
 - Sealed typestates block external transitions
 

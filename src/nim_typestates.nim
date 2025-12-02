@@ -1,8 +1,11 @@
-## Compile-time typestate validation for Nim.
+## Compile-time state machine verification for Nim.
 ##
-## This library enables formal validation of state machine patterns at compile
-## time with clear error messages. Define valid states and transitions, then
-## let the compiler enforce that your code follows them.
+## This library enforces state machine protocols at compile time through
+## Nim's type system. Programs that compile have been verified to contain
+## no invalid state transitions.
+##
+## This approach is known as *correctness by construction*: invalid states
+## become unrepresentable rather than checked at runtime.
 ##
 ## ## Quick Start
 ##

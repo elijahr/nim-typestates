@@ -86,21 +86,14 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
     result = @[node.repr]
 
 macro transition*(procDef: untyped): untyped =
-  ## Mark a proc as a state transition and validate it at compile time.
+  ## Mark a proc as a state transition and verify it at compile time.
   ##
-  ## This pragma macro validates that the transition is declared in
-  ## the typestate. If the transition is not declared, compilation fails
-  ## with a helpful error message.
+  ## The compiler checks that the transition from the input state type
+  ## to the return state type is declared in the corresponding typestate.
+  ## If not, compilation fails with a diagnostic.
   ##
-  ## Validation rules:
-  ##
-  ## - First parameter type must be a registered state
-  ## - Return type must be a valid transition target from that state
-  ## - The transition must be declared in the typestate block
-  ##
-  ## - `procDef`: The proc definition to validate
-  ## - Returns: The unmodified proc definition (if validation passes)
-  ## - Raises: Compile-time error if transition is invalid
+  ## This provides compile-time protocol enforcement: only declared
+  ## transitions can be implemented.
   ##
   ## Example:
   ##

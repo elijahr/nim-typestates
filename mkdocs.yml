@@ -72,6 +72,7 @@ nav:
     - Getting Started: guide/getting-started.md
     - DSL Reference: guide/dsl-reference.md
     - Generic Typestates: guide/generics.md
+    - Formal Guarantees: guide/formal-guarantees.md
     - Examples: guide/examples.md
     - Strict Mode: guide/strict-mode.md
     - Verification: guide/verification.md
@@ -79,7 +80,11 @@ nav:
 
 watch:
   - docs
-  - src  # Reload when Nim source files change
+  - docs/guide
+  - docs/api
+  - src
+  - src/nim_typestates
+  - examples
 
 extra:
   version:
