@@ -151,6 +151,57 @@ macro transition*(procDef: untyped): untyped =
   Valid transitions from '{sourceTypeName}': {validDests}
   Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block.""", procDef)
 
+  # Check for {.raises.} pragma and enforce {.raises: [].}
+  var hasRaises = false
+  var raisesIsEmpty = true
+  let pragmaNode = procDef.pragma
+
+  if pragmaNode.kind != nnkEmpty:
+    for pragma in pragmaNode:
+      var pragmaName = ""
+      case pragma.kind
+      of nnkIdent, nnkSym:
+        pragmaName = pragma.strVal
+      of nnkExprColonExpr:
+        if pragma[0].kind in {nnkIdent, nnkSym}:
+          pragmaName = pragma[0].strVal
+          if pragmaName == "raises":
+            hasRaises = true
+            # Check if the raises list is non-empty
+            if pragma[1].kind == nnkBracket and pragma[1].len > 0:
+              raisesIsEmpty = false
+      of nnkCall:
+        if pragma[0].kind in {nnkIdent, nnkSym}:
+          pragmaName = pragma[0].strVal
+          if pragmaName == "raises":
+            hasRaises = true
+            # raises() or raises([...])
+            if pragma.len > 1:
+              let arg = pragma[1]
+              if arg.kind == nnkBracket and arg.len > 0:
+                raisesIsEmpty = false
+      else:
+        discard
+
+  if hasRaises and not raisesIsEmpty:
+    let procName = if procDef[0].kind == nnkPostfix: procDef[0][1].strVal else: procDef[0].strVal
+    error(fmt"""Transition '{procName}' has non-empty raises list.
+  Transitions must have {{.raises: [].}} to ensure errors are modeled as states.
+
+  Options:
+  1. Return an error state (e.g., Open | OpenFailed)
+  2. Handle exceptions internally and return error state on failure
+  3. If truly impossible to raise, verify and keep {{.raises: [].}}
+
+  See: https://elijahr.github.io/nim-typestates/guide/error-handling/""", procDef)
+
+  # If no raises pragma, add {.raises: [].} to enable compiler checking
+  if not hasRaises:
+    result.addPragma(nnkExprColonExpr.newTree(
+      ident("raises"),
+      nnkBracket.newTree()
+    ))
+
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.
   ##

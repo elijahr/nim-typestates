@@ -73,6 +73,7 @@ nav:
     - DSL Reference: guide/dsl-reference.md
     - Generic Typestates: guide/generics.md
     - Formal Guarantees: guide/formal-guarantees.md
+    - Error Handling: guide/error-handling.md
     - Examples: guide/examples.md
     - Strict Mode: guide/strict-mode.md
     - Verification: guide/verification.md

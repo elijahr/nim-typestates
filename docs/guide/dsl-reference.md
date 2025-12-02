@@ -86,6 +86,9 @@ proc open(f: Closed): Open {.transition.} =
 - First parameter must be a registered state type
 - Return type must be a valid transition target
 - Transition must be declared in the typestate block
+- Must have `{.raises: [].}` - errors should be states, not exceptions
+
+See [Error Handling](error-handling.md) for patterns on modeling errors as states.
 
 **Error on invalid transition:**
 

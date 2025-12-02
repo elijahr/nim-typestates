@@ -59,6 +59,9 @@ is not verified.
 Typestates operate at compile time. Runtime properties such as performance,
 memory safety, or exception behavior are outside their scope.
 
+For guidance on modeling errors as states rather than exceptions, see
+[Error Handling](error-handling.md).
+
 ## Comparison to Full Formal Verification
 
 | Aspect | nim-typestates | Full Formal Methods (TLA+, Coq) |
