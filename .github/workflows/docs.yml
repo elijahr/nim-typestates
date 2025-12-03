@@ -28,20 +28,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Setup Nim
-        uses: jiro4989/setup-nim-action@v2
-        with:
-          nim-version: 'stable'
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v3
 
-      - name: Cache Nimble packages and compilation artifacts
+      - name: Install asdf-nim plugin
+        run: asdf plugin add nim https://github.com/asdf-community/asdf-nim.git
+
+      - name: Install Nim
+        run: |
+          asdf install nim latest:2
+          asdf global nim latest:2
+
+      - name: Cache Nimble packages
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.nimble
-            ~/.cache/nim
-          key: ${{ runner.os }}-nim-${{ hashFiles('*.nimble', 'src/**/*.nim') }}
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-docs-${{ hashFiles('*.nimble') }}
           restore-keys: |
-            ${{ runner.os }}-nim-
+            ${{ runner.os }}-nimble-docs-
 
       - name: Install Nim compiler source
         run: |

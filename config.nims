@@ -1,15 +1,21 @@
 # NimScript configuration for nim-typestates
-# Adds path to Nim's compiler modules for CLI tool
+# Adds path to Nim's compiler modules for ast_parser
 
-import std/os
+import std/[os, strutils]
 
-# Find the Nim installation directory from the compiler path
-# selfExe() returns path to nim binary like /path/to/nim/bin/nim
-let nimBin = selfExe()
-let nimDir = nimBin.parentDir.parentDir
-let compilerPath = nimDir / "compiler"
+# Get nim compiler source path from nimble
+let nimPkgPath = gorge("nimble path nim 2>/dev/null").strip()
 
-if dirExists(compilerPath):
-  switch("path", compilerPath)
-  # Also add the parent to allow compiler/* imports
-  switch("path", nimDir)
+if nimPkgPath.len > 0 and dirExists(nimPkgPath):
+  # Use nimble-installed nim package
+  switch("path", nimPkgPath)
+  switch("path", nimPkgPath / "compiler")
+else:
+  # Fallback: find compiler from nim binary location
+  let nimBin = selfExe()
+  let nimDir = nimBin.parentDir.parentDir
+  let compilerPath = nimDir / "compiler"
+
+  if dirExists(compilerPath):
+    switch("path", compilerPath)
+    switch("path", nimDir)
