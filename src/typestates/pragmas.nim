@@ -20,8 +20,8 @@ var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
 proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compileTime.} =
   ## Register states from a sealed typestate for external checking.
   ##
-  ## - `modulePath`: The module filename where the typestate is defined
-  ## - `stateNames`: List of state type names to register
+  ## :param modulePath: The module filename where the typestate is defined
+  ## :param stateNames: List of state type names to register
   if modulePath notin sealedTypestateModules:
     sealedTypestateModules[modulePath] = @[]
   for state in stateNames:
@@ -31,9 +31,9 @@ proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compil
 proc isStateFromSealedTypestate*(stateName: string, currentModule: string): Option[string] {.compileTime.} =
   ## Check if a state is from a sealed typestate defined in another module.
   ##
-  ## - `stateName`: The state type name to check
-  ## - `currentModule`: The current module's filename
-  ## - Returns: `some(modulePath)` if from external sealed typestate, `none` otherwise
+  ## :param stateName: The state type name to check
+  ## :param currentModule: The current module's filename
+  ## :returns: `some(modulePath)` if from external sealed typestate, `none` otherwise
   for modulePath, states in sealedTypestateModules:
     if modulePath != currentModule and stateName in states:
       return some(modulePath)
@@ -48,8 +48,8 @@ proc extractTypeName(node: NimNode): string =
   ## - `nnkSym`: Symbol reference (after type resolution)
   ## - `nnkBracketExpr`: Generic type like `seq[T]` (extracts base)
   ##
-  ## - `node`: AST node representing a type
-  ## - Returns: The string name of the type
+  ## :param node: AST node representing a type
+  ## :returns: The string name of the type
   case node.kind
   of nnkIdent:
     result = node.strVal
@@ -66,8 +66,8 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   ##
   ## Handles union types like `A | B | C` by returning all components.
   ##
-  ## - `node`: AST node representing a type (possibly a union)
-  ## - Returns: Sequence of all type names in the type
+  ## :param node: AST node representing a type (possibly a union)
+  ## :returns: Sequence of all type names in the type
   case node.kind
   of nnkInfix:
     # Union type like `A | B`

@@ -23,10 +23,10 @@ type
   VerifyResult* = object
     ## Results from verifying source files.
     ##
-    ## - `errors`: List of error messages
-    ## - `warnings`: List of warning messages
-    ## - `transitionsChecked`: Count of transitions validated
-    ## - `filesChecked`: Count of files processed
+    ## :var errors: List of error messages
+    ## :var warnings: List of warning messages
+    ## :var transitionsChecked: Count of transitions validated
+    ## :var filesChecked: Count of files processed
     errors*: seq[string]
     warnings*: seq[string]
     transitionsChecked*: int
@@ -38,9 +38,9 @@ proc parseTypestates*(paths: seq[string]): ParseResult =
   ## Uses Nim's AST parser for accurate extraction. Fails loudly on
   ## files with syntax errors.
   ##
-  ## - `paths`: List of file or directory paths to scan
-  ## - Returns: All parsed typestates and total file count
-  ## - Raises: ParseError on syntax errors
+  ## :param paths: List of file or directory paths to scan
+  ## :returns: All parsed typestates and total file count
+  ## :raises ParseError: on syntax errors
   result = parseTypestatesAst(paths)
 
 proc generateDot*(ts: ParsedTypestate): string =
@@ -49,8 +49,8 @@ proc generateDot*(ts: ParsedTypestate): string =
   ## Creates a directed graph representation suitable for rendering
   ## with `dot`, `neato`, or other GraphViz tools.
   ##
-  ## - `ts`: The parsed typestate to visualize
-  ## - Returns: DOT format string
+  ## :param ts: The parsed typestate to visualize
+  ## :returns: DOT format string
   ##
   ## Example output:
   ##
@@ -96,10 +96,10 @@ proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
                 typestateStrict: Table[string, bool]): VerifyResult =
   ## Verify procs in a file against known typestates.
   ##
-  ## - `path`: Path to the Nim source file
-  ## - `typestateStates`: Map of typestate name to state names
-  ## - `typestateStrict`: Map of typestate name to strictTransitions flag
-  ## - Returns: Verification results with errors and warnings
+  ## :param path: Path to the Nim source file
+  ## :param typestateStates: Map of typestate name to state names
+  ## :param typestateStrict: Map of typestate name to strictTransitions flag
+  ## :returns: Verification results with errors and warnings
   result = VerifyResult()
   result.filesChecked = 1
 
@@ -142,9 +142,9 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## **Note:** Files with syntax errors cause verification to fail
   ## immediately with a clear error message.
   ##
-  ## - `paths`: List of file or directory paths to verify
-  ## - Returns: Verification results with errors, warnings, and counts
-  ## - Raises: ParseError on syntax errors
+  ## :param paths: List of file or directory paths to verify
+  ## :returns: Verification results with errors, warnings, and counts
+  ## :raises ParseError: on syntax errors
   result = VerifyResult()
 
   # First pass: collect all typestates using AST parser

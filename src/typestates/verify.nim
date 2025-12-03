@@ -19,12 +19,12 @@ type
   RegisteredProc* = object
     ## Information about a proc registered for verification.
     ##
-    ## - `name`: The proc name
-    ## - `sourceState`: The first parameter's state type
-    ## - `destStates`: Return type state(s)
-    ## - `kind`: How the proc is marked
-    ## - `declaredAt`: Source location
-    ## - `modulePath`: Module where declared
+    ## :var name: The proc name
+    ## :var sourceState: The first parameter's state type
+    ## :var destStates: Return type state(s)
+    ## :var kind: How the proc is marked
+    ## :var declaredAt: Source location
+    ## :var modulePath: Module where declared
     name*: string
     sourceState*: string
     destStates*: seq[string]
@@ -38,7 +38,7 @@ var registeredProcs* {.compileTime.}: seq[RegisteredProc]
 proc registerProc*(info: RegisteredProc) {.compileTime.} =
   ## Register a proc for later verification.
   ##
-  ## - `info`: The proc information to register
+  ## :param info: The proc information to register
   registeredProcs.add info
 
 macro verifyTypestates*(): untyped =
@@ -50,8 +50,8 @@ macro verifyTypestates*(): untyped =
   ## - All procs on state types are properly marked (if strictTransitions)
   ## - No external transitions on sealed typestates
   ##
-  ## - Returns: Empty statement list (validation is compile-time only)
-  ## - Raises: Compile-time error if verification fails
+  ## :returns: Empty statement list (validation is compile-time only)
+  ## :raises: Compile-time error if verification fails
   ##
   ## Example:
   ##

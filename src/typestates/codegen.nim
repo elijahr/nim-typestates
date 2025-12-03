@@ -32,8 +32,8 @@ proc generateStateEnum*(graph: TypestateGraph): NimNode =
   ##
   ## The enum values use base names (without type params) prefixed with `fs`.
   ##
-  ## - `graph`: The typestate graph to generate from
-  ## - Returns: AST for the enum type definition
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for the enum type definition
   let enumName = ident(graph.name & "State")
 
   var enumFields = nnkEnumTy.newTree(newEmptyNode())
@@ -68,8 +68,8 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   ##
   ## This union type is useful for procs that can accept any state.
   ##
-  ## - `graph`: The typestate graph to generate from
-  ## - Returns: AST for the union type definition
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for the union type definition
   let unionName = ident(graph.name & "States")
 
   var states = toSeq(graph.states.values)
@@ -120,8 +120,8 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
   ## proc state*[T](f: Full[T]): ContainerState = fsFull
   ## ```
   ##
-  ## - `graph`: The typestate graph to generate from
-  ## - Returns: AST for all state() proc definitions
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for all state() proc definitions
   result = newStmtList()
 
   let enumName = ident(graph.name & "State")
@@ -177,8 +177,8 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## is currently skipped because the generated types would need to be
   ## parameterized. The core typestate validation still works.
   ##
-  ## - `graph`: The typestate graph to generate from
-  ## - Returns: AST containing all generated definitions
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST containing all generated definitions
   result = newStmtList()
 
   # Skip helper generation for generic typestates (for now)

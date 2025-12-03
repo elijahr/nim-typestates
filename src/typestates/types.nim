@@ -18,8 +18,8 @@ proc extractBaseName*(stateRepr: string): string =
   ## - `"Container[K, V]"` -> `"Container"`
   ## - `"ref Closed"` -> `"Closed"`
   ##
-  ## - `stateRepr`: Full state repr string
-  ## - Returns: Base name without generic parameters
+  ## :param stateRepr: Full state repr string
+  ## :returns: Base name without generic parameters
   result = stateRepr
   # Strip ref/ptr prefix
   if result.startsWith("ref "):
@@ -43,9 +43,9 @@ type
     ## Each state corresponds to a distinct type that the user defines.
     ## States can be simple identifiers or generic types.
     ##
-    ## - `name`: Base name for lookup (e.g., "Closed", "Container")
-    ## - `fullRepr`: Full type representation (e.g., "Closed", "Container[T]")
-    ## - `typeName`: The raw AST node for code generation
+    ## :var name: Base name for lookup (e.g., "Closed", "Container")
+    ## :var fullRepr: Full type representation (e.g., "Closed", "Container[T]")
+    ## :var typeName: The raw AST node for code generation
     ##
     ## Examples:
     ##
@@ -65,10 +65,10 @@ type
     ## - **Branching**: `Closed -> Open | Errored` (one source, multiple destinations)
     ## - **Wildcard**: `* -> Closed` (any state can transition to Closed)
     ##
-    ## - `fromState`: Source state name, or "*" for wildcard
-    ## - `toStates`: List of valid destination states
-    ## - `isWildcard`: True if this is a wildcard transition (`* -> X`)
-    ## - `declaredAt`: Source location for error messages
+    ## :var fromState: Source state name, or "*" for wildcard
+    ## :var toStates: List of valid destination states
+    ## :var isWildcard: True if this is a wildcard transition (`* -> X`)
+    ## :var declaredAt: Source location for error messages
     ##
     ## Example:
     ##
@@ -94,13 +94,13 @@ type
     ## a typestate declaration. It is built by the parser from the DSL syntax
     ## and stored in the compile-time registry for later validation.
     ##
-    ## - `name`: The base type name (e.g., "File" in `typestate File:`)
-    ## - `states`: Map of state names to State objects
-    ## - `transitions`: List of all declared transitions
-    ## - `isSealed`: If true, no extensions allowed from other modules
-    ## - `strictTransitions`: If true, all procs on states must be categorized
-    ## - `declaredAt`: Source location of the typestate declaration
-    ## - `declaredInModule`: Module filename where typestate was declared
+    ## :var name: The base type name (e.g., "File" in `typestate File:`)
+    ## :var states: Map of state names to State objects
+    ## :var transitions: List of all declared transitions
+    ## :var isSealed: If true, no extensions allowed from other modules
+    ## :var strictTransitions: If true, all procs on states must be categorized
+    ## :var declaredAt: Source location of the typestate declaration
+    ## :var declaredInModule: Module filename where typestate was declared
     ##
     ## Example:
     ##
@@ -128,8 +128,9 @@ proc `==`*(a, b: Transition): bool =
   ## destination states, and wildcard status. The declaration location
   ## is not considered for equality.
   ##
-  ## - `a`, `b`: Transitions to compare
-  ## - Returns: `true` if transitions are semantically equivalent
+  ## :param a: First transition to compare
+  ## :param b: Second transition to compare
+  ## :returns: `true` if transitions are semantically equivalent
   a.fromState == b.fromState and
     a.toStates == b.toStates and
     a.isWildcard == b.isWildcard
@@ -144,10 +145,10 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Comparisons use base names to support generic types:
   ## - `hasTransition(g, "Empty", "Full")` matches `Empty[T] -> Full[T]`
   ##
-  ## - `graph`: The typestate graph to check
-  ## - `fromState`: The source state name (base name or full repr)
-  ## - `toState`: The destination state name (base name or full repr)
-  ## - Returns: `true` if the transition is allowed, `false` otherwise
+  ## :param graph: The typestate graph to check
+  ## :param fromState: The source state name (base name or full repr)
+  ## :param toState: The destination state name (base name or full repr)
+  ## :returns: `true` if the transition is allowed, `false` otherwise
   ##
   ## Example:
   ##
@@ -177,9 +178,9 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
   ## Comparisons use base names to support generic types.
   ## Returns base names for clearer error messages.
   ##
-  ## - `graph`: The typestate graph to query
-  ## - `fromState`: The source state to check transitions from
-  ## - Returns: A sequence of state base names that can be transitioned to
+  ## :param graph: The typestate graph to query
+  ## :param fromState: The source state to check transitions from
+  ## :returns: A sequence of state base names that can be transitioned to
   ##
   ## Example:
   ##

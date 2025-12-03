@@ -32,7 +32,7 @@ template registerTypestate*(graph: TypestateGraph) =
   ## - If sealed: compilation error
   ## - If not sealed: merge states and transitions (extension mode)
   ##
-  ## - `graph`: The typestate graph to register
+  ## :param graph: The typestate graph to register
   ##
   ## Example:
   ##
@@ -69,16 +69,16 @@ template registerTypestate*(graph: TypestateGraph) =
 template hasTypestate*(name: string): bool =
   ## Check if a typestate with the given name exists in the registry.
   ##
-  ## - `name`: The typestate name to look up
-  ## - Returns: `true` if registered, `false` otherwise
+  ## :param name: The typestate name to look up
+  ## :returns: `true` if registered, `false` otherwise
   name in typestateRegistry
 
 template getTypestate*(name: string): TypestateGraph =
   ## Retrieve a typestate graph by name.
   ##
-  ## - `name`: The typestate name to look up
-  ## - Returns: The `TypestateGraph` for the typestate
-  ## - Raises: Compile-time error if not found
+  ## :param name: The typestate name to look up
+  ## :returns: The `TypestateGraph` for the typestate
+  ## :raises: Compile-time error if not found
   block:
     if name notin typestateRegistry:
       error("Unknown typestate: " & name)
@@ -94,8 +94,8 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## Lookups use base names to support generic types:
   ## - `findTypestateForState("Empty")` finds `typestate Container` with `Empty[T]`
   ##
-  ## - `stateName`: The state type name (base name, e.g., "Closed", "Empty")
-  ## - Returns: `some(graph)` if found, `none` if state is not in any typestate
+  ## :param stateName: The state type name (base name, e.g., "Closed", "Empty")
+  ## :returns: `some(graph)` if found, `none` if state is not in any typestate
   ##
   ## Example:
   ##

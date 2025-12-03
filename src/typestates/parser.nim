@@ -55,9 +55,9 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ## - Ref types: `ref Closed`
   ## - Qualified names: `mymodule.State`
   ##
-  ## - `graph`: The typestate graph to populate
-  ## - `node`: AST node of the states declaration
-  ## - Raises: Compile-time error if syntax is invalid
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the states declaration
+  ## :raises: Compile-time error if syntax is invalid
   ##
   ## Example AST inputs:
   ##
@@ -98,8 +98,8 @@ proc collectBranchTargets(node: NimNode): seq[string] =
   ## Handles the `|` operator for branching transitions like `Open | Errored`.
   ## States can be any valid type expression (simple, generic, ref, etc.).
   ##
-  ## - `node`: AST node representing the target(s)
-  ## - Returns: Sequence of state repr strings
+  ## :param node: AST node representing the target(s)
+  ## :returns: Sequence of state repr strings
   ##
   ## Examples:
   ##
@@ -129,9 +129,9 @@ proc parseTransition*(node: NimNode): Transition =
   ## - **Branching**: `Closed -> Open | Errored`
   ## - **Wildcard**: `* -> Closed`
   ##
-  ## - `node`: AST node of the transition expression
-  ## - Returns: A `Transition` object
-  ## - Raises: Compile-time error if syntax is invalid
+  ## :param node: AST node of the transition expression
+  ## :returns: A `Transition` object
+  ## :raises: Compile-time error if syntax is invalid
   ##
   ## Example AST for `Closed -> Open | Errored`:
   ##
@@ -209,9 +209,9 @@ proc parseTransition*(node: NimNode): Transition =
 proc parseFlag(graph: var TypestateGraph, node: NimNode) =
   ## Parse a flag assignment like `strictTransitions = false`.
   ##
-  ## - `graph`: The typestate graph to update
-  ## - `node`: AST node of the assignment
-  ## - Raises: Compile-time error for unknown flags
+  ## :param graph: The typestate graph to update
+  ## :param node: AST node of the assignment
+  ## :raises: Compile-time error for unknown flags
   expectKind(node, nnkAsgn)
 
   let flagName = node[0].strVal
@@ -233,9 +233,9 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.
   ##
-  ## - `graph`: The typestate graph to populate
-  ## - `node`: AST node of the transitions block
-  ## - Raises: Compile-time error if block is empty or malformed
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the transitions block
+  ## :raises: Compile-time error if block is empty or malformed
   ##
   ## Example input:
   ##
@@ -268,10 +268,10 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## - Simple: `typestate File:`
   ## - Generic: `typestate Container[T]:`
   ##
-  ## - `name`: The typestate name (identifier or bracket expression)
-  ## - `body`: The statement list containing states and transitions
-  ## - Returns: A fully populated `TypestateGraph`
-  ## - Raises: Compile-time error for invalid syntax
+  ## :param name: The typestate name (identifier or bracket expression)
+  ## :param body: The statement list containing states and transitions
+  ## :returns: A fully populated `TypestateGraph`
+  ## :raises: Compile-time error for invalid syntax
   ##
   ## Examples:
   ##
