@@ -136,13 +136,13 @@ proc write(f: Open, data: string) {.notATransition.} =
 Verify typestate rules across your project:
 
 ```bash
-nim-typestates verify src/
+typestates verify src/
 ```
 
 Generate GraphViz diagrams:
 
 ```bash
-nim-typestates dot src/ | dot -Tpng -o states.png
+typestates dot src/ | dot -Tpng -o states.png
 ```
 
 ## Documentation

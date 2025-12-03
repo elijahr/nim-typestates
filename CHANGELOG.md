@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sealed typestates with `isSealed` flag
 - Generated helper types (`FileState` enum, `FileStates` union)
 - `{.raises: [].}` enforcement on transitions
-- CLI tool (`nim-typestates`) for verification and DOT graph generation
+- CLI tool (`typestates`) for verification and DOT graph generation
 
 [Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/elijahr/nim-typestates/releases/tag/v0.1.0

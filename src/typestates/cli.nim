@@ -1,10 +1,10 @@
-## Command-line tool for nim-typestates.
+## Command-line tool for typestates.
 ##
 ## Usage:
 ##
 ## ```nim
-## nim-typestates verify [paths...]
-## nim-typestates dot [paths...]
+## typestates verify [paths...]
+## typestates dot [paths...]
 ## ```
 ##
 ## Parses source files using Nim's AST parser and verifies typestate rules

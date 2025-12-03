@@ -1,6 +1,6 @@
 # Verification
 
-nim-typestates provides multiple verification layers.
+The typestates library provides multiple verification layers.
 
 ## Compile-Time Checking
 
@@ -28,7 +28,7 @@ verifyTypestates()  # Validates everything above
 
 ## CLI Tool
 
-The library installs a `nim-typestates` binary for project-wide verification and visualization.
+The library installs a `typestates` binary for project-wide verification and visualization.
 
 The CLI uses Nim's AST parser for accurate extraction of typestate definitions, correctly handling comments, whitespace, and complex syntax.
 
@@ -39,8 +39,8 @@ The CLI uses Nim's AST parser for accurate extraction of typestate definitions, 
 Check that all procs on state types are properly marked:
 
 ```bash
-nim-typestates verify src/
-nim-typestates verify src/ tests/
+typestates verify src/
+typestates verify src/ tests/
 ```
 
 ### Generate GraphViz DOT
@@ -48,8 +48,8 @@ nim-typestates verify src/ tests/
 Export state machine diagrams:
 
 ```bash
-nim-typestates dot src/ > typestates.dot
-nim-typestates dot src/ | dot -Tpng -o typestates.png
+typestates dot src/ > typestates.dot
+typestates dot src/ | dot -Tpng -o typestates.png
 ```
 
 ### Adding a Nimble Task
@@ -58,7 +58,7 @@ Add this to your project's `.nimble` file:
 
 ```nim
 task verify, "Verify typestate rules":
-  exec "nim-typestates verify src/"
+  exec "typestates verify src/"
 ```
 
 Then run:
@@ -72,12 +72,12 @@ nimble verify
 ```yaml
 # GitHub Actions
 - name: Verify typestates
-  run: nim-typestates verify src/
+  run: typestates verify src/
 
 # CircleCI
 - run:
     name: Verify typestates
-    command: nim-typestates verify src/
+    command: typestates verify src/
 ```
 
 ### Output

@@ -5,7 +5,7 @@ author        = "Elijah Rutschman"
 description   = "Compile-time typestate validation for Nim"
 license       = "MIT"
 srcDir        = "src"
-namedBin      = {"nim_typestates_bin": "nim-typestates"}.toTable
+namedBin      = {"typestates_bin": "typestates"}.toTable
 binDir        = "bin"
 installExt    = @["nim"]
 
@@ -16,7 +16,7 @@ requires "nim >= 2.0.0"
 # Tasks
 
 task buildCli, "Build the CLI tool":
-  exec "nim c -o:bin/nim-typestates src/nim_typestates_bin.nim"
+  exec "nim c -o:bin/typestates src/typestates_bin.nim"
 
 task verify, "Verify typestate rules in source files":
-  exec "nim c -r src/nim_typestates_bin.nim verify src/"
+  exec "nim c -r src/typestates_bin.nim verify src/"
