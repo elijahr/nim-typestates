@@ -33,14 +33,15 @@ jobs:
         with:
           nim-version: 'stable'
 
-      - name: Cache Nimble packages
-        id: nimble-cache
+      - name: Cache Nimble packages and compilation artifacts
         uses: actions/cache@v4
         with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
+          path: |
+            ~/.nimble
+            ~/.cache/nim
+          key: ${{ runner.os }}-nim-${{ hashFiles('*.nimble', 'src/**/*.nim') }}
           restore-keys: |
-            ${{ runner.os }}-nimble-
+            ${{ runner.os }}-nim-
 
       - name: Install Nim compiler source
         run: |
