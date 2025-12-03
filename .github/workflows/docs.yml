@@ -33,6 +33,23 @@ jobs:
         with:
           nim-version: 'stable'
 
+      - name: Cache Nimble packages
+        id: nimble-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-
+
+      - name: Install Nim compiler source
+        run: |
+          if ! nimble path nim > /dev/null 2>&1; then
+            nimble install nim -y
+          else
+            echo "Nim compiler source already installed (from cache)"
+          fi
+
       - name: Install dependencies
         run: |
           pip install -r docs-requirements.txt
