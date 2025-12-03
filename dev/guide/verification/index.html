@@ -889,7 +889,7 @@
 
 
 <h1 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h1>
-<p>nim-typestates provides multiple verification layers.</p>
+<p>The typestates library provides multiple verification layers.</p>
 <h2 id="compile-time-checking">Compile-Time Checking<a class="headerlink" href="#compile-time-checking" title="Permanent link">¶</a></h2>
 <p>The <code>{.transition.}</code> and <code>{.notATransition.}</code> pragmas validate at compile time:</p>
 <ul>
@@ -910,23 +910,23 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">verifyTypestates</span><span class="p">()</span><span class="w">  </span><span class="c"># Validates everything above</span>
 </code></pre></div>
 <h2 id="cli-tool">CLI Tool<a class="headerlink" href="#cli-tool" title="Permanent link">¶</a></h2>
-<p>The library installs a <code>nim-typestates</code> binary for project-wide verification and visualization.</p>
+<p>The library installs a <code>typestates</code> binary for project-wide verification and visualization.</p>
 <p>The CLI uses Nim's AST parser for accurate extraction of typestate definitions, correctly handling comments, whitespace, and complex syntax.</p>
 <p><strong>Important:</strong> Files must be valid Nim syntax. Syntax errors cause verification to fail immediately with a clear error message. This is intentional - a verification tool should not silently skip files it cannot parse.</p>
 <h3 id="verify">Verify<a class="headerlink" href="#verify" title="Permanent link">¶</a></h3>
 <p>Check that all procs on state types are properly marked:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nim-typestates<span class="w"> </span>verify<span class="w"> </span>src/
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nim-typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w"> </span>tests/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w"> </span>tests/
 </code></pre></div>
 <h3 id="generate-graphviz-dot">Generate GraphViz DOT<a class="headerlink" href="#generate-graphviz-dot" title="Permanent link">¶</a></h3>
 <p>Export state machine diagrams:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nim-typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>typestates.dot
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>nim-typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>typestates.png
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>typestates.dot
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>typestates.png
 </code></pre></div>
 <h3 id="adding-a-nimble-task">Adding a Nimble Task<a class="headerlink" href="#adding-a-nimble-task" title="Permanent link">¶</a></h3>
 <p>Add this to your project's <code>.nimble</code> file:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">task</span><span class="w"> </span><span class="n">verify</span><span class="p">,</span><span class="w"> </span><span class="s">"Verify typestate rules"</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">exec</span><span class="w"> </span><span class="s">"nim-typestates verify src/"</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">exec</span><span class="w"> </span><span class="s">"typestates verify src/"</span>
 </code></pre></div>
 <p>Then run:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nimble<span class="w"> </span>verify
@@ -934,12 +934,12 @@
 <h3 id="ci-integration">CI Integration<a class="headerlink" href="#ci-integration" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># GitHub Actions</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nim-typestates verify src/</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">typestates verify src/</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># CircleCI</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nim-typestates verify src/</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">typestates verify src/</span>
 </code></pre></div>
 <h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">¶</a></h3>
 <p>Successful verification:</p>
@@ -979,7 +979,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 2, 2025 15:50:18 UTC"><span class="timeago" datetime="2025-12-02T15:50:18+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 2, 2025 15:50:18 UTC">2025-12-02</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 3, 2025 09:35:08 UTC"><span class="timeago" datetime="2025-12-03T09:35:08+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 3, 2025 09:35:08 UTC">2025-12-03</span>
   </span>
 
     
