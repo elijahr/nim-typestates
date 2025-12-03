@@ -10,7 +10,7 @@ This guide walks through building a typestate-validated file handle from scratch
 ## Installation
 
 ```bash
-nimble install nim_typestates
+nimble install typestates
 ```
 
 ## Step 1: Define Your Base Type

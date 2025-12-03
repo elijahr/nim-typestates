@@ -65,13 +65,13 @@ Typestates solve this by encoding states in the type system:
 ## Installation
 
 ```bash
-nimble install nim_typestates
+nimble install typestates
 ```
 
 Or add to your `.nimble` file:
 
 ```nim
-requires "nim_typestates >= 0.1.0"
+requires "typestates >= 0.1.0"
 ```
 
 ## Quick Links

@@ -4,12 +4,12 @@
 set -e
 
 echo "=== Generating Nim API docs ==="
-nim doc --project --index:on --outdir:docs/api src/nim_typestates.nim
+nim doc --project --index:on --outdir:docs/api src/typestates.nim
 
 echo "=== Building MkDocs site ==="
 source .venv/bin/activate
 mkdocs build
 
 echo "=== Done ==="
-echo "API docs: docs/api/nim_typestates.html"
+echo "API docs: docs/api/typestates.html"
 echo "Site: site/index.html"
