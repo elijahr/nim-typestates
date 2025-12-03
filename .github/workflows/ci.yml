@@ -30,15 +30,13 @@ jobs:
           asdf install nim ${{ matrix.nim-version }}
           asdf global nim ${{ matrix.nim-version }}
 
-      - name: Cache Nimble packages and compilation artifacts
+      - name: Cache Nimble packages
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.nimble
-            ~/.cache/nim
-          key: ${{ runner.os }}-nim-${{ matrix.nim-version }}-${{ hashFiles('*.nimble', 'src/**/*.nim') }}
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ matrix.nim-version }}-${{ hashFiles('*.nimble') }}
           restore-keys: |
-            ${{ runner.os }}-nim-${{ matrix.nim-version }}-
+            ${{ runner.os }}-nimble-${{ matrix.nim-version }}-
 
       - name: Install Nim compiler source
         run: |
