@@ -37,6 +37,10 @@ jobs:
         run: |
           pip install -r docs-requirements.txt
 
+      - name: Create directories for watch config
+        run: |
+          mkdir -p docs/api
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"

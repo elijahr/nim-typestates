@@ -82,6 +82,7 @@ nav:
 watch:
   - docs
   - docs/guide
+  - docs/api
   - src
   - src/typestates
   - examples
