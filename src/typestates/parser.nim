@@ -55,10 +55,6 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ## - Ref types: `ref Closed`
   ## - Qualified names: `mymodule.State`
   ##
-  ## :param graph: The typestate graph to populate
-  ## :param node: AST node of the states declaration
-  ## :raises: Compile-time error if syntax is invalid
-  ##
   ## Example AST inputs:
   ##
   ## ```
@@ -78,6 +74,10 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ##     Ident "Full"
   ##     Ident "T"
   ## ```
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the states declaration
+  ## :raises: Compile-time error if syntax is invalid
   if node.kind notin {nnkCall, nnkCommand}:
     error("Expected call or command for states", node)
 
@@ -98,15 +98,15 @@ proc collectBranchTargets(node: NimNode): seq[string] =
   ## Handles the `|` operator for branching transitions like `Open | Errored`.
   ## States can be any valid type expression (simple, generic, ref, etc.).
   ##
-  ## :param node: AST node representing the target(s)
-  ## :returns: Sequence of state repr strings
-  ##
   ## Examples:
   ##
   ## - `Open` -> `@["Open"]`
   ## - `Open | Errored` -> `@["Open", "Errored"]`
   ## - `Full[T] | Error[T]` -> `@["Full[T]", "Error[T]"]`
   ## - `A | B | C` -> `@["A", "B", "C"]`
+  ##
+  ## :param node: AST node representing the target(s)
+  ## :returns: Sequence of state repr strings
   case node.kind
   of nnkIdent, nnkBracketExpr, nnkRefTy, nnkPtrTy, nnkDotExpr:
     # Any valid type expression - use its repr
@@ -129,10 +129,6 @@ proc parseTransition*(node: NimNode): Transition =
   ## - **Branching**: `Closed -> Open | Errored`
   ## - **Wildcard**: `* -> Closed`
   ##
-  ## :param node: AST node of the transition expression
-  ## :returns: A `Transition` object
-  ## :raises: Compile-time error if syntax is invalid
-  ##
   ## Example AST for `Closed -> Open | Errored`:
   ##
   ## ```
@@ -154,6 +150,10 @@ proc parseTransition*(node: NimNode): Transition =
   ##     Ident "->"
   ##     Ident "Closed"
   ## ```
+  ##
+  ## :param node: AST node of the transition expression
+  ## :returns: A `Transition` object
+  ## :raises: Compile-time error if syntax is invalid
 
   # Handle wildcard syntax: * -> X parses as nested Prefix nodes
   if node.kind == nnkPrefix and node[0].strVal == "*":
@@ -233,10 +233,6 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.
   ##
-  ## :param graph: The typestate graph to populate
-  ## :param node: AST node of the transitions block
-  ## :raises: Compile-time error if block is empty or malformed
-  ##
   ## Example input:
   ##
   ## ```nim
@@ -244,6 +240,10 @@ proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ##   Closed -> Open
   ##   Open -> Closed
   ## ```
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the transitions block
+  ## :raises: Compile-time error if block is empty or malformed
   expectKind(node, nnkCall)
 
   # node[0] is "transitions", node[1] is the statement list
@@ -268,11 +268,6 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## - Simple: `typestate File:`
   ## - Generic: `typestate Container[T]:`
   ##
-  ## :param name: The typestate name (identifier or bracket expression)
-  ## :param body: The statement list containing states and transitions
-  ## :returns: A fully populated `TypestateGraph`
-  ## :raises: Compile-time error for invalid syntax
-  ##
   ## Examples:
   ##
   ## ```nim
@@ -286,6 +281,11 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ##   transitions:
   ##     Empty[T] -> Full[T]
   ## ```
+  ##
+  ## :param name: The typestate name (identifier or bracket expression)
+  ## :param body: The statement list containing states and transitions
+  ## :returns: A fully populated `TypestateGraph`
+  ## :raises: Compile-time error for invalid syntax
   let baseName = extractBaseName(name)
   result = TypestateGraph(
     name: baseName,

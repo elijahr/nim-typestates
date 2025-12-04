@@ -26,10 +26,6 @@ macro typestate*(name: untyped, body: untyped): untyped =
   ## - **states**: The distinct types that represent each state
   ## - **transitions**: Which state changes are allowed
   ##
-  ## :param name: The base type name (must match your type definition)
-  ## :param body: The states and transitions declarations
-  ## :returns: Generated helper types (enum, union, state procs)
-  ##
   ## Basic syntax:
   ##
   ## ```nim
@@ -54,6 +50,10 @@ macro typestate*(name: untyped, body: untyped): untyped =
   ## - `* -> X` - Wildcard (any state can go to X)
   ##
   ## See also: `{.transition.}` pragma for implementing transitions
+  ##
+  ## :param name: The base type name (must match your type definition)
+  ## :param body: The states and transitions declarations
+  ## :returns: Generated helper types (enum, union, state procs)
 
   # Parse the typestate body
   let graph = parseTypestateBody(name, body)

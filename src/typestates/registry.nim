@@ -32,8 +32,6 @@ template registerTypestate*(graph: TypestateGraph) =
   ## - If sealed: compilation error
   ## - If not sealed: merge states and transitions (extension mode)
   ##
-  ## :param graph: The typestate graph to register
-  ##
   ## Example:
   ##
   ## ```nim
@@ -50,6 +48,8 @@ template registerTypestate*(graph: TypestateGraph) =
   ##   transitions:
   ##     Open -> Locked
   ## ```
+  ##
+  ## :param graph: The typestate graph to register
   if graph.name in typestateRegistry:
     let existing = typestateRegistry[graph.name]
     if existing.isSealed:
@@ -94,9 +94,6 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## Lookups use base names to support generic types:
   ## - `findTypestateForState("Empty")` finds `typestate Container` with `Empty[T]`
   ##
-  ## :param stateName: The state type name (base name, e.g., "Closed", "Empty")
-  ## :returns: `some(graph)` if found, `none` if state is not in any typestate
-  ##
   ## Example:
   ##
   ## ```nim
@@ -107,6 +104,9 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## # If Container typestate has states Empty[T], Full[T]:
   ## findTypestateForState("Empty")   # some(ContainerGraph)
   ## ```
+  ##
+  ## :param stateName: The state type name (base name, e.g., "Closed", "Empty")
+  ## :returns: `some(graph)` if found, `none` if state is not in any typestate
   let searchBase = extractBaseName(stateName)
   for name, graph in typestateRegistry:
     for stateKey, state in graph.states:

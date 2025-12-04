@@ -49,9 +49,6 @@ proc generateDot*(ts: ParsedTypestate): string =
   ## Creates a directed graph representation suitable for rendering
   ## with `dot`, `neato`, or other GraphViz tools.
   ##
-  ## :param ts: The parsed typestate to visualize
-  ## :returns: DOT format string
-  ##
   ## Example output:
   ##
   ## ```
@@ -66,6 +63,9 @@ proc generateDot*(ts: ParsedTypestate): string =
   ##   Open -> Closed;
   ## }
   ## ```
+  ##
+  ## :param ts: The parsed typestate to visualize
+  ## :returns: DOT format string
   var lines: seq[string] = @[]
 
   lines.add "digraph " & ts.name & " {"

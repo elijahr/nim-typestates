@@ -50,9 +50,6 @@ macro verifyTypestates*(): untyped =
   ## - All procs on state types are properly marked (if strictTransitions)
   ## - No external transitions on sealed typestates
   ##
-  ## :returns: Empty statement list (validation is compile-time only)
-  ## :raises: Compile-time error if verification fails
-  ##
   ## Example:
   ##
   ## ```nim
@@ -67,6 +64,9 @@ macro verifyTypestates*(): untyped =
   ##
   ## verifyTypestates()  # Validates everything above
   ## ```
+  ##
+  ## :returns: Empty statement list (validation is compile-time only)
+  ## :raises: Compile-time error if verification fails
 
   result = newStmtList()
 
