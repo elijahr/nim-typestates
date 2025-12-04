@@ -58,6 +58,8 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.superfences
   - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
   - admonition
   - pymdownx.details
   - attr_list
@@ -77,6 +79,8 @@ nav:
     - Examples: guide/examples.md
     - Strict Mode: guide/strict-mode.md
     - Verification: guide/verification.md
+    - CLI Reference: guide/cli.md
+    - Visualization: guide/visualization.md
   - API Reference: api.md
 
 watch:

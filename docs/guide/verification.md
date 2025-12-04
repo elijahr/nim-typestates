@@ -28,80 +28,11 @@ verifyTypestates()  # Validates everything above
 
 ## CLI Tool
 
-The library installs a `typestates` binary for project-wide verification and visualization.
-
-The CLI uses Nim's AST parser for accurate extraction of typestate definitions, correctly handling comments, whitespace, and complex syntax.
-
-**Important:** Files must be valid Nim syntax. Syntax errors cause verification to fail immediately with a clear error message. This is intentional - a verification tool should not silently skip files it cannot parse.
-
-### Verify
-
-Check that all procs on state types are properly marked:
+The `typestates` CLI provides project-wide verification and visualization:
 
 ```bash
-typestates verify src/
-typestates verify src/ tests/
+typestates verify src/     # Check all procs are properly marked
+typestates dot src/        # Generate GraphViz diagrams
 ```
 
-### Generate GraphViz DOT
-
-Export state machine diagrams:
-
-```bash
-typestates dot src/ > typestates.dot
-typestates dot src/ | dot -Tpng -o typestates.png
-```
-
-### Adding a Nimble Task
-
-Add this to your project's `.nimble` file:
-
-```nim
-task verify, "Verify typestate rules":
-  exec "typestates verify src/"
-```
-
-Then run:
-
-```bash
-nimble verify
-```
-
-### CI Integration
-
-```yaml
-# GitHub Actions
-- name: Verify typestates
-  run: typestates verify src/
-
-# CircleCI
-- run:
-    name: Verify typestates
-    command: typestates verify src/
-```
-
-### Output
-
-Successful verification:
-
-```
-Checked 15 files, 42 transitions
-
-All checks passed!
-```
-
-Errors found:
-
-```
-Checked 15 files, 42 transitions
-WARNING: src/legacy.nim:45 - Unmarked proc on state 'Open'
-ERROR: src/user.nim:23 - Unmarked proc on sealed state 'Payment'
-
-1 error(s) found
-```
-
-Syntax errors:
-
-```
-ERROR: Parse error in src/broken.nim: invalid indentation
-```
+See [CLI Reference](cli.md) for complete usage and [Visualization](visualization.md) for diagram generation.

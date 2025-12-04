@@ -5,12 +5,14 @@ nim-typestates uses strict defaults to catch bugs early.
 ## Default Behavior
 
 By default, typestates have:
+
 - `strictTransitions = true` - All procs with state params must be marked
 - `isSealed = true` - External modules cannot add transitions
 
 ## strictTransitions
 
 When enabled, any proc with a state type as its first parameter MUST have either:
+
 - `{.transition.}` - for state-changing operations
 - `{.notATransition.}` - for read-only operations
 
@@ -37,6 +39,7 @@ typestate LegacyFile:
 ## isSealed
 
 When enabled:
+
 1. Other modules cannot extend the typestate
 2. Other modules cannot define `{.transition.}` procs
 3. Other modules MUST use `{.notATransition.}` for any state operations
