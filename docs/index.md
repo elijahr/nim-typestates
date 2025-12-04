@@ -83,10 +83,21 @@ requires "typestates >= 0.1.0"
 
 ## References
 
-- [Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/) - Excellent introduction to typestates
-- [typestate crate for Rust](https://github.com/rustype/typestate) - Similar macro-based approach in Rust
-- [Plaid Language](http://www.cs.cmu.edu/~aldrich/plaid/) - CMU's typestate-oriented programming language
-- [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929) - Original paper introducing typestates
+### Foundational Papers
+
+- [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929) - The original paper introducing typestates as a compile-time mechanism for tracking object state
+- [Typestates for Objects (Aldrich et al., 2009)](https://www.cs.cmu.edu/~aldrich/papers/classic/tse12-typestate.pdf) - Extends typestates to object-oriented programming with practical implementation strategies
+
+### Tutorials and Introductions
+
+- [The Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/) - Accessible introduction to encoding typestates using Rust's type system
+- [Typestate Analysis (Wikipedia)](https://en.wikipedia.org/wiki/Typestate_analysis) - Overview of typestate analysis concepts and history
+- [Formal Verification (Wikipedia)](https://en.wikipedia.org/wiki/Formal_verification) - Background on formal methods that typestates relate to
+
+### Related Projects
+
+- [typestate crate for Rust](https://github.com/rustype/typestate) - Procedural macro approach to typestates in Rust, similar design philosophy to nim-typestates
+- [Plaid Programming Language](http://www.cs.cmu.edu/~aldrich/plaid/) - Research language from CMU with first-class typestate support built into the language
 
 ## License
 

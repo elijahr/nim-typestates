@@ -73,12 +73,3 @@ For guidance on modeling errors as states rather than exceptions, see
 
 nim-typestates occupies a practical middle ground: stronger guarantees than
 testing, lower cost than full formal verification.
-
-## Further Reading
-
-- [Typestate Analysis (Wikipedia)](https://en.wikipedia.org/wiki/Typestate_analysis)
-- [Formal Verification (Wikipedia)](https://en.wikipedia.org/wiki/Formal_verification)
-- [Typestates for Objects (Aldrich et al., 2009)](https://www.cs.cmu.edu/~aldrich/papers/classic/tse12-typestate.pdf)
-- [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929)
-- [The Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/)
-- [Plaid Programming Language](http://www.cs.cmu.edu/~aldrich/plaid/)
