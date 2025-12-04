@@ -147,12 +147,12 @@ typestates dot src/ | dot -Tpng -o states.png
 
 ## Documentation
 
-- [Getting Started](https://elijahr.github.io/nim-typestates/guide/getting-started/)
-- [DSL Reference](https://elijahr.github.io/nim-typestates/guide/dsl-reference/)
-- [Generic Typestates](https://elijahr.github.io/nim-typestates/guide/generics/)
-- [Formal Guarantees](https://elijahr.github.io/nim-typestates/guide/formal-guarantees/)
-- [Examples](https://elijahr.github.io/nim-typestates/guide/examples/)
-- [API Reference](https://elijahr.github.io/nim-typestates/api/)
+- [Getting Started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
+- [DSL Reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
+- [Generic Typestates](https://elijahr.github.io/nim-typestates/latest/guide/generics/)
+- [Formal Guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
+- [Examples](https://elijahr.github.io/nim-typestates/latest/guide/examples/)
+- [API Reference](https://elijahr.github.io/nim-typestates/latest/api/)
 
 ## References
 
