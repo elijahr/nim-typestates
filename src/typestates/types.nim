@@ -62,28 +62,31 @@ type
     ## Transitions define which state changes are allowed. They can be:
     ##
     ## - **Simple**: `Closed -> Open` (one source, one destination)
-    ## - **Branching**: `Closed -> Open | Errored` (one source, multiple destinations)
+    ## - **Branching**: `Closed -> Open | Errored as OpenResult` (one source, multiple destinations)
     ## - **Wildcard**: `* -> Closed` (any state can transition to Closed)
     ##
     ## Example:
     ##
     ## ```nim
     ## # This DSL:
-    ## # Closed -> Open | Errored
+    ## # Closed -> Open | Errored as OpenResult
     ## # Becomes:
     ## Transition(
     ##   fromState: "Closed",
     ##   toStates: @["Open", "Errored"],
+    ##   branchTypeName: "OpenResult",
     ##   isWildcard: false
     ## )
     ## ```
     ##
     ## :var fromState: Source state name, or "*" for wildcard
     ## :var toStates: List of valid destination states
+    ## :var branchTypeName: User-defined name for the branch result type (required for branching)
     ## :var isWildcard: True if this is a wildcard transition (`* -> X`)
     ## :var declaredAt: Source location for error messages
     fromState*: string
     toStates*: seq[string]
+    branchTypeName*: string  ## Empty for non-branching, required for branching
     isWildcard*: bool
     declaredAt*: LineInfo
 

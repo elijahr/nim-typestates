@@ -11,5 +11,5 @@ type
 typestate Request:
   states Pending, Success, Failed, Cancelled
   transitions:
-    Pending -> Success | Failed | Cancelled
+    Pending -> Success | Failed | Cancelled as RequestResult
     Failed -> Pending

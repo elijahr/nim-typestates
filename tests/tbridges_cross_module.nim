@@ -10,14 +10,14 @@ block test_successful_auth:
   let pending = Pending(AuthFlow(userId: "alice", token: "secret123"))
   let result = authenticate(pending)
 
-  # PendingBranch uses "pb" prefix (P=Pending, b=Branch)
+  # AuthResult uses "a" prefix (first letter of AuthResult)
   case result.kind
-  of pbAuthenticated:
+  of aAuthenticated:
     let session = startSession(result.authenticated, 7200)
     doAssert session.Session.userId == "alice"
     doAssert session.Session.expires == 7200
     echo "PASS: Cross-module bridge (Authenticated -> Session.Active) works"
-  of pbFailed:
+  of aFailed:
     doAssert false, "Expected authentication to succeed"
 
 block test_failed_auth:
@@ -25,9 +25,9 @@ block test_failed_auth:
   let result = authenticate(pending)
 
   case result.kind
-  of pbAuthenticated:
+  of aAuthenticated:
     doAssert false, "Expected authentication to fail"
-  of pbFailed:
+  of aFailed:
     let guestSession = fallbackToGuest(result.failed)
     doAssert guestSession.Session.userId == "anonymous"
     echo "PASS: Cross-module bridge (Failed -> Session.Guest) works"

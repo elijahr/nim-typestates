@@ -12,7 +12,7 @@
 ##
 ## **Internal module** - most users won't interact with this directly.
 
-import std/[tables, macros, options, strutils]
+import std/[tables, macros, options]
 import types
 
 export tables  # Needed for `in` operator on Table
@@ -134,29 +134,28 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
 
 type
   BranchTypeInfo* = object
-    ## Information about a generated branch type.
+    ## Information about a user-defined branch type.
     ##
-    ## When a branching transition like `Created -> Approved | Declined`
-    ## is declared, a `CreatedBranch` type is generated. This object
-    ## captures the relationship between the branch type and the
-    ## original transition.
+    ## When a branching transition like `Created -> Approved | Declined as ProcessResult`
+    ## is declared, the user provides the type name. This object captures the
+    ## relationship between the branch type name and the original transition.
     sourceState*: string     ## The source state name ("Created")
     destinations*: seq[string]  ## The destination states (["Approved", "Declined"])
 
 proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime.} =
-  ## Check if a type name is a generated branch type.
+  ## Check if a type name is a user-defined branch type.
   ##
-  ## Branch types follow the naming convention `<State>Branch`, e.g.,
-  ## `CreatedBranch` for a branching transition from `Created`.
+  ## Branch types are named by the user via `as TypeName` syntax in
+  ## branching transitions.
   ##
   ## This function searches all registered typestates for branching
-  ## transitions that would generate the given branch type name.
+  ## transitions that declare the given branch type name.
   ##
   ## Example:
   ##
   ## ```nim
-  ## # If typestate has: Created -> Approved | Declined
-  ## findBranchTypeInfo("CreatedBranch")
+  ## # If typestate has: Created -> Approved | Declined as ProcessResult
+  ## findBranchTypeInfo("ProcessResult")
   ## # Returns: some(BranchTypeInfo(sourceState: "Created",
   ## #                              destinations: @["Approved", "Declined"]))
   ##
@@ -168,21 +167,13 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
   ## :returns: `some(info)` if it's a branch type, `none` otherwise
   let typeBase = extractBaseName(typeName)
 
-  # Branch types end with "Branch"
-  if not typeBase.endsWith("Branch"):
-    return none(BranchTypeInfo)
-
-  # Extract the source state name by removing "Branch" suffix
-  let sourceState = typeBase[0 ..< typeBase.len - 6]  # "CreatedBranch" -> "Created"
-
-  # Search for a branching transition from this state
+  # Search for a branching transition with this user-provided type name
   for name, graph in typestateRegistry:
     for trans in graph.transitions:
       if trans.toStates.len > 1 and not trans.isWildcard:
-        let transSourceBase = extractBaseName(trans.fromState)
-        if transSourceBase == sourceState:
+        if trans.branchTypeName == typeBase:
           return some(BranchTypeInfo(
-            sourceState: sourceState,
+            sourceState: extractBaseName(trans.fromState),
             destinations: trans.toStates
           ))
 

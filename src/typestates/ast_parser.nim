@@ -141,6 +141,8 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
     return none(ParsedTransition)
 
   # Extract to states (may be single or branching with |)
+  # Also handles "as TypeName" suffix: A | B as TypeName
+  # In that case the structure is: nkInfix("as", nkInfix("|", A, B), TypeName)
   trans.toStates = @[]
 
   proc collectToStates(n: PNode, states: var seq[string]) =
@@ -152,6 +154,9 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
       if infixOp == "|" and n.len >= 3:
         collectToStates(n[1], states)
         collectToStates(n[2], states)
+      elif infixOp == "as" and n.len >= 3:
+        # Skip the type name (n[2]), recurse into the states (n[1])
+        collectToStates(n[1], states)
     else:
       discard
 

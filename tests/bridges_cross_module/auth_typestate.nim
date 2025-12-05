@@ -15,18 +15,18 @@ type
 typestate AuthFlow:
   states Pending, Authenticated, Failed
   transitions:
-    Pending -> Authenticated | Failed
+    Pending -> Authenticated | Failed as AuthResult
   bridges:
     # Bridge to typestate defined in another module
     Authenticated -> Session.Active
     Failed -> Session.Guest
 
 # Transition within AuthFlow (branching: Pending -> Authenticated | Failed)
-proc authenticate*(a: Pending): PendingBranch {.transition.} =
+proc authenticate*(a: Pending): AuthResult {.transition.} =
   if a.AuthFlow.token.len > 0:
-    toPendingBranch(Authenticated(a.AuthFlow))
+    AuthResult -> Authenticated(a.AuthFlow)
   else:
-    toPendingBranch(Failed(a.AuthFlow))
+    AuthResult -> Failed(a.AuthFlow)
 
 # Bridge transition: AuthFlow -> Session
 proc startSession*(a: Authenticated, timeout: int): Active {.transition.} =

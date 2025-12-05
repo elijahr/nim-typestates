@@ -178,41 +178,32 @@ proc getBranchingTransitions*(graph: TypestateGraph): seq[Transition] =
     if t.toStates.len > 1 and not t.isWildcard:
       result.add t
 
-proc branchEnumPrefix(fromState: string): string =
+proc branchEnumPrefix(typeName: string): string =
   ## Generate a short prefix for branch enum fields.
   ##
-  ## Uses first letter of source state + "b" to create unique prefixes:
-  ## - "Created" -> "cb"
-  ## - "Review" -> "rb"
-  ## - "Pending" -> "pb"
-  result = fromState[0].toLowerAscii() & "b"
+  ## Uses first letter of type name (lowercase) to create prefixes:
+  ## - "ProcessResult" -> "p"
+  ## - "OpenResult" -> "o"
+  ## - "ReviewDecision" -> "r"
+  result = typeName[0].toLowerAscii().`$`
 
 proc generateBranchTypes*(graph: TypestateGraph): NimNode =
   ## Generate variant types for branching transitions.
   ##
-  ## For a transition like `Created -> Approved | Declined | Review`,
+  ## For a transition like `Created -> Approved | Declined as ProcessResult`,
   ## generates:
   ##
   ## ```nim
   ## type
-  ##   CreatedBranchKind* = enum cbApproved, cbDeclined, cbReview
-  ##   CreatedBranch* = object
-  ##     case kind*: CreatedBranchKind
-  ##     of cbApproved: approved*: Approved
-  ##     of cbDeclined: declined*: Declined
-  ##     of cbReview: review*: Review
+  ##   ProcessResultKind* = enum pApproved, pDeclined
+  ##   ProcessResult* = object
+  ##     case kind*: ProcessResultKind
+  ##     of pApproved: approved*: Approved
+  ##     of pDeclined: declined*: Declined
   ## ```
   ##
-  ## For `Review -> Approved | Declined`:
-  ##
-  ## ```nim
-  ## type
-  ##   ReviewBranchKind* = enum rbApproved, rbDeclined
-  ##   ...
-  ## ```
-  ##
-  ## Enum prefixes are derived from source state (cb=Created, rb=Review)
-  ## to avoid naming conflicts.
+  ## The type name comes from the `as TypeName` syntax in the DSL.
+  ## Enum prefixes are derived from the first letter of the type name.
   ##
   ## :param graph: The typestate graph to generate from
   ## :returns: AST for all branch type definitions
@@ -223,10 +214,9 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     return
 
   for t in branchingTransitions:
-    let fromState = extractBaseName(t.fromState)
-    let branchTypeName = fromState & "Branch"
-    let kindTypeName = fromState & "BranchKind"
-    let enumPrefix = branchEnumPrefix(fromState)
+    let branchTypeName = t.branchTypeName
+    let kindTypeName = branchTypeName & "Kind"
+    let enumPrefix = branchEnumPrefix(branchTypeName)
 
     # Generate enum: CreatedBranchKind = enum cbApproved, cbDeclined, ...
     var enumFields = nnkEnumTy.newTree(newEmptyNode())
@@ -291,14 +281,14 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
 proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
   ## Generate constructor procs for branch types.
   ##
-  ## For each branching transition, generates `toXBranch` procs:
+  ## For `Created -> Approved | Declined as ProcessResult`, generates:
   ##
   ## ```nim
-  ## proc toCreatedBranch*(s: Approved): CreatedBranch =
-  ##   CreatedBranch(kind: cbApproved, approved: s)
+  ## proc toProcessResult*(s: Approved): ProcessResult =
+  ##   ProcessResult(kind: pApproved, approved: s)
   ##
-  ## proc toCreatedBranch*(s: Declined): CreatedBranch =
-  ##   CreatedBranch(kind: cbDeclined, declined: s)
+  ## proc toProcessResult*(s: Declined): ProcessResult =
+  ##   ProcessResult(kind: pDeclined, declined: s)
   ## ```
   ##
   ## :param graph: The typestate graph to generate from
@@ -310,10 +300,9 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
     return
 
   for t in branchingTransitions:
-    let fromState = extractBaseName(t.fromState)
-    let branchTypeName = fromState & "Branch"
+    let branchTypeName = t.branchTypeName
     let procName = "to" & branchTypeName
-    let enumPrefix = branchEnumPrefix(fromState)
+    let enumPrefix = branchEnumPrefix(branchTypeName)
 
     for dest in t.toStates:
       let destBase = extractBaseName(dest)
@@ -327,7 +316,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       else:
         destType = ident(destBase)
 
-      # Build: CreatedBranch(kind: cbApproved, approved: s)
+      # Build: ProcessResult(kind: pApproved, approved: s)
       let constructorCall = nnkObjConstr.newTree(
         ident(branchTypeName),
         nnkExprColonExpr.newTree(ident("kind"), kindField),
@@ -354,27 +343,27 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       result.add procDef
 
 proc generateBranchOperators*(graph: TypestateGraph): NimNode =
-  ## Generate `>>>` operator templates for branch types.
+  ## Generate `->` operator templates for branch types.
   ##
-  ## The `>>>` operator provides syntactic sugar for branch construction.
+  ## The `->` operator provides syntactic sugar for branch construction.
   ## It takes the branch type on the left and the state value on the right:
   ##
   ## ```nim
-  ## # Usage:
-  ## CreatedBranch >>> Approved(c.Payment)
+  ## # Usage (for: Created -> Approved | Declined as ProcessResult):
+  ## ProcessResult -> Approved(c.Payment)
   ##
   ## # Equivalent to:
-  ## toCreatedBranch(Approved(c.Payment))
+  ## toProcessResult(Approved(c.Payment))
   ## ```
   ##
   ## Generated templates:
   ##
   ## ```nim
-  ## template `>>>`*(T: typedesc[CreatedBranch], s: Approved): CreatedBranch =
-  ##   toCreatedBranch(s)
+  ## template `->`*(T: typedesc[ProcessResult], s: Approved): ProcessResult =
+  ##   toProcessResult(s)
   ##
-  ## template `>>>`*(T: typedesc[CreatedBranch], s: Declined): CreatedBranch =
-  ##   toCreatedBranch(s)
+  ## template `->`*(T: typedesc[ProcessResult], s: Declined): ProcessResult =
+  ##   toProcessResult(s)
   ## ```
   ##
   ## The `typedesc` parameter disambiguates when the same state appears
@@ -389,8 +378,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
     return
 
   for t in branchingTransitions:
-    let fromState = extractBaseName(t.fromState)
-    let branchTypeName = fromState & "Branch"
+    let branchTypeName = t.branchTypeName
     let procName = "to" & branchTypeName
 
     for dest in t.toStates:
@@ -403,16 +391,16 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
       else:
         destType = ident(destBase)
 
-      # Build: toCreatedBranch(s)
+      # Build: toProcessResult(s)
       let callExpr = nnkCall.newTree(
         ident(procName),
         ident("s")
       )
 
-      # template `>>>`*(T: typedesc[CreatedBranch], s: Approved): CreatedBranch =
-      #   toCreatedBranch(s)
+      # template `->`*(T: typedesc[ProcessResult], s: Approved): ProcessResult =
+      #   toProcessResult(s)
       let templateDef = nnkTemplateDef.newTree(
-        nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident(">>>"))),
+        nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("->"))),
         newEmptyNode(),
         newEmptyNode(),
         nnkFormalParams.newTree(
@@ -444,9 +432,9 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 1. State enum (`FileState`)
   ## 2. Union type (`FileStates`)
   ## 3. State procs (`state()` for each state)
-  ## 4. Branch types for branching transitions (`CreatedBranch`, etc.)
-  ## 5. Branch constructors (`toCreatedBranch`)
-  ## 6. Branch operators (`>>>`)
+  ## 4. Branch types for branching transitions (user-named via `as TypeName`)
+  ## 5. Branch constructors (`toTypeName`)
+  ## 6. Branch operators (`->`)
   ##
   ## **Note:** For generic typestates like `Container[T]`, helper generation
   ## is currently skipped because the generated types would need to be

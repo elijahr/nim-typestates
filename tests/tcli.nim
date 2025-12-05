@@ -19,7 +19,7 @@ type
 typestate File:
   states Closed, Open, Errored
   transitions:
-    Closed -> Open | Errored
+    Closed -> Open | Errored as OpenResult
     Open -> Closed
     * -> Closed
 """)

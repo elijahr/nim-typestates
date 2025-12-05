@@ -96,8 +96,8 @@ type
 typestate DbConnection:
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
-    Pooled -> CheckedOut | Closed
-    CheckedOut -> Pooled | InTransaction | Closed
+    Pooled -> CheckedOut | Closed as PoolResult
+    CheckedOut -> Pooled | InTransaction | Closed as UseResult
     InTransaction -> CheckedOut
     * -> Closed
 
@@ -323,9 +323,9 @@ typestate RobotArm:
     PoweredOff -> NeedsHoming
     NeedsHoming -> Homing
     Homing -> Ready
-    Ready -> Moving | PoweredOff
-    Moving -> Ready | EmergencyStop
-    EmergencyStop -> NeedsHoming | PoweredOff
+    Ready -> Moving | PoweredOff as ReadyResult
+    Moving -> Ready | EmergencyStop as MoveResult
+    EmergencyStop -> NeedsHoming | PoweredOff as RecoveryResult
 
 proc powerOn(arm: PoweredOff): NeedsHoming {.transition.} =
   echo "Powering on... Position unknown!"
@@ -475,7 +475,7 @@ typestate Document:
   states Draft, InReview, Approved, Published
   transitions:
     Draft -> InReview
-    InReview -> Approved | Draft  # Approve or request changes
+    InReview -> Approved | Draft as ReviewResult  # Approve or request changes
     Approved -> Published
     Published -> Draft  # New version
 

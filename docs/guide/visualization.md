@@ -66,9 +66,9 @@ typestate Payment:
   states Created, Authorized, Captured, PartiallyRefunded, FullyRefunded, Settled, Voided
   transitions:
     Created -> Authorized
-    Authorized -> Captured | Voided
-    Captured -> PartiallyRefunded | FullyRefunded | Settled
-    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled
+    Authorized -> Captured | Voided as AuthResult
+    Captured -> PartiallyRefunded | FullyRefunded | Settled as CaptureResult
+    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled as RefundResult
     FullyRefunded -> Settled
 ```
 
@@ -110,8 +110,8 @@ Wildcard transitions (`* -> State`) are rendered with dashed edges:
 typestate DbConnection:
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
-    Pooled -> CheckedOut | Closed
-    CheckedOut -> Pooled | InTransaction | Closed
+    Pooled -> CheckedOut | Closed as PoolResult
+    CheckedOut -> Pooled | InTransaction | Closed as CheckoutResult
     InTransaction -> CheckedOut
     * -> Closed
 ```

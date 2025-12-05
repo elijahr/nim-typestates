@@ -14,5 +14,5 @@ type
 typestate Payment:
   states Created, Approved, Declined, Banana, Potato
   transitions:
-    Created -> Approved | Declined  # First branching from Created
-    Created -> Banana | Potato      # ERROR: Second branching from Created
+    Created -> Approved | Declined as ResultA  # First branching from Created
+    Created -> Banana | Potato as ResultB      # ERROR: Second branching from Created

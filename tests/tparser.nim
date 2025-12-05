@@ -47,14 +47,19 @@ macro testParseTransition(): untyped =
 testParseTransition()
 
 macro testParseBranchingTransition(): untyped =
-  # Simulate AST for: Closed -> Open | Errored
+  # Simulate AST for: Closed -> Open | Errored as OpenResult
+  # The AST structure is: Infix("->", Closed, Infix("as", Infix("|", Open, Errored), OpenResult))
   let transNode = nnkInfix.newTree(
     ident("->"),
     ident("Closed"),
     nnkInfix.newTree(
-      ident("|"),
-      ident("Open"),
-      ident("Errored")
+      ident("as"),
+      nnkInfix.newTree(
+        ident("|"),
+        ident("Open"),
+        ident("Errored")
+      ),
+      ident("OpenResult")
     )
   )
 
@@ -64,6 +69,7 @@ macro testParseBranchingTransition(): untyped =
   doAssert trans.toStates.len == 2
   doAssert "Open" in trans.toStates
   doAssert "Errored" in trans.toStates
+  doAssert trans.branchTypeName == "OpenResult"
 
   result = newStmtList()
 
@@ -95,7 +101,7 @@ macro testParseFullBlock(): untyped =
   # typestate File:
   #   states: Closed, Open, Errored
   #   transitions:
-  #     Closed -> Open | Errored
+  #     Closed -> Open | Errored as OpenResult
   #     Open -> Closed
   #     * -> Closed
 
@@ -110,7 +116,9 @@ macro testParseFullBlock(): untyped =
       ident("transitions"),
       nnkStmtList.newTree(
         nnkInfix.newTree(ident("->"), ident("Closed"),
-          nnkInfix.newTree(ident("|"), ident("Open"), ident("Errored"))),
+          nnkInfix.newTree(ident("as"),
+            nnkInfix.newTree(ident("|"), ident("Open"), ident("Errored")),
+            ident("OpenResult"))),
         nnkInfix.newTree(ident("->"), ident("Open"), ident("Closed")),
         nnkInfix.newTree(ident("->"), ident("*"), ident("Closed"))
       )

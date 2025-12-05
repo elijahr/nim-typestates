@@ -23,7 +23,7 @@ type
 typestate AuthFlow:
   states Pending, Authenticated, Failed
   transitions:
-    Pending -> Authenticated | Failed
+    Pending -> Authenticated | Failed as AuthResult
   bridges:
     Authenticated -> Session.Active
     Failed -> Session.Guest

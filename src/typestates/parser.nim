@@ -196,12 +196,35 @@ proc parseTransition*(node: NimNode): Transition =
     # Fallback: try repr for any other valid type expression
     fromState = sourceNode.repr
 
-  # Parse target state(s)
-  let toStates = collectBranchTargets(node[2])
+  # Parse target state(s) and optional "as TypeName"
+  # A -> B | C as ResultType parses as:
+  #   Infix("->", A, Infix("as", Infix("|", B, C), ResultType))
+  var targetsNode = node[2]
+  var branchTypeName = ""
+
+  if targetsNode.kind == nnkInfix and targetsNode[0].strVal == "as":
+    # Extract the branch type name from RHS of "as"
+    branchTypeName = targetsNode[2].strVal
+    targetsNode = targetsNode[1]
+
+  let toStates = collectBranchTargets(targetsNode)
+
+  # Validate: branching transitions MUST have a type name
+  if toStates.len > 1 and branchTypeName == "":
+    error("Branching transitions require a result type name. " &
+          "Use: " & fromState & " -> " & toStates.join(" | ") & " as ResultTypeName",
+          node)
+
+  # Validate: non-branching transitions should NOT have a type name
+  if toStates.len == 1 and branchTypeName != "":
+    error("Non-branching transition should not have 'as " & branchTypeName & "'. " &
+          "The 'as TypeName' syntax is only for branching transitions (A -> B | C).",
+          node)
 
   result = Transition(
     fromState: fromState,
     toStates: toStates,
+    branchTypeName: branchTypeName,
     isWildcard: isWildcard,
     declaredAt: node.lineInfoObj
   )
