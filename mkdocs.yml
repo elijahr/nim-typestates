@@ -100,9 +100,6 @@ watch:
   - examples
   - examples/snippets
 
-hooks:
-  - hooks/generate_diagrams.py
-
 extra:
   version:
     provider: mike

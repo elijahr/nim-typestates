@@ -58,15 +58,18 @@ proc generateDot*(ts: ParsedTypestate): string =
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
+  # Font stack: Inter is a modern, highly legible sans-serif
+  const fontStack = "Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
+
   lines.add "digraph " & ts.name & " {"
   lines.add "  rankdir=LR;"
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
+  lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Add nodes
@@ -104,22 +107,25 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
+  # Font stack: Inter is a modern, highly legible sans-serif
+  const fontStack = "Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
+
   lines.add "digraph {"
   lines.add "  rankdir=LR;"
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
+  lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Generate subgraphs for each typestate
   for ts in typestates:
     lines.add "  subgraph cluster_" & ts.name & " {"
     lines.add "    label=\"" & ts.name & "\";"
-    lines.add "    fontname=\"Helvetica Bold\";"
+    lines.add "    fontname=\"" & fontStack & "\";"
     lines.add "    fontsize=12;"
     lines.add "    fontcolor=\"#e0e0e0\";"  # Light text for dark mode
     lines.add "    style=\"rounded\";"
@@ -187,15 +193,18 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
+  # Font stack: Inter is a modern, highly legible sans-serif
+  const fontStack = "Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
+
   lines.add "digraph " & ts.name & " {"
   lines.add "  rankdir=LR;"
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
+  lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Add nodes for actual states
