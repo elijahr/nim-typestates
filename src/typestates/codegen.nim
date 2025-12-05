@@ -335,6 +335,13 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
   ##   ProcessResult(kind: pDeclined, declined: s)
   ## ```
   ##
+  ## For generic types:
+  ##
+  ## ```nim
+  ## proc toFillResult*[T](s: Full[T]): FillResult[T] =
+  ##   FillResult[T](kind: fFull, full: s)
+  ## ```
+  ##
   ## :param graph: The typestate graph to generate from
   ## :returns: AST for all constructor proc definitions
   result = newStmtList()
@@ -347,6 +354,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
+    let branchTypeParams = extractTypeParams(branchTypeNode)
     let procName = "to" & branchBaseName
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -372,7 +380,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       let procDef = nnkProcDef.newTree(
         nnkPostfix.newTree(ident("*"), ident(procName)),
         newEmptyNode(),
-        newEmptyNode(),
+        buildGenericParams(branchTypeParams),
         nnkFormalParams.newTree(
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
