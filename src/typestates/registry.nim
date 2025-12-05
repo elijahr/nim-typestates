@@ -171,7 +171,8 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
   for name, graph in typestateRegistry:
     for trans in graph.transitions:
       if trans.toStates.len > 1 and not trans.isWildcard:
-        if trans.branchTypeName == typeBase:
+        # Compare base names (handles generic branch types like EmptyCheck[N])
+        if extractBaseName(trans.branchTypeName) == typeBase:
           return some(BranchTypeInfo(
             sourceState: extractBaseName(trans.fromState),
             destinations: trans.toStates

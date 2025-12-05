@@ -18,6 +18,16 @@ typestates dot src/ | dot -Tpng -o states.png
 typestates dot src/ | dot -Tsvg -o states.svg
 ```
 
+## Edge Styles
+
+The CLI uses different edge styles to distinguish transition types:
+
+| Type | Style | Description |
+|------|-------|-------------|
+| Normal | Solid dark gray | Standard state transitions |
+| Wildcard | Dotted gray | Transitions from any state (`* -> State`) |
+| Bridge | Dashed purple | Cross-typestate transitions |
+
 ## Example: File State Machine
 
 Given this typestate definition:
@@ -43,10 +53,20 @@ Running `typestates dot src/` produces:
 ```dot
 digraph {
   rankdir=LR;
-  node [shape=box];
+  bgcolor="transparent";
+  pad=0.5;
+
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#424242"];
 
   subgraph cluster_File {
     label="File";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Closed;
     Open;
@@ -54,13 +74,12 @@ digraph {
     Closed -> Open;
     Open -> Closed;
   }
-
 }
 ```
 
 Rendered as a diagram:
 
-![File State Machine](../assets/images/file-states.svg)
+![File State Machine](../assets/images/generated/file.svg)
 
 !!! note "Output Format"
     The CLI generates a unified graph with each typestate as a labeled subgraph.
@@ -86,10 +105,20 @@ DOT output:
 ```dot
 digraph {
   rankdir=LR;
-  node [shape=box];
+  bgcolor="transparent";
+  pad=0.5;
+
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#424242"];
 
   subgraph cluster_Payment {
     label="Payment";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Created;
     Authorized;
@@ -110,15 +139,14 @@ digraph {
     PartiallyRefunded -> Settled;
     FullyRefunded -> Settled;
   }
-
 }
 ```
 
-![Payment State Machine](../assets/images/payment-states.svg)
+![Payment State Machine](../assets/images/generated/payment.svg)
 
 ## Example: Wildcard Transitions
 
-Wildcard transitions (`* -> State`) are rendered with dashed edges:
+Wildcard transitions (`* -> State`) are rendered with dotted gray edges:
 
 ```nim
 typestate DbConnection:
@@ -135,10 +163,20 @@ DOT output:
 ```dot
 digraph {
   rankdir=LR;
-  node [shape=box];
+  bgcolor="transparent";
+  pad=0.5;
+
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#424242"];
 
   subgraph cluster_DbConnection {
     label="DbConnection";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Pooled;
     CheckedOut;
@@ -151,18 +189,17 @@ digraph {
     CheckedOut -> InTransaction;
     CheckedOut -> Closed;
     InTransaction -> CheckedOut;
-    Pooled -> Closed [style=dashed];
-    CheckedOut -> Closed [style=dashed];
-    InTransaction -> Closed [style=dashed];
-    Closed -> Closed [style=dashed];
+    Pooled -> Closed [style=dotted, color="#9e9e9e"];
+    CheckedOut -> Closed [style=dotted, color="#9e9e9e"];
+    InTransaction -> Closed [style=dotted, color="#9e9e9e"];
+    Closed -> Closed [style=dotted, color="#9e9e9e"];
   }
-
 }
 ```
 
-![Database Connection States](../assets/images/db-connection-states.svg)
+![Database Connection States](../assets/images/generated/dbconnection.svg)
 
-The dashed edges indicate transitions that apply from any state (wildcard).
+The dotted gray edges indicate transitions that apply from any state (wildcard).
 
 ## Installing GraphViz
 
@@ -196,14 +233,14 @@ GraphViz supports many output formats:
 
 ## Customizing Output
 
-You can post-process the DOT output for custom styling:
+The CLI produces styled output by default with a deep purple color scheme. You can post-process for further customization:
 
 ```bash
-# Add custom colors
-typestates dot src/ | sed 's/shape=box/shape=box, fillcolor=lightblue, style=filled/' | dot -Tpng -o colored.png
-
 # Change layout direction (top-to-bottom)
 typestates dot src/ | sed 's/rankdir=LR/rankdir=TB/' | dot -Tpng -o vertical.png
+
+# Different background color
+typestates dot src/ | sed 's/bgcolor="transparent"/bgcolor="#ffffff"/' | dot -Tpng -o white-bg.png
 ```
 
 ## Generating Documentation Images
@@ -225,7 +262,7 @@ done
 
 ## Multiple Typestates
 
-If your project has multiple typestates, the `dot` command outputs them all in a single unified graph with separate subgraphs. Bridges between typestates are shown as dashed edges.
+If your project has multiple typestates, the `dot` command outputs them all in a single unified graph with separate subgraphs. Bridges between typestates are shown as dashed purple edges.
 
 ### Example: Authentication Flow with Session
 
@@ -267,10 +304,20 @@ Running `typestates dot` produces:
 ```dot
 digraph {
   rankdir=LR;
-  node [shape=box];
+  bgcolor="transparent";
+  pad=0.5;
+
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#424242"];
 
   subgraph cluster_Session {
     label="Session";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Active;
     Expired;
@@ -280,6 +327,12 @@ digraph {
 
   subgraph cluster_AuthFlow {
     label="AuthFlow";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Pending;
     Authenticated;
@@ -289,9 +342,9 @@ digraph {
     Pending -> Failed;
   }
 
-  // Bridges (cross-typestate edges)
-  Authenticated -> Active [style=dashed, label="bridge"];
-  Failed -> Expired [style=dashed, label="bridge"];
+  // Bridges (cross-typestate)
+  Authenticated -> Active [style=dashed, color="#7e57c2", penwidth=1.5];
+  Failed -> Expired [style=dashed, color="#7e57c2", penwidth=1.5];
 }
 ```
 

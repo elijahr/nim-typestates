@@ -19,15 +19,28 @@ proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
   ##
   ## For `@[T]`, generates: `[T]`
   ## For `@[K, V]`, generates: `[K, V]`
+  ## For `@[N: static int]`, generates: `[N: static int]`
+  ## For `@[T: SomeInteger]`, generates: `[T: SomeInteger]`
   ## For `@[]`, returns empty node (non-generic)
   ##
-  ## :param typeParams: Sequence of type parameter idents
+  ## :param typeParams: Sequence of type parameter nodes
   ## :returns: nnkGenericParams node or newEmptyNode()
   if typeParams.len == 0:
     return newEmptyNode()
   result = nnkGenericParams.newTree()
   for p in typeParams:
-    result.add nnkIdentDefs.newTree(p.copyNimTree, newEmptyNode(), newEmptyNode())
+    if p.kind == nnkExprColonExpr:
+      # Constrained generic: N: static int or T: SomeInteger
+      # ExprColonExpr[0] = name (N or T)
+      # ExprColonExpr[1] = constraint (static int or SomeInteger)
+      result.add nnkIdentDefs.newTree(
+        p[0].copyNimTree,  # name
+        p[1].copyNimTree,  # constraint
+        newEmptyNode()     # default value
+      )
+    else:
+      # Simple generic: T
+      result.add nnkIdentDefs.newTree(p.copyNimTree, newEmptyNode(), newEmptyNode())
 
 proc extractTypeParams*(node: NimNode): seq[NimNode] =
   ## Extract type parameters from a type node.
@@ -257,7 +270,8 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    let branchTypeParams = extractTypeParams(branchTypeNode)
+    # Use typestate's type params (with constraints) instead of extracting from branch type
+    let branchTypeParams = graph.typeParams
     let kindTypeName = branchBaseName & "Kind"
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -354,7 +368,8 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    let branchTypeParams = extractTypeParams(branchTypeNode)
+    # Use typestate's type params (with constraints) instead of extracting from branch type
+    let branchTypeParams = graph.typeParams
     let procName = "to" & branchBaseName
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -441,7 +456,8 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    let branchTypeParams = extractTypeParams(branchTypeNode)
+    # Use typestate's type params (with constraints) instead of extracting from branch type
+    let branchTypeParams = graph.typeParams
     let procName = "to" & branchBaseName
 
     for dest in t.toStates:

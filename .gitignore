@@ -25,12 +25,12 @@ examples/*
 examples/**/*
 
 # Unignore source files
-## Unignore directories in src
-!src/**/
 ## Unignore Nim source files in src
+!src/*.nim
+## Unignore Nim source files in src subdirectories
 !src/**/*.nim
-## Unignore directories in tests
-!tests/**/
+## Unignore Nim source files in tests
+!tests/*.nim
 ## Unignore Nim source files in tests
 !tests/**/*.nim
 ## Unignore directories in examples
@@ -47,3 +47,4 @@ site/
 
 # Misc
 .DS_Store
+__pycache__/

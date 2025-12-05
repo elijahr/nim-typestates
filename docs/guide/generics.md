@@ -200,7 +200,44 @@ Generic typestates support various type expressions:
 | Simple generics | `Container[T]` | Single type parameter |
 | Multi-param generics | `Map[K, V]` | Multiple type parameters |
 | Nested generics | `Container[seq[T]]` | Generic of generic |
-| Constrained generics | `Container[T: SomeInteger]` | With type bounds |
+| Constrained generics | `Container[T: SomeInteger]` | With type bounds (see below) |
+| Static parameters | `Buffer[N: static int]` | Compile-time values |
+
+## Constrained Generic Parameters
+
+When using constrained generic parameters, **you must repeat the constraint in the typestate declaration**. This applies to all constraints including type bounds (`SomeInteger`, `SomeNumber`) and static parameters (`static int`).
+
+```nim
+type
+  # Type definitions with constraints
+  Buffer[N: static int] = object
+    data: array[N, byte]
+  Empty[N: static int] = distinct Buffer[N]
+  Full[N: static int] = distinct Buffer[N]
+
+# Constraint MUST be repeated in typestate header
+typestate Buffer[N: static int]:
+  states Empty[N], Full[N]
+  transitions:
+    Empty[N] -> Full[N]
+    Full[N] -> Empty[N]
+```
+
+The same applies to type constraints:
+
+```nim
+type
+  NumericContainer[T: SomeNumber] = object
+    value: T
+  Unset[T: SomeNumber] = distinct NumericContainer[T]
+  Set[T: SomeNumber] = distinct NumericContainer[T]
+
+# Constraint MUST be repeated
+typestate NumericContainer[T: SomeNumber]:
+  states Unset[T], Set[T]
+  transitions:
+    Unset[T] -> Set[T]
+```
 
 ## Pattern: Builder with Required Fields
 
@@ -268,9 +305,10 @@ proc use[T](r: Acquired[T]): T {.notATransition.} =
 
 ## Limitations
 
-1. **Same base name**: All states in a generic typestate must have distinct base names (e.g., `Empty[T]` and `Empty[V]` would conflict)
-2. **Branch type params must match**: Branch type parameters must use the same type variables as the typestate (e.g., `FillResult[K]` when typestate uses `T` will fail)
-3. **Distinct types with multiple params**: Due to a Nim compiler limitation, using `distinct` with multiple generic params may cause C compilation errors. Use wrapper objects instead:
+1. **Constraints must be repeated**: Generic constraints (`static int`, `SomeInteger`, etc.) must be explicitly stated in the typestate header - they cannot be inferred from type definitions. See [Constrained Generic Parameters](#constrained-generic-parameters).
+2. **Same base name**: All states in a generic typestate must have distinct base names (e.g., `Empty[T]` and `Empty[V]` would conflict)
+3. **Branch type params must match**: Branch type parameters must use the same type variables as the typestate (e.g., `FillResult[K]` when typestate uses `T` will fail)
+4. **Distinct types with multiple params**: Due to a Nim compiler limitation, using `distinct` with multiple generic params may cause C compilation errors. Use wrapper objects instead:
 
 ```nim
 # May cause issues with distinct

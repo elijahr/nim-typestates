@@ -447,7 +447,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   var typeParams: seq[NimNode] = @[]
 
   if name.kind == nnkBracketExpr:
-    # Generic: Container[T] or Map[K, V]
+    # Generic: Container[T] or Map[K, V] or VirtualValueN[N: static int]
     baseName = extractBaseName(name[0])
     for i in 1..<name.len:
       typeParams.add name[i].copyNimTree

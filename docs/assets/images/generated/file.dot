@@ -1,9 +1,19 @@
 digraph {
   rankdir=LR;
-  node [shape=box];
+  bgcolor="transparent";
+  pad=0.5;
+
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#424242"];
 
   subgraph cluster_File {
     label="File";
+    fontname="Helvetica Bold";
+    fontsize=12;
+    style="rounded";
+    color="#673ab7";
+    bgcolor="#fafafa";
+    margin=16;
 
     Closed;
     Open;
