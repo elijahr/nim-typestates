@@ -125,11 +125,36 @@ proc write(f: Open, data: string) {.notATransition.} =
 - **Generic types** — `Container[T]` with states like `Empty[T]`, `Full[T]`
 - **Branching transitions** — `Open -> Closed | Error`
 - **Wildcard transitions** — `* -> Closed` (any state can transition)
+- **Cross-type bridges** — Transition between different typestates
 - **Self-transitions** — `Open -> Open` for state-preserving operations
 - **Strict mode** — All procs on states must be explicitly marked
 - **Sealed typestates** — External modules can only add read-only operations
 - **CLI tool** — Project-wide verification and GraphViz export
 - **Zero runtime cost** — All validation happens at compile time
+
+### Cross-Type Bridges
+
+Model resource transformation and protocol handoff between typestates:
+
+```nim
+import typestates
+import ./session
+
+typestate AuthFlow:
+  states Pending, Authenticated, Failed
+  transitions:
+    Pending -> Authenticated
+    Pending -> Failed
+  bridges:
+    Authenticated -> Session.Active
+    Failed -> Session.Guest
+
+# Bridge implementation
+converter toSession(auth: Authenticated): Active {.transition.} =
+  Active(Session(userId: auth.AuthFlow.userId))
+```
+
+Bridges are validated at compile time and shown in visualization.
 
 ## CLI Tool
 
@@ -149,6 +174,7 @@ typestates dot src/ | dot -Tpng -o states.png
 
 - [Getting Started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
 - [DSL Reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
+- [Cross-Type Bridges](https://elijahr.github.io/nim-typestates/latest/guide/bridges/)
 - [Generic Typestates](https://elijahr.github.io/nim-typestates/latest/guide/generics/)
 - [Formal Guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
 - [Examples](https://elijahr.github.io/nim-typestates/latest/guide/examples/)

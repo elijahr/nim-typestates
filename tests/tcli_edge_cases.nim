@@ -29,9 +29,9 @@ block multiFileTest:
     echo output
     quit(1)
 
-  # Check that both typestates are in output
-  if "digraph File" notin output or "digraph Task" notin output:
-    echo "FAIL: Expected both typestates in DOT output"
+  # Check that both typestates are in unified output (subgraph clusters)
+  if "subgraph cluster_File" notin output or "subgraph cluster_Task" notin output:
+    echo "FAIL: Expected both typestates in unified DOT output"
     echo "Output:"
     echo output
     quit(1)
@@ -48,9 +48,9 @@ block dotOutputTest:
     echo output
     quit(1)
 
-  # Check for DOT syntax elements
-  if "digraph Request" notin output:
-    echo "FAIL: Expected digraph declaration in DOT output"
+  # Check for DOT syntax elements (unified graph with subgraph cluster)
+  if "digraph {" notin output or "subgraph cluster_Request" notin output:
+    echo "FAIL: Expected unified digraph with Request subgraph in DOT output"
     quit(1)
 
   if "Pending -> Success" notin output:

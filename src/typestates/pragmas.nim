@@ -144,6 +144,24 @@ macro transition*(procDef: untyped): untyped =
 
   # Validate each transition in the union
   for destTypeName in destTypeNames:
+    # Check if destination belongs to a different typestate (bridge case)
+    let destGraphOpt = findTypestateForState(destTypeName)
+
+    if destGraphOpt.isSome:
+      let destGraph = destGraphOpt.get
+      if destGraph.name != graph.name:
+        # Cross-typestate transition: validate as a bridge
+        if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
+          let validBridges = graph.validBridges(sourceTypeName)
+          let bridgeDest = destGraph.name & "." & destTypeName
+          error(fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
+  Typestate '{graph.name}' does not declare this bridge.
+  Valid bridges from '{sourceTypeName}': {validBridges}
+  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}.""", procDef)
+        # Bridge is valid, continue to next destination
+        continue
+
+    # Same typestate or destination not in any typestate: validate as regular transition
     if not graph.hasTransition(sourceTypeName, destTypeName):
       let validDests = graph.validDestinations(sourceTypeName)
       error(fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}

@@ -77,6 +77,7 @@ nav:
   - Guide:
     - Getting Started: guide/getting-started.md
     - DSL Reference: guide/dsl-reference.md
+    - Cross-Type Bridges: guide/bridges.md
     - Generic Typestates: guide/generics.md
     - Formal Guarantees: guide/formal-guarantees.md
     - Error Handling: guide/error-handling.md

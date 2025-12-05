@@ -70,6 +70,50 @@ Any state can transition to a destination using `*`:
 
 Wildcards are useful for "reset" or "cleanup" operations that work from any state.
 
+## Bridges
+
+Cross-typestate transitions declared with dotted notation.
+
+### Syntax
+
+```nim
+bridges:
+  SourceState -> DestTypestate.DestState
+  SourceState -> DestTypestate.State1 | DestTypestate.State2  # Branching
+  * -> DestTypestate.DestState  # Wildcard
+```
+
+### Requirements
+
+- Destination typestate must be imported
+- Destination typestate and state must exist
+- Bridge must be declared before implementation
+
+### Examples
+
+Simple bridge:
+
+```nim
+bridges:
+  Authenticated -> Session.Active
+```
+
+Branching bridge:
+
+```nim
+bridges:
+  Authenticated -> Session.Active | Session.Guest
+```
+
+Wildcard bridge:
+
+```nim
+bridges:
+  * -> Shutdown.Terminal
+```
+
+See [Bridges](bridges.md) for full documentation.
+
 ## Pragmas
 
 ### `{.transition.}`

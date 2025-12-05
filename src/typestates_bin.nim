@@ -9,21 +9,28 @@ proc showHelp() =
   echo ""
   echo "Usage:"
   echo "  typestates verify [paths...]   Verify typestate rules"
-  echo "  typestates dot [paths...]      Generate GraphViz DOT output"
+  echo "  typestates dot [paths...]      Generate unified GraphViz DOT output"
+  echo "  typestates dot --separate [paths...]  Generate separate DOT per typestate"
   echo ""
   echo "Options:"
   echo "  -h, --help      Show this help"
   echo "  -v, --version   Show version"
+  echo "  --separate      For 'dot' command: generate separate graph per typestate"
   echo ""
   echo "Examples:"
   echo "  typestates verify src/"
   echo "  typestates dot src/ > typestates.dot"
+  echo "  typestates dot --separate src/ > typestates.dot"
   echo "  typestates dot src/ | dot -Tpng -o typestates.png"
   echo ""
   echo "Notes:"
   echo "  Files must be valid Nim syntax. Syntax errors cause verification"
   echo "  to fail with a clear error message. Uses Nim's AST parser for"
   echo "  accurate extraction of typestate definitions."
+  echo ""
+  echo "  The 'dot' command generates a unified graph by default, showing all"
+  echo "  typestates with cross-typestate bridges as dashed edges. Use --separate"
+  echo "  to generate individual graphs for each typestate."
 
 proc showVersion() =
   echo "typestates 0.1.0"
@@ -74,15 +81,33 @@ when isMainModule:
 
   of "dot":
     try:
-      let parseResult = parseTypestates(paths)
+      # Parse flags and paths from args
+      var separateFlag = false
+      var pathArgs: seq[string] = @[]
+
+      for arg in paths:
+        if arg == "--separate":
+          separateFlag = true
+        elif not arg.startsWith("-"):
+          pathArgs.add arg
+
+      if pathArgs.len == 0:
+        pathArgs = @["."]
+
+      let parseResult = parseTypestates(pathArgs)
 
       if parseResult.typestates.len == 0:
-        echo "No typestates found in ", paths.join(", ")
+        echo "No typestates found in ", pathArgs.join(", ")
         quit(1)
 
-      for ts in parseResult.typestates:
-        echo generateDot(ts)
-        echo ""
+      if separateFlag:
+        # Generate separate graph for each typestate
+        for ts in parseResult.typestates:
+          echo generateSeparateDot(ts)
+          echo ""
+      else:
+        # Generate unified graph
+        echo generateUnifiedDot(parseResult.typestates)
 
       quit(0)
     except ParseError as e:

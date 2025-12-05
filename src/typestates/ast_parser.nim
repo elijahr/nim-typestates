@@ -11,6 +11,12 @@ import std/[os, strutils, options]
 import compiler/[ast, parser, llstream, idents, options as compiler_options, pathutils]
 
 type
+  ParsedBridge* = object
+    ## A bridge parsed from source code.
+    fromState*: string
+    toTypestate*: string
+    toState*: string
+
   ParsedTransition* = object
     ## A transition parsed from source code.
     fromState*: string
@@ -22,6 +28,7 @@ type
     name*: string
     states*: seq[string]
     transitions*: seq[ParsedTransition]
+    bridges*: seq[ParsedBridge]
     isSealed*: bool
     strictTransitions*: bool
 
@@ -174,6 +181,81 @@ proc extractTransitions(node: PNode): seq[ParsedTransition] =
           if trans.isSome:
             result.add trans.get
 
+proc extractBridge(node: PNode): Option[ParsedBridge] =
+  ## Extract a bridge from an infix or prefix node.
+  ## Handles: Authenticated -> Session.Active, * -> Shutdown.Terminal
+  ##
+  ## Note: `* -> Session.Active` is parsed as nested nkPrefix.
+
+  var bridge = ParsedBridge()
+  var toNode: PNode
+
+  # Handle wildcard case: nkPrefix("*", nkPrefix("->", dest))
+  if node.kind == nkPrefix and node.len >= 2:
+    let prefixOp = extractIdent(node[0])
+    if prefixOp == "*" and node[1].kind == nkPrefix:
+      let innerPrefix = node[1]
+      if innerPrefix.len >= 2 and extractIdent(innerPrefix[0]) == "->":
+        bridge.fromState = "*"
+        toNode = innerPrefix[1]
+      else:
+        return none(ParsedBridge)
+    else:
+      return none(ParsedBridge)
+
+  # Handle normal case: nkInfix("->", from, to)
+  elif node.kind == nkInfix and node.len >= 3:
+    let op = extractIdent(node[0])
+    if op != "->":
+      return none(ParsedBridge)
+
+    let fromNode = node[1]
+    toNode = node[2]
+
+    # Extract from state
+    case fromNode.kind
+    of nkIdent:
+      bridge.fromState = fromNode.ident.s
+    of nkPrefix:
+      if fromNode.len >= 1 and extractIdent(fromNode[0]) == "*":
+        bridge.fromState = "*"
+    else:
+      return none(ParsedBridge)
+
+  else:
+    return none(ParsedBridge)
+
+  # Extract destination: must be nkDotExpr (Typestate.State)
+  if toNode.kind != nkDotExpr or toNode.len < 2:
+    return none(ParsedBridge)
+
+  bridge.toTypestate = extractIdent(toNode[0])
+  bridge.toState = extractIdent(toNode[1])
+
+  if bridge.toTypestate != "" and bridge.toState != "":
+    return some(bridge)
+  else:
+    return none(ParsedBridge)
+
+proc extractBridges(node: PNode): seq[ParsedBridge] =
+  ## Extract bridges from a bridges block.
+  result = @[]
+
+  if node.kind == nkCall and node.len >= 1:
+    let name = extractIdent(node[0])
+    if name == "bridges":
+      for i in 1 ..< node.len:
+        let child = node[i]
+        if child.kind == nkStmtList:
+          for stmt in child:
+            let bridge = extractBridge(stmt)
+            if bridge.isSome:
+              result.add bridge.get
+        else:
+          let bridge = extractBridge(child)
+          if bridge.isSome:
+            result.add bridge.get
+
 proc extractFlag(node: PNode, flagName: string): Option[bool] =
   ## Extract a boolean flag assignment.
   ## Handles: isSealed = false, strictTransitions = true
@@ -234,6 +316,11 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       let transitions = extractTransitions(child)
       if transitions.len > 0:
         ts.transitions.add transitions
+
+      # Check for bridges block
+      let bridges = extractBridges(child)
+      if bridges.len > 0:
+        ts.bridges.add bridges
 
       # Check for flags
       let sealedFlag = extractFlag(child, "isSealed")

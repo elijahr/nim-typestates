@@ -17,7 +17,7 @@ import std/[os, strutils, tables, strformat]
 import ast_parser
 
 # Re-export types from ast_parser for API compatibility
-export ParsedTransition, ParsedTypestate, ParseResult, ParseError
+export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
 
 type
   VerifyResult* = object
@@ -88,6 +88,157 @@ proc generateDot*(ts: ParsedTypestate): string =
     else:
       for toState in trans.toStates:
         lines.add "  " & trans.fromState & " -> " & toState & ";"
+
+  lines.add "}"
+  result = lines.join("\n")
+
+proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
+  ## Generate a unified GraphViz DOT output showing all typestates.
+  ##
+  ## Creates subgraphs for each typestate with cross-cluster edges for bridges.
+  ##
+  ## Example output:
+  ##
+  ## ```
+  ## digraph {
+  ##   rankdir=LR;
+  ##   node [shape=box];
+  ##
+  ##   subgraph cluster_AuthFlow {
+  ##     label="AuthFlow";
+  ##     Authenticated;
+  ##     Failed;
+  ##     Authenticated -> Failed;
+  ##   }
+  ##
+  ##   subgraph cluster_Session {
+  ##     label="Session";
+  ##     Active;
+  ##     Closed;
+  ##     Active -> Closed;
+  ##   }
+  ##
+  ##   // Bridges (cross-cluster edges)
+  ##   Authenticated -> Active [style=dashed, label="bridge"];
+  ##   Failed -> Closed [style=dashed, label="bridge"];
+  ## }
+  ## ```
+  ##
+  ## :param typestates: List of parsed typestates to visualize
+  ## :returns: DOT format string
+  var lines: seq[string] = @[]
+
+  lines.add "digraph {"
+  lines.add "  rankdir=LR;"
+  lines.add "  node [shape=box];"
+  lines.add ""
+
+  # Generate subgraphs for each typestate
+  for ts in typestates:
+    lines.add "  subgraph cluster_" & ts.name & " {"
+    lines.add "    label=\"" & ts.name & "\";"
+    lines.add ""
+
+    # Add nodes
+    for state in ts.states:
+      lines.add "    " & state & ";"
+
+    lines.add ""
+
+    # Add transitions (within this typestate)
+    for trans in ts.transitions:
+      if trans.isWildcard:
+        for fromState in ts.states:
+          for toState in trans.toStates:
+            lines.add "    " & fromState & " -> " & toState & " [style=dashed];"
+      else:
+        for toState in trans.toStates:
+          lines.add "    " & trans.fromState & " -> " & toState & ";"
+
+    lines.add "  }"
+    lines.add ""
+
+  # Add bridges (cross-cluster edges)
+  var hasBridges = false
+  for ts in typestates:
+    if ts.bridges.len > 0:
+      hasBridges = true
+      break
+
+  if hasBridges:
+    lines.add "  // Bridges (cross-typestate edges)"
+    for ts in typestates:
+      for bridge in ts.bridges:
+        let fromState = bridge.fromState
+        let toState = bridge.toState
+
+        if fromState == "*":
+          # Wildcard bridge: add edge from every state
+          for state in ts.states:
+            lines.add "  " & state & " -> " & toState & " [style=dashed, label=\"bridge\"];"
+        else:
+          lines.add "  " & fromState & " -> " & toState & " [style=dashed, label=\"bridge\"];"
+
+  lines.add "}"
+  result = lines.join("\n")
+
+proc generateSeparateDot*(ts: ParsedTypestate): string =
+  ## Generate GraphViz DOT output for a single typestate.
+  ##
+  ## Bridges are shown as terminal nodes with dashed edges.
+  ##
+  ## Example output:
+  ##
+  ## ```
+  ## digraph AuthFlow {
+  ##   rankdir=LR;
+  ##   node [shape=box];
+  ##
+  ##   Authenticated;
+  ##   Failed;
+  ##
+  ##   Authenticated -> Failed;
+  ##   Authenticated -> "Session.Active" [style=dashed];
+  ##   Failed -> "Session.Closed" [style=dashed];
+  ## }
+  ## ```
+  ##
+  ## :param ts: The parsed typestate to visualize
+  ## :returns: DOT format string
+  var lines: seq[string] = @[]
+
+  lines.add "digraph " & ts.name & " {"
+  lines.add "  rankdir=LR;"
+  lines.add "  node [shape=box];"
+  lines.add ""
+
+  # Add nodes for actual states
+  for state in ts.states:
+    lines.add "  " & state & ";"
+
+  lines.add ""
+
+  # Add edges for transitions
+  for trans in ts.transitions:
+    if trans.isWildcard:
+      for fromState in ts.states:
+        for toState in trans.toStates:
+          lines.add "  " & fromState & " -> " & toState & " [style=dashed];"
+    else:
+      for toState in trans.toStates:
+        lines.add "  " & trans.fromState & " -> " & toState & ";"
+
+  # Add edges for bridges (to terminal nodes)
+  for bridge in ts.bridges:
+    let fromState = bridge.fromState
+    let toNode = "\"" & bridge.toTypestate & "." & bridge.toState & "\""
+
+    if fromState == "*":
+      # Wildcard bridge: add edge from every state
+      for state in ts.states:
+        lines.add "  " & state & " -> " & toNode & " [style=dashed];"
+    else:
+      lines.add "  " & fromState & " -> " & toNode & " [style=dashed];"
 
   lines.add "}"
   result = lines.join("\n")

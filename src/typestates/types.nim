@@ -87,6 +87,36 @@ type
     isWildcard*: bool
     declaredAt*: LineInfo
 
+  Bridge* = object
+    ## Represents a cross-typestate bridge declaration.
+    ##
+    ## Bridges allow terminal states of one typestate to transition into
+    ## states of a completely different typestate. They enable modeling
+    ## resource transformation, wrapping, and protocol handoff.
+    ##
+    ## Example:
+    ##
+    ## ```nim
+    ## # In AuthFlow typestate:
+    ## # bridges:
+    ## #   Authenticated -> Session.Active
+    ## # Becomes:
+    ## Bridge(
+    ##   fromState: "Authenticated",
+    ##   toTypestate: "Session",
+    ##   toState: "Active"
+    ## )
+    ## ```
+    ##
+    ## :var fromState: Source state name in this typestate
+    ## :var toTypestate: Name of the destination typestate
+    ## :var toState: State name in the destination typestate
+    ## :var declaredAt: Source location for error messages
+    fromState*: string
+    toTypestate*: string
+    toState*: string
+    declaredAt*: LineInfo
+
   TypestateGraph* = object
     ## The complete graph of states and transitions for a typestate.
     ##
@@ -116,6 +146,7 @@ type
     name*: string
     states*: Table[string, State]
     transitions*: seq[Transition]
+    bridges*: seq[Bridge]
     isSealed*: bool = true
     strictTransitions*: bool = true
     declaredAt*: LineInfo
@@ -134,6 +165,20 @@ proc `==`*(a, b: Transition): bool =
   a.fromState == b.fromState and
     a.toStates == b.toStates and
     a.isWildcard == b.isWildcard
+
+proc `==`*(a, b: Bridge): bool =
+  ## Compare two bridges for equality.
+  ##
+  ## Two bridges are equal if they have the same source state,
+  ## destination typestate, and destination state. The declaration
+  ## location is not considered for equality.
+  ##
+  ## :param a: First bridge to compare
+  ## :param b: Second bridge to compare
+  ## :returns: `true` if bridges are semantically equivalent
+  a.fromState == b.fromState and
+    a.toTypestate == b.toTypestate and
+    a.toState == b.toState
 
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Check if a transition from `fromState` to `toState` is valid.
@@ -198,3 +243,55 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
         let destBase = extractBaseName(dest)
         if destBase notin result:
           result.add destBase
+
+proc hasBridge*(graph: TypestateGraph, fromState, toTypestate, toState: string): bool =
+  ## Check if a bridge from `fromState` to `toTypestate.toState` is declared.
+  ##
+  ## Comparisons use base names to support generic types.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # Given: Authenticated -> Session.Active
+  ## graph.hasBridge("Authenticated", "Session", "Active")  # true
+  ## graph.hasBridge("Failed", "Session", "Active")         # false
+  ## ```
+  ##
+  ## :param graph: The typestate graph to check
+  ## :param fromState: The source state name
+  ## :param toTypestate: The destination typestate name
+  ## :param toState: The destination state name
+  ## :returns: `true` if the bridge is declared, `false` otherwise
+  let fromBase = extractBaseName(fromState)
+  let toTypestateBase = extractBaseName(toTypestate)
+  let toStateBase = extractBaseName(toState)
+  for b in graph.bridges:
+    if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
+      if extractBaseName(b.toTypestate) == toTypestateBase and
+         extractBaseName(b.toState) == toStateBase:
+        return true
+  return false
+
+proc validBridges*(graph: TypestateGraph, fromState: string): seq[string] =
+  ## Get all valid bridge destinations from a given state.
+  ##
+  ## Returns dotted notation strings like "Session.Active".
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # Given: Authenticated -> Session.Active, Failed -> ErrorLog.Entry
+  ## graph.validBridges("Authenticated")  # @["Session.Active"]
+  ## graph.validBridges("Failed")         # @["ErrorLog.Entry"]
+  ## ```
+  ##
+  ## :param graph: The typestate graph to query
+  ## :param fromState: The source state to check bridges from
+  ## :returns: A sequence of dotted destination names
+  result = @[]
+  let fromBase = extractBaseName(fromState)
+  for b in graph.bridges:
+    if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
+      let dest = b.toTypestate & "." & b.toState
+      if dest notin result:
+        result.add dest

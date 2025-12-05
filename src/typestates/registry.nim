@@ -55,13 +55,16 @@ template registerTypestate*(graph: TypestateGraph) =
     if existing.isSealed:
       error("Cannot extend sealed typestate '" & graph.name &
             "'. Set isSealed = false or define all states/transitions in one place.")
-    # Extension: merge with existing, deduplicating transitions
+    # Extension: merge with existing, deduplicating transitions and bridges
     var merged = existing
     for name, state in graph.states:
       merged.states[name] = state
     for trans in graph.transitions:
       if trans notin merged.transitions:
         merged.transitions.add trans
+    for bridge in graph.bridges:
+      if bridge notin merged.bridges:
+        merged.bridges.add bridge
     typestateRegistry[graph.name] = merged
   else:
     typestateRegistry[graph.name] = graph

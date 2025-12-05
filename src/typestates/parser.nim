@@ -257,6 +257,98 @@ proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
     let trans = parseTransition(child)
     graph.transitions.add(trans)
 
+proc collectBridgeTargets(node: NimNode): seq[tuple[typestate: string, state: string]] =
+  ## Recursively collect all target typestates/states from a branching expression.
+  ##
+  ## Handles the `|` operator for branching bridges like `Session.Active | Session.Guest`.
+  ##
+  ## Examples:
+  ##
+  ## - `Session.Active` -> `@[("Session", "Active")]`
+  ## - `Session.Active | Session.Guest` -> `@[("Session", "Active"), ("Session", "Guest")]`
+  ##
+  ## :param node: AST node representing the target(s)
+  ## :returns: Sequence of (typestate, state) tuples
+  case node.kind
+  of nnkDotExpr:
+    let typestate = extractBaseName(node[0])
+    let state = extractBaseName(node[1])
+    result = @[(typestate, state)]
+  of nnkInfix:
+    if node[0].strVal == "|":
+      result = collectBridgeTargets(node[1]) & collectBridgeTargets(node[2])
+    else:
+      error("Expected '|' in branching bridge", node)
+  else:
+    error("Bridge destination must use dotted notation (Typestate.State)", node)
+
+proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the bridges block and add all bridges to the graph.
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## bridges:
+  ##   Authenticated -> Session.Active
+  ##   Failed -> ErrorLog.Entry
+  ##   * -> Shutdown.Terminal
+  ## ```
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the bridges block
+  ## :raises: Compile-time error if block is malformed
+  expectKind(node, nnkCall)
+
+  # node[0] is "bridges", node[1] is the statement list
+  if node.len < 2:
+    error("bridges block is empty", node)
+
+  let bridgesBlock = node[1]
+  expectKind(bridgesBlock, nnkStmtList)
+
+  for child in bridgesBlock:
+    # Parse source state
+    var fromState: string
+    var targetsNode: NimNode
+
+    # Handle wildcard: * -> X.Y parses as nested nnkPrefix
+    if child.kind == nnkPrefix and child[0].strVal == "*":
+      let innerNode = child[1]
+      if innerNode.kind == nnkPrefix and innerNode[0].strVal == "->":
+        fromState = "*"
+        targetsNode = innerNode[1]
+      else:
+        error("Invalid wildcard bridge syntax", child)
+    elif child.kind == nnkInfix and child[0].strVal == "->":
+      let sourceNode = child[1]
+      case sourceNode.kind
+      of nnkIdent:
+        fromState = sourceNode.strVal
+      of nnkPrefix:
+        if sourceNode[0].strVal == "*":
+          fromState = "*"
+        else:
+          error("Unexpected prefix in bridge source", sourceNode)
+      else:
+        error("Expected identifier or wildcard in bridge source", sourceNode)
+
+      targetsNode = child[2]
+    else:
+      error("Expected bridge declaration with '->'", child)
+
+    # Collect all targets (handles branching with |)
+    let targets = collectBridgeTargets(targetsNode)
+
+    # Create a Bridge for each target
+    for target in targets:
+      let bridge = Bridge(
+        fromState: fromState,
+        toTypestate: target.typestate,
+        toState: target.state,
+        declaredAt: child.lineInfoObj
+      )
+      graph.bridges.add bridge
+
 proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## Parse a complete typestate block body into a TypestateGraph.
   ##
@@ -304,6 +396,8 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
         parseStates(result, child)
       of "transitions":
         parseTransitionsBlock(result, child)
+      of "bridges":
+        parseBridgesBlock(result, child)
       else:
         error("Unknown section in typestate block: " & sectionName, child)
     else:
