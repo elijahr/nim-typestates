@@ -441,9 +441,23 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## :param body: The statement list containing states and transitions
   ## :returns: A fully populated `TypestateGraph`
   ## :raises: Compile-time error for invalid syntax
-  let baseName = extractBaseName(name)
+
+  # Extract base name and type params from name node
+  var baseName: string
+  var typeParams: seq[NimNode] = @[]
+
+  if name.kind == nnkBracketExpr:
+    # Generic: Container[T] or Map[K, V]
+    baseName = extractBaseName(name[0])
+    for i in 1..<name.len:
+      typeParams.add name[i].copyNimTree
+  else:
+    # Simple: File
+    baseName = extractBaseName(name)
+
   result = TypestateGraph(
     name: baseName,
+    typeParams: typeParams,
     declaredAt: name.lineInfoObj,
     declaredInModule: name.lineInfoObj.filename
   )
