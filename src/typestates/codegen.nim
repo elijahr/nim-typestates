@@ -231,6 +231,17 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
   ##     of pDeclined: declined*: Declined
   ## ```
   ##
+  ## For generic types like `Empty[T] -> Full[T] | Error[T] as FillResult[T]`:
+  ##
+  ## ```nim
+  ## type
+  ##   FillResultKind* = enum fFull, fError
+  ##   FillResult*[T] = object
+  ##     case kind*: FillResultKind
+  ##     of fFull: full*: Full[T]
+  ##     of fError: error*: Error[T]
+  ## ```
+  ##
   ## The type name comes from the `as TypeName` syntax in the DSL.
   ## Enum prefixes are derived from the first letter of the type name.
   ##
@@ -246,6 +257,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
+    let branchTypeParams = extractTypeParams(branchTypeNode)
     let kindTypeName = branchBaseName & "Kind"
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -299,7 +311,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     # Use branchTypeNode for the type definition to support generics
     let objectDef = nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), branchTypeNode.copyNimTree),
-      newEmptyNode(),
+      buildGenericParams(branchTypeParams),
       nnkObjectTy.newTree(
         newEmptyNode(),
         newEmptyNode(),
