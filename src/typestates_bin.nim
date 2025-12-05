@@ -16,12 +16,14 @@ proc showHelp() =
   echo "  -h, --help      Show this help"
   echo "  -v, --version   Show version"
   echo "  --separate      For 'dot' command: generate separate graph per typestate"
+  echo "  --no-style      For 'dot' command: output minimal DOT without styling"
   echo ""
   echo "Examples:"
   echo "  typestates verify src/"
   echo "  typestates dot src/ > typestates.dot"
   echo "  typestates dot --separate src/ > typestates.dot"
   echo "  typestates dot src/ | dot -Tpng -o typestates.png"
+  echo "  typestates dot --no-style src/ | dot -Tpng -o custom.png"
   echo ""
   echo "Notes:"
   echo "  Files must be valid Nim syntax. Syntax errors cause verification"
@@ -31,6 +33,9 @@ proc showHelp() =
   echo "  The 'dot' command generates a unified graph by default, showing all"
   echo "  typestates with cross-typestate bridges as dashed edges. Use --separate"
   echo "  to generate individual graphs for each typestate."
+  echo ""
+  echo "  Use --no-style for minimal DOT output that's easier to customize with"
+  echo "  your own colors, fonts, and styling."
 
 proc showVersion() =
   echo "typestates 0.1.0"
@@ -83,11 +88,14 @@ when isMainModule:
     try:
       # Parse flags and paths from args
       var separateFlag = false
+      var noStyleFlag = false
       var pathArgs: seq[string] = @[]
 
       for arg in paths:
         if arg == "--separate":
           separateFlag = true
+        elif arg == "--no-style":
+          noStyleFlag = true
         elif not arg.startsWith("-"):
           pathArgs.add arg
 
@@ -103,11 +111,11 @@ when isMainModule:
       if separateFlag:
         # Generate separate graph for each typestate
         for ts in parseResult.typestates:
-          echo generateSeparateDot(ts)
+          echo generateSeparateDot(ts, noStyleFlag)
           echo ""
       else:
         # Generate unified graph
-        echo generateUnifiedDot(parseResult.typestates)
+        echo generateUnifiedDot(parseResult.typestates, noStyleFlag)
 
       quit(0)
     except ParseError as e:

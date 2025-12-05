@@ -236,7 +236,17 @@ GraphViz supports many output formats:
 
 ## Customizing Output
 
-The CLI produces dark mode styled output by default with light purple accents. You can post-process for further customization:
+The CLI produces dark mode styled output by default with light purple accents. For easier customization, use `--no-style` to get minimal DOT output:
+
+```bash
+# Minimal output without styling - easier to customize
+typestates dot --no-style src/ > minimal.dot
+
+# Then add your own styling
+typestates dot --no-style src/ | sed 's/node \[shape=box\]/node [shape=box, style=filled, fillcolor=lightblue]/' | dot -Tpng -o custom.png
+```
+
+You can also post-process the styled output:
 
 ```bash
 # Change layout direction (top-to-bottom)
@@ -245,6 +255,29 @@ typestates dot src/ | sed 's/rankdir=LR/rankdir=TB/' | dot -Tpng -o vertical.png
 # Light mode (swap colors)
 typestates dot src/ | sed 's/#2d2d2d/#f5f5f5/g; s/#1e1e1e/#fafafa/g; s/#e0e0e0/#212121/g; s/#b0b0b0/#424242/g' | dot -Tpng -o light.png
 ```
+
+### --no-style Output
+
+The `--no-style` flag produces minimal DOT:
+
+```dot
+digraph {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_File {
+    label="File";
+
+    Closed;
+    Open;
+
+    Closed -> Open;
+    Open -> Closed;
+  }
+}
+```
+
+This is ideal when you want to apply your own colors, fonts, and styling.
 
 ## Generating Documentation Images
 
