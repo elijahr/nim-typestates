@@ -14,6 +14,35 @@
 import std/[macros, sequtils, strutils, tables]
 import types
 
+proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
+  ## Build a generic params node for proc/type definitions.
+  ##
+  ## For `@[T]`, generates: `[T]`
+  ## For `@[K, V]`, generates: `[K, V]`
+  ## For `@[]`, returns empty node (non-generic)
+  ##
+  ## :param typeParams: Sequence of type parameter idents
+  ## :returns: nnkGenericParams node or newEmptyNode()
+  if typeParams.len == 0:
+    return newEmptyNode()
+  result = nnkGenericParams.newTree()
+  for p in typeParams:
+    result.add nnkIdentDefs.newTree(p.copyNimTree, newEmptyNode(), newEmptyNode())
+
+proc extractTypeParams*(node: NimNode): seq[NimNode] =
+  ## Extract type parameters from a type node.
+  ##
+  ## For `FillResult[T]`, returns `@[T]`
+  ## For `Map[K, V]`, returns `@[K, V]`
+  ## For `Simple`, returns `@[]`
+  ##
+  ## :param node: A type AST node (ident or bracket expr)
+  ## :returns: Sequence of type parameter nodes
+  result = @[]
+  if node.kind == nnkBracketExpr:
+    for i in 1..<node.len:
+      result.add node[i].copyNimTree
+
 proc generateStateEnum*(graph: TypestateGraph): NimNode =
   ## Generate a runtime enum representing all states.
   ##
