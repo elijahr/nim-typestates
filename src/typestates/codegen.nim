@@ -94,7 +94,7 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   ## For generic typestates like `Container[T]`:
   ##
   ## ```nim
-  ## type ContainerStates* = Empty[T] | Full[T]
+  ## type ContainerStates*[T] = Empty[T] | Full[T]
   ## ```
   ##
   ## This union type is useful for procs that can accept any state.
@@ -129,7 +129,7 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   result = nnkTypeSection.newTree(
     nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), unionName),
-      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
       unionType
     )
   )
