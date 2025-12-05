@@ -9,7 +9,6 @@ type
   Full*[T] = distinct Container[T]
 
 typestate Container[T]:
-  isSealed = false
   strictTransitions = false
   states Empty[T], HasItems[T], Full[T]
   transitions:

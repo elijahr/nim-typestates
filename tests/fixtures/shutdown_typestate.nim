@@ -7,6 +7,5 @@ type
   Terminal* = distinct Shutdown
 
 typestate Shutdown:
-  isSealed = false
   strictTransitions = false
   states Terminal

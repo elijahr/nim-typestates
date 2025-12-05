@@ -8,7 +8,6 @@ type
   NonEmptyStack[T] = distinct Stack[T]
 
 typestate Stack[T]:
-  isSealed = false
   strictTransitions = false
   states EmptyStack[T], NonEmptyStack[T]
   transitions:

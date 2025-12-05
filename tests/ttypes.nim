@@ -61,7 +61,6 @@ static:
   block defaultFlags:
     var graph = TypestateGraph(name: "Test")
     doAssert graph.strictTransitions == true, "strictTransitions should default to true"
-    doAssert graph.isSealed == true, "isSealed should default to true"
     echo "default flags test passed"
 
   echo "types tests passed"

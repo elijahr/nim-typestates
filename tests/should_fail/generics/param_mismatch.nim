@@ -10,7 +10,6 @@ type
   Overflow[T] = distinct Box[T]  # Not in transitions
 
 typestate Box[T]:
-  isSealed = false
   strictTransitions = false
   states Empty[T], Full[T]
   transitions:

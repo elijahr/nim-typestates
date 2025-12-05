@@ -8,7 +8,6 @@ type
   Done = distinct Task
 
 typestate Task:
-  isSealed = false
   strictTransitions = false
   states Pending, Running, Done
   transitions:

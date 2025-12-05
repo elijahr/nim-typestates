@@ -153,10 +153,8 @@ macro testParsePragmas(): untyped =
 
   # Test setting flags (actual pragma parsing would be added later)
   graph.strictTransitions = true
-  graph.isSealed = true
 
   doAssert graph.strictTransitions
-  doAssert graph.isSealed
 
   result = newStmtList()
 
@@ -168,26 +166,22 @@ macro testFlagParsing(): untyped =
   # Test explicit false
   let body1 = quote do:
     strictTransitions = false
-    isSealed = false
     states Closed, Open
     transitions:
       Closed -> Open
 
   var graph1 = parseTypestateBody(ident("File"), body1)
   doAssert graph1.strictTransitions == false, "strictTransitions should be false"
-  doAssert graph1.isSealed == false, "isSealed should be false"
 
   # Test explicit true (same as default)
   let body2 = quote do:
     strictTransitions = true
-    isSealed = true
     states Closed, Open
     transitions:
       Closed -> Open
 
   var graph2 = parseTypestateBody(ident("File"), body2)
   doAssert graph2.strictTransitions == true, "strictTransitions should be true"
-  doAssert graph2.isSealed == true, "isSealed should be true"
 
   # Test defaults (no flags specified)
   let body3 = quote do:
@@ -197,7 +191,6 @@ macro testFlagParsing(): untyped =
 
   var graph3 = parseTypestateBody(ident("File"), body3)
   doAssert graph3.strictTransitions == true, "strictTransitions should default to true"
-  doAssert graph3.isSealed == true, "isSealed should default to true"
 
   result = newStmtList()
 

@@ -10,7 +10,6 @@ type
 
 typestate Connection:
   strictTransitions = false  # For simpler testing
-  isSealed = false
   states Connected, Disconnected
   transitions:
     Disconnected -> Connected

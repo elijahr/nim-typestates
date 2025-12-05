@@ -11,12 +11,10 @@ type
   Terminal = distinct Shutdown
 
 typestate Shutdown:
-  isSealed = false
   strictTransitions = false
   states Terminal
 
 typestate App:
-  isSealed = false
   strictTransitions = false
   states Running, Paused, Error
   transitions:

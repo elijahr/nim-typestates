@@ -125,7 +125,14 @@ macro transition*(procDef: untyped): untyped =
   let returnType = params[0]
 
   # Extract all destination types (handles union types like A | B)
-  let destTypeNames = extractAllTypeNames(returnType)
+  var destTypeNames = extractAllTypeNames(returnType)
+
+  # Check if return type is a branch type (e.g., CreatedBranch)
+  # If so, expand to the actual destination states
+  if destTypeNames.len == 1:
+    let branchInfo = findBranchTypeInfo(destTypeNames[0])
+    if branchInfo.isSome:
+      destTypeNames = branchInfo.get.destinations
 
   # Look up typestate
   let graphOpt = findTypestateForState(sourceTypeName)
@@ -134,13 +141,13 @@ macro transition*(procDef: untyped): untyped =
 
   let graph = graphOpt.get
 
-  # Check if sealed and defined in different module
+  # Transitions can only be defined in the same module as the typestate
   let procModule = procDef.lineInfoObj.filename
-  if graph.isSealed and procModule != graph.declaredInModule:
-    error(fmt"""Cannot define transition on sealed typestate '{graph.name}'.
-  The typestate is sealed (isSealed = true) and was defined in a different module.
-  External modules can only define {{.notATransition.}} procs on sealed typestates.
-  Hint: Use {{.notATransition.}} for read-only operations.""", procDef)
+  if procModule != graph.declaredInModule:
+    error(fmt"""Cannot define transition on typestate '{graph.name}' from external module.
+  The typestate was defined in '{graph.declaredInModule}'.
+  Transitions must be defined in the same module as the typestate declaration.
+  Hint: Use {{.notATransition.}} for read-only operations on imported states.""", procDef)
 
   # Validate each transition in the union
   for destTypeName in destTypeNames:

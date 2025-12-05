@@ -12,12 +12,10 @@ type
   Active = distinct Session
 
 typestate Session:
-  isSealed = false
   strictTransitions = false
   states Active
 
 typestate Auth:
-  isSealed = false
   strictTransitions = false
   states Pending, Authenticated
   transitions:

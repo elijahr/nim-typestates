@@ -10,7 +10,6 @@ type
   Complete[K, V] = distinct Pair[K, V]
 
 typestate Pair[K, V]:
-  isSealed = false
   strictTransitions = false
   states EmptyPair[K, V], HasKey[K, V], Complete[K, V]
   transitions:

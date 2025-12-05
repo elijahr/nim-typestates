@@ -9,7 +9,7 @@ type
   Archived = distinct Document
 
 typestate Document:
-  # isSealed = true is default
+  # All typestates are sealed (no extension allowed)
   strictTransitions = false
   states Draft, Published, Archived
   transitions:

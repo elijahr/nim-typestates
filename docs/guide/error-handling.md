@@ -26,11 +26,11 @@ proc open(f: Closed, path: string): Open {.transition.} =
     raise newException(IOError, "not found")  # Compile error!
   ...
 
-# Right: error is a state
-proc open(f: Closed, path: string): Open | OpenFailed {.transition.} =
+# Right: error is a state, use branch type
+proc open(f: Closed, path: string): ClosedBranch {.transition.} =
   if not fileExists(path):
-    return OpenFailed(f.File)
-  ...
+    return toClosedBranch(OpenFailed(f.File))
+  toClosedBranch(Open(f.File))
 ```
 
 ## Defects vs Exceptions
@@ -74,17 +74,18 @@ proc getItem(c: HasItems): Item {.transition, raises: [].} =
   result = c.items[0]  # Bug if items is empty!
 
 # Safer: check first, return error state
-proc getItem(c: HasItems): Item | Empty {.transition, raises: [].} =
+proc getItem(c: HasItems): HasItemsBranch {.transition, raises: [].} =
   if c.items.len == 0:
-    return Empty(c.Container)
-  result = Item(c.items[0])
+    return toHasItemsBranch(Empty(c.Container))
+  toHasItemsBranch(Item(c.items[0]))
 ```
 
 ## Patterns
 
-### Union Return Types
+### Branching Transitions
 
-Declare all possible outcomes in the return type:
+For transitions that can result in multiple states (success or failure),
+nim-typestates generates branch types. Given:
 
 ```nim
 typestate Connection:
@@ -93,14 +94,38 @@ typestate Connection:
     Disconnected -> Connected | ConnectionFailed
     Connected -> Disconnected
     ConnectionFailed -> Disconnected
+```
 
-proc connect(c: Disconnected, host: string): Connected | ConnectionFailed {.transition, raises: [].} =
+The macro generates:
+- `DisconnectedBranchKind` - enum with `dbConnected`, `dbConnectionFailed`
+- `DisconnectedBranch` - variant object holding the result
+- `toDisconnectedBranch(s: Connected)` - constructor
+- `toDisconnectedBranch(s: ConnectionFailed)` - constructor
+
+Use them in your transition:
+
+```nim
+proc connect(c: Disconnected, host: string): DisconnectedBranch {.transition, raises: [].} =
   try:
     let socket = connectSocket(host)
-    result = Connected(c.Connection)
-    result.Connection.socket = socket
+    var conn = Connected(c.Connection)
+    conn.Connection.socket = socket
+    toDisconnectedBranch(conn)
   except OSError:
-    result = ConnectionFailed(c.Connection)
+    toDisconnectedBranch(ConnectionFailed(c.Connection))
+```
+
+Then pattern match on the result:
+
+```nim
+let result = connect(disconnected, "localhost")
+case result.kind
+of dbConnected:
+  echo "Connected!"
+  use(result.connected)
+of dbConnectionFailed:
+  echo "Failed to connect"
+  retry(result.connectionfailed)
 ```
 
 ### Wrap External Calls
@@ -114,12 +139,13 @@ proc tryReadFile(path: string): Option[string] {.raises: [].} =
   except IOError:
     result = none(string)
 
-proc load(f: Empty, path: string): Loaded | LoadFailed {.transition, raises: [].} =
+proc load(f: Empty, path: string): EmptyBranch {.transition, raises: [].} =
   let content = tryReadFile(path)
   if content.isNone:
-    return LoadFailed(f.Document)
-  result = Loaded(f.Document)
-  result.Document.content = content.get
+    return toEmptyBranch(LoadFailed(f.Document))
+  var loaded = Loaded(f.Document)
+  loaded.Document.content = content.get
+  toEmptyBranch(loaded)
 ```
 
 ### Result Types
@@ -127,10 +153,11 @@ proc load(f: Empty, path: string): Loaded | LoadFailed {.transition, raises: [].
 Use Result[T, E] for structured error handling:
 
 ```nim
-proc load(f: Empty, path: string): Loaded | LoadFailed {.transition, raises: [].} =
+proc load(f: Empty, path: string): EmptyBranch {.transition, raises: [].} =
   let content = readFileResult(path)  # returns Result[string, IOError]
   if content.isErr:
-    return LoadFailed(f.Document)
-  result = Loaded(f.Document)
-  result.Document.content = content.get
+    return toEmptyBranch(LoadFailed(f.Document))
+  var loaded = Loaded(f.Document)
+  loaded.Document.content = content.get
+  toEmptyBranch(loaded)
 ```

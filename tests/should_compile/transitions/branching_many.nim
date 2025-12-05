@@ -12,7 +12,6 @@ type
   PathE = distinct Router
 
 typestate Router:
-  isSealed = false
   strictTransitions = false
   states Start, PathA, PathB, PathC, PathD, PathE
   transitions:

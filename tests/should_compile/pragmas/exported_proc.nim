@@ -8,7 +8,6 @@ type
   NonZero = distinct Counter
 
 typestate Counter:
-  isSealed = false
   strictTransitions = false
   states Zero, NonZero
   transitions:

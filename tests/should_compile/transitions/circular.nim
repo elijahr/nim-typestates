@@ -9,7 +9,6 @@ type
   StateC = distinct Cycle
 
 typestate Cycle:
-  isSealed = false
   strictTransitions = false
   states StateA, StateB, StateC
   transitions:

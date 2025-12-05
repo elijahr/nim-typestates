@@ -7,7 +7,6 @@ type
   Only = distinct Singleton
 
 typestate Singleton:
-  isSealed = false
   strictTransitions = false
   states Only
 

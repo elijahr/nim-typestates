@@ -12,12 +12,10 @@ type
   Archived = distinct Archive
 
 typestate Archive:
-  isSealed = false
   strictTransitions = false
   states Archived
 
 typestate Pipeline:
-  isSealed = false
   strictTransitions = false
   states Stage1, Stage2, Complete
   transitions:

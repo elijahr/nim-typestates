@@ -13,7 +13,6 @@ suite "AST Parser":
     check ts.name == "File"
     check ts.states == @["Closed", "Open"]
     check ts.transitions.len == 2
-    check ts.isSealed == true
     check ts.strictTransitions == true
 
   test "parse typestate with comments":
@@ -68,7 +67,6 @@ suite "AST Parser":
 
     let ts = result.typestates[0]
     check ts.name == "Task"
-    check ts.isSealed == false
     check ts.strictTransitions == false
 
   test "file not found raises ParseError":

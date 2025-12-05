@@ -10,13 +10,11 @@ type
   Active = distinct Target
 
 typestate Source:
-  isSealed = false
   strictTransitions = false
   states Ready
   # NO bridges block - bridge not declared
 
 typestate Target:
-  isSealed = false
   strictTransitions = false
   states Active
 

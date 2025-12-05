@@ -10,7 +10,6 @@ type
   Connected = distinct Database
 
 typestate Database:
-  isSealed = false
   strictTransitions = false
   states Disconnected, Connected
   transitions:

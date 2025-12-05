@@ -6,10 +6,12 @@
 ## - **State enum**: `FileState = enum fsClosed, fsOpen, ...`
 ## - **Union type**: `FileStates = Closed | Open | ...`
 ## - **State procs**: `proc state(f: Closed): FileState`
+## - **Branch types**: `CreatedBranch` variant for `Created -> Approved | Declined`
+## - **Branch constructors**: `toCreatedBranch(s: Approved): CreatedBranch`
 ##
 ## These are generated automatically by the `typestate` macro.
 
-import std/[macros, sequtils, tables]
+import std/[macros, sequtils, strutils, tables]
 import types
 
 proc generateStateEnum*(graph: TypestateGraph): NimNode =
@@ -163,6 +165,194 @@ proc hasGenericStates*(graph: TypestateGraph): bool =
       return true
   return false
 
+proc getBranchingTransitions*(graph: TypestateGraph): seq[Transition] =
+  ## Get all transitions that have multiple destinations (branching).
+  ##
+  ## A branching transition is one where `toStates.len > 1`, like:
+  ## `Created -> Approved | Declined`
+  ##
+  ## :param graph: The typestate graph to query
+  ## :returns: Sequence of branching transitions
+  result = @[]
+  for t in graph.transitions:
+    if t.toStates.len > 1 and not t.isWildcard:
+      result.add t
+
+proc branchEnumPrefix(fromState: string): string =
+  ## Generate a short prefix for branch enum fields.
+  ##
+  ## Uses first letter of source state + "b" to create unique prefixes:
+  ## - "Created" -> "cb"
+  ## - "Review" -> "rb"
+  ## - "Pending" -> "pb"
+  result = fromState[0].toLowerAscii() & "b"
+
+proc generateBranchTypes*(graph: TypestateGraph): NimNode =
+  ## Generate variant types for branching transitions.
+  ##
+  ## For a transition like `Created -> Approved | Declined | Review`,
+  ## generates:
+  ##
+  ## ```nim
+  ## type
+  ##   CreatedBranchKind* = enum cbApproved, cbDeclined, cbReview
+  ##   CreatedBranch* = object
+  ##     case kind*: CreatedBranchKind
+  ##     of cbApproved: approved*: Approved
+  ##     of cbDeclined: declined*: Declined
+  ##     of cbReview: review*: Review
+  ## ```
+  ##
+  ## For `Review -> Approved | Declined`:
+  ##
+  ## ```nim
+  ## type
+  ##   ReviewBranchKind* = enum rbApproved, rbDeclined
+  ##   ...
+  ## ```
+  ##
+  ## Enum prefixes are derived from source state (cb=Created, rb=Review)
+  ## to avoid naming conflicts.
+  ##
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for all branch type definitions
+  result = newStmtList()
+
+  let branchingTransitions = graph.getBranchingTransitions()
+  if branchingTransitions.len == 0:
+    return
+
+  for t in branchingTransitions:
+    let fromState = extractBaseName(t.fromState)
+    let branchTypeName = fromState & "Branch"
+    let kindTypeName = fromState & "BranchKind"
+    let enumPrefix = branchEnumPrefix(fromState)
+
+    # Generate enum: CreatedBranchKind = enum cbApproved, cbDeclined, ...
+    var enumFields = nnkEnumTy.newTree(newEmptyNode())
+    for dest in t.toStates:
+      let destBase = extractBaseName(dest)
+      let fieldName = ident(enumPrefix & destBase)
+      enumFields.add fieldName
+
+    let enumDef = nnkTypeDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident(kindTypeName)),
+      newEmptyNode(),
+      enumFields
+    )
+
+    # Generate object variant: CreatedBranch = object case kind: ...
+    var recCase = nnkRecCase.newTree(
+      nnkIdentDefs.newTree(
+        nnkPostfix.newTree(ident("*"), ident("kind")),
+        ident(kindTypeName),
+        newEmptyNode()
+      )
+    )
+
+    for dest in t.toStates:
+      let destBase = extractBaseName(dest)
+      let fieldName = ident(enumPrefix & destBase)
+      # Field name is lowercase version of state name
+      let varFieldName = destBase.toLowerAscii()
+
+      # Get the full type from the graph's states
+      var destType: NimNode
+      if destBase in graph.states:
+        destType = graph.states[destBase].typeName.copyNimTree
+      else:
+        destType = ident(destBase)
+
+      let branch = nnkOfBranch.newTree(
+        fieldName,
+        nnkRecList.newTree(
+          nnkIdentDefs.newTree(
+            nnkPostfix.newTree(ident("*"), ident(varFieldName)),
+            destType,
+            newEmptyNode()
+          )
+        )
+      )
+      recCase.add branch
+
+    let objectDef = nnkTypeDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident(branchTypeName)),
+      newEmptyNode(),
+      nnkObjectTy.newTree(
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkRecList.newTree(recCase)
+      )
+    )
+
+    # Add both to a type section
+    result.add nnkTypeSection.newTree(enumDef, objectDef)
+
+proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
+  ## Generate constructor procs for branch types.
+  ##
+  ## For each branching transition, generates `toXBranch` procs:
+  ##
+  ## ```nim
+  ## proc toCreatedBranch*(s: Approved): CreatedBranch =
+  ##   CreatedBranch(kind: cbApproved, approved: s)
+  ##
+  ## proc toCreatedBranch*(s: Declined): CreatedBranch =
+  ##   CreatedBranch(kind: cbDeclined, declined: s)
+  ## ```
+  ##
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for all constructor proc definitions
+  result = newStmtList()
+
+  let branchingTransitions = graph.getBranchingTransitions()
+  if branchingTransitions.len == 0:
+    return
+
+  for t in branchingTransitions:
+    let fromState = extractBaseName(t.fromState)
+    let branchTypeName = fromState & "Branch"
+    let procName = "to" & branchTypeName
+    let enumPrefix = branchEnumPrefix(fromState)
+
+    for dest in t.toStates:
+      let destBase = extractBaseName(dest)
+      let kindField = ident(enumPrefix & destBase)
+      let varFieldName = destBase.toLowerAscii()
+
+      # Get the full type from the graph's states
+      var destType: NimNode
+      if destBase in graph.states:
+        destType = graph.states[destBase].typeName.copyNimTree
+      else:
+        destType = ident(destBase)
+
+      # Build: CreatedBranch(kind: cbApproved, approved: s)
+      let constructorCall = nnkObjConstr.newTree(
+        ident(branchTypeName),
+        nnkExprColonExpr.newTree(ident("kind"), kindField),
+        nnkExprColonExpr.newTree(ident(varFieldName), ident("s"))
+      )
+
+      let procDef = nnkProcDef.newTree(
+        nnkPostfix.newTree(ident("*"), ident(procName)),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkFormalParams.newTree(
+          ident(branchTypeName),
+          nnkIdentDefs.newTree(
+            ident("s"),
+            destType,
+            newEmptyNode()
+          )
+        ),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkStmtList.newTree(constructorCall)
+      )
+
+      result.add procDef
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -172,6 +362,8 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 1. State enum (`FileState`)
   ## 2. Union type (`FileStates`)
   ## 3. State procs (`state()` for each state)
+  ## 4. Branch types for branching transitions (`CreatedBranch`, etc.)
+  ## 5. Branch constructors (`toCreatedBranch`)
   ##
   ## **Note:** For generic typestates like `Container[T]`, helper generation
   ## is currently skipped because the generated types would need to be
@@ -189,3 +381,5 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)
   result.add generateStateProcs(graph)
+  result.add generateBranchTypes(graph)
+  result.add generateBranchConstructors(graph)

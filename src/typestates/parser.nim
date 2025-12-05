@@ -225,10 +225,8 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
   case flagName
   of "strictTransitions":
     graph.strictTransitions = value
-  of "isSealed":
-    graph.isSealed = value
   else:
-    error("Unknown flag: " & flagName & ". Valid flags: strictTransitions, isSealed", node)
+    error("Unknown flag: " & flagName & ". Valid flags: strictTransitions", node)
 
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.

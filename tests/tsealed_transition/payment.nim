@@ -7,7 +7,7 @@ type
   Authorized* = distinct Payment
 
 typestate Payment:
-  # isSealed = true (default)
+  # All typestates are sealed (no extension allowed)
   states Created, Authorized
   transitions:
     Created -> Authorized

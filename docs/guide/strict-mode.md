@@ -7,7 +7,6 @@ nim-typestates uses strict defaults to catch bugs early.
 By default, typestates have:
 
 - `strictTransitions = true` - All procs with state params must be marked
-- `isSealed = true` - External modules cannot add transitions
 
 ## strictTransitions
 
@@ -36,31 +35,24 @@ typestate LegacyFile:
   ...
 ```
 
-## isSealed
+## Module Boundaries
 
-When enabled:
-
-1. Other modules cannot extend the typestate
-2. Other modules cannot define `{.transition.}` procs
-3. Other modules MUST use `{.notATransition.}` for any state operations
+Typestates can only be defined once, in a single module. All states and transitions
+must be declared together:
 
 ```nim
 # library.nim
 typestate Payment:
-  # isSealed = true (default)
   states Created, Captured
+  transitions:
+    Created -> Captured
 
 # user_code.nim
 import library
 
-proc check(p: Created): bool {.notATransition.} = ...  # OK
-proc hack(p: Created): Captured {.transition.} = ...   # ERROR!
+proc check(p: Created): bool {.notATransition.} = ...  # OK - read-only
+proc hack(p: Created): Captured {.transition.} = ...   # ERROR - can't add transitions from external module
 ```
 
-### Opting Out
-
-```nim
-typestate ExtensiblePayment:
-  isSealed = false
-  ...
-```
+This ensures the typestate's behavior is fully defined where it's declared,
+preventing accidental or malicious modification from other modules.

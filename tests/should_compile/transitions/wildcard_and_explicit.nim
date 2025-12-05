@@ -8,7 +8,6 @@ type
   Stopped = distinct Process
 
 typestate Process:
-  isSealed = false
   strictTransitions = false
   states Running, Paused, Stopped
   transitions:

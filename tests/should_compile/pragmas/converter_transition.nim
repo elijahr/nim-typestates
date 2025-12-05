@@ -8,7 +8,6 @@ type
   Authenticated = distinct Auth
 
 typestate Auth:
-  isSealed = false
   strictTransitions = false
   states Unauthenticated, Authenticated
   transitions:

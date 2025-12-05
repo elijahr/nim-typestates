@@ -4,7 +4,7 @@
 ## - tests/should_fail/**/*.nim - must NOT compile
 ## - tests/should_compile/**/*.nim - must compile AND run
 
-import std/[osproc, strutils, os, sequtils, terminal]
+import std/[osproc, strutils, os, terminal]
 
 type
   TestResult = object

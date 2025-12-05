@@ -58,21 +58,14 @@ macro typestate*(name: untyped, body: untyped): untyped =
   # Parse the typestate body
   let graph = parseTypestateBody(name, body)
 
-  # Check if this is an extension (typestate already exists)
-  let isExtension = hasTypestate(graph.name)
-
   # Register for later validation
   registerTypestate(graph)
 
-  # Register sealed states for external checking
-  if graph.isSealed:
-    var stateNames: seq[string] = @[]
-    for stateName in graph.states.keys:
-      stateNames.add stateName
-    registerSealedStates(graph.declaredInModule, stateNames)
+  # Register states for external checking
+  var stateNames: seq[string] = @[]
+  for stateName in graph.states.keys:
+    stateNames.add stateName
+  registerSealedStates(graph.declaredInModule, stateNames)
 
-  # Generate helper types (only for first definition, not extensions)
-  if isExtension:
-    result = newStmtList()  # Empty for extensions
-  else:
-    result = generateAll(graph)
+  # Generate helper types
+  result = generateAll(graph)

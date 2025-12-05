@@ -10,7 +10,6 @@ type
   Guest* = distinct Session
 
 typestate Session:
-  isSealed = false
   strictTransitions = false
   states Active, Expired, Guest
   transitions:

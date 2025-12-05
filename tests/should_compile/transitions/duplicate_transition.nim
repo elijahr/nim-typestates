@@ -7,7 +7,6 @@ type
   B = distinct Duped
 
 typestate Duped:
-  isSealed = false
   strictTransitions = false
   states A, B
   transitions:

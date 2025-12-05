@@ -139,7 +139,6 @@ type
     ## :var name: The base type name (e.g., "File" in `typestate File:`)
     ## :var states: Map of state names to State objects
     ## :var transitions: List of all declared transitions
-    ## :var isSealed: If true, no extensions allowed from other modules
     ## :var strictTransitions: If true, all procs on states must be categorized
     ## :var declaredAt: Source location of the typestate declaration
     ## :var declaredInModule: Module filename where typestate was declared
@@ -147,7 +146,6 @@ type
     states*: Table[string, State]
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
-    isSealed*: bool = true
     strictTransitions*: bool = true
     declaredAt*: LineInfo
     declaredInModule*: string

@@ -9,7 +9,6 @@ type
   Failure = distinct Request
 
 typestate Request:
-  isSealed = false
   strictTransitions = false
   states Pending, Success, Failure
   transitions:

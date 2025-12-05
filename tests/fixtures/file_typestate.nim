@@ -11,7 +11,6 @@ type
   Writing* = distinct File
 
 typestate File:
-  isSealed = false
   strictTransitions = false
   states Closed, Open, Reading, Writing
   transitions:

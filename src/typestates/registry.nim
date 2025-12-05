@@ -12,7 +12,7 @@
 ##
 ## **Internal module** - most users won't interact with this directly.
 
-import std/[tables, macros, options]
+import std/[tables, macros, options, strutils]
 import types
 
 export tables  # Needed for `in` operator on Table
@@ -61,47 +61,25 @@ proc validateBridgeDestinations(graph: TypestateGraph) {.compileTime.} =
 template registerTypestate*(graph: TypestateGraph) =
   ## Register a typestate graph in the compile-time registry.
   ##
-  ## If a typestate with the same name already exists:
-  ##
-  ## - If sealed: compilation error
-  ## - If not sealed: merge states and transitions (extension mode)
+  ## Each typestate can only be defined once. Attempting to register
+  ## a typestate with the same name twice results in a compile error.
   ##
   ## Example:
   ##
   ## ```nim
-  ## # First module defines base typestate (with isSealed = false)
   ## typestate File:
-  ##   isSealed = false
   ##   states Closed, Open
   ##   transitions:
   ##     Closed -> Open
-  ##
-  ## # Second module extends it
-  ## typestate File:
-  ##   states Locked
-  ##   transitions:
-  ##     Open -> Locked
+  ##     Open -> Closed
   ## ```
   ##
   ## :param graph: The typestate graph to register
   if graph.name in typestateRegistry:
-    let existing = typestateRegistry[graph.name]
-    if existing.isSealed:
-      error("Cannot extend sealed typestate '" & graph.name &
-            "'. Set isSealed = false or define all states/transitions in one place.")
-    # Extension: merge with existing, deduplicating transitions and bridges
-    var merged = existing
-    for name, state in graph.states:
-      merged.states[name] = state
-    for trans in graph.transitions:
-      if trans notin merged.transitions:
-        merged.transitions.add trans
-    for bridge in graph.bridges:
-      if bridge notin merged.bridges:
-        merged.bridges.add bridge
-    typestateRegistry[graph.name] = merged
-  else:
-    typestateRegistry[graph.name] = graph
+    error("Typestate '" & graph.name & "' is already defined. " &
+          "Each typestate can only be declared once.")
+
+  typestateRegistry[graph.name] = graph
 
   # Validate bridge destinations after registration
   validateBridgeDestinations(graph)
@@ -153,3 +131,59 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
       if state.name == searchBase:
         return some(graph)
   return none(TypestateGraph)
+
+type
+  BranchTypeInfo* = object
+    ## Information about a generated branch type.
+    ##
+    ## When a branching transition like `Created -> Approved | Declined`
+    ## is declared, a `CreatedBranch` type is generated. This object
+    ## captures the relationship between the branch type and the
+    ## original transition.
+    sourceState*: string     ## The source state name ("Created")
+    destinations*: seq[string]  ## The destination states (["Approved", "Declined"])
+
+proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime.} =
+  ## Check if a type name is a generated branch type.
+  ##
+  ## Branch types follow the naming convention `<State>Branch`, e.g.,
+  ## `CreatedBranch` for a branching transition from `Created`.
+  ##
+  ## This function searches all registered typestates for branching
+  ## transitions that would generate the given branch type name.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # If typestate has: Created -> Approved | Declined
+  ## findBranchTypeInfo("CreatedBranch")
+  ## # Returns: some(BranchTypeInfo(sourceState: "Created",
+  ## #                              destinations: @["Approved", "Declined"]))
+  ##
+  ## findBranchTypeInfo("NotABranch")
+  ## # Returns: none(BranchTypeInfo)
+  ## ```
+  ##
+  ## :param typeName: The type name to check
+  ## :returns: `some(info)` if it's a branch type, `none` otherwise
+  let typeBase = extractBaseName(typeName)
+
+  # Branch types end with "Branch"
+  if not typeBase.endsWith("Branch"):
+    return none(BranchTypeInfo)
+
+  # Extract the source state name by removing "Branch" suffix
+  let sourceState = typeBase[0 ..< typeBase.len - 6]  # "CreatedBranch" -> "Created"
+
+  # Search for a branching transition from this state
+  for name, graph in typestateRegistry:
+    for trans in graph.transitions:
+      if trans.toStates.len > 1 and not trans.isWildcard:
+        let transSourceBase = extractBaseName(trans.fromState)
+        if transSourceBase == sourceState:
+          return some(BranchTypeInfo(
+            sourceState: sourceState,
+            destinations: trans.toStates
+          ))
+
+  return none(BranchTypeInfo)

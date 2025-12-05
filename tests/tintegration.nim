@@ -15,7 +15,7 @@ type
 
 typestate Order:
   # strictTransitions = true (default)
-  # isSealed = true (default)
+  # All typestates are sealed (no extension allowed)
   states Pending, Paid, Shipped, Delivered
   transitions:
     Pending -> Paid

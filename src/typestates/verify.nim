@@ -85,10 +85,10 @@ macro verifyTypestates*(): untyped =
   Add {{.transition.}} or {{.notATransition.}} pragma.
   Declared at: {procInfo.declaredAt}""")
 
-        # Check isSealed for external procs
-        if graph.isSealed and procInfo.modulePath != graph.declaredInModule:
-          error(fmt"""Unmarked proc '{procInfo.name}' on sealed typestate '{graph.name}'.
-  External modules must use {{.notATransition.}} for procs on sealed typestates.
+        # Check for external procs
+        if procInfo.modulePath != graph.declaredInModule:
+          error(fmt"""Unmarked proc '{procInfo.name}' on typestate '{graph.name}' from external module.
+  External modules must use {{.notATransition.}} for procs on typestate states.
   Declared at: {procInfo.declaredAt}""")
 
   # Return empty - just for compile-time checking

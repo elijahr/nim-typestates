@@ -57,9 +57,10 @@ Typestates solve this by encoding states in the type system:
 ## Features
 
 - **Compile-time validation** - Invalid transitions fail at compile time with clear error messages
-- **Branching transitions** - `Closed -> Open | Errored`
+- **Branching transitions** - `Closed -> Open | Errored` with auto-generated branch types
 - **Wildcard transitions** - `* -> Closed` (any state can close)
-- **Generated helpers** - `FileState` enum, `FileStates` union type
+- **Generated helpers** - `FileState` enum, `FileStates` union type, branch constructors
+- **Cross-typestate bridges** - Connect independent state machines
 - **GraphViz export** - Visualize your state machine
 
 ## Installation

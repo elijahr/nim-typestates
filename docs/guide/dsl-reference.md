@@ -201,6 +201,39 @@ proc state*(f: Open): FileState = fsOpen
 proc state*(f: Errored): FileState = fsErrored
 ```
 
+### Branch Types
+
+For branching transitions like `Created -> Approved | Declined | Review`, the macro generates:
+
+**Enum for the branch kinds:**
+
+```nim
+type CreatedBranchKind* = enum
+  cbApproved, cbDeclined, cbReview
+```
+
+Enum values are prefixed with a short code from the source state (`cb` = **C**reated **B**ranch).
+
+**Variant object to hold the result:**
+
+```nim
+type CreatedBranch* = object
+  case kind*: CreatedBranchKind
+  of cbApproved: approved*: Approved
+  of cbDeclined: declined*: Declined
+  of cbReview: review*: Review
+```
+
+**Constructor procs:**
+
+```nim
+proc toCreatedBranch*(s: Approved): CreatedBranch
+proc toCreatedBranch*(s: Declined): CreatedBranch
+proc toCreatedBranch*(s: Review): CreatedBranch
+```
+
+See [Returning Union Types](#returning-union-types) for usage examples.
+
 ## Complete Example
 
 ```nim
@@ -232,12 +265,12 @@ proc connect(c: Disconnected, host: string, port: int): Connecting {.transition.
   conn.port = port
   result = Connecting(conn)
 
-proc waitForConnection(c: Connecting): Connected | Errored {.transition.} =
+proc waitForConnection(c: Connecting): ConnectingBranch {.transition.} =
   # In real code, this would do async I/O
   if true:  # Pretend success
-    result = Connected(c.Connection)
+    toConnectingBranch(Connected(c.Connection))
   else:
-    result = Errored(c.Connection)
+    toConnectingBranch(Errored(c.Connection))
 
 proc disconnect[S: ConnectionStates](c: S): Disconnected {.transition.} =
   var conn = c.Connection
@@ -262,15 +295,30 @@ proc path(f: Open): string =
 
 ### Returning Union Types
 
-For branching transitions, return a union:
+For branching transitions, use the generated branch type and constructors:
 
 ```nim
-proc tryOpen(f: Closed): Open | Errored {.transition.} =
+# Branching transition: Connecting -> Connected | Errored
+proc waitForConnection(c: Connecting): ConnectingBranch {.transition.} =
   if success:
-    result = Open(f.File)
+    toConnectingBranch(Connected(c.Connection))
   else:
-    result = Errored(f.File)
+    toConnectingBranch(Errored(c.Connection))
 ```
+
+Then pattern match on the result:
+
+```nim
+let result = conn.waitForConnection()
+case result.kind
+of cbConnected:
+  echo "Connected!"
+  sendData(result.connected)
+of cbErrored:
+  echo "Error: ", result.errored.message
+```
+
+**Why branch types?** Nim's `A | B` syntax creates a generic type constraint, not a runtime sum type. You cannot actually return different types from if/else branches. The generated branch types solve this by wrapping the result in an object variant.
 
 ### Generic Over All States
 
