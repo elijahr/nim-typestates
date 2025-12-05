@@ -493,24 +493,18 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## It generates:
   ##
   ## 1. State enum (`FileState`)
-  ## 2. Union type (`FileStates`)
+  ## 2. Union type (`FileStates` or `ContainerStates[T]`)
   ## 3. State procs (`state()` for each state)
   ## 4. Branch types for branching transitions (user-named via `as TypeName`)
   ## 5. Branch constructors (`toTypeName`)
   ## 6. Branch operators (`->`)
   ##
-  ## **Note:** For generic typestates like `Container[T]`, helper generation
-  ## is currently skipped because the generated types would need to be
-  ## parameterized. The core typestate validation still works.
+  ## For generic typestates like `Container[T]`, all generated types
+  ## and procs include proper type parameters.
   ##
   ## :param graph: The typestate graph to generate from
   ## :returns: AST containing all generated definitions
   result = newStmtList()
-
-  # Skip helper generation for generic typestates (for now)
-  # The type parameters aren't in scope for the generated code
-  if graph.hasGenericStates:
-    return
 
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)
