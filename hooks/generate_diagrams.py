@@ -1,9 +1,12 @@
 """MkDocs hook to regenerate typestate diagrams on pre-build.
 
 This hook runs before each mkdocs build (including during `mkdocs serve`)
-and regenerates SVG diagrams from the snippet files.
+and regenerates SVG diagrams from the snippet files only if sources changed.
 
-To disable during development (avoid regenerating on every save):
+To force regeneration:
+    FORCE_DIAGRAM_GEN=1 mkdocs serve
+
+To disable completely:
     SKIP_DIAGRAM_GEN=1 mkdocs serve
 """
 
@@ -15,15 +18,41 @@ from pathlib import Path
 log = logging.getLogger("mkdocs.hooks.generate_diagrams")
 
 
-def on_pre_build(config, **kwargs) -> None:
-    """Generate diagrams before each build."""
+def _needs_regeneration(snippet_files: list[Path], output_dir: Path, cli_path: Path) -> bool:
+    """Check if any snippet is newer than its corresponding SVG output."""
+    for snippet in snippet_files:
+        # Output filename is based on typestate name or file stem
+        stem = snippet.stem.replace("_typestate", "").lower()
+        svg_path = output_dir / f"{stem}.svg"
 
-    # Allow skipping during rapid development
+        # If output doesn't exist, needs regeneration
+        if not svg_path.exists():
+            return True
+
+        # If snippet is newer than output, needs regeneration
+        if snippet.stat().st_mtime > svg_path.stat().st_mtime:
+            return True
+
+    # Also check if CLI is newer than any output (CLI changes affect output)
+    if cli_path.exists():
+        cli_mtime = cli_path.stat().st_mtime
+        for svg in output_dir.glob("*.svg"):
+            if cli_mtime > svg.stat().st_mtime:
+                return True
+
+    return False
+
+
+def on_pre_build(config, **kwargs) -> None:
+    """Generate diagrams before each build if sources changed."""
+
+    # Allow skipping completely
     if os.environ.get("SKIP_DIAGRAM_GEN"):
-        log.info("Skipping diagram generation (SKIP_DIAGRAM_GEN set)")
+        log.debug("Skipping diagram generation (SKIP_DIAGRAM_GEN set)")
         return
 
     snippets_dir = Path("examples/snippets")
+    output_dir = Path("docs/assets/images/generated")
     cli_path = Path("bin/typestates")
 
     # Check if we have snippets to process
@@ -42,6 +71,12 @@ def on_pre_build(config, **kwargs) -> None:
             "typestates CLI not found at bin/typestates. "
             "Run 'nimble build' to enable diagram generation."
         )
+        return
+
+    # Check if regeneration is needed (unless forced)
+    force = os.environ.get("FORCE_DIAGRAM_GEN")
+    if not force and not _needs_regeneration(snippet_files, output_dir, cli_path):
+        log.debug("Diagrams are up-to-date, skipping generation")
         return
 
     # Check if graphviz is available
