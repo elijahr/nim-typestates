@@ -347,6 +347,43 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
       )
       graph.bridges.add bridge
 
+proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that each source state has at most one branching transition.
+  ##
+  ## Branching transitions (e.g., `Created -> Approved | Declined`) generate
+  ## branch types like `CreatedBranch`. Multiple branching transitions from
+  ## the same source would generate duplicate types.
+  ##
+  ## Example that would fail:
+  ##
+  ## ```nim
+  ## transitions:
+  ##   Created -> Approved | Declined  # Branching
+  ##   Created -> Banana | Potato      # ERROR: duplicate branching source
+  ## ```
+  ##
+  ## Non-branching transitions from the same source are allowed:
+  ##
+  ## ```nim
+  ## transitions:
+  ##   Created -> Approved | Declined  # Branching (OK)
+  ##   Created -> Review               # Non-branching (OK, merged)
+  ## ```
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :param declNode: AST node for error reporting
+  ## :raises: Compile-time error if duplicate branching sources found
+  var branchingSources: seq[string] = @[]
+
+  for trans in graph.transitions:
+    if trans.toStates.len > 1 and not trans.isWildcard:
+      let source = extractBaseName(trans.fromState)
+      if source in branchingSources:
+        error("Duplicate branching transition from '" & source & "'. " &
+              "Each source state can only have one branching transition. " &
+              "Combine destinations: " & source & " -> A | B | C", declNode)
+      branchingSources.add(source)
+
 proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## Parse a complete typestate block body into a TypestateGraph.
   ##
@@ -400,3 +437,6 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
         error("Unknown section in typestate block: " & sectionName, child)
     else:
       error("Unexpected node in typestate body: " & $child.kind, child)
+
+  # Validate after all parsing is complete
+  validateNoDuplicateBranchingSources(result, name)
