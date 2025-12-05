@@ -171,7 +171,7 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
     let procDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), ident("state")),
       newEmptyNode(),
-      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
       nnkFormalParams.newTree(
         enumName,
         nnkIdentDefs.newTree(
