@@ -396,6 +396,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="References">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#foundational-papers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundational Papers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tutorials-and-introductions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorials and Introductions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#related-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Projects
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -514,6 +553,34 @@
     
   
     DSL Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Type Bridges
   
 
     
@@ -695,6 +762,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -819,6 +942,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="References">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#foundational-papers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundational Papers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tutorials-and-introductions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorials and Introductions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#related-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Projects
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -903,9 +1065,10 @@ compiles, invalid state transitions are impossible. See
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Compile-time validation</strong> - Invalid transitions fail at compile time with clear error messages</li>
-<li><strong>Branching transitions</strong> - <code>Closed -&gt; Open | Errored</code></li>
+<li><strong>Branching transitions</strong> - <code>Closed -&gt; Open | Errored as OpenResult</code> with user-named branch types</li>
 <li><strong>Wildcard transitions</strong> - <code>* -&gt; Closed</code> (any state can close)</li>
-<li><strong>Generated helpers</strong> - <code>FileState</code> enum, <code>FileStates</code> union type</li>
+<li><strong>Generated helpers</strong> - <code>FileState</code> enum, <code>FileStates</code> union type, branch constructors</li>
+<li><strong>Cross-typestate bridges</strong> - Connect independent state machines</li>
 <li><strong>GraphViz export</strong> - Visualize your state machine</li>
 </ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
@@ -922,11 +1085,21 @@ compiles, invalid state transitions are impossible. See
 <li><a href="api/">API Reference</a> - Generated API docs</li>
 </ul>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
+<h3 id="foundational-papers">Foundational Papers<a class="headerlink" href="#foundational-papers" title="Permanent link">¶</a></h3>
 <ul>
-<li><a href="https://cliffle.com/blog/rust-typestate/">Typestate Pattern in Rust</a> - Excellent introduction to typestates</li>
-<li><a href="https://github.com/rustype/typestate">typestate crate for Rust</a> - Similar macro-based approach in Rust</li>
-<li><a href="http://www.cs.cmu.edu/~aldrich/plaid/">Plaid Language</a> - CMU's typestate-oriented programming language</li>
-<li><a href="https://doi.org/10.1109/TSE.1986.6312929">Typestate: A Programming Language Concept (Strom &amp; Yemini, 1986)</a> - Original paper introducing typestates</li>
+<li><a href="https://doi.org/10.1109/TSE.1986.6312929">Typestate: A Programming Language Concept (Strom &amp; Yemini, 1986)</a> - The original paper introducing typestates as a compile-time mechanism for tracking object state</li>
+<li><a href="https://www.cs.cmu.edu/~aldrich/papers/classic/tse12-typestate.pdf">Typestates for Objects (Aldrich et al., 2009)</a> - Extends typestates to object-oriented programming with practical implementation strategies</li>
+</ul>
+<h3 id="tutorials-and-introductions">Tutorials and Introductions<a class="headerlink" href="#tutorials-and-introductions" title="Permanent link">¶</a></h3>
+<ul>
+<li><a href="https://cliffle.com/blog/rust-typestate/">The Typestate Pattern in Rust</a> - Accessible introduction to encoding typestates using Rust's type system</li>
+<li><a href="https://en.wikipedia.org/wiki/Typestate_analysis">Typestate Analysis (Wikipedia)</a> - Overview of typestate analysis concepts and history</li>
+<li><a href="https://en.wikipedia.org/wiki/Formal_verification">Formal Verification (Wikipedia)</a> - Background on formal methods that typestates relate to</li>
+</ul>
+<h3 id="related-projects">Related Projects<a class="headerlink" href="#related-projects" title="Permanent link">¶</a></h3>
+<ul>
+<li><a href="https://github.com/rustype/typestate">typestate crate for Rust</a> - Procedural macro approach to typestates in Rust, similar design philosophy to nim-typestates</li>
+<li><a href="http://www.cs.cmu.edu/~aldrich/plaid/">Plaid Programming Language</a> - Research language from CMU with first-class typestate support built into the language</li>
 </ul>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">¶</a></h2>
 <p>MIT</p>
@@ -952,7 +1125,7 @@ compiles, invalid state transitions are impossible. See
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 3, 2025 09:26:30 UTC"><span class="timeago" datetime="2025-12-03T09:26:30+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 3, 2025 09:26:30 UTC">2025-12-03</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 05:29:10 UTC"><span class="timeago" datetime="2025-12-05T05:29:10+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 05:29:10 UTC">2025-12-05</span>
   </span>
 
     

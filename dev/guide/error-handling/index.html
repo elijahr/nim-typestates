@@ -412,6 +412,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Type Bridges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../generics/" class="md-nav__link">
         
   
@@ -629,10 +657,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#union-return-types" class="md-nav__link">
+  <a href="#branching-transitions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Union Return Types
+        Branching Transitions
       
     </span>
   </a>
@@ -746,6 +774,62 @@
     
   
     Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
   
 
     
@@ -921,10 +1005,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#union-return-types" class="md-nav__link">
+  <a href="#branching-transitions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Union Return Types
+        Branching Transitions
       
     </span>
   </a>
@@ -997,11 +1081,12 @@ and callers must handle them.</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="k">raise</span><span class="w"> </span><span class="n">newException</span><span class="p">(</span><span class="n">IOError</span><span class="p">,</span><span class="w"> </span><span class="s">"not found"</span><span class="p">)</span><span class="w">  </span><span class="c"># Compile error!</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="p">...</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Right: error is a state</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">OpenFailed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">fileExists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">OpenFailed</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">)</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="p">...</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Right: error is a state, use branch type</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c"># (assumes: Closed -&gt; Open | OpenFailed as OpenResult)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">OpenResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">fileExists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">OpenResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">OpenFailed</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="n">OpenResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="defects-vs-exceptions">Defects vs Exceptions<a class="headerlink" href="#defects-vs-exceptions" title="Permanent link">¶</a></h2>
 <p>Nim distinguishes between <strong>Defects</strong> (bugs) and <strong>CatchableErrors</strong>
@@ -1034,52 +1119,72 @@ your transition body might still have bugs that trigger Defects.</p>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="sx">  result</span><span class="w"> </span><span class="sx">= c.items[0]  # Bug</span><span class="w"> </span><span class="sx">if</span><span class="w"> </span><span class="sx">items</span><span class="w"> </span><span class="sx">is</span><span class="w"> </span><span class="sx">empty!</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="sx"># Safer</span>:<span class="w"> </span><span class="sx">check</span><span class="w"> </span><span class="sx">first</span>,<span class="w"> </span><span class="sx">return</span><span class="w"> </span><span class="sx">error</span><span class="w"> </span><span class="sx">state</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">getItem(c</span>:<span class="w"> </span><span class="sx">HasItems): Item</span><span class="w"> </span><span class="sx">| Empty</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">c.items.len</span><span class="w"> </span><span class="sx">== 0</span>:
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">Empty(c.Container)</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="sx">  result</span><span class="w"> </span><span class="sx">= Item(c.items[0])</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sx"># (assumes</span>:<span class="w"> </span><span class="sx">HasItems</span><span class="w"> </span><span class="sx">-&gt; Item</span><span class="w"> </span><span class="sx">| Empty</span><span class="w"> </span><span class="sx">as</span><span class="w"> </span><span class="sx">GetItemResult)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">getItem(c</span>:<span class="w"> </span><span class="sx">HasItems): GetItemResult</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">c.items.len</span><span class="w"> </span><span class="sx">== 0</span>:
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">GetItemResult</span><span class="w"> </span><span class="sx">-&gt; Empty(c.Container)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sx">  GetItemResult</span><span class="w"> </span><span class="sx">-&gt; Item(c.items[0])</span>
 </code></pre></div>
 <h2 id="patterns">Patterns<a class="headerlink" href="#patterns" title="Permanent link">¶</a></h2>
-<h3 id="union-return-types">Union Return Types<a class="headerlink" href="#union-return-types" title="Permanent link">¶</a></h3>
-<p>Declare all possible outcomes in the return type:</p>
+<h3 id="branching-transitions">Branching Transitions<a class="headerlink" href="#branching-transitions" title="Permanent link">¶</a></h3>
+<p>For transitions that can result in multiple states (success or failure),
+use the <code>as TypeName</code> syntax to name the branch type. Given:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">Connected</span><span class="p">,</span><span class="w"> </span><span class="n">ConnectionFailed</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ConnectionFailed</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ConnectionFailed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">ConnectResult</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">Connected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="n">ConnectionFailed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Connected</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ConnectionFailed</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="sx">  try</span>:
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="sx">let</span><span class="w"> </span><span class="sx">socket</span><span class="w"> </span><span class="sx">= connectSocket(host)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sx">    result</span><span class="w"> </span><span class="sx">= Connected(c.Connection)</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="sx">    result.Connection.socket</span><span class="w"> </span><span class="sx">= socket</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="sx">except</span><span class="w"> </span><span class="sx">OSError</span>:
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="sx">result</span><span class="w"> </span><span class="sx">= ConnectionFailed(c.Connection)</span>
+</code></pre></div>
+<p>The macro generates branch types and the <code>-&gt;</code> operator for constructing results.</p>
+<p>Use the <code>-&gt;</code> operator in your transition:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">ConnectResult</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="sx">  try</span>:
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="sx">let</span><span class="w"> </span><span class="sx">socket</span><span class="w"> </span><span class="sx">= connectSocket(host)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sx">    var</span><span class="w"> </span><span class="sx">conn</span><span class="w"> </span><span class="sx">= Connected(c.Connection)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="sx">    conn.Connection.socket</span><span class="w"> </span><span class="sx">= socket</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="sx">ConnectResult</span><span class="w"> </span><span class="sx">-&gt; conn</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="sx">except</span><span class="w"> </span><span class="sx">OSError</span>:
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="sx">ConnectResult</span><span class="w"> </span><span class="sx">-&gt; ConnectionFailed(c.Connection)</span>
+</code></pre></div>
+<p>The <code>-&gt;</code> operator takes the branch type on the left and the destination state on the right.</p>
+<p>Then pattern match on the result:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">connect</span><span class="p">(</span><span class="n">disconnected</span><span class="p">,</span><span class="w"> </span><span class="s">"localhost"</span><span class="p">)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">case</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">kind</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">of</span><span class="w"> </span><span class="nl">cConnected</span><span class="o">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Connected!"</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">use</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">connected</span><span class="p">)</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">of</span><span class="w"> </span><span class="nl">cConnectionFailed</span><span class="o">:</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Failed to connect"</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="n">retry</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">connectionfailed</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="wrap-external-calls">Wrap External Calls<a class="headerlink" href="#wrap-external-calls" title="Permanent link">¶</a></h3>
 <p>Create <code>{.raises: [].}</code> wrappers for exception-throwing APIs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">tryReadFile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="w"> </span><span class="sx">{.raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="sx">  try</span>:
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="sx">result</span><span class="w"> </span><span class="sx">= some(readFile(path))</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sx">  except</span><span class="w"> </span><span class="sx">IOError</span>:
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="sx">result</span><span class="w"> </span><span class="sx">= none(string)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">load(f</span>:<span class="w"> </span><span class="sx">Empty</span>,<span class="w"> </span><span class="sx">path</span>:<span class="w"> </span><span class="sx">string): Loaded</span><span class="w"> </span><span class="sx">| LoadFailed</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="sx">  let</span><span class="w"> </span><span class="sx">content</span><span class="w"> </span><span class="sx">= tryReadFile(path)</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">content.isNone</span>:
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">LoadFailed(f.Document)</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sx">  result</span><span class="w"> </span><span class="sx">= Loaded(f.Document)</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="sx">  result.Document.content</span><span class="w"> </span><span class="sx">= content.get</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">tryReadFile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="w"> </span><span class="sx">{.raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="sx">  try</span>:
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="sx">result</span><span class="w"> </span><span class="sx">= some(readFile(path))</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sx">  except</span><span class="w"> </span><span class="sx">IOError</span>:
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="sx">result</span><span class="w"> </span><span class="sx">= none(string)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="sx"># (assumes</span>:<span class="w"> </span><span class="sx">Empty</span><span class="w"> </span><span class="sx">-&gt; Loaded</span><span class="w"> </span><span class="sx">| LoadFailed</span><span class="w"> </span><span class="sx">as</span><span class="w"> </span><span class="sx">LoadResult)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">load(f</span>:<span class="w"> </span><span class="sx">Empty</span>,<span class="w"> </span><span class="sx">path</span>:<span class="w"> </span><span class="sx">string): LoadResult</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="sx">  let</span><span class="w"> </span><span class="sx">content</span><span class="w"> </span><span class="sx">= tryReadFile(path)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">content.isNone</span>:
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">LoadResult</span><span class="w"> </span><span class="sx">-&gt; LoadFailed(f.Document)</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="sx">  var</span><span class="w"> </span><span class="sx">loaded</span><span class="w"> </span><span class="sx">= Loaded(f.Document)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="sx">  loaded.Document.content</span><span class="w"> </span><span class="sx">= content.get</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">  </span><span class="sx">LoadResult</span><span class="w"> </span><span class="sx">-&gt; loaded</span>
 </code></pre></div>
 <h3 id="result-types">Result Types<a class="headerlink" href="#result-types" title="Permanent link">¶</a></h3>
 <p>Use Result[T, E] for structured error handling:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Loaded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">LoadFailed</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="sx">  let</span><span class="w"> </span><span class="sx">content</span><span class="w"> </span><span class="sx">= readFileResult(path)  # returns</span><span class="w"> </span><span class="sx">Result[string</span>,<span class="w"> </span><span class="sx">IOError]</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">content.isErr</span>:
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">LoadFailed(f.Document)</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="sx">  result</span><span class="w"> </span><span class="sx">= Loaded(f.Document)</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="sx">  result.Document.content</span><span class="w"> </span><span class="sx">= content.get</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c"># (assumes: Empty -&gt; Loaded | LoadFailed as LoadResult)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">LoadResult</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">raises</span>:<span class="w"> </span><span class="sx">[].} =</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="sx">  let</span><span class="w"> </span><span class="sx">content</span><span class="w"> </span><span class="sx">= readFileResult(path)  # returns</span><span class="w"> </span><span class="sx">Result[string</span>,<span class="w"> </span><span class="sx">IOError]</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="sx">  if</span><span class="w"> </span><span class="sx">content.isErr</span>:
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="sx">return</span><span class="w"> </span><span class="sx">LoadResult</span><span class="w"> </span><span class="sx">-&gt; LoadFailed(f.Document)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="sx">  var</span><span class="w"> </span><span class="sx">loaded</span><span class="w"> </span><span class="sx">= Loaded(f.Document)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sx">  loaded.Document.content</span><span class="w"> </span><span class="sx">= content.get</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="sx">LoadResult</span><span class="w"> </span><span class="sx">-&gt; loaded</span>
 </code></pre></div>
 
 
@@ -1103,7 +1208,7 @@ your transition body might still have bugs that trigger Defects.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 2, 2025 16:34:13 UTC"><span class="timeago" datetime="2025-12-02T16:34:13+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 2, 2025 16:34:13 UTC">2025-12-02</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 05:29:10 UTC"><span class="timeago" datetime="2025-12-05T05:29:10+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 05:29:10 UTC">2025-12-05</span>
   </span>
 
     

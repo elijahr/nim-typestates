@@ -7,13 +7,13 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/verification/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/cli/">
       
       
-        <link rel="prev" href="../strict-mode/">
+        <link rel="prev" href="../verification/">
       
       
-        <link rel="next" href="../cli/">
+        <link rel="next" href="../visualization/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Verification - nim-typestates</title>
+        <title>CLI Reference - nim-typestates</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#verification" class="md-skip">
+        <a href="#command-line-interface" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Verification
+              CLI Reference
             
           </span>
         </div>
@@ -577,6 +577,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -596,7 +624,7 @@
   <span class="md-ellipsis">
     
   
-    Verification
+    CLI Reference
   
 
     
@@ -614,7 +642,7 @@
   <span class="md-ellipsis">
     
   
-    Verification
+    CLI Reference
   
 
     
@@ -640,10 +668,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#compile-time-checking" class="md-nav__link">
+  <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compile-Time Checking
+        Installation
       
     </span>
   </a>
@@ -651,10 +679,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verifytypestates-macro" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        verifyTypestates() Macro
+        Usage
       
     </span>
   </a>
@@ -662,10 +690,138 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#verify-command" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Verify Command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verify Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syntax-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syntax Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dot-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dot Command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dot Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CI Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#circleci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CircleCI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nimble-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nimble Task
       
     </span>
   </a>
@@ -676,34 +832,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CLI Reference
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -798,10 +926,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#compile-time-checking" class="md-nav__link">
+  <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compile-Time Checking
+        Installation
       
     </span>
   </a>
@@ -809,10 +937,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verifytypestates-macro" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        verifyTypestates() Macro
+        Usage
       
     </span>
   </a>
@@ -820,10 +948,138 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#verify-command" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Verify Command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verify Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syntax-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syntax Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dot-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dot Command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dot Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CI Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#circleci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CircleCI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nimble-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nimble Task
       
     </span>
   </a>
@@ -850,33 +1106,107 @@
   
 
 
-<h1 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h1>
-<p>The typestates library provides multiple verification layers.</p>
-<h2 id="compile-time-checking">Compile-Time Checking<a class="headerlink" href="#compile-time-checking" title="Permanent link">¶</a></h2>
-<p>The <code>{.transition.}</code> and <code>{.notATransition.}</code> pragmas validate at compile time:</p>
-<ul>
-<li>Transitions match declared state machine</li>
-<li>Sealed typestates block external transitions</li>
-</ul>
-<h2 id="verifytypestates-macro">verifyTypestates() Macro<a class="headerlink" href="#verifytypestates-macro" title="Permanent link">¶</a></h2>
-<p>For comprehensive in-module verification:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="p">...</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(...)</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(...)</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">verifyTypestates</span><span class="p">()</span><span class="w">  </span><span class="c"># Validates everything above</span>
+<h1 id="command-line-interface">Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permanent link">¶</a></h1>
+<p>The <code>typestates</code> command-line tool provides project-wide verification and visualization capabilities.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
+<p>The CLI is installed automatically with the library:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nimble<span class="w"> </span>install<span class="w"> </span>typestates
 </code></pre></div>
-<h2 id="cli-tool">CLI Tool<a class="headerlink" href="#cli-tool" title="Permanent link">¶</a></h2>
-<p>The <code>typestates</code> CLI provides project-wide verification and visualization:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w">     </span><span class="c1"># Check all procs are properly marked</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w">        </span><span class="c1"># Generate GraphViz diagrams</span>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>typestates &lt;command&gt; [paths...]
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Commands:
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  verify    Check that procs on state types are properly marked
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  dot       Generate GraphViz DOT output for visualization
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Options:
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  -h, --help      Show help
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  -v, --version   Show version
 </code></pre></div>
-<p>See <a href="../cli/">CLI Reference</a> for complete usage and <a href="../visualization/">Visualization</a> for diagram generation.</p>
+<h2 id="verify-command">Verify Command<a class="headerlink" href="#verify-command" title="Permanent link">¶</a></h2>
+<p>The <code>verify</code> command checks that all procs operating on state types are properly marked with <code>{.transition.}</code> or <code>{.notATransition.}</code>.</p>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w"> </span>tests/
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>typestates<span class="w"> </span>verify<span class="w"> </span>.
+</code></pre></div>
+<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">¶</a></h3>
+<p>Given this file <code>src/file_state.nim</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">type</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</code></pre></div>
+<p>Running verification:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">2</span><span class="w"> </span>transitions
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>All<span class="w"> </span>checks<span class="w"> </span>passed!
+</code></pre></div>
+<h3 id="error-output">Error Output<a class="headerlink" href="#error-output" title="Permanent link">¶</a></h3>
+<p>If a proc is missing the required pragma:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Missing {.transition.} pragma!</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">1</span><span class="w"> </span>transitions
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ERROR:<span class="w"> </span>src/file_state.nim:15<span class="w"> </span>-<span class="w"> </span>Unmarked<span class="w"> </span>proc<span class="w"> </span>on<span class="w"> </span>state<span class="w"> </span><span class="s1">'Closed'</span><span class="w"> </span><span class="o">(</span>strictTransitions<span class="w"> </span>enabled<span class="o">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="m">1</span><span class="w"> </span>error<span class="o">(</span>s<span class="o">)</span><span class="w"> </span>found
+</code></pre></div>
+<h3 id="syntax-error-handling">Syntax Error Handling<a class="headerlink" href="#syntax-error-handling" title="Permanent link">¶</a></h3>
+<p>The CLI uses Nim's AST parser for accurate extraction. Files must be valid Nim syntax:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>ERROR:<span class="w"> </span>Parse<span class="w"> </span>error<span class="w"> </span><span class="k">in</span><span class="w"> </span>src/broken.nim:<span class="w"> </span>invalid<span class="w"> </span>indentation
+</code></pre></div>
+<p>This is intentional - a verification tool should not silently skip files it cannot parse.</p>
+<h2 id="dot-command">Dot Command<a class="headerlink" href="#dot-command" title="Permanent link">¶</a></h2>
+<p>The <code>dot</code> command generates GraphViz DOT output for visualizing state machines.</p>
+<p>See <a href="../visualization/">Visualization</a> for detailed usage and examples.</p>
+<h3 id="basic-usage_1">Basic Usage<a class="headerlink" href="#basic-usage_1" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>states.dot
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>states.png
+</code></pre></div>
+<h2 id="ci-integration">CI Integration<a class="headerlink" href="#ci-integration" title="Permanent link">¶</a></h2>
+<h3 id="github-actions">GitHub Actions<a class="headerlink" href="#github-actions" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install typestates</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nimble install typestates -y</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">typestates verify src/</span>
+</code></pre></div>
+<h3 id="circleci">CircleCI<a class="headerlink" href="#circleci" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">      </span><span class="no">nimble install typestates -y</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">      </span><span class="no">typestates verify src/</span>
+</code></pre></div>
+<h2 id="nimble-task">Nimble Task<a class="headerlink" href="#nimble-task" title="Permanent link">¶</a></h2>
+<p>Add a verification task to your <code>.nimble</code> file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">task</span><span class="w"> </span><span class="n">verify</span><span class="p">,</span><span class="w"> </span><span class="s">"Verify typestate rules"</span><span class="p">:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">exec</span><span class="w"> </span><span class="s">"typestates verify src/"</span>
+</code></pre></div>
+<p>Then run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>nimble<span class="w"> </span>verify
+</code></pre></div>
 
 
 
@@ -909,7 +1239,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 30, 2025 08:52:39 UTC"><span class="timeago" datetime="2025-11-30T08:52:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 30, 2025 08:52:39 UTC">2025-11-30</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 4, 2025 02:40:07 UTC"><span class="timeago" datetime="2025-12-04T02:40:07+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 4, 2025 02:40:07 UTC">2025-12-04</span>
   </span>
 
     

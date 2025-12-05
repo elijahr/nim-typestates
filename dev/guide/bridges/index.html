@@ -7,13 +7,13 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/getting-started/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/bridges/">
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../dsl-reference/">
       
       
-        <link rel="next" href="../dsl-reference/">
+        <link rel="next" href="../generics/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Getting Started - nim-typestates</title>
+        <title>Cross-Type Bridges - nim-typestates</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#cross-type-state-bridges" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              Cross-Type Bridges
             
           </span>
         </div>
@@ -353,37 +353,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Getting Started
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -399,175 +372,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-define-your-base-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Define Your Base Type
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-define-state-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Define State Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-declare-the-typestate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Declare the Typestate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-implement-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Implement Transitions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-use-it" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Use It
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-invalid-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Happens on Invalid Transitions?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-helpers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generated Helpers
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Generated Helpers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#state-enum" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Enum
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#union-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Union Type
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#state-procs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Procs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -605,10 +409,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../bridges/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Type Bridges
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -624,6 +455,209 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#declaration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declaration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-procs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Procs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-converters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Converters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wildcard-bridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard Bridges
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Messages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Messages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bridge-not-declared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge Not Declared
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unknown-typestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown Typestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unknown-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unified-graph-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unified Graph (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#separate-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separate Graphs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -914,10 +948,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#declaration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Declaration
       
     </span>
   </a>
@@ -925,99 +959,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Implementation
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-define-your-base-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Define Your Base Type
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-define-state-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Define State Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-declare-the-typestate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Declare the Typestate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-implement-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Implement Transitions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-use-it" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Use It
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-invalid-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Happens on Invalid Transitions?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-helpers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generated Helpers
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Generated Helpers">
+    <nav class="md-nav" aria-label="Implementation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#state-enum" class="md-nav__link">
+  <a href="#using-procs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Enum
+        Using Procs
       
     </span>
   </a>
@@ -1025,21 +982,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#union-type" class="md-nav__link">
+  <a href="#using-converters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Union Type
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#state-procs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Procs
+        Using Converters
       
     </span>
   </a>
@@ -1052,13 +998,135 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#branching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Branching
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wildcard-bridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard Bridges
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Messages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Messages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bridge-not-declared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge Not Declared
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unknown-typestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown Typestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unknown-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unified-graph-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unified Graph (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#separate-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separate Graphs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1082,130 +1150,113 @@
   
 
 
-<h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h1>
-<p>This guide walks through building a typestate-validated file handle from scratch.</p>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
-<ul>
-<li>Nim 2.0 or later</li>
-<li>Basic familiarity with Nim's type system</li>
-</ul>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nimble<span class="w"> </span>install<span class="w"> </span>typestates
+<h1 id="cross-type-state-bridges">Cross-Type State Bridges<a class="headerlink" href="#cross-type-state-bridges" title="Permanent link">¶</a></h1>
+<p>Bridges allow terminal states of one typestate to transition into states of a completely different typestate. This enables modeling resource transformation, wrapping, and protocol handoff.</p>
+<h2 id="declaration">Declaration<a class="headerlink" href="#declaration" title="Permanent link">¶</a></h2>
+<p>Declare bridges in the source typestate using a <code>bridges:</code> block with dotted notation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">session</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">,</span><span class="w"> </span><span class="n">Failed</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Failed</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
 </code></pre></div>
-<h2 id="step-1-define-your-base-type">Step 1: Define Your Base Type<a class="headerlink" href="#step-1-define-your-base-type" title="Permanent link">¶</a></h2>
-<p>Start with a regular object type that holds your data:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="w">  </span><span class="c"># OS file descriptor</span>
+<p>The destination typestate must be imported and exist.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">¶</a></h2>
+<h3 id="using-procs">Using Procs<a class="headerlink" href="#using-procs" title="Permanent link">¶</a></h3>
+<p>Use procs when you need extra arguments:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">startSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="n">SessionConfig</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">timeout</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">timeout</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p">))</span>
 </code></pre></div>
-<h2 id="step-2-define-state-types">Step 2: Define State Types<a class="headerlink" href="#step-2-define-state-types" title="Permanent link">¶</a></h2>
-<p>Create distinct types for each state. Using <code>distinct</code> ensures the compiler treats them as different types:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">type</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<h3 id="using-converters">Using Converters<a class="headerlink" href="#using-converters" title="Permanent link">¶</a></h3>
+<p>Use converters for simple 1:1 transforms:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c"># Usage - implicit conversion works</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">let</span><span class="w"> </span><span class="n">session</span><span class="p">:</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">myAuth</span>
 </code></pre></div>
-<p>Now <code>Closed</code> and <code>Open</code> are incompatible types - you can't pass a <code>Closed</code> where an <code>Open</code> is expected.</p>
-<h2 id="step-3-declare-the-typestate">Step 3: Declare the Typestate<a class="headerlink" href="#step-3-declare-the-typestate" title="Permanent link">¶</a></h2>
-<p>Import the library and declare valid transitions:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">type</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<h2 id="branching">Branching<a class="headerlink" href="#branching" title="Permanent link">¶</a></h2>
+<p>Bridges support branching like regular transitions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Guest</span>
 </code></pre></div>
-<p>This tells the compiler:</p>
-<ul>
-<li><code>File</code> has two states: <code>Closed</code> and <code>Open</code></li>
-<li><code>Closed</code> can transition to <code>Open</code></li>
-<li><code>Open</code> can transition to <code>Closed</code></li>
-<li>No other transitions are valid</li>
-</ul>
-<h2 id="step-4-implement-transitions">Step 4: Implement Transitions<a class="headerlink" href="#step-4-implement-transitions" title="Permanent link">¶</a></h2>
-<p>Use the <code>{.transition.}</code> pragma to mark state-changing procs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="sd">## Open a closed file, returning it in the Open state.</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="w">  </span><span class="c"># Access underlying File</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">path</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="c"># Pretend we opened it</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="sd">## Close an open file, returning it in the Closed state.</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">  </span><span class="c"># Pretend we closed it</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+<h2 id="wildcard-bridges">Wildcard Bridges<a class="headerlink" href="#wildcard-bridges" title="Permanent link">¶</a></h2>
+<p>Use <code>*</code> to allow any state to bridge to a destination:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
 </code></pre></div>
-<p>The <code>{.transition.}</code> pragma validates at compile time that:</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">¶</a></h2>
+<p>The compiler validates:</p>
 <ol>
-<li>The input type (<code>Closed</code> or <code>Open</code>) is a registered state</li>
-<li>The return type is a valid transition target</li>
-<li>The transition is declared in the typestate block</li>
+<li>Bridge is declared in source typestate's <code>bridges:</code> block</li>
+<li>Proc/converter signature matches declaration</li>
+<li>Destination typestate exists</li>
+<li>Destination state exists in that typestate</li>
+<li>Destination module is imported</li>
 </ol>
-<h2 id="step-5-use-it">Step 5: Use It<a class="headerlink" href="#step-5-use-it" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Create a file in the Closed state</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">var</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c"># Open it - returns Open type</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">let</span><span class="w"> </span><span class="n">opened</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="s">"/tmp/example.txt"</span><span class="p">)</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c"># Close it - returns Closed type</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">let</span><span class="w"> </span><span class="n">closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">opened</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c"># This won't compile!</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c"># let bad = opened.open("/other.txt")</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c"># Error: Undeclared transition: Open -&gt; Open</span>
+<h2 id="error-messages">Error Messages<a class="headerlink" href="#error-messages" title="Permanent link">¶</a></h2>
+<h3 id="bridge-not-declared">Bridge Not Declared<a class="headerlink" href="#bridge-not-declared" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Error: Undeclared bridge: Authenticated -&gt; Session.Active
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  Typestate 'AuthFlow' does not declare this bridge.
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  Valid bridges from 'Authenticated': @[]
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  Hint: Add 'bridges: Authenticated -&gt; Session.Active' to AuthFlow.
 </code></pre></div>
-<h2 id="what-happens-on-invalid-transitions">What Happens on Invalid Transitions?<a class="headerlink" href="#what-happens-on-invalid-transitions" title="Permanent link">¶</a></h2>
-<p>If you try to implement an undeclared transition:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">lock</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Locked</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">discard</span>
+<h3 id="unknown-typestate">Unknown Typestate<a class="headerlink" href="#unknown-typestate" title="Permanent link">¶</a></h3>
+<p>If you reference a typestate that doesn't exist, you'll get an error indicating that the destination type isn't part of any registered typestate.</p>
+<h3 id="unknown-state">Unknown State<a class="headerlink" href="#unknown-state" title="Permanent link">¶</a></h3>
+<p>If you reference a state that doesn't exist in the destination typestate, you'll get an error indicating which states are valid.</p>
+<h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c"># session.nim</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">type</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="n">Session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="n">Expired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Session</span><span class="p">:</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="n">Active</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="c"># auth.nim</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="kn">import</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">session</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="k">type</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="n">AuthFlow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span><span class="n">Pending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">a</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
 </code></pre></div>
-<p>You get a compile-time error:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Error: Undeclared transition: Open -&gt; Locked
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  Typestate 'File' does not declare this transition.
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  Valid transitions from 'Open': @["Closed"]
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
+<h2 id="visualization">Visualization<a class="headerlink" href="#visualization" title="Permanent link">¶</a></h2>
+<h3 id="unified-graph-default">Unified Graph (default)<a class="headerlink" href="#unified-graph-default" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
 </code></pre></div>
-<h2 id="generated-helpers">Generated Helpers<a class="headerlink" href="#generated-helpers" title="Permanent link">¶</a></h2>
-<p>The <code>typestate</code> macro generates some useful types:</p>
-<h3 id="state-enum">State Enum<a class="headerlink" href="#state-enum" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span>
+<p>Shows all typestates with cross-cluster dashed edges for bridges.</p>
+<h3 id="separate-graphs">Separate Graphs<a class="headerlink" href="#separate-graphs" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--separate<span class="w"> </span>src/
 </code></pre></div>
-<h3 id="union-type">Union Type<a class="headerlink" href="#union-type" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span>
-</code></pre></div>
-<h3 id="state-procs">State Procs<a class="headerlink" href="#state-procs" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
-</code></pre></div>
-<p>Use them for runtime inspection when needed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">describe</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">state</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"File is closed"</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"File is open"</span>
-</code></pre></div>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
-<ul>
-<li><a href="../dsl-reference/">DSL Reference</a> - Learn about branching, wildcards, and more</li>
-<li><a href="../examples/">Examples</a> - See real-world patterns</li>
-<li><a href="../error-handling/">Error Handling</a> - Model errors as states</li>
-</ul>
-<p>For details on what the compiler verifies, see <a href="../formal-guarantees/">Formal Guarantees</a>.</p>
+<p>Shows individual graphs per typestate with bridges as terminal nodes.</p>
 
 
 
@@ -1228,7 +1279,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 3, 2025 09:26:30 UTC"><span class="timeago" datetime="2025-12-03T09:26:30+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 3, 2025 09:26:30 UTC">2025-12-03</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 00:02:25 UTC"><span class="timeago" datetime="2025-12-05T00:02:25+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 00:02:25 UTC">2025-12-05</span>
   </span>
 
     
@@ -1238,7 +1289,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 30, 2025 08:52:39 UTC"><span class="timeago" datetime="2025-11-30T08:52:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 30, 2025 08:52:39 UTC">2025-11-30</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 00:02:25 UTC"><span class="timeago" datetime="2025-12-05T00:02:25+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 00:02:25 UTC">2025-12-05</span>
   </span>
 
     
