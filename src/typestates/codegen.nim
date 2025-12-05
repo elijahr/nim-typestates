@@ -215,8 +215,10 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
 
   for t in branchingTransitions:
     let branchTypeName = t.branchTypeName
-    let kindTypeName = branchTypeName & "Kind"
-    let enumPrefix = branchEnumPrefix(branchTypeName)
+    let branchTypeNode = t.branchTypeNode
+    let branchBaseName = extractBaseName(branchTypeName)
+    let kindTypeName = branchBaseName & "Kind"
+    let enumPrefix = branchEnumPrefix(branchBaseName)
 
     # Generate enum: CreatedBranchKind = enum cbApproved, cbDeclined, ...
     var enumFields = nnkEnumTy.newTree(newEmptyNode())
@@ -265,8 +267,9 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
       )
       recCase.add branch
 
+    # Use branchTypeNode for the type definition to support generics
     let objectDef = nnkTypeDef.newTree(
-      nnkPostfix.newTree(ident("*"), ident(branchTypeName)),
+      nnkPostfix.newTree(ident("*"), branchTypeNode.copyNimTree),
       newEmptyNode(),
       nnkObjectTy.newTree(
         newEmptyNode(),
@@ -301,8 +304,10 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
 
   for t in branchingTransitions:
     let branchTypeName = t.branchTypeName
-    let procName = "to" & branchTypeName
-    let enumPrefix = branchEnumPrefix(branchTypeName)
+    let branchTypeNode = t.branchTypeNode
+    let branchBaseName = extractBaseName(branchTypeName)
+    let procName = "to" & branchBaseName
+    let enumPrefix = branchEnumPrefix(branchBaseName)
 
     for dest in t.toStates:
       let destBase = extractBaseName(dest)
@@ -318,7 +323,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
 
       # Build: ProcessResult(kind: pApproved, approved: s)
       let constructorCall = nnkObjConstr.newTree(
-        ident(branchTypeName),
+        branchTypeNode.copyNimTree,
         nnkExprColonExpr.newTree(ident("kind"), kindField),
         nnkExprColonExpr.newTree(ident(varFieldName), ident("s"))
       )
@@ -328,7 +333,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
         newEmptyNode(),
         newEmptyNode(),
         nnkFormalParams.newTree(
-          ident(branchTypeName),
+          branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
             ident("s"),
             destType,
@@ -379,7 +384,9 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
 
   for t in branchingTransitions:
     let branchTypeName = t.branchTypeName
-    let procName = "to" & branchTypeName
+    let branchTypeNode = t.branchTypeNode
+    let branchBaseName = extractBaseName(branchTypeName)
+    let procName = "to" & branchBaseName
 
     for dest in t.toStates:
       let destBase = extractBaseName(dest)
@@ -404,10 +411,10 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
         newEmptyNode(),
         newEmptyNode(),
         nnkFormalParams.newTree(
-          ident(branchTypeName),
+          branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
             ident("T"),
-            nnkBracketExpr.newTree(ident("typedesc"), ident(branchTypeName)),
+            nnkBracketExpr.newTree(ident("typedesc"), branchTypeNode.copyNimTree),
             newEmptyNode()
           ),
           nnkIdentDefs.newTree(

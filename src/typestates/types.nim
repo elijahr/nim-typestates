@@ -82,11 +82,13 @@ type
     ## :var fromState: Source state name, or "*" for wildcard
     ## :var toStates: List of valid destination states
     ## :var branchTypeName: User-defined name for the branch result type (required for branching)
+    ## :var branchTypeNode: AST node for the branch type (supports generics)
     ## :var isWildcard: True if this is a wildcard transition (`* -> X`)
     ## :var declaredAt: Source location for error messages
     fromState*: string
     toStates*: seq[string]
     branchTypeName*: string  ## Empty for non-branching, required for branching
+    branchTypeNode*: NimNode  ## Raw AST node for codegen (supports generics like Result[T])
     isWildcard*: bool
     declaredAt*: LineInfo
 

@@ -202,9 +202,13 @@ proc parseTransition*(node: NimNode): Transition =
   var targetsNode = node[2]
   var branchTypeName = ""
 
+  var branchTypeNode: NimNode = nil
+
   if targetsNode.kind == nnkInfix and targetsNode[0].strVal == "as":
     # Extract the branch type name from RHS of "as"
-    branchTypeName = targetsNode[2].strVal
+    # Store both the string repr and the AST node (for generics like ResultType[T])
+    branchTypeNode = targetsNode[2]
+    branchTypeName = branchTypeNode.repr
     targetsNode = targetsNode[1]
 
   let toStates = collectBranchTargets(targetsNode)
@@ -225,6 +229,7 @@ proc parseTransition*(node: NimNode): Transition =
     fromState: fromState,
     toStates: toStates,
     branchTypeName: branchTypeName,
+    branchTypeNode: branchTypeNode,
     isWildcard: isWildcard,
     declaredAt: node.lineInfoObj
   )
