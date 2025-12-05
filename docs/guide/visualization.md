@@ -225,33 +225,81 @@ done
 
 ## Multiple Typestates
 
-If your project has multiple typestates, the `dot` command outputs them all in a single unified graph with separate subgraphs:
+If your project has multiple typestates, the `dot` command outputs them all in a single unified graph with separate subgraphs. Bridges between typestates are shown as dashed edges.
 
-```bash
-$ typestates dot src/
+### Example: Authentication Flow with Session
+
+This example shows two typestates with bridges connecting them:
+
+```nim
+# Session typestate
+type
+  Session = object
+    userId: string
+  Active = distinct Session
+  Expired = distinct Session
+
+typestate Session:
+  states Active, Expired
+  transitions:
+    Active -> Expired
+
+# AuthFlow typestate with bridges to Session
+type
+  AuthFlow = object
+    userId: string
+  Pending = distinct AuthFlow
+  Authenticated = distinct AuthFlow
+  Failed = distinct AuthFlow
+
+typestate AuthFlow:
+  states Pending, Authenticated, Failed
+  transitions:
+    Pending -> Authenticated
+    Pending -> Failed
+  bridges:
+    Authenticated -> Session.Active
+    Failed -> Session.Expired
+```
+
+Running `typestates dot` produces:
+
+```dot
 digraph {
   rankdir=LR;
   node [shape=box];
 
-  subgraph cluster_File {
-    label="File";
-    ...
-  }
-
-  subgraph cluster_Payment {
-    label="Payment";
-    ...
-  }
-
   subgraph cluster_Session {
     label="Session";
-    ...
+
+    Active;
+    Expired;
+
+    Active -> Expired;
   }
 
+  subgraph cluster_AuthFlow {
+    label="AuthFlow";
+
+    Pending;
+    Authenticated;
+    Failed;
+
+    Pending -> Authenticated;
+    Pending -> Failed;
+  }
+
+  // Bridges (cross-typestate edges)
+  Authenticated -> Active [style=dashed, label="bridge"];
+  Failed -> Expired [style=dashed, label="bridge"];
 }
 ```
 
-This unified format allows you to visualize relationships between different typestates when using bridges or other cross-typestate features.
+Rendered as a diagram:
+
+![Multiple Typestates with Bridges](../assets/images/generated/multi.svg)
+
+This unified format allows you to visualize relationships between different typestates when using bridges.
 
 ## Auto-Generated Diagrams
 

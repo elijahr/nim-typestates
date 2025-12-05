@@ -20,13 +20,16 @@ SNIPPETS_DIR = Path("examples/snippets")
 OUTPUT_DIR = Path("docs/assets/images/generated")
 
 
-def extract_typestate_name(nim_file: Path) -> str:
-    """Extract typestate name from a .nim file.
+def extract_output_name(nim_file: Path) -> str:
+    """Extract output name from a .nim file.
 
-    Looks for 'typestate Name:' pattern and extracts the name.
+    For single-typestate files, uses the typestate name.
+    For multi-typestate files (like multi_typestate.nim), uses the filename stem.
     Handles generics like 'Container[T]' by extracting base name.
     """
     content = nim_file.read_text()
+    typestate_names = []
+
     for line in content.split("\n"):
         line = line.strip()
         if line.startswith("typestate "):
@@ -35,9 +38,17 @@ def extract_typestate_name(nim_file: Path) -> str:
             # Handle generics: "Container[T]" -> "Container"
             if "[" in name:
                 name = name.split("[")[0]
-            return name.strip()
-    # Fallback to filename without extension
-    return nim_file.stem.replace("_typestate", "")
+            typestate_names.append(name.strip())
+
+    if len(typestate_names) == 0:
+        # Fallback to filename without _typestate suffix
+        return nim_file.stem.replace("_typestate", "")
+    elif len(typestate_names) == 1:
+        # Single typestate - use its name
+        return typestate_names[0]
+    else:
+        # Multiple typestates - use filename stem (e.g., "multi" from "multi_typestate.nim")
+        return nim_file.stem.replace("_typestate", "")
 
 
 def generate_diagram(nim_file: Path, output_dir: Path) -> bool:
@@ -45,7 +56,7 @@ def generate_diagram(nim_file: Path, output_dir: Path) -> bool:
 
     Returns True on success, False on failure.
     """
-    name = extract_typestate_name(nim_file)
+    name = extract_output_name(nim_file)
     dot_file = output_dir / f"{name.lower()}.dot"
     svg_file = output_dir / f"{name.lower()}.svg"
 
