@@ -142,12 +142,14 @@ type
     ## Creates a TypestateGraph with name="File", two states, and two transitions.
     ##
     ## :var name: The base type name (e.g., "File" in `typestate File:`)
+    ## :var typeParams: Generic type parameters (e.g., @[T] for Container[T], @[] for non-generic)
     ## :var states: Map of state names to State objects
     ## :var transitions: List of all declared transitions
     ## :var strictTransitions: If true, all procs on states must be categorized
     ## :var declaredAt: Source location of the typestate declaration
     ## :var declaredInModule: Module filename where typestate was declared
     name*: string
+    typeParams*: seq[NimNode]  ## Generic params: @[T] or @[K, V] or @[]
     states*: Table[string, State]
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
