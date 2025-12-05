@@ -56,6 +56,9 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
 
   lines.add "digraph " & ts.name & " {"
   lines.add "  rankdir=LR;"
+  lines.add "  splines=polyline;"  # Straight line segments with angles
+  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
+  lines.add "  ranksep=1.0;"       # Horizontal spacing between ranks
 
   if noStyle:
     # Minimal styling for easy customization
@@ -64,10 +67,10 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
     # Font stack: Inter is a modern, highly legible sans-serif
     const fontStack = "Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
     lines.add "  bgcolor=\"transparent\";"
-    lines.add "  pad=0.5;"
+    lines.add "  pad=1.0;"
     lines.add ""
     # Node styling: dark mode with light purple accents
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=12, margin=\"0.4,0.3\"];"
     # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
 
@@ -113,15 +116,18 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
 
   lines.add "digraph {"
   lines.add "  rankdir=LR;"
+  lines.add "  splines=polyline;"  # Straight line segments with angles
+  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
+  lines.add "  ranksep=1.0;"       # Horizontal spacing between ranks
 
   if noStyle:
     lines.add "  node [shape=box];"
   else:
     lines.add "  bgcolor=\"transparent\";"
-    lines.add "  pad=0.5;"
+    lines.add "  pad=1.0;"
     lines.add ""
     # Node styling: dark mode with light purple accents
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=12, margin=\"0.4,0.3\"];"
     # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
 
@@ -134,12 +140,12 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
 
     if not noStyle:
       lines.add "    fontname=\"" & fontStack & "\";"
-      lines.add "    fontsize=12;"
+      lines.add "    fontsize=14;"
       lines.add "    fontcolor=\"#e0e0e0\";"  # Light text for dark mode
       lines.add "    style=\"rounded\";"
       lines.add "    color=\"#b39ddb\";"  # Light purple border
       lines.add "    bgcolor=\"#1e1e1e\";"  # Dark background
-      lines.add "    margin=16;"
+      lines.add "    margin=24;"
 
     lines.add ""
 
@@ -213,15 +219,18 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
 
   lines.add "digraph " & ts.name & " {"
   lines.add "  rankdir=LR;"
+  lines.add "  splines=polyline;"  # Straight line segments with angles
+  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
+  lines.add "  ranksep=1.0;"       # Horizontal spacing between ranks
 
   if noStyle:
     lines.add "  node [shape=box];"
   else:
     lines.add "  bgcolor=\"transparent\";"
-    lines.add "  pad=0.5;"
+    lines.add "  pad=1.0;"
     lines.add ""
     # Node styling: dark mode with light purple accents
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=12, margin=\"0.4,0.3\"];"
     # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
 

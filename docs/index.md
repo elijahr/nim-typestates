@@ -54,14 +54,26 @@ Typestates solve this by encoding states in the type system:
 - **Self-documenting**: Types show valid operations
 - **Zero runtime cost**: It's just types
 
-## Features
+## Key Features
 
-- **Compile-time validation** - Invalid transitions fail at compile time with clear error messages
-- **Branching transitions** - `Closed -> Open | Errored as OpenResult` with user-named branch types
-- **Wildcard transitions** - `* -> Closed` (any state can close)
-- **Generated helpers** - `FileState` enum, `FileStates` union type, branch constructors
-- **Cross-typestate bridges** - Connect independent state machines
-- **GraphViz export** - Visualize your state machine
+- **Compile-time validation** — Invalid transitions fail at compile time with clear error messages
+- **Zero runtime cost** — All validation happens during compilation, no runtime overhead
+- **Branching transitions** — `Closed -> Open | Errored as OpenResult` with user-named branch types
+- **Wildcard transitions** — `* -> Closed` (any state can transition to a specific state)
+- **Generic typestates** — `Container[T]` with states like `Empty[T]`, `Full[T]`
+- **Cross-typestate bridges** — Connect independent state machines with validated handoffs
+- **Generated helpers** — `FileState` enum, `FileStates` union type, branch constructors
+- **Visualization** — Export to GraphViz DOT format for diagrams
+
+### State Machine Visualization
+
+Generate diagrams directly from your typestate definitions:
+
+```bash
+typestates dot src/ | dot -Tsvg -o states.svg
+```
+
+![State Machine Diagram](assets/images/generated/multi.svg)
 
 ## Installation
 

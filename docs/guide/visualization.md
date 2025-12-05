@@ -53,21 +53,24 @@ Running `typestates dot src/` produces:
 ```dot
 digraph {
   rankdir=LR;
+  splines=polyline;
+  nodesep=0.8;
+  ranksep=1.0;
   bgcolor="transparent";
-  pad=0.5;
+  pad=1.0;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
-  edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
+  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_File {
     label="File";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=12;
+    fontname="Inter";
+    fontsize=14;
     fontcolor="#e0e0e0";
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=16;
+    margin=24;
 
     Closed;
     Open;
@@ -106,21 +109,24 @@ DOT output:
 ```dot
 digraph {
   rankdir=LR;
+  splines=polyline;
+  nodesep=0.8;
+  ranksep=1.0;
   bgcolor="transparent";
-  pad=0.5;
+  pad=1.0;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
-  edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
+  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Payment {
     label="Payment";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=12;
+    fontname="Inter";
+    fontsize=14;
     fontcolor="#e0e0e0";
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=16;
+    margin=24;
 
     Created;
     Authorized;
@@ -165,21 +171,24 @@ DOT output:
 ```dot
 digraph {
   rankdir=LR;
+  splines=polyline;
+  nodesep=0.8;
+  ranksep=1.0;
   bgcolor="transparent";
-  pad=0.5;
+  pad=1.0;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
-  edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
+  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_DbConnection {
     label="DbConnection";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=12;
+    fontname="Inter";
+    fontsize=14;
     fontcolor="#e0e0e0";
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=16;
+    margin=24;
 
     Pooled;
     CheckedOut;
@@ -340,21 +349,24 @@ Running `typestates dot` produces:
 ```dot
 digraph {
   rankdir=LR;
+  splines=polyline;
+  nodesep=0.8;
+  ranksep=1.0;
   bgcolor="transparent";
-  pad=0.5;
+  pad=1.0;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
-  edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
+  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Session {
     label="Session";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=12;
+    fontname="Inter";
+    fontsize=14;
     fontcolor="#e0e0e0";
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=16;
+    margin=24;
 
     Active;
     Expired;
@@ -364,13 +376,13 @@ digraph {
 
   subgraph cluster_AuthFlow {
     label="AuthFlow";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=12;
+    fontname="Inter";
+    fontsize=14;
     fontcolor="#e0e0e0";
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=16;
+    margin=24;
 
     Pending;
     Authenticated;

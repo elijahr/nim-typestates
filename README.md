@@ -119,18 +119,20 @@ proc write(f: Open, data: string) {.notATransition.} =
   discard
 ```
 
-## Features
+## Key Features
 
-- **Compile-time verification** — Invalid transitions are compilation errors
-- **Generic types** — `Container[T]` with states like `Empty[T]`, `Full[T]`
-- **Branching transitions** — `Open -> Closed | Error`
-- **Wildcard transitions** — `* -> Closed` (any state can transition)
-- **Cross-type bridges** — Transition between different typestates
-- **Self-transitions** — `Open -> Open` for state-preserving operations
-- **Strict mode** — All procs on states must be explicitly marked
-- **Sealed typestates** — External modules can only add read-only operations
-- **CLI tool** — Project-wide verification and GraphViz export
-- **Zero runtime cost** — All validation happens at compile time
+| Feature | Description |
+|---------|-------------|
+| **Compile-time validation** | Invalid transitions are compilation errors |
+| **Zero runtime cost** | All validation happens at compile time |
+| **Branching transitions** | `Open -> Closed \| Error as Result` |
+| **Wildcard transitions** | `* -> Closed` (any state can transition) |
+| **Generic typestates** | `Container[T]` with states like `Empty[T]`, `Full[T]` |
+| **Cross-type bridges** | Transition between different typestates |
+| **Visualization** | Export to GraphViz DOT, PNG, SVG |
+| **CLI tool** | Project-wide verification |
+| **Strict mode** | Require explicit marking of all state operations |
+| **Sealed typestates** | Control external module access |
 
 ### Cross-Type Bridges
 
@@ -164,11 +166,24 @@ Verify typestate rules across your project:
 typestates verify src/
 ```
 
-Generate GraphViz diagrams:
+### Visualization
+
+Generate state machine diagrams from your code:
 
 ```bash
+# Generate SVG
+typestates dot src/ | dot -Tsvg -o states.svg
+
+# Generate PNG
 typestates dot src/ | dot -Tpng -o states.png
+
+# Minimal output for custom styling
+typestates dot --no-style src/ > states.dot
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/elijahr/nim-typestates/main/docs/assets/images/generated/multi.svg" alt="State Machine Visualization" width="600">
+</p>
 
 ## Documentation
 
