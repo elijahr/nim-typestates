@@ -353,6 +353,88 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
 
       result.add procDef
 
+proc generateBranchOperators*(graph: TypestateGraph): NimNode =
+  ## Generate `>>>` operator templates for branch types.
+  ##
+  ## The `>>>` operator provides syntactic sugar for branch construction.
+  ## It takes the branch type on the left and the state value on the right:
+  ##
+  ## ```nim
+  ## # Usage:
+  ## CreatedBranch >>> Approved(c.Payment)
+  ##
+  ## # Equivalent to:
+  ## toCreatedBranch(Approved(c.Payment))
+  ## ```
+  ##
+  ## Generated templates:
+  ##
+  ## ```nim
+  ## template `>>>`*(T: typedesc[CreatedBranch], s: Approved): CreatedBranch =
+  ##   toCreatedBranch(s)
+  ##
+  ## template `>>>`*(T: typedesc[CreatedBranch], s: Declined): CreatedBranch =
+  ##   toCreatedBranch(s)
+  ## ```
+  ##
+  ## The `typedesc` parameter disambiguates when the same state appears
+  ## in multiple branch types.
+  ##
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for all operator template definitions
+  result = newStmtList()
+
+  let branchingTransitions = graph.getBranchingTransitions()
+  if branchingTransitions.len == 0:
+    return
+
+  for t in branchingTransitions:
+    let fromState = extractBaseName(t.fromState)
+    let branchTypeName = fromState & "Branch"
+    let procName = "to" & branchTypeName
+
+    for dest in t.toStates:
+      let destBase = extractBaseName(dest)
+
+      # Get the full type from the graph's states
+      var destType: NimNode
+      if destBase in graph.states:
+        destType = graph.states[destBase].typeName.copyNimTree
+      else:
+        destType = ident(destBase)
+
+      # Build: toCreatedBranch(s)
+      let callExpr = nnkCall.newTree(
+        ident(procName),
+        ident("s")
+      )
+
+      # template `>>>`*(T: typedesc[CreatedBranch], s: Approved): CreatedBranch =
+      #   toCreatedBranch(s)
+      let templateDef = nnkTemplateDef.newTree(
+        nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident(">>>"))),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkFormalParams.newTree(
+          ident(branchTypeName),
+          nnkIdentDefs.newTree(
+            ident("T"),
+            nnkBracketExpr.newTree(ident("typedesc"), ident(branchTypeName)),
+            newEmptyNode()
+          ),
+          nnkIdentDefs.newTree(
+            ident("s"),
+            destType,
+            newEmptyNode()
+          )
+        ),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkStmtList.newTree(callExpr)
+      )
+
+      result.add templateDef
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -364,6 +446,7 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 3. State procs (`state()` for each state)
   ## 4. Branch types for branching transitions (`CreatedBranch`, etc.)
   ## 5. Branch constructors (`toCreatedBranch`)
+  ## 6. Branch operators (`>>>`)
   ##
   ## **Note:** For generic typestates like `Container[T]`, helper generation
   ## is currently skipped because the generated types would need to be
@@ -383,3 +466,4 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateStateProcs(graph)
   result.add generateBranchTypes(graph)
   result.add generateBranchConstructors(graph)
+  result.add generateBranchOperators(graph)

@@ -203,36 +203,52 @@ proc state*(f: Errored): FileState = fsErrored
 
 ### Branch Types
 
-For branching transitions like `Created -> Approved | Declined | Review`, the macro generates:
+For branching transitions like `Created -> Approved | Declined | Review`, the macro generates types and helpers for returning multiple possible states.
 
-**Enum for the branch kinds:**
-
-```nim
-type CreatedBranchKind* = enum
-  cbApproved, cbDeclined, cbReview
-```
-
-Enum values are prefixed with a short code from the source state (`cb` = **C**reated **B**ranch).
-
-**Variant object to hold the result:**
+**Usage with the `>>>` operator:**
 
 ```nim
-type CreatedBranch* = object
-  case kind*: CreatedBranchKind
-  of cbApproved: approved*: Approved
-  of cbDeclined: declined*: Declined
-  of cbReview: review*: Review
+proc process(c: Created): CreatedBranch {.transition.} =
+  if c.Payment.amount > 100:
+    CreatedBranch >>> Approved(c.Payment)
+  elif c.Payment.amount > 50:
+    CreatedBranch >>> Review(c.Payment)
+  else:
+    CreatedBranch >>> Declined(c.Payment)
 ```
 
-**Constructor procs:**
+The `>>>` operator takes the branch type on the left and the destination state on the right. This is unambiguous even when the same state appears in multiple branch types.
+
+**Pattern matching on the result:**
 
 ```nim
-proc toCreatedBranch*(s: Approved): CreatedBranch
-proc toCreatedBranch*(s: Declined): CreatedBranch
-proc toCreatedBranch*(s: Review): CreatedBranch
+let result = process(created)
+case result.kind
+of cbApproved: echo "Approved: ", result.approved.Payment.amount
+of cbDeclined: echo "Declined"
+of cbReview: echo "Needs review"
 ```
 
-See [Returning Union Types](#returning-union-types) for usage examples.
+**What gets generated:**
+
+The `>>>` operator is syntactic sugar around `toCreatedBranch()` constructors. For each branching transition, the macro generates:
+
+1. **Enum** - `CreatedBranchKind = enum cbApproved, cbDeclined, cbReview`
+   (prefix `cb` = **C**reated **B**ranch)
+
+2. **Variant object** - `CreatedBranch` holding the result
+
+3. **Constructor procs** - `toCreatedBranch(s: Approved): CreatedBranch` etc.
+
+4. **`>>>` operator** - `template >>>(T: typedesc[CreatedBranch], s: Approved)` etc.
+
+You can use the constructors directly if preferred:
+
+```nim
+toCreatedBranch(Approved(c.Payment))  # Equivalent to: CreatedBranch >>> Approved(c.Payment)
+```
+
+See [Returning Union Types](#returning-union-types) for more examples.
 
 ## Complete Example
 
@@ -268,9 +284,9 @@ proc connect(c: Disconnected, host: string, port: int): Connecting {.transition.
 proc waitForConnection(c: Connecting): ConnectingBranch {.transition.} =
   # In real code, this would do async I/O
   if true:  # Pretend success
-    toConnectingBranch(Connected(c.Connection))
+    ConnectingBranch >>> Connected(c.Connection)
   else:
-    toConnectingBranch(Errored(c.Connection))
+    ConnectingBranch >>> Errored(c.Connection)
 
 proc disconnect[S: ConnectionStates](c: S): Disconnected {.transition.} =
   var conn = c.Connection
@@ -295,15 +311,15 @@ proc path(f: Open): string =
 
 ### Returning Union Types
 
-For branching transitions, use the generated branch type and constructors:
+For branching transitions, use the `>>>` operator with the generated branch type:
 
 ```nim
 # Branching transition: Connecting -> Connected | Errored
 proc waitForConnection(c: Connecting): ConnectingBranch {.transition.} =
   if success:
-    toConnectingBranch(Connected(c.Connection))
+    ConnectingBranch >>> Connected(c.Connection)
   else:
-    toConnectingBranch(Errored(c.Connection))
+    ConnectingBranch >>> Errored(c.Connection)
 ```
 
 Then pattern match on the result:

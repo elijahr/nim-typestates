@@ -121,3 +121,43 @@ suite "Branch Types":
 
     let secondResult = reviewDecision(firstResult.review, approve = true)
     check secondResult.kind == rbApproved
+
+  test ">>> operator works":
+    let approved = Approved(Payment(amount: 100))
+    let declined = Declined(Payment(amount: 25))
+
+    # CreatedBranch >>> State is sugar for toCreatedBranch(State)
+    let b1 = CreatedBranch >>> approved
+    check b1.kind == cbApproved
+    check b1.approved.Payment.amount == 100
+
+    let b2 = CreatedBranch >>> declined
+    check b2.kind == cbDeclined
+
+  test ">>> operator in transition proc":
+    proc processWithOperator(c: Created): CreatedBranch {.transition.} =
+      if c.Payment.amount > 100:
+        CreatedBranch >>> Approved(c.Payment)
+      elif c.Payment.amount > 50:
+        CreatedBranch >>> Review(c.Payment)
+      else:
+        CreatedBranch >>> Declined(c.Payment)
+
+    check processWithOperator(Created(Payment(amount: 150))).kind == cbApproved
+    check processWithOperator(Created(Payment(amount: 75))).kind == cbReview
+    check processWithOperator(Created(Payment(amount: 25))).kind == cbDeclined
+
+  test ">>> operator disambiguates between branch types":
+    # Same destination state (Approved) in different branch types
+    let approved = Approved(Payment(amount: 100))
+
+    # Explicitly choose which branch type
+    let fromCreated = CreatedBranch >>> approved
+    let fromReview = ReviewBranch >>> approved
+
+    check fromCreated.kind == cbApproved
+    check fromReview.kind == rbApproved
+
+    # They're different types
+    check fromCreated is CreatedBranch
+    check fromReview is ReviewBranch

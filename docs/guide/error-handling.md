@@ -29,8 +29,8 @@ proc open(f: Closed, path: string): Open {.transition.} =
 # Right: error is a state, use branch type
 proc open(f: Closed, path: string): ClosedBranch {.transition.} =
   if not fileExists(path):
-    return toClosedBranch(OpenFailed(f.File))
-  toClosedBranch(Open(f.File))
+    return ClosedBranch >>> OpenFailed(f.File)
+  ClosedBranch >>> Open(f.File)
 ```
 
 ## Defects vs Exceptions
@@ -76,8 +76,8 @@ proc getItem(c: HasItems): Item {.transition, raises: [].} =
 # Safer: check first, return error state
 proc getItem(c: HasItems): HasItemsBranch {.transition, raises: [].} =
   if c.items.len == 0:
-    return toHasItemsBranch(Empty(c.Container))
-  toHasItemsBranch(Item(c.items[0]))
+    return HasItemsBranch >>> Empty(c.Container)
+  HasItemsBranch >>> Item(c.items[0])
 ```
 
 ## Patterns
@@ -96,13 +96,9 @@ typestate Connection:
     ConnectionFailed -> Disconnected
 ```
 
-The macro generates:
-- `DisconnectedBranchKind` - enum with `dbConnected`, `dbConnectionFailed`
-- `DisconnectedBranch` - variant object holding the result
-- `toDisconnectedBranch(s: Connected)` - constructor
-- `toDisconnectedBranch(s: ConnectionFailed)` - constructor
+The macro generates branch types and the `>>>` operator for constructing results.
 
-Use them in your transition:
+Use the `>>>` operator in your transition:
 
 ```nim
 proc connect(c: Disconnected, host: string): DisconnectedBranch {.transition, raises: [].} =
@@ -110,10 +106,12 @@ proc connect(c: Disconnected, host: string): DisconnectedBranch {.transition, ra
     let socket = connectSocket(host)
     var conn = Connected(c.Connection)
     conn.Connection.socket = socket
-    toDisconnectedBranch(conn)
+    DisconnectedBranch >>> conn
   except OSError:
-    toDisconnectedBranch(ConnectionFailed(c.Connection))
+    DisconnectedBranch >>> ConnectionFailed(c.Connection)
 ```
+
+The `>>>` operator takes the branch type on the left and the destination state on the right.
 
 Then pattern match on the result:
 
@@ -142,10 +140,10 @@ proc tryReadFile(path: string): Option[string] {.raises: [].} =
 proc load(f: Empty, path: string): EmptyBranch {.transition, raises: [].} =
   let content = tryReadFile(path)
   if content.isNone:
-    return toEmptyBranch(LoadFailed(f.Document))
+    return EmptyBranch >>> LoadFailed(f.Document)
   var loaded = Loaded(f.Document)
   loaded.Document.content = content.get
-  toEmptyBranch(loaded)
+  EmptyBranch >>> loaded
 ```
 
 ### Result Types
@@ -156,8 +154,8 @@ Use Result[T, E] for structured error handling:
 proc load(f: Empty, path: string): EmptyBranch {.transition, raises: [].} =
   let content = readFileResult(path)  # returns Result[string, IOError]
   if content.isErr:
-    return toEmptyBranch(LoadFailed(f.Document))
+    return EmptyBranch >>> LoadFailed(f.Document)
   var loaded = Loaded(f.Document)
   loaded.Document.content = content.get
-  toEmptyBranch(loaded)
+  EmptyBranch >>> loaded
 ```
