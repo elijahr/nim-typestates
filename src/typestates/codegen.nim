@@ -410,14 +410,20 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
   ## toProcessResult(Approved(c.Payment))
   ## ```
   ##
+  ## For generic types:
+  ##
+  ## ```nim
+  ## FillResult[int] -> Full[int](container)
+  ## ```
+  ##
   ## Generated templates:
   ##
   ## ```nim
   ## template `->`*(T: typedesc[ProcessResult], s: Approved): ProcessResult =
   ##   toProcessResult(s)
   ##
-  ## template `->`*(T: typedesc[ProcessResult], s: Declined): ProcessResult =
-  ##   toProcessResult(s)
+  ## template `->`*[T](T: typedesc[FillResult[T]], s: Full[T]): FillResult[T] =
+  ##   toFillResult(s)
   ## ```
   ##
   ## The `typedesc` parameter disambiguates when the same state appears
@@ -435,6 +441,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
+    let branchTypeParams = extractTypeParams(branchTypeNode)
     let procName = "to" & branchBaseName
 
     for dest in t.toStates:
@@ -458,7 +465,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
       let templateDef = nnkTemplateDef.newTree(
         nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("->"))),
         newEmptyNode(),
-        newEmptyNode(),
+        buildGenericParams(branchTypeParams),
         nnkFormalParams.newTree(
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
