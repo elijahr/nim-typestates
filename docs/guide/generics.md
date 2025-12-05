@@ -105,24 +105,90 @@ result = Full[T](cont)            # From base to distinct
 
 ## Generated Helpers
 
-For generic typestates, helper types (enum, union, state procs) are **not generated** because the type parameters aren't in scope for the generated code. The core validation still works.
+Generic typestates get fully parameterized helper types:
 
-For non-generic typestates, these are generated:
+| Helper | Non-Generic Example | Generic Example |
+|--------|---------------------|-----------------|
+| State enum | `FileState = enum fsClosed, fsOpen` | `ContainerState = enum fsEmpty, fsFull` |
+| Union type | `FileStates = Closed \| Open` | `ContainerStates[T] = Empty[T] \| Full[T]` |
+| State procs | `proc state(f: Closed): FileState` | `proc state[T](c: Empty[T]): ContainerState` |
 
-| Helper | Example | Generated For Generics? |
-|--------|---------|-------------------------|
-| State enum | `ContainerState = enum fsEmpty, fsFull` | No |
-| Union type | `ContainerStates = Empty | Full` | No |
-| State procs | `proc state(c: Empty): ContainerState` | No |
-
-You can create your own helpers if needed:
+Usage example:
 
 ```nim
-proc isEmptyState[T](c: Empty[T]): bool = true
-proc isEmptyState[T](c: Full[T]): bool = false
+# State enum works the same
+check fsEmpty is ContainerState
+check fsFull is ContainerState
 
-proc isFull[T](c: Empty[T]): bool = false
-proc isFull[T](c: Full[T]): bool = true
+# Union type is parameterized
+proc acceptAny[T](c: ContainerStates[T]): ContainerState =
+  c.state
+
+let e = Empty[int](Container[int](value: 0))
+check acceptAny(e) == fsEmpty
+
+# State procs are generic
+let f = Full[string](Container[string](value: "hello"))
+check f.state == fsFull
+```
+
+## Branching Transitions with Generics
+
+Generic typestates fully support branching transitions with parameterized branch types:
+
+```nim
+type
+  Container[T] = object
+    value: T
+  Empty[T] = distinct Container[T]
+  Full[T] = distinct Container[T]
+  Error[T] = distinct Container[T]
+
+typestate Container[T]:
+  states Empty[T], Full[T], Error[T]
+  transitions:
+    Empty[T] -> Full[T] | Error[T] as FillResult[T]
+    Full[T] -> Empty[T]
+```
+
+This generates:
+
+```nim
+# Branch type enum (not parameterized)
+type FillResultKind* = enum fFull, fError
+
+# Branch type (parameterized)
+type FillResult*[T] = object
+  case kind*: FillResultKind
+  of fFull: full*: Full[T]
+  of fError: error*: Error[T]
+
+# Constructors (generic)
+proc toFillResult*[T](s: Full[T]): FillResult[T]
+proc toFillResult*[T](s: Error[T]): FillResult[T]
+
+# Operator (generic)
+template `->`*[T](_: typedesc[FillResult[T]], s: Full[T]): FillResult[T]
+template `->`*[T](_: typedesc[FillResult[T]], s: Error[T]): FillResult[T]
+```
+
+Usage:
+
+```nim
+proc fill[T](e: Empty[T], val: T): FillResult[T] =
+  if val == default(T):
+    FillResult[T] -> Error[T](Container[T](e))
+  else:
+    var c = Container[T](e)
+    c.value = val
+    FillResult[T] -> Full[T](c)
+
+let empty = Empty[int](Container[int](value: 0))
+let result = fill(empty, 42)
+
+case result.kind
+of fFull: echo "Got value: ", Container[int](result.full).value
+of fError: echo "Failed"
 ```
 
 ## Supported Type Expressions
@@ -202,8 +268,18 @@ proc use[T](r: Acquired[T]): T {.notATransition.} =
 
 ## Limitations
 
-1. **No helper generation**: Generic typestates don't get enum/union/state proc helpers
-2. **Same base name**: All states in a generic typestate must have distinct base names (e.g., `Empty[T]` and `Empty[V]` would conflict)
+1. **Same base name**: All states in a generic typestate must have distinct base names (e.g., `Empty[T]` and `Empty[V]` would conflict)
+2. **Branch type params must match**: Branch type parameters must use the same type variables as the typestate (e.g., `FillResult[K]` when typestate uses `T` will fail)
+3. **Distinct types with multiple params**: Due to a Nim compiler limitation, using `distinct` with multiple generic params may cause C compilation errors. Use wrapper objects instead:
+
+```nim
+# May cause issues with distinct
+type EmptyMap[K, V] = distinct Map[K, V]
+
+# Works reliably
+type EmptyMap[K, V] = object
+  inner: Map[K, V]
+```
 
 ## Next Steps
 
