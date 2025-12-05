@@ -1,23 +1,25 @@
 digraph {
   rankdir=LR;
-  splines=polyline;
+  splines=ortho;
+  compound=true;
   nodesep=0.8;
-  ranksep=1.0;
+  ranksep=1.5;
   bgcolor="transparent";
-  pad=1.0;
+  pad=0.3;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=12, margin="0.4,0.3"];
-  edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="sans-serif", fontsize=14, margin="0.4,0.3"];
+  edge [fontname="sans-serif", fontsize=11, color="#b0b0b0"];
 
   subgraph cluster_Payment {
     label="Payment";
-    fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
-    fontsize=14;
+    fontname="sans-serif";
+    fontsize=16;
     fontcolor="#e0e0e0";
+    labelloc=t;
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=24;
+    margin=20;
 
     Created;
     Authorized;

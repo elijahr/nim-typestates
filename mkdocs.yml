@@ -90,6 +90,7 @@ nav:
     - CLI Reference: guide/cli.md
     - Visualization: guide/visualization.md
   - API Reference: api.md
+  - Contributing: contributing.md
 
 watch:
   - docs
