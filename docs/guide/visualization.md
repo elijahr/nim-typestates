@@ -20,13 +20,13 @@ typestates dot src/ | dot -Tsvg -o states.svg
 
 ## Edge Styles
 
-The CLI uses different edge styles to distinguish transition types:
+The CLI uses dark mode styling with different edge styles to distinguish transition types:
 
 | Type | Style | Description |
 |------|-------|-------------|
-| Normal | Solid dark gray | Standard state transitions |
+| Normal | Solid light gray | Standard state transitions |
 | Wildcard | Dotted gray | Transitions from any state (`* -> State`) |
-| Bridge | Dashed purple | Cross-typestate transitions |
+| Bridge | Dashed light purple | Cross-typestate transitions |
 
 ## Example: File State Machine
 
@@ -56,16 +56,17 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
-  edge [fontname="Helvetica", fontsize=9, color="#424242"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_File {
     label="File";
     fontname="Helvetica Bold";
     fontsize=12;
+    fontcolor="#e0e0e0";
     style="rounded";
-    color="#673ab7";
-    bgcolor="#fafafa";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
     margin=16;
 
     Closed;
@@ -108,16 +109,17 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
-  edge [fontname="Helvetica", fontsize=9, color="#424242"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Payment {
     label="Payment";
     fontname="Helvetica Bold";
     fontsize=12;
+    fontcolor="#e0e0e0";
     style="rounded";
-    color="#673ab7";
-    bgcolor="#fafafa";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
     margin=16;
 
     Created;
@@ -166,16 +168,17 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
-  edge [fontname="Helvetica", fontsize=9, color="#424242"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_DbConnection {
     label="DbConnection";
     fontname="Helvetica Bold";
     fontsize=12;
+    fontcolor="#e0e0e0";
     style="rounded";
-    color="#673ab7";
-    bgcolor="#fafafa";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
     margin=16;
 
     Pooled;
@@ -189,10 +192,10 @@ digraph {
     CheckedOut -> InTransaction;
     CheckedOut -> Closed;
     InTransaction -> CheckedOut;
-    Pooled -> Closed [style=dotted, color="#9e9e9e"];
-    CheckedOut -> Closed [style=dotted, color="#9e9e9e"];
-    InTransaction -> Closed [style=dotted, color="#9e9e9e"];
-    Closed -> Closed [style=dotted, color="#9e9e9e"];
+    Pooled -> Closed [style=dotted, color="#757575"];
+    CheckedOut -> Closed [style=dotted, color="#757575"];
+    InTransaction -> Closed [style=dotted, color="#757575"];
+    Closed -> Closed [style=dotted, color="#757575"];
   }
 }
 ```
@@ -233,14 +236,14 @@ GraphViz supports many output formats:
 
 ## Customizing Output
 
-The CLI produces styled output by default with a deep purple color scheme. You can post-process for further customization:
+The CLI produces dark mode styled output by default with light purple accents. You can post-process for further customization:
 
 ```bash
 # Change layout direction (top-to-bottom)
 typestates dot src/ | sed 's/rankdir=LR/rankdir=TB/' | dot -Tpng -o vertical.png
 
-# Different background color
-typestates dot src/ | sed 's/bgcolor="transparent"/bgcolor="#ffffff"/' | dot -Tpng -o white-bg.png
+# Light mode (swap colors)
+typestates dot src/ | sed 's/#2d2d2d/#f5f5f5/g; s/#1e1e1e/#fafafa/g; s/#e0e0e0/#212121/g; s/#b0b0b0/#424242/g' | dot -Tpng -o light.png
 ```
 
 ## Generating Documentation Images
@@ -307,16 +310,17 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", color="#673ab7", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
-  edge [fontname="Helvetica", fontsize=9, color="#424242"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Helvetica", fontsize=11, margin="0.2,0.1"];
+  edge [fontname="Helvetica", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Session {
     label="Session";
     fontname="Helvetica Bold";
     fontsize=12;
+    fontcolor="#e0e0e0";
     style="rounded";
-    color="#673ab7";
-    bgcolor="#fafafa";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
     margin=16;
 
     Active;
@@ -329,9 +333,10 @@ digraph {
     label="AuthFlow";
     fontname="Helvetica Bold";
     fontsize=12;
+    fontcolor="#e0e0e0";
     style="rounded";
-    color="#673ab7";
-    bgcolor="#fafafa";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
     margin=16;
 
     Pending;
@@ -343,8 +348,8 @@ digraph {
   }
 
   // Bridges (cross-typestate)
-  Authenticated -> Active [style=dashed, color="#7e57c2", penwidth=1.5];
-  Failed -> Expired [style=dashed, color="#7e57c2", penwidth=1.5];
+  Authenticated -> Active [style=dashed, color="#b39ddb", penwidth=1.5];
+  Failed -> Expired [style=dashed, color="#b39ddb", penwidth=1.5];
 }
 ```
 

@@ -9,73 +9,73 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(36 195)">
 <g id="clust1" class="cluster">
 <title>cluster_Session</title>
-<path fill="#fafafa" stroke="#673ab7" d="M259.35,-60C259.35,-60 426.95,-60 426.95,-60 432.95,-60 438.95,-66 438.95,-72 438.95,-72 438.95,-137 438.95,-137 438.95,-143 432.95,-149 426.95,-149 426.95,-149 259.35,-149 259.35,-149 253.35,-149 247.35,-143 247.35,-137 247.35,-137 247.35,-72 247.35,-72 247.35,-66 253.35,-60 259.35,-60"/>
-<text xml:space="preserve" text-anchor="middle" x="343.15" y="-133.6" font-family="Helvetica Bold" font-size="12.00">Session</text>
+<path fill="#1e1e1e" stroke="#b39ddb" d="M259.35,-60C259.35,-60 426.95,-60 426.95,-60 432.95,-60 438.95,-66 438.95,-72 438.95,-72 438.95,-137 438.95,-137 438.95,-143 432.95,-149 426.95,-149 426.95,-149 259.35,-149 259.35,-149 253.35,-149 247.35,-143 247.35,-137 247.35,-137 247.35,-72 247.35,-72 247.35,-66 253.35,-60 259.35,-60"/>
+<text xml:space="preserve" text-anchor="middle" x="343.15" y="-133.6" font-family="Helvetica Bold" font-size="12.00" fill="#e0e0e0">Session</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_AuthFlow</title>
-<path fill="#fafafa" stroke="#673ab7" d="M20,-8C20,-8 227.35,-8 227.35,-8 233.35,-8 239.35,-14 239.35,-20 239.35,-20 239.35,-139 239.35,-139 239.35,-145 233.35,-151 227.35,-151 227.35,-151 20,-151 20,-151 14,-151 8,-145 8,-139 8,-139 8,-20 8,-20 8,-14 14,-8 20,-8"/>
-<text xml:space="preserve" text-anchor="middle" x="123.68" y="-135.6" font-family="Helvetica Bold" font-size="12.00">AuthFlow</text>
+<path fill="#1e1e1e" stroke="#b39ddb" d="M20,-8C20,-8 227.35,-8 227.35,-8 233.35,-8 239.35,-14 239.35,-20 239.35,-20 239.35,-139 239.35,-139 239.35,-145 233.35,-151 227.35,-151 227.35,-151 20,-151 20,-151 14,-151 8,-145 8,-139 8,-139 8,-20 8,-20 8,-14 14,-8 20,-8"/>
+<text xml:space="preserve" text-anchor="middle" x="123.68" y="-135.6" font-family="Helvetica Bold" font-size="12.00" fill="#e0e0e0">AuthFlow</text>
 </g>
 <!-- Active -->
 <g id="node1" class="node">
 <title>Active</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M309.4,-112C309.4,-112 275.35,-112 275.35,-112 269.35,-112 263.35,-106 263.35,-100 263.35,-100 263.35,-88 263.35,-88 263.35,-82 269.35,-76 275.35,-76 275.35,-76 309.4,-76 309.4,-76 315.4,-76 321.4,-82 321.4,-88 321.4,-88 321.4,-100 321.4,-100 321.4,-106 315.4,-112 309.4,-112"/>
-<text xml:space="preserve" text-anchor="middle" x="292.38" y="-89.55" font-family="Helvetica,sans-Serif" font-size="11.00">Active</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M309.4,-112C309.4,-112 275.35,-112 275.35,-112 269.35,-112 263.35,-106 263.35,-100 263.35,-100 263.35,-88 263.35,-88 263.35,-82 269.35,-76 275.35,-76 275.35,-76 309.4,-76 309.4,-76 315.4,-76 321.4,-82 321.4,-88 321.4,-88 321.4,-100 321.4,-100 321.4,-106 315.4,-112 309.4,-112"/>
+<text xml:space="preserve" text-anchor="middle" x="292.38" y="-89.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Active</text>
 </g>
 <!-- Expired -->
 <g id="node2" class="node">
 <title>Expired</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M410.95,-112C410.95,-112 369.4,-112 369.4,-112 363.4,-112 357.4,-106 357.4,-100 357.4,-100 357.4,-88 357.4,-88 357.4,-82 363.4,-76 369.4,-76 369.4,-76 410.95,-76 410.95,-76 416.95,-76 422.95,-82 422.95,-88 422.95,-88 422.95,-100 422.95,-100 422.95,-106 416.95,-112 410.95,-112"/>
-<text xml:space="preserve" text-anchor="middle" x="390.18" y="-89.55" font-family="Helvetica,sans-Serif" font-size="11.00">Expired</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M410.95,-112C410.95,-112 369.4,-112 369.4,-112 363.4,-112 357.4,-106 357.4,-100 357.4,-100 357.4,-88 357.4,-88 357.4,-82 363.4,-76 369.4,-76 369.4,-76 410.95,-76 410.95,-76 416.95,-76 422.95,-82 422.95,-88 422.95,-88 422.95,-100 422.95,-100 422.95,-106 416.95,-112 410.95,-112"/>
+<text xml:space="preserve" text-anchor="middle" x="390.18" y="-89.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Expired</text>
 </g>
 <!-- Active&#45;&gt;Expired -->
 <g id="edge1" class="edge">
 <title>Active&#45;&gt;Expired</title>
-<path fill="none" stroke="#424242" d="M321.86,-94C329.27,-94 337.43,-94 345.43,-94"/>
-<polygon fill="#424242" stroke="#424242" points="345.42,-97.5 355.42,-94 345.42,-90.5 345.42,-97.5"/>
+<path fill="none" stroke="#b0b0b0" d="M321.86,-94C329.27,-94 337.43,-94 345.43,-94"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="345.42,-97.5 355.42,-94 345.42,-90.5 345.42,-97.5"/>
 </g>
 <!-- Pending -->
 <g id="node3" class="node">
 <title>Pending</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M80.55,-87C80.55,-87 36,-87 36,-87 30,-87 24,-81 24,-75 24,-75 24,-63 24,-63 24,-57 30,-51 36,-51 36,-51 80.55,-51 80.55,-51 86.55,-51 92.55,-57 92.55,-63 92.55,-63 92.55,-75 92.55,-75 92.55,-81 86.55,-87 80.55,-87"/>
-<text xml:space="preserve" text-anchor="middle" x="58.27" y="-64.55" font-family="Helvetica,sans-Serif" font-size="11.00">Pending</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M80.55,-87C80.55,-87 36,-87 36,-87 30,-87 24,-81 24,-75 24,-75 24,-63 24,-63 24,-57 30,-51 36,-51 36,-51 80.55,-51 80.55,-51 86.55,-51 92.55,-57 92.55,-63 92.55,-63 92.55,-75 92.55,-75 92.55,-81 86.55,-87 80.55,-87"/>
+<text xml:space="preserve" text-anchor="middle" x="58.27" y="-64.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Pending</text>
 </g>
 <!-- Authenticated -->
 <g id="node4" class="node">
 <title>Authenticated</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M211.35,-114C211.35,-114 140.55,-114 140.55,-114 134.55,-114 128.55,-108 128.55,-102 128.55,-102 128.55,-90 128.55,-90 128.55,-84 134.55,-78 140.55,-78 140.55,-78 211.35,-78 211.35,-78 217.35,-78 223.35,-84 223.35,-90 223.35,-90 223.35,-102 223.35,-102 223.35,-108 217.35,-114 211.35,-114"/>
-<text xml:space="preserve" text-anchor="middle" x="175.95" y="-91.55" font-family="Helvetica,sans-Serif" font-size="11.00">Authenticated</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M211.35,-114C211.35,-114 140.55,-114 140.55,-114 134.55,-114 128.55,-108 128.55,-102 128.55,-102 128.55,-90 128.55,-90 128.55,-84 134.55,-78 140.55,-78 140.55,-78 211.35,-78 211.35,-78 217.35,-78 223.35,-84 223.35,-90 223.35,-90 223.35,-102 223.35,-102 223.35,-108 217.35,-114 211.35,-114"/>
+<text xml:space="preserve" text-anchor="middle" x="175.95" y="-91.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Authenticated</text>
 </g>
 <!-- Pending&#45;&gt;Authenticated -->
 <g id="edge2" class="edge">
 <title>Pending&#45;&gt;Authenticated</title>
-<path fill="none" stroke="#424242" d="M93.04,-76.88C100.74,-78.68 109.13,-80.64 117.51,-82.59"/>
-<polygon fill="#424242" stroke="#424242" points="116.45,-85.94 126.98,-84.8 118.04,-79.12 116.45,-85.94"/>
+<path fill="none" stroke="#b0b0b0" d="M93.04,-76.88C100.74,-78.68 109.13,-80.64 117.51,-82.59"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="116.45,-85.94 126.98,-84.8 118.04,-79.12 116.45,-85.94"/>
 </g>
 <!-- Failed -->
 <g id="node5" class="node">
 <title>Failed</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M192.97,-60C192.97,-60 158.92,-60 158.92,-60 152.92,-60 146.92,-54 146.92,-48 146.92,-48 146.92,-36 146.92,-36 146.92,-30 152.92,-24 158.92,-24 158.92,-24 192.97,-24 192.97,-24 198.97,-24 204.97,-30 204.97,-36 204.97,-36 204.97,-48 204.97,-48 204.97,-54 198.97,-60 192.97,-60"/>
-<text xml:space="preserve" text-anchor="middle" x="175.95" y="-37.55" font-family="Helvetica,sans-Serif" font-size="11.00">Failed</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M192.97,-60C192.97,-60 158.92,-60 158.92,-60 152.92,-60 146.92,-54 146.92,-48 146.92,-48 146.92,-36 146.92,-36 146.92,-30 152.92,-24 158.92,-24 158.92,-24 192.97,-24 192.97,-24 198.97,-24 204.97,-30 204.97,-36 204.97,-36 204.97,-48 204.97,-48 204.97,-54 198.97,-60 192.97,-60"/>
+<text xml:space="preserve" text-anchor="middle" x="175.95" y="-37.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Failed</text>
 </g>
 <!-- Pending&#45;&gt;Failed -->
 <g id="edge3" class="edge">
 <title>Pending&#45;&gt;Failed</title>
-<path fill="none" stroke="#424242" d="M93.04,-61.12C106.38,-58 121.8,-54.41 135.63,-51.18"/>
-<polygon fill="#424242" stroke="#424242" points="136.38,-54.6 145.33,-48.91 134.79,-47.78 136.38,-54.6"/>
+<path fill="none" stroke="#b0b0b0" d="M93.04,-61.12C106.38,-58 121.8,-54.41 135.63,-51.18"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="136.38,-54.6 145.33,-48.91 134.79,-47.78 136.38,-54.6"/>
 </g>
 <!-- Authenticated&#45;&gt;Active -->
 <g id="edge4" class="edge">
 <title>Authenticated&#45;&gt;Active</title>
-<path fill="none" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5,2" d="M223.82,-95.18C232.88,-95.02 242.3,-94.86 251.13,-94.7"/>
-<polygon fill="#7e57c2" stroke="#7e57c2" stroke-width="1.5" points="250.91,-98.21 260.84,-94.53 250.78,-91.21 250.91,-98.21"/>
+<path fill="none" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="5,2" d="M223.82,-95.18C232.88,-95.02 242.3,-94.86 251.13,-94.7"/>
+<polygon fill="#b39ddb" stroke="#b39ddb" stroke-width="1.5" points="250.91,-98.21 260.84,-94.53 250.78,-91.21 250.91,-98.21"/>
 </g>
 <!-- Failed&#45;&gt;Expired -->
 <g id="edge5" class="edge">
 <title>Failed&#45;&gt;Expired</title>
-<path fill="none" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5,2" d="M205.3,-45.14C234.71,-48.8 281.84,-55.83 321.4,-67 329.34,-69.24 337.64,-72.09 345.58,-75.1"/>
-<polygon fill="#7e57c2" stroke="#7e57c2" stroke-width="1.5" points="344.2,-78.32 354.79,-78.72 346.77,-71.8 344.2,-78.32"/>
+<path fill="none" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="5,2" d="M205.3,-45.14C234.71,-48.8 281.84,-55.83 321.4,-67 329.34,-69.24 337.64,-72.09 345.58,-75.1"/>
+<polygon fill="#b39ddb" stroke="#b39ddb" stroke-width="1.5" points="344.2,-78.32 354.79,-78.72 346.77,-71.8 344.2,-78.32"/>
 </g>
 </g>
 </svg>

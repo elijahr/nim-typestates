@@ -9,92 +9,92 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(36 181)">
 <g id="clust1" class="cluster">
 <title>cluster_DbConnection</title>
-<path fill="#fafafa" stroke="#673ab7" d="M20,-8C20,-8 443.95,-8 443.95,-8 449.95,-8 455.95,-14 455.95,-20 455.95,-20 455.95,-125 455.95,-125 455.95,-131 449.95,-137 443.95,-137 443.95,-137 20,-137 20,-137 14,-137 8,-131 8,-125 8,-125 8,-20 8,-20 8,-14 14,-8 20,-8"/>
-<text xml:space="preserve" text-anchor="middle" x="231.97" y="-121.6" font-family="Helvetica Bold" font-size="12.00">DbConnection</text>
+<path fill="#1e1e1e" stroke="#b39ddb" d="M20,-8C20,-8 443.95,-8 443.95,-8 449.95,-8 455.95,-14 455.95,-20 455.95,-20 455.95,-125 455.95,-125 455.95,-131 449.95,-137 443.95,-137 443.95,-137 20,-137 20,-137 14,-137 8,-131 8,-125 8,-125 8,-20 8,-20 8,-14 14,-8 20,-8"/>
+<text xml:space="preserve" text-anchor="middle" x="231.97" y="-121.6" font-family="Helvetica Bold" font-size="12.00" fill="#e0e0e0">DbConnection</text>
 </g>
 <!-- Pooled -->
 <g id="node1" class="node">
 <title>Pooled</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M74.55,-90C74.55,-90 36,-90 36,-90 30,-90 24,-84 24,-78 24,-78 24,-66 24,-66 24,-60 30,-54 36,-54 36,-54 74.55,-54 74.55,-54 80.55,-54 86.55,-60 86.55,-66 86.55,-66 86.55,-78 86.55,-78 86.55,-84 80.55,-90 74.55,-90"/>
-<text xml:space="preserve" text-anchor="middle" x="55.27" y="-67.55" font-family="Helvetica,sans-Serif" font-size="11.00">Pooled</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M74.55,-90C74.55,-90 36,-90 36,-90 30,-90 24,-84 24,-78 24,-78 24,-66 24,-66 24,-60 30,-54 36,-54 36,-54 74.55,-54 74.55,-54 80.55,-54 86.55,-60 86.55,-66 86.55,-66 86.55,-78 86.55,-78 86.55,-84 80.55,-90 74.55,-90"/>
+<text xml:space="preserve" text-anchor="middle" x="55.27" y="-67.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Pooled</text>
 </g>
 <!-- CheckedOut -->
 <g id="node2" class="node">
 <title>CheckedOut</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M199.35,-80C199.35,-80 134.55,-80 134.55,-80 128.55,-80 122.55,-74 122.55,-68 122.55,-68 122.55,-56 122.55,-56 122.55,-50 128.55,-44 134.55,-44 134.55,-44 199.35,-44 199.35,-44 205.35,-44 211.35,-50 211.35,-56 211.35,-56 211.35,-68 211.35,-68 211.35,-74 205.35,-80 199.35,-80"/>
-<text xml:space="preserve" text-anchor="middle" x="166.95" y="-57.55" font-family="Helvetica,sans-Serif" font-size="11.00">CheckedOut</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M199.35,-80C199.35,-80 134.55,-80 134.55,-80 128.55,-80 122.55,-74 122.55,-68 122.55,-68 122.55,-56 122.55,-56 122.55,-50 128.55,-44 134.55,-44 134.55,-44 199.35,-44 199.35,-44 205.35,-44 211.35,-50 211.35,-56 211.35,-56 211.35,-68 211.35,-68 211.35,-74 205.35,-80 199.35,-80"/>
+<text xml:space="preserve" text-anchor="middle" x="166.95" y="-57.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">CheckedOut</text>
 </g>
 <!-- Pooled&#45;&gt;CheckedOut -->
 <g id="edge1" class="edge">
 <title>Pooled&#45;&gt;CheckedOut</title>
-<path fill="none" stroke="#424242" d="M86.83,-63.09C94.41,-61.98 102.77,-61.01 111.12,-60.25"/>
-<polygon fill="#424242" stroke="#424242" points="111.25,-63.75 120.94,-59.47 110.69,-56.77 111.25,-63.75"/>
+<path fill="none" stroke="#b0b0b0" d="M86.83,-63.09C94.41,-61.98 102.77,-61.01 111.12,-60.25"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="111.25,-63.75 120.94,-59.47 110.69,-56.77 111.25,-63.75"/>
 </g>
 <!-- Closed -->
 <g id="node4" class="node">
 <title>Closed</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M427.95,-82C427.95,-82 389.4,-82 389.4,-82 383.4,-82 377.4,-76 377.4,-70 377.4,-70 377.4,-58 377.4,-58 377.4,-52 383.4,-46 389.4,-46 389.4,-46 427.95,-46 427.95,-46 433.95,-46 439.95,-52 439.95,-58 439.95,-58 439.95,-70 439.95,-70 439.95,-76 433.95,-82 427.95,-82"/>
-<text xml:space="preserve" text-anchor="middle" x="408.68" y="-59.55" font-family="Helvetica,sans-Serif" font-size="11.00">Closed</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M427.95,-82C427.95,-82 389.4,-82 389.4,-82 383.4,-82 377.4,-76 377.4,-70 377.4,-70 377.4,-58 377.4,-58 377.4,-52 383.4,-46 389.4,-46 389.4,-46 427.95,-46 427.95,-46 433.95,-46 439.95,-52 439.95,-58 439.95,-58 439.95,-70 439.95,-70 439.95,-76 433.95,-82 427.95,-82"/>
+<text xml:space="preserve" text-anchor="middle" x="408.68" y="-59.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">Closed</text>
 </g>
 <!-- Pooled&#45;&gt;Closed -->
 <g id="edge2" class="edge">
 <title>Pooled&#45;&gt;Closed</title>
-<path fill="none" stroke="#424242" d="M86.98,-73.12C98.07,-75.59 110.76,-78.51 122.55,-80 208.85,-90.89 310.44,-75.2 366.06,-67.06"/>
-<polygon fill="#424242" stroke="#424242" points="366.32,-70.56 375.71,-65.67 365.32,-63.63 366.32,-70.56"/>
+<path fill="none" stroke="#b0b0b0" d="M86.98,-73.12C98.07,-75.59 110.76,-78.51 122.55,-80 208.85,-90.89 310.44,-75.2 366.06,-67.06"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="366.32,-70.56 375.71,-65.67 365.32,-63.63 366.32,-70.56"/>
 </g>
 <!-- Pooled&#45;&gt;Closed -->
 <g id="edge7" class="edge">
 <title>Pooled&#45;&gt;Closed</title>
-<path fill="none" stroke="#9e9e9e" stroke-dasharray="1,5" d="M86.98,-90.05C98.07,-93.59 110.76,-96.51 122.55,-98 209.03,-108.91 310.87,-93.13 366.41,-79.22"/>
-<polygon fill="#9e9e9e" stroke="#9e9e9e" points="366.97,-82.69 375.75,-76.77 365.19,-75.92 366.97,-82.69"/>
+<path fill="none" stroke="#757575" stroke-dasharray="1,5" d="M86.98,-90.05C98.07,-93.59 110.76,-96.51 122.55,-98 209.03,-108.91 310.87,-93.13 366.41,-79.22"/>
+<polygon fill="#757575" stroke="#757575" points="366.97,-82.69 375.75,-76.77 365.19,-75.92 366.97,-82.69"/>
 </g>
 <!-- CheckedOut&#45;&gt;Pooled -->
 <g id="edge3" class="edge">
 <title>CheckedOut&#45;&gt;Pooled</title>
-<path fill="none" stroke="#424242" d="M122.45,-72.59C114.44,-73.5 106.09,-74.25 98.13,-74.76"/>
-<polygon fill="#424242" stroke="#424242" points="98.15,-71.26 88.34,-75.26 98.5,-78.25 98.15,-71.26"/>
+<path fill="none" stroke="#b0b0b0" d="M122.45,-72.59C114.44,-73.5 106.09,-74.25 98.13,-74.76"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="98.15,-71.26 88.34,-75.26 98.5,-78.25 98.15,-71.26"/>
 </g>
 <!-- InTransaction -->
 <g id="node3" class="node">
 <title>InTransaction</title>
-<path fill="#f5f5f5" stroke="#673ab7" d="M329.4,-60C329.4,-60 259.35,-60 259.35,-60 253.35,-60 247.35,-54 247.35,-48 247.35,-48 247.35,-36 247.35,-36 247.35,-30 253.35,-24 259.35,-24 259.35,-24 329.4,-24 329.4,-24 335.4,-24 341.4,-30 341.4,-36 341.4,-36 341.4,-48 341.4,-48 341.4,-54 335.4,-60 329.4,-60"/>
-<text xml:space="preserve" text-anchor="middle" x="294.38" y="-37.55" font-family="Helvetica,sans-Serif" font-size="11.00">InTransaction</text>
+<path fill="#2d2d2d" stroke="#b39ddb" d="M329.4,-60C329.4,-60 259.35,-60 259.35,-60 253.35,-60 247.35,-54 247.35,-48 247.35,-48 247.35,-36 247.35,-36 247.35,-30 253.35,-24 259.35,-24 259.35,-24 329.4,-24 329.4,-24 335.4,-24 341.4,-30 341.4,-36 341.4,-36 341.4,-48 341.4,-48 341.4,-54 335.4,-60 329.4,-60"/>
+<text xml:space="preserve" text-anchor="middle" x="294.38" y="-37.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#e0e0e0">InTransaction</text>
 </g>
 <!-- CheckedOut&#45;&gt;InTransaction -->
 <g id="edge4" class="edge">
 <title>CheckedOut&#45;&gt;InTransaction</title>
-<path fill="none" stroke="#424242" d="M211.82,-48.53C219.6,-47.06 227.8,-45.66 235.89,-44.44"/>
-<polygon fill="#424242" stroke="#424242" points="236.28,-47.92 245.69,-43.04 235.3,-40.99 236.28,-47.92"/>
+<path fill="none" stroke="#b0b0b0" d="M211.82,-48.53C219.6,-47.06 227.8,-45.66 235.89,-44.44"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="236.28,-47.92 245.69,-43.04 235.3,-40.99 236.28,-47.92"/>
 </g>
 <!-- CheckedOut&#45;&gt;Closed -->
 <g id="edge5" class="edge">
 <title>CheckedOut&#45;&gt;Closed</title>
-<path fill="none" stroke="#424242" d="M211.59,-57.86C223.2,-58.56 235.74,-59.49 247.35,-60 289.11,-61.84 299.63,-61.57 341.4,-60 349.22,-59.71 357.56,-59.22 365.58,-58.82"/>
-<polygon fill="#424242" stroke="#424242" points="365.66,-62.32 375.5,-58.41 365.37,-55.33 365.66,-62.32"/>
+<path fill="none" stroke="#b0b0b0" d="M211.59,-57.86C223.2,-58.56 235.74,-59.49 247.35,-60 289.11,-61.84 299.63,-61.57 341.4,-60 349.22,-59.71 357.56,-59.22 365.58,-58.82"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="365.66,-62.32 375.5,-58.41 365.37,-55.33 365.66,-62.32"/>
 </g>
 <!-- CheckedOut&#45;&gt;Closed -->
 <g id="edge8" class="edge">
 <title>CheckedOut&#45;&gt;Closed</title>
-<path fill="none" stroke="#9e9e9e" stroke-dasharray="1,5" d="M211.59,-75.22C223.2,-76.56 235.74,-77.49 247.35,-78 289.11,-79.84 299.63,-79.57 341.4,-78 349.22,-77.71 357.56,-77.22 365.58,-76.49"/>
-<polygon fill="#9e9e9e" stroke="#9e9e9e" points="365.95,-79.97 375.51,-75.41 365.19,-73.01 365.95,-79.97"/>
+<path fill="none" stroke="#757575" stroke-dasharray="1,5" d="M211.59,-75.22C223.2,-76.56 235.74,-77.49 247.35,-78 289.11,-79.84 299.63,-79.57 341.4,-78 349.22,-77.71 357.56,-77.22 365.58,-76.49"/>
+<polygon fill="#757575" stroke="#757575" points="365.95,-79.97 375.51,-75.41 365.19,-73.01 365.95,-79.97"/>
 </g>
 <!-- InTransaction&#45;&gt;CheckedOut -->
 <g id="edge6" class="edge">
 <title>InTransaction&#45;&gt;CheckedOut</title>
-<path fill="none" stroke="#424242" d="M247.19,-55.9C239.33,-57.36 231.1,-58.73 223.04,-59.92"/>
-<polygon fill="#424242" stroke="#424242" points="222.74,-56.43 213.32,-61.27 223.7,-63.36 222.74,-56.43"/>
+<path fill="none" stroke="#b0b0b0" d="M247.19,-55.9C239.33,-57.36 231.1,-58.73 223.04,-59.92"/>
+<polygon fill="#b0b0b0" stroke="#b0b0b0" points="222.74,-56.43 213.32,-61.27 223.7,-63.36 222.74,-56.43"/>
 </g>
 <!-- InTransaction&#45;&gt;Closed -->
 <g id="edge9" class="edge">
 <title>InTransaction&#45;&gt;Closed</title>
-<path fill="none" stroke="#9e9e9e" stroke-dasharray="1,5" d="M341.7,-51.08C349.74,-52.65 358.05,-54.28 365.96,-55.83"/>
-<polygon fill="#9e9e9e" stroke="#9e9e9e" points="365.2,-59.24 375.68,-57.73 366.54,-52.38 365.2,-59.24"/>
+<path fill="none" stroke="#757575" stroke-dasharray="1,5" d="M341.7,-51.08C349.74,-52.65 358.05,-54.28 365.96,-55.83"/>
+<polygon fill="#757575" stroke="#757575" points="365.2,-59.24 375.68,-57.73 366.54,-52.38 365.2,-59.24"/>
 </g>
 <!-- Closed&#45;&gt;Closed -->
 <g id="edge10" class="edge">
 <title>Closed&#45;&gt;Closed</title>
-<path fill="none" stroke="#9e9e9e" stroke-dasharray="1,5" d="M388,-82.15C384.82,-91.54 391.71,-100 408.68,-100 418.22,-100 424.57,-97.32 427.74,-93.31"/>
-<polygon fill="#9e9e9e" stroke="#9e9e9e" points="431.17,-94.05 429.14,-83.65 424.24,-93.05 431.17,-94.05"/>
+<path fill="none" stroke="#757575" stroke-dasharray="1,5" d="M388,-82.15C384.82,-91.54 391.71,-100 408.68,-100 418.22,-100 424.57,-97.32 427.74,-93.31"/>
+<polygon fill="#757575" stroke="#757575" points="431.17,-94.05 429.14,-83.65 424.24,-93.05 431.17,-94.05"/>
 </g>
 </g>
 </svg>

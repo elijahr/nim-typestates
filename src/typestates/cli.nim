@@ -48,10 +48,10 @@ proc generateDot*(ts: ParsedTypestate): string =
   ##
   ## Creates a directed graph representation suitable for rendering
   ## with `dot`, `neato`, or other GraphViz tools.
-  ## Uses styled output with colors matching mkdocs-material deep purple theme.
+  ## Uses dark mode styling matching mkdocs-material slate theme.
   ##
   ## Edge styles:
-  ## - Normal transitions: solid arrows
+  ## - Normal transitions: solid light gray arrows
   ## - Wildcard transitions (* ->): dotted gray arrows
   ##
   ## :param ts: The parsed typestate to visualize
@@ -63,10 +63,10 @@ proc generateDot*(ts: ParsedTypestate): string =
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
-  # Node styling: rounded boxes with deep purple theme
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#f5f5f5\", color=\"#673ab7\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
-  # Default edge styling
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#424242\"];"
+  # Node styling: dark mode with light purple accents
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  # Default edge styling: light gray for visibility on dark backgrounds
+  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Add nodes
@@ -78,10 +78,10 @@ proc generateDot*(ts: ParsedTypestate): string =
   # Add edges
   for trans in ts.transitions:
     if trans.isWildcard:
-      # Wildcard transitions: dotted gray
+      # Wildcard transitions: dotted medium gray
       for fromState in ts.states:
         for toState in trans.toStates:
-          lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#9e9e9e\"];"
+          lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
     else:
       for toState in trans.toStates:
         lines.add "  " & trans.fromState & " -> " & toState & ";"
@@ -93,12 +93,12 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
   ## Generate a unified GraphViz DOT output showing all typestates.
   ##
   ## Creates subgraphs for each typestate with cross-cluster edges for bridges.
-  ## Uses styled output with colors matching mkdocs-material deep purple theme.
+  ## Uses dark mode styling matching mkdocs-material slate theme.
   ##
   ## Edge styles:
-  ## - Normal transitions: solid arrows
+  ## - Normal transitions: solid light gray arrows
   ## - Wildcard transitions (* ->): dotted gray arrows
-  ## - Bridges (cross-typestate): dashed purple arrows
+  ## - Bridges (cross-typestate): dashed light purple arrows
   ##
   ## :param typestates: List of parsed typestates to visualize
   ## :returns: DOT format string
@@ -109,10 +109,10 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
-  # Node styling: rounded boxes with deep purple theme
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#f5f5f5\", color=\"#673ab7\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
-  # Default edge styling
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#424242\"];"
+  # Node styling: dark mode with light purple accents
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  # Default edge styling: light gray for visibility on dark backgrounds
+  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Generate subgraphs for each typestate
@@ -121,9 +121,10 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
     lines.add "    label=\"" & ts.name & "\";"
     lines.add "    fontname=\"Helvetica Bold\";"
     lines.add "    fontsize=12;"
+    lines.add "    fontcolor=\"#e0e0e0\";"  # Light text for dark mode
     lines.add "    style=\"rounded\";"
-    lines.add "    color=\"#673ab7\";"  # Deep purple border
-    lines.add "    bgcolor=\"#fafafa\";"
+    lines.add "    color=\"#b39ddb\";"  # Light purple border
+    lines.add "    bgcolor=\"#1e1e1e\";"  # Dark background
     lines.add "    margin=16;"
     lines.add ""
 
@@ -136,10 +137,10 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
     # Add transitions (within this typestate)
     for trans in ts.transitions:
       if trans.isWildcard:
-        # Wildcard transitions: dotted gray
+        # Wildcard transitions: dotted medium gray
         for fromState in ts.states:
           for toState in trans.toStates:
-            lines.add "    " & fromState & " -> " & toState & " [style=dotted, color=\"#9e9e9e\"];"
+            lines.add "    " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
       else:
         for toState in trans.toStates:
           lines.add "    " & trans.fromState & " -> " & toState & ";"
@@ -164,9 +165,9 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
         if fromState == "*":
           # Wildcard bridge: add edge from every state
           for state in ts.states:
-            lines.add "  " & state & " -> " & toState & " [style=dashed, color=\"#7e57c2\", penwidth=1.5];"
+            lines.add "  " & state & " -> " & toState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
         else:
-          lines.add "  " & fromState & " -> " & toState & " [style=dashed, color=\"#7e57c2\", penwidth=1.5];"
+          lines.add "  " & fromState & " -> " & toState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
@@ -175,12 +176,12 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
   ## Generate GraphViz DOT output for a single typestate.
   ##
   ## Bridges are shown as terminal nodes with dashed purple edges.
-  ## Uses styled output with colors matching mkdocs-material deep purple theme.
+  ## Uses dark mode styling matching mkdocs-material slate theme.
   ##
   ## Edge styles:
-  ## - Normal transitions: solid arrows
+  ## - Normal transitions: solid light gray arrows
   ## - Wildcard transitions (* ->): dotted gray arrows
-  ## - Bridges (to external typestate): dashed purple arrows
+  ## - Bridges (to external typestate): dashed light purple arrows
   ##
   ## :param ts: The parsed typestate to visualize
   ## :returns: DOT format string
@@ -191,10 +192,10 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
   lines.add "  bgcolor=\"transparent\";"
   lines.add "  pad=0.5;"
   lines.add ""
-  # Node styling: rounded boxes with deep purple theme
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#f5f5f5\", color=\"#673ab7\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
-  # Default edge styling
-  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#424242\"];"
+  # Node styling: dark mode with light purple accents
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"Helvetica\", fontsize=11, margin=\"0.2,0.1\"];"
+  # Default edge styling: light gray for visibility on dark backgrounds
+  lines.add "  edge [fontname=\"Helvetica\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
 
   # Add nodes for actual states
@@ -206,10 +207,10 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
   # Add edges for transitions
   for trans in ts.transitions:
     if trans.isWildcard:
-      # Wildcard transitions: dotted gray
+      # Wildcard transitions: dotted medium gray
       for fromState in ts.states:
         for toState in trans.toStates:
-          lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#9e9e9e\"];"
+          lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
     else:
       for toState in trans.toStates:
         lines.add "  " & trans.fromState & " -> " & toState & ";"
@@ -222,9 +223,9 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
     if fromState == "*":
       # Wildcard bridge: add edge from every state
       for state in ts.states:
-        lines.add "  " & state & " -> " & toNode & " [style=dashed, color=\"#7e57c2\", penwidth=1.5];"
+        lines.add "  " & state & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
     else:
-      lines.add "  " & fromState & " -> " & toNode & " [style=dashed, color=\"#7e57c2\", penwidth=1.5];"
+      lines.add "  " & fromState & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
