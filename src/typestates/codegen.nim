@@ -289,10 +289,10 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
       # Field name is lowercase version of state name
       let varFieldName = destBase.toLowerAscii()
 
-      # Get the full type from the graph's states
+      # Get the full type from the graph's states (lookup by full name)
       var destType: NimNode
-      if destBase in graph.states:
-        destType = graph.states[destBase].typeName.copyNimTree
+      if dest in graph.states:
+        destType = graph.states[dest].typeName.copyNimTree
       else:
         destType = ident(destBase)
 
@@ -308,9 +308,9 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
       )
       recCase.add branch
 
-    # Use branchTypeNode for the type definition to support generics
+    # Use base name for type definition, generic params go in second slot
     let objectDef = nnkTypeDef.newTree(
-      nnkPostfix.newTree(ident("*"), branchTypeNode.copyNimTree),
+      nnkPostfix.newTree(ident("*"), ident(branchBaseName)),
       buildGenericParams(branchTypeParams),
       nnkObjectTy.newTree(
         newEmptyNode(),
@@ -363,10 +363,10 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       let kindField = ident(enumPrefix & destBase)
       let varFieldName = destBase.toLowerAscii()
 
-      # Get the full type from the graph's states
+      # Get the full type from the graph's states (lookup by full name)
       var destType: NimNode
-      if destBase in graph.states:
-        destType = graph.states[destBase].typeName.copyNimTree
+      if dest in graph.states:
+        destType = graph.states[dest].typeName.copyNimTree
       else:
         destType = ident(destBase)
 
@@ -447,10 +447,10 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
     for dest in t.toStates:
       let destBase = extractBaseName(dest)
 
-      # Get the full type from the graph's states
+      # Get the full type from the graph's states (lookup by full name)
       var destType: NimNode
-      if destBase in graph.states:
-        destType = graph.states[destBase].typeName.copyNimTree
+      if dest in graph.states:
+        destType = graph.states[dest].typeName.copyNimTree
       else:
         destType = ident(destBase)
 
@@ -469,7 +469,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
         nnkFormalParams.newTree(
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
-            ident("T"),
+            ident("_"),
             nnkBracketExpr.newTree(ident("typedesc"), branchTypeNode.copyNimTree),
             newEmptyNode()
           ),
