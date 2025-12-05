@@ -9,7 +9,6 @@
 ## This example models the Authorization Code + PKCE flow.
 
 import ../src/typestates
-import std/strutils
 
 type
   OAuthSession = object

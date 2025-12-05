@@ -34,6 +34,9 @@ exclude_docs: |
 
 plugins:
   - search
+  - include-markdown:
+      opening_tag: "{%"
+      closing_tag: "%}"
   - mike:
       alias_type: symlink
       canonical_version: latest
@@ -95,6 +98,10 @@ watch:
   - src
   - src/typestates
   - examples
+  - examples/snippets
+
+hooks:
+  - hooks/generate_diagrams.py
 
 extra:
   version:

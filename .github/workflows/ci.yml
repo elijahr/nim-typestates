@@ -51,3 +51,13 @@ jobs:
 
       - name: Run tests
         run: nimble test
+
+      - name: Compile examples
+        run: nimble compileExamples
+
+      - name: Run examples
+        run: |
+          for f in examples/*.nim; do
+            echo "Running: $f"
+            nim c -r --hints:off "$f"
+          done

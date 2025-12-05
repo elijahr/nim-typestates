@@ -132,7 +132,8 @@ proc open(f: Closed): Open {.transition.} =
 - First parameter must be a registered state type
 - Return type must be a valid transition target
 - Transition must be declared in the typestate block
-- Must have `{.raises: [].}` - errors should be states, not exceptions
+- Automatically gets `{.raises: [].}` added if not specified - errors should be states, not exceptions
+- If you explicitly write `{.raises: [SomeError].}`, compilation will fail
 
 See [Error Handling](error-handling.md) for patterns on modeling errors as states.
 
@@ -290,7 +291,22 @@ proc waitForConnection(c: Connecting): ConnectResult {.transition.} =
   else:
     ConnectResult -> Errored(c.Connection)
 
-proc disconnect[S: ConnectionStates](c: S): Disconnected {.transition.} =
+# Wildcard transitions require separate procs for each source state.
+# The {.transition.} pragma validates each at compile time.
+proc disconnect(c: Disconnected): Disconnected {.transition.} =
+  result = c  # Already disconnected
+
+proc disconnect(c: Connecting): Disconnected {.transition.} =
+  var conn = c.Connection
+  conn.socket = 0
+  result = Disconnected(conn)
+
+proc disconnect(c: Connected): Disconnected {.transition.} =
+  var conn = c.Connection
+  conn.socket = 0
+  result = Disconnected(conn)
+
+proc disconnect(c: Errored): Disconnected {.transition.} =
   var conn = c.Connection
   conn.socket = 0
   result = Disconnected(conn)

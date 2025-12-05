@@ -55,9 +55,17 @@ jobs:
             echo "Nim compiler source already installed (from cache)"
           fi
 
-      - name: Install dependencies
-        run: |
-          pip install -r docs-requirements.txt
+      - name: Install Graphviz
+        run: sudo apt-get install -y graphviz
+
+      - name: Install Python dependencies
+        run: pip install -r docs-requirements.txt
+
+      - name: Build CLI
+        run: nimble build -y
+
+      - name: Generate diagrams
+        run: python3 scripts/generate_diagrams.py
 
       - name: Create directories for watch config
         run: |

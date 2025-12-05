@@ -1,0 +1,15 @@
+digraph {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_File {
+    label="File";
+
+    Closed;
+    Open;
+
+    Closed -> Open;
+    Open -> Closed;
+  }
+
+}

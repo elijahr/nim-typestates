@@ -1,0 +1,26 @@
+digraph {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_Payment {
+    label="Payment";
+
+    Created;
+    Authorized;
+    Captured;
+    PartiallyRefunded;
+    FullyRefunded;
+    Settled;
+
+    Created -> Authorized;
+    Authorized -> Captured;
+    Captured -> PartiallyRefunded;
+    Captured -> FullyRefunded;
+    Captured -> Settled;
+    PartiallyRefunded -> PartiallyRefunded;
+    PartiallyRefunded -> FullyRefunded;
+    PartiallyRefunded -> Settled;
+    FullyRefunded -> Settled;
+  }
+
+}

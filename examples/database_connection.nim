@@ -28,8 +28,8 @@ type
 typestate DbConnection:
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
-    Pooled -> CheckedOut | Closed       # Checkout or close idle connection
-    CheckedOut -> Pooled | InTransaction | Closed  # Return, begin tx, or close
+    Pooled -> CheckedOut | Closed as CheckoutResult       # Checkout or close idle connection
+    CheckedOut -> Pooled | InTransaction | Closed as CheckoutAction  # Return, begin tx, or close
     InTransaction -> CheckedOut         # Commit/rollback ends transaction
     * -> Closed                         # Can always force-close
 

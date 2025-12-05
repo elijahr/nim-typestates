@@ -41,21 +41,30 @@ typestate File:
 Running `typestates dot src/` produces:
 
 ```dot
-digraph File {
+digraph {
   rankdir=LR;
   node [shape=box];
 
-  Closed;
-  Open;
+  subgraph cluster_File {
+    label="File";
 
-  Closed -> Open;
-  Open -> Closed;
+    Closed;
+    Open;
+
+    Closed -> Open;
+    Open -> Closed;
+  }
+
 }
 ```
 
 Rendered as a diagram:
 
 ![File State Machine](../assets/images/file-states.svg)
+
+!!! note "Output Format"
+    The CLI generates a unified graph with each typestate as a labeled subgraph.
+    This allows multiple typestates and bridges to be visualized together in a single diagram.
 
 ## Example: Payment Processing
 
@@ -75,28 +84,33 @@ typestate Payment:
 DOT output:
 
 ```dot
-digraph Payment {
+digraph {
   rankdir=LR;
   node [shape=box];
 
-  Created;
-  Authorized;
-  Captured;
-  PartiallyRefunded;
-  FullyRefunded;
-  Settled;
-  Voided;
+  subgraph cluster_Payment {
+    label="Payment";
 
-  Created -> Authorized;
-  Authorized -> Captured;
-  Authorized -> Voided;
-  Captured -> PartiallyRefunded;
-  Captured -> FullyRefunded;
-  Captured -> Settled;
-  PartiallyRefunded -> PartiallyRefunded;
-  PartiallyRefunded -> FullyRefunded;
-  PartiallyRefunded -> Settled;
-  FullyRefunded -> Settled;
+    Created;
+    Authorized;
+    Captured;
+    PartiallyRefunded;
+    FullyRefunded;
+    Settled;
+    Voided;
+
+    Created -> Authorized;
+    Authorized -> Captured;
+    Authorized -> Voided;
+    Captured -> PartiallyRefunded;
+    Captured -> FullyRefunded;
+    Captured -> Settled;
+    PartiallyRefunded -> PartiallyRefunded;
+    PartiallyRefunded -> FullyRefunded;
+    PartiallyRefunded -> Settled;
+    FullyRefunded -> Settled;
+  }
+
 }
 ```
 
@@ -119,25 +133,30 @@ typestate DbConnection:
 DOT output:
 
 ```dot
-digraph DbConnection {
+digraph {
   rankdir=LR;
   node [shape=box];
 
-  Pooled;
-  CheckedOut;
-  InTransaction;
-  Closed;
+  subgraph cluster_DbConnection {
+    label="DbConnection";
 
-  Pooled -> CheckedOut;
-  Pooled -> Closed;
-  CheckedOut -> Pooled;
-  CheckedOut -> InTransaction;
-  CheckedOut -> Closed;
-  InTransaction -> CheckedOut;
-  Pooled -> Closed [style=dashed];
-  CheckedOut -> Closed [style=dashed];
-  InTransaction -> Closed [style=dashed];
-  Closed -> Closed [style=dashed];
+    Pooled;
+    CheckedOut;
+    InTransaction;
+    Closed;
+
+    Pooled -> CheckedOut;
+    Pooled -> Closed;
+    CheckedOut -> Pooled;
+    CheckedOut -> InTransaction;
+    CheckedOut -> Closed;
+    InTransaction -> CheckedOut;
+    Pooled -> Closed [style=dashed];
+    CheckedOut -> Closed [style=dashed];
+    InTransaction -> Closed [style=dashed];
+    Closed -> Closed [style=dashed];
+  }
+
 }
 ```
 
@@ -206,21 +225,70 @@ done
 
 ## Multiple Typestates
 
-If your project has multiple typestates, the `dot` command outputs them all sequentially:
+If your project has multiple typestates, the `dot` command outputs them all in a single unified graph with separate subgraphs:
 
 ```bash
 $ typestates dot src/
-digraph File {
-  ...
-}
+digraph {
+  rankdir=LR;
+  node [shape=box];
 
-digraph Payment {
-  ...
-}
+  subgraph cluster_File {
+    label="File";
+    ...
+  }
 
-digraph Session {
-  ...
+  subgraph cluster_Payment {
+    label="Payment";
+    ...
+  }
+
+  subgraph cluster_Session {
+    label="Session";
+    ...
+  }
+
 }
 ```
 
-You can split them into separate files with tools like `csplit` or process them programmatically.
+This unified format allows you to visualize relationships between different typestates when using bridges or other cross-typestate features.
+
+## Auto-Generated Diagrams
+
+The diagrams in this documentation can be automatically regenerated from source code snippets. This ensures they stay in sync with the actual typestate definitions.
+
+### Generating Diagrams
+
+```bash
+# Generate all diagrams from examples/snippets/
+nimble generateDocs
+
+# Or manually:
+python3 scripts/generate_diagrams.py
+```
+
+This reads `*_typestate.nim` files from `examples/snippets/` and generates SVG diagrams in `docs/assets/images/generated/`.
+
+### Creating New Diagram Sources
+
+To add a new auto-generated diagram:
+
+1. Create a snippet in `examples/snippets/yourname_typestate.nim`:
+
+```nim
+import ../../src/typestates
+
+type
+  YourType = object
+  StateA = distinct YourType
+  StateB = distinct YourType
+
+typestate YourType:
+  states StateA, StateB
+  transitions:
+    StateA -> StateB
+```
+
+2. Run `nimble generateDocs` to regenerate all diagrams.
+
+3. Reference the generated image: `![YourType](../assets/images/generated/yourtype.svg)`

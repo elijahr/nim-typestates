@@ -20,3 +20,24 @@ task buildCli, "Build the CLI tool":
 
 task verify, "Verify typestate rules in source files":
   exec "nim c -r src/typestates_bin.nim verify src/"
+
+task compileExamples, "Compile all example files":
+  for file in listFiles("examples"):
+    if file.endsWith(".nim"):
+      echo "Compiling: ", file
+      exec "nim c --hints:off " & file
+  # Also compile snippets
+  for file in listFiles("examples/snippets"):
+    if file.endsWith(".nim"):
+      echo "Compiling: ", file
+      exec "nim c --hints:off " & file
+  echo "All examples compiled successfully!"
+
+task generateDocs, "Generate documentation assets and build docs":
+  echo "Building typestates CLI..."
+  exec "nimble build -y"
+  echo "Generating diagrams from snippets..."
+  exec "python3 scripts/generate_diagrams.py"
+  echo "Building documentation..."
+  exec "mkdocs build"
+  echo "Documentation generated successfully!"

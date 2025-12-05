@@ -31,8 +31,8 @@ typestate Payment:
   transitions:
     Created -> Authorized
     Authorized -> Captured
-    Captured -> PartiallyRefunded | FullyRefunded | Settled
-    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled
+    Captured -> PartiallyRefunded | FullyRefunded | Settled as CaptureResult
+    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled as RefundResult
     FullyRefunded -> Settled
 
 proc authorize(p: Created, cardToken: string): Authorized {.transition.} =

@@ -38,9 +38,9 @@ typestate Payment:
   states Created, Authorized, Captured, PartiallyRefunded, FullyRefunded, Settled, Voided
   transitions:
     Created -> Authorized
-    Authorized -> Captured | Voided       # Can capture or void the auth
-    Captured -> PartiallyRefunded | FullyRefunded | Settled
-    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled  # Can keep refunding
+    Authorized -> Captured | Voided as AuthResult
+    Captured -> PartiallyRefunded | FullyRefunded | Settled as CaptureResult
+    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled as RefundResult
     FullyRefunded -> Settled
 
 # ============================================================================
@@ -85,15 +85,15 @@ proc fullRefund(p: Captured): FullyRefunded {.transition.} =
   echo "  [GATEWAY] Full refund: $", payment.amount
   result = FullyRefunded(payment)
 
-proc additionalRefund(p: PartiallyRefunded, amount: int): PartiallyRefunded | FullyRefunded {.transition.} =
+proc additionalRefund(p: PartiallyRefunded, amount: int): RefundResult {.transition.} =
   ## Add more refund to a partially refunded payment.
   var payment = p.Payment
   payment.refundedAmount += amount
   echo "  [GATEWAY] Additional refund: $", amount
   if payment.refundedAmount >= payment.amount:
-    result = FullyRefunded(payment)
+    result = RefundResult -> FullyRefunded(payment)
   else:
-    result = PartiallyRefunded(payment)
+    result = RefundResult -> PartiallyRefunded(payment)
 
 proc settle(p: Captured): Settled {.transition.} =
   ## Batch settlement - funds deposited to merchant bank.

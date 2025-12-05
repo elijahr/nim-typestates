@@ -1,0 +1,25 @@
+digraph {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_DbConnection {
+    label="DbConnection";
+
+    Pooled;
+    CheckedOut;
+    InTransaction;
+    Closed;
+
+    Pooled -> CheckedOut;
+    Pooled -> Closed;
+    CheckedOut -> Pooled;
+    CheckedOut -> InTransaction;
+    CheckedOut -> Closed;
+    InTransaction -> CheckedOut;
+    Pooled -> Closed [style=dashed];
+    CheckedOut -> Closed [style=dashed];
+    InTransaction -> Closed [style=dashed];
+    Closed -> Closed [style=dashed];
+  }
+
+}
