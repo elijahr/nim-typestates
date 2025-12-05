@@ -24,6 +24,40 @@ var typestateRegistry* {.compileTime.}: Table[string, TypestateGraph]
   ## This variable is populated by the `typestate` macro and queried
   ## by the `{.transition.}` pragma.
 
+proc validateBridgeDestinations(graph: TypestateGraph) {.compileTime.} =
+  ## Validate that all bridge destinations reference existing states.
+  ##
+  ## For each bridge declared in the graph, checks that:
+  ## 1. The destination typestate exists in the registry
+  ## 2. The destination state exists in that typestate
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :raises: Compile-time error if any bridge destination is invalid
+  for bridge in graph.bridges:
+    let destTypestateBase = extractBaseName(bridge.toTypestate)
+    if destTypestateBase notin typestateRegistry:
+      # Destination typestate not registered yet - this is OK, will be validated
+      # when the transition proc is implemented via the {.transition.} pragma
+      continue
+
+    let destGraph = typestateRegistry[destTypestateBase]
+    let destStateBase = extractBaseName(bridge.toState)
+
+    # Check if the destination state exists in the destination typestate
+    var foundState = false
+    for stateKey, state in destGraph.states:
+      if state.name == destStateBase:
+        foundState = true
+        break
+
+    if not foundState:
+      var validStates: seq[string] = @[]
+      for stateKey, state in destGraph.states:
+        validStates.add state.name
+      error("Bridge destination state '" & bridge.toState &
+            "' does not exist in typestate '" & bridge.toTypestate &
+            "'. Valid states: " & $validStates)
+
 template registerTypestate*(graph: TypestateGraph) =
   ## Register a typestate graph in the compile-time registry.
   ##
@@ -68,6 +102,9 @@ template registerTypestate*(graph: TypestateGraph) =
     typestateRegistry[graph.name] = merged
   else:
     typestateRegistry[graph.name] = graph
+
+  # Validate bridge destinations after registration
+  validateBridgeDestinations(graph)
 
 template hasTypestate*(name: string): bool =
   ## Check if a typestate with the given name exists in the registry.
