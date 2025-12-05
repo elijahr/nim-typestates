@@ -67,7 +67,7 @@ proc generateDot*(ts: ParsedTypestate): string =
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
   lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
@@ -116,7 +116,7 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate]): string =
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
   lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""
@@ -202,7 +202,7 @@ proc generateSeparateDot*(ts: ParsedTypestate): string =
   lines.add "  pad=0.5;"
   lines.add ""
   # Node styling: dark mode with light purple accents
-  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.2,0.1\"];"
+  lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=11, margin=\"0.3,0.2\"];"
   # Default edge styling: light gray for visibility on dark backgrounds
   lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=9, color=\"#b0b0b0\"];"
   lines.add ""

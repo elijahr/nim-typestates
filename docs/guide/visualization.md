@@ -56,7 +56,7 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.2,0.1"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
   edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_File {
@@ -109,7 +109,7 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.2,0.1"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
   edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Payment {
@@ -168,7 +168,7 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.2,0.1"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
   edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_DbConnection {
@@ -310,7 +310,7 @@ digraph {
   bgcolor="transparent";
   pad=0.5;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.2,0.1"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=11, margin="0.3,0.2"];
   edge [fontname="Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontsize=9, color="#b0b0b0"];
 
   subgraph cluster_Session {
