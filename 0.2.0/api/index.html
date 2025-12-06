@@ -1,0 +1,5667 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Compile-time typestate validation for Nim">
+      
+      
+      
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/api/">
+      
+      
+        <link rel="prev" href="../guide/visualization/">
+      
+      
+        <link rel="next" href="../contributing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>API Reference - nim-typestates</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../css/timeago.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="nim-typestates" class="md-header__button md-logo" aria-label="nim-typestates" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nim-typestates
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/elijahr/nim-typestates" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    elijahr/nim-typestates
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nim-typestates" class="md-nav__button md-logo" aria-label="nim-typestates" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    nim-typestates
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/elijahr/nim-typestates" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    elijahr/nim-typestates
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/dsl-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSL Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Type Bridges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/generics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generic Typestates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/formal-guarantees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formal Guarantees
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/strict-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strict Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main Module
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Main Module">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="typestates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submodules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submodules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extractBaseName" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractBaseName
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#State" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#Transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#Bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#TypestateGraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypestateGraph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#==" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ==
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#==" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ==
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasTransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validDestinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validDestinations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasBridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasBridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validBridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validBridges
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parser_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parser
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="parser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parseStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseBridgesBlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseBridgesBlock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTypestateBody" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTypestateBody
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registerTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        getTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#findTypestateForState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        findTypestateForState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#BranchTypeInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BranchTypeInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#findBranchTypeInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        findBranchTypeInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmas_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragmas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pragmas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pragmas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registerSealedStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerSealedStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#isStateFromSealedTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        isStateFromSealedTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notATransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        notATransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codegen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codegen
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="codegen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#buildGenericParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildGenericParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extractTypeParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractTypeParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateStateEnum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateStateEnum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateUnionType" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateUnionType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateStateProcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateStateProcs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasGenericStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasGenericStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getBranchingTransitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        getBranchingTransitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchTypes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchConstructors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchConstructors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchOperators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchOperators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateAll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cli
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cli">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#SplineMode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplineMode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#VerifyResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VerifyResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTypestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTypestates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateUnifiedDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateUnifiedDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateSeparateDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateSeparateDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main Module
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Main Module">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="typestates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submodules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submodules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extractBaseName" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractBaseName
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#State" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#Transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#Bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#TypestateGraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypestateGraph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#==" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ==
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#==" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ==
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasTransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validDestinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validDestinations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasBridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasBridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validBridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validBridges
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parser_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parser
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="parser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parseStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseBridgesBlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseBridgesBlock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTypestateBody" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTypestateBody
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registerTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        getTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#findTypestateForState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        findTypestateForState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#BranchTypeInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BranchTypeInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#findBranchTypeInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        findBranchTypeInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmas_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragmas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pragmas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pragmas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registerSealedStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerSealedStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#isStateFromSealedTypestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        isStateFromSealedTypestate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notATransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        notATransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codegen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codegen
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="codegen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#buildGenericParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildGenericParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extractTypeParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractTypeParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateStateEnum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateStateEnum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateUnionType" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateUnionType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateStateProcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateStateProcs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasGenericStates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasGenericStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getBranchingTransitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        getBranchingTransitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchTypes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchConstructors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchConstructors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateBranchOperators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateBranchOperators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateAll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cli
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cli">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#SplineMode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplineMode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#VerifyResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VerifyResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseTypestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseTypestates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateUnifiedDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateUnifiedDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateSeparateDot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateSeparateDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">¶</a></h1>
+<p>Auto-generated API documentation from source code.</p>
+<h2 id="main-module">Main Module<a class="headerlink" href="#main-module" title="Permanent link">¶</a></h2>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="typestates" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">typestates</span>
+  <a href="#typestates" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Compile-time state machine verification for Nim.</p>
+<p>This library enforces state machine protocols at compile time through
+Nim's type system. Programs that compile have been verified to contain
+no invalid state transitions.</p>
+<p>This approach is known as <em>correctness by construction</em>: invalid states
+become unrepresentable rather than checked at runtime.</p>
+<p><strong>Exports:</strong></p>
+<ul>
+<li><code>typestate</code> macro - Declare states and transitions</li>
+<li><code>{.transition.}</code> pragma - Mark and validate transition procs</li>
+<li><code>{.notATransition.}</code> pragma - Mark non-transition procs</li>
+</ul>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-macro">
+  
+
+  
+    <h4 id="typestate" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-macro-name">typestate</span>
+      
+    <a href="#typestate" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">macro typestate(name: untyped; body: untyped): untyped</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Define a typestate with states and valid transitions.</p>
+<p>The typestate block declares:</p>
+<ul>
+<li><strong>states</strong>: The distinct types that represent each state</li>
+<li><strong>transitions</strong>: Which state changes are allowed</li>
+</ul>
+<p>Basic syntax:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">Errored</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="w">    </span><span class="c"># Branching</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span><span class="w">                 </span><span class="c"># Wildcard</span>
+</code></pre></div>
+<p>What it generates:</p>
+<ul>
+<li><code>FileState</code> enum with <code>fsClosed</code>, <code>fsOpen</code>, <code>fsErrored</code></li>
+<li><code>FileStates</code> union type for generic procs</li>
+<li><code>state()</code> procs for runtime inspection</li>
+</ul>
+<p>Transition syntax:</p>
+<ul>
+<li><code>A -&gt; B</code> - Simple transition</li>
+<li><code>A -&gt; B | C</code> - Branching (can go to B or C)</li>
+<li><code>* -&gt; X</code> - Wildcard (any state can go to X)</li>
+</ul>
+<p>See also: <code>{.transition.}</code> pragma for implementing transitions</p>
+<p>:param name: The base type name (must match your type definition)
+:param body: The states and transitions declarations
+:returns: Generated helper types (enum, union, state procs)</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>name</code>
+              (<code>untyped</code>)
+               – The base type name (must match your type definition)
+            </li>
+          
+            <li>
+              <code>body</code>
+              (<code>untyped</code>)
+               – The states and transitions declarations
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>untyped</code> – Generated helper types (enum, union, state procs)</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates.nim#L21" target="_blank" rel="noopener">
+            src/typestates.nim:21
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h2 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Permanent link">¶</a></h2>
+<h3 id="types_1">Types<a class="headerlink" href="#types_1" title="Permanent link">¶</a></h3>
+<p>Core type definitions.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="types" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">types</span>
+  <a href="#types" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Core type definitions for the typestate system.</p>
+<p>This module defines the internal representation of typestates, states,
+and transitions used during compile-time validation.</p>
+<p>These types are primarily used internally by the <code>typestate</code> macro and
+<code>{.transition.}</code> pragma. Most users won't interact with them directly.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="extractBaseName" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">extractBaseName</span>
+      
+    <a href="#extractBaseName" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc extractBaseName(stateRepr: string): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Extract the base type name from a state repr string.</p>
+<p>Used for comparing state names when generic parameters may differ:</p>
+<ul>
+<li><code>"Empty"</code> -&gt; <code>"Empty"</code></li>
+<li><code>"Empty[T]"</code> -&gt; <code>"Empty"</code></li>
+<li><code>"Container[K, V]"</code> -&gt; <code>"Container"</code></li>
+<li><code>"ref Closed"</code> -&gt; <code>"Closed"</code></li>
+</ul>
+<p>:param stateRepr: Full state repr string
+:returns: Base name without generic parameters</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>stateRepr</code>
+              (<code>string</code>)
+               – Full state repr string
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – Base name without generic parameters</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L11" target="_blank" rel="noopener">
+            src/typestates/types.nim:11
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="State" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">State</span>
+  <a href="#State" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type State</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L40" target="_blank" rel="noopener">
+            src/typestates/types.nim:40
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="Transition" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">Transition</span>
+  <a href="#Transition" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type Transition</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L59" target="_blank" rel="noopener">
+            src/typestates/types.nim:59
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="Bridge" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">Bridge</span>
+  <a href="#Bridge" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type Bridge</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L95" target="_blank" rel="noopener">
+            src/typestates/types.nim:95
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="TypestateGraph" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">TypestateGraph</span>
+  <a href="#TypestateGraph" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type TypestateGraph</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L125" target="_blank" rel="noopener">
+            src/typestates/types.nim:125
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="==" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">==</span>
+      
+    <a href="#==" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc ==(a, b: Transition): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Compare two transitions for equality.</p>
+<p>Two transitions are equal if they have the same source state,
+destination states, and wildcard status. The declaration location
+is not considered for equality.</p>
+<p>:param a: First transition to compare
+:param b: Second transition to compare
+:returns: <code>true</code> if transitions are semantically equivalent</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>a</code>
+              (<code>Transition</code>)
+               – First transition to compare
+            </li>
+          
+            <li>
+              <code>b</code>
+              (<code>Transition</code>)
+               – Second transition to compare
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if transitions are semantically equivalent</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L160" target="_blank" rel="noopener">
+            src/typestates/types.nim:160
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="==" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">==</span>
+      
+    <a href="#==" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc ==(a, b: Bridge): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Compare two bridges for equality.</p>
+<p>Two bridges are equal if they have the same source state,
+destination typestate, and destination state. The declaration
+location is not considered for equality.</p>
+<p>:param a: First bridge to compare
+:param b: Second bridge to compare
+:returns: <code>true</code> if bridges are semantically equivalent</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>a</code>
+              (<code>Bridge</code>)
+               – First bridge to compare
+            </li>
+          
+            <li>
+              <code>b</code>
+              (<code>Bridge</code>)
+               – Second bridge to compare
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if bridges are semantically equivalent</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L174" target="_blank" rel="noopener">
+            src/typestates/types.nim:174
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="hasTransition" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">hasTransition</span>
+      
+    <a href="#hasTransition" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc hasTransition(graph: TypestateGraph; fromState, toState: string): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a transition from <code>fromState</code> to <code>toState</code> is valid.</p>
+<p>This proc checks both explicit transitions and wildcard transitions.
+A transition is valid if there's an explicit transition
+<code>fromState -&gt; toState</code>, or there's a wildcard transition <code>* -&gt; toState</code>.</p>
+<p>Comparisons use base names to support generic types:
+- <code>hasTransition(g, "Empty", "Full")</code> matches <code>Empty[T] -&gt; Full[T]</code></p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open, * -&gt; Closed</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">   </span><span class="c"># true</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w">   </span><span class="c"># true (via wildcard)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w"> </span><span class="c"># true (via wildcard)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">     </span><span class="c"># false (not declared)</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to check
+:param fromState: The source state name (base name or full repr)
+:param toState: The destination state name (base name or full repr)
+:returns: <code>true</code> if the transition is allowed, <code>false</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to check
+            </li>
+          
+            <li>
+              <code>fromState</code>
+              (<code>string</code>)
+               – The source state name (base name or full repr)
+            </li>
+          
+            <li>
+              <code>toState</code>
+              (<code>string</code>)
+               – The destination state name (base name or full repr)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if the transition is allowed, `false` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L188" target="_blank" rel="noopener">
+            src/typestates/types.nim:188
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="validDestinations" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">validDestinations</span>
+      
+    <a href="#validDestinations" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc validDestinations(graph: TypestateGraph; fromState: string): seq[string]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Get all valid destination states from a given state.</p>
+<p>This includes both explicit transitions from <code>fromState</code> and
+destinations reachable via wildcard transitions.</p>
+<p>Comparisons use base names to support generic types.
+Returns base names for clearer error messages.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open | Errored, * -&gt; Closed</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Open", "Errored", "Closed"]</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># @["Closed"]</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to query
+:param fromState: The source state to check transitions from
+:returns: A sequence of state base names that can be transitioned to</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to query
+            </li>
+          
+            <li>
+              <code>fromState</code>
+              (<code>string</code>)
+               – The source state to check transitions from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>seq[string]</code> – A sequence of state base names that can be transitioned to</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L222" target="_blank" rel="noopener">
+            src/typestates/types.nim:222
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="hasBridge" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">hasBridge</span>
+      
+    <a href="#hasBridge" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc hasBridge(graph: TypestateGraph; fromState, toTypestate, toState: string): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a bridge from <code>fromState</code> to <code>toTypestate.toState</code> is declared.</p>
+<p>Comparisons use base names to support generic types.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">         </span><span class="c"># false</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to check
+:param fromState: The source state name
+:param toTypestate: The destination typestate name
+:param toState: The destination state name
+:returns: <code>true</code> if the bridge is declared, <code>false</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to check
+            </li>
+          
+            <li>
+              <code>fromState</code>
+              (<code>string</code>)
+               – The source state name
+            </li>
+          
+            <li>
+              <code>toTypestate</code>
+              (<code>string</code>)
+               – The destination typestate name
+            </li>
+          
+            <li>
+              <code>toState</code>
+              (<code>string</code>)
+               – The destination state name
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if the bridge is declared, `false` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L252" target="_blank" rel="noopener">
+            src/typestates/types.nim:252
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="validBridges" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">validBridges</span>
+      
+    <a href="#validBridges" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc validBridges(graph: TypestateGraph; fromState: string): seq[string]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Get all valid bridge destinations from a given state.</p>
+<p>Returns dotted notation strings like "Session.Active".</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active, Failed -&gt; ErrorLog.Entry</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Session.Active"]</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["ErrorLog.Entry"]</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to query
+:param fromState: The source state to check bridges from
+:returns: A sequence of dotted destination names</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to query
+            </li>
+          
+            <li>
+              <code>fromState</code>
+              (<code>string</code>)
+               – The source state to check bridges from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>seq[string]</code> – A sequence of dotted destination names</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L280" target="_blank" rel="noopener">
+            src/typestates/types.nim:280
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h3 id="parser_1">Parser<a class="headerlink" href="#parser_1" title="Permanent link">¶</a></h3>
+<p>DSL parser for typestate blocks.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="parser" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">parser</span>
+  <a href="#parser" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parser for the typestate DSL.</p>
+<p>This module transforms the AST from a <code>typestate</code> macro invocation into
+a <code>TypestateGraph</code> structure. It handles parsing of:</p>
+<ul>
+<li>State declarations (<code>states Closed, Open, Errored</code>)</li>
+<li>Transition declarations (<code>Closed -&gt; Open | Errored</code>)</li>
+<li>Wildcard transitions (<code>* -&gt; Closed</code>)</li>
+</ul>
+<p>The parser operates at compile-time within macro context.</p>
+<p><strong>Internal module</strong> - most users won't interact with this directly.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="parseStates" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseStates</span>
+      
+    <a href="#parseStates" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc parseStates(graph: var TypestateGraph; node: NimNode)</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse a states declaration and add states to the graph.</p>
+<p>Accepts both command syntax (<code>states Closed, Open</code>) and
+call syntax (<code>states(Closed, Open)</code>).</p>
+<p>States can be any valid Nim type expression:</p>
+<ul>
+<li>Simple identifiers: <code>Closed</code>, <code>Open</code></li>
+<li>Generic types: <code>Container[T]</code>, <code>Map[K, V]</code></li>
+<li>Ref types: <code>ref Closed</code></li>
+<li>Qualified names: <code>mymodule.State</code></li>
+</ul>
+<p>Example AST inputs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># Simple: states Closed, Open
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Command
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  Ident "states"
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  Ident "Closed"
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  Ident "Open"
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a># Generic: states Empty[T], Full[T]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>Command
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  Ident "states"
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  BracketExpr
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    Ident "Empty"
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    Ident "T"
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  BracketExpr
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    Ident "Full"
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    Ident "T"
+</code></pre></div>
+<p>:param graph: The typestate graph to populate
+:param node: AST node of the states declaration
+:raises: Compile-time error if syntax is invalid</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>var TypestateGraph</code>)
+               – The typestate graph to populate
+            </li>
+          
+            <li>
+              <code>node</code>
+              (<code>NimNode</code>)
+               – AST node of the states declaration
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L45" target="_blank" rel="noopener">
+            src/typestates/parser.nim:45
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="parseTransition" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseTransition</span>
+      
+    <a href="#parseTransition" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc parseTransition(node: NimNode): Transition</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse a single transition declaration.</p>
+<p>Supports three forms:</p>
+<ul>
+<li><strong>Simple</strong>: <code>Closed -&gt; Open</code></li>
+<li><strong>Branching</strong>: <code>Closed -&gt; Open | Errored</code></li>
+<li><strong>Wildcard</strong>: <code>* -&gt; Closed</code></li>
+</ul>
+<p>Example AST for <code>Closed -&gt; Open | Errored</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Infix
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  Ident "-&gt;"
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  Ident "Closed"
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  Infix
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    Ident "|"
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    Ident "Open"
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    Ident "Errored"
+</code></pre></div>
+<p>Example AST for <code>* -&gt; Closed</code> (wildcard parsed as nested prefix):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Prefix
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Ident "*"
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  Prefix
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    Ident "-&gt;"
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    Ident "Closed"
+</code></pre></div>
+<p>:param node: AST node of the transition expression
+:returns: A <code>Transition</code> object
+:raises: Compile-time error if syntax is invalid</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>node</code>
+              (<code>NimNode</code>)
+               – AST node of the transition expression
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>Transition</code> – A `Transition` object</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L123" target="_blank" rel="noopener">
+            src/typestates/parser.nim:123
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="parseBridgesBlock" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseBridgesBlock</span>
+      
+    <a href="#parseBridgesBlock" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc parseBridgesBlock(graph: var TypestateGraph; node: NimNode)</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse the bridges block and add all bridges to the graph.</p>
+<p>Example input:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to populate
+:param node: AST node of the bridges block
+:raises: Compile-time error if block is malformed</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>var TypestateGraph</code>)
+               – The typestate graph to populate
+            </li>
+          
+            <li>
+              <code>node</code>
+              (<code>NimNode</code>)
+               – AST node of the bridges block
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L311" target="_blank" rel="noopener">
+            src/typestates/parser.nim:311
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="parseTypestateBody" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseTypestateBody</span>
+      
+    <a href="#parseTypestateBody" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc parseTypestateBody(name: NimNode; body: NimNode): TypestateGraph</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse a complete typestate block body into a TypestateGraph.</p>
+<p>This is the main entry point for parsing. It processes the full
+body of a <code>typestate</code> macro invocation.</p>
+<p>The typestate name can be a simple identifier or a generic type:</p>
+<ul>
+<li>Simple: <code>typestate File:</code></li>
+<li>Generic: <code>typestate Container[T]:</code></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span><span class="w">          </span><span class="c"># name = "File"</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Container</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span><span class="w">  </span><span class="c"># name = "Container", with type param T</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+</code></pre></div>
+<p>:param name: The typestate name (identifier or bracket expression)
+:param body: The statement list containing states and transitions
+:returns: A fully populated <code>TypestateGraph</code>
+:raises: Compile-time error for invalid syntax</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>name</code>
+              (<code>NimNode</code>)
+               – The typestate name (identifier or bracket expression)
+            </li>
+          
+            <li>
+              <code>body</code>
+              (<code>NimNode</code>)
+               – The statement list containing states and transitions
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>TypestateGraph</code> – A fully populated `TypestateGraph`</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L415" target="_blank" rel="noopener">
+            src/typestates/parser.nim:415
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h3 id="registry_1">Registry<a class="headerlink" href="#registry_1" title="Permanent link">¶</a></h3>
+<p>Compile-time typestate storage.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="registry" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">registry</span>
+  <a href="#registry" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Compile-time registry for typestate definitions.</p>
+<p>This module provides a global compile-time registry that stores all
+declared typestates. The registry enables:</p>
+<ul>
+<li>Looking up typestates by name</li>
+<li>Finding which typestate a state type belongs to</li>
+<li>Extending typestates across modules</li>
+</ul>
+<p>The registry is used by the <code>{.transition.}</code> pragma to validate that
+transitions are allowed.</p>
+<p><strong>Internal module</strong> - most users won't interact with this directly.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-template">
+  
+
+  
+    <h4 id="registerTypestate" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-template-name">registerTypestate</span>
+      
+    <a href="#registerTypestate" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">template registerTypestate(graph: TypestateGraph)</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Register a typestate graph in the compile-time registry.</p>
+<p>Each typestate can only be defined once. Attempting to register
+a typestate with the same name twice results in a compile error.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to register</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to register
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L61" target="_blank" rel="noopener">
+            src/typestates/registry.nim:61
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-template">
+  
+
+  
+    <h4 id="hasTypestate" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-template-name">hasTypestate</span>
+      
+    <a href="#hasTypestate" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">template hasTypestate(name: string): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a typestate with the given name exists in the registry.</p>
+<p>:param name: The typestate name to look up
+:returns: <code>true</code> if registered, <code>false</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>name</code>
+              (<code>string</code>)
+               – The typestate name to look up
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if registered, `false` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L87" target="_blank" rel="noopener">
+            src/typestates/registry.nim:87
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-template">
+  
+
+  
+    <h4 id="getTypestate" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-template-name">getTypestate</span>
+      
+    <a href="#getTypestate" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">template getTypestate(name: string): TypestateGraph</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Retrieve a typestate graph by name.</p>
+<p>:param name: The typestate name to look up
+:returns: The <code>TypestateGraph</code> for the typestate
+:raises: Compile-time error if not found</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>name</code>
+              (<code>string</code>)
+               – The typestate name to look up
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>TypestateGraph</code> – The `TypestateGraph` for the typestate</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L94" target="_blank" rel="noopener">
+            src/typestates/registry.nim:94
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="findTypestateForState" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">findTypestateForState</span>
+      
+        
+          <span class="doc-label" data-label="compileTime">compileTime</span>
+        
+      
+    <a href="#findTypestateForState" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc findTypestateForState(stateName: string): Option[TypestateGraph]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Find which typestate a given state belongs to.</p>
+<p>Searches all registered typestates to find one containing the
+specified state. Used by the <code>{.transition.}</code> pragma to determine
+which typestate graph to validate against.</p>
+<p>Lookups use base names to support generic types:
+- <code>findTypestateForState("Empty")</code> finds <code>typestate Container</code> with <code>Empty[T]</code></p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If File typestate has states Closed, Open:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># some(FileGraph)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Unknown"</span><span class="p">)</span><span class="w"> </span><span class="c"># none</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c"># If Container typestate has states Empty[T], Full[T]:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Empty"</span><span class="p">)</span><span class="w">   </span><span class="c"># some(ContainerGraph)</span>
+</code></pre></div>
+<p>:param stateName: The state type name (base name, e.g., "Closed", "Empty")
+:returns: <code>some(graph)</code> if found, <code>none</code> if state is not in any typestate</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>stateName</code>
+              (<code>string</code>)
+               – The state type name (base name, e.g., "Closed", "Empty")
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>Option[TypestateGraph]</code> – `some(graph)` if found, `none` if state is not in any typestate</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L105" target="_blank" rel="noopener">
+            src/typestates/registry.nim:105
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="BranchTypeInfo" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">BranchTypeInfo</span>
+  <a href="#BranchTypeInfo" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type BranchTypeInfo</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L136" target="_blank" rel="noopener">
+            src/typestates/registry.nim:136
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="findBranchTypeInfo" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">findBranchTypeInfo</span>
+      
+        
+          <span class="doc-label" data-label="compileTime">compileTime</span>
+        
+      
+    <a href="#findBranchTypeInfo" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc findBranchTypeInfo(typeName: string): Option[BranchTypeInfo]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a type name is a user-defined branch type.</p>
+<p>Branch types are named by the user via <code>as TypeName</code> syntax in
+branching transitions.</p>
+<p>This function searches all registered typestates for branching
+transitions that declare the given branch type name.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If typestate has: Created -&gt; Approved | Declined as ProcessResult</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"ProcessResult"</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c"># Returns: some(BranchTypeInfo(sourceState: "Created",</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c">#                              destinations: @["Approved", "Declined"]))</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"NotABranch"</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Returns: none(BranchTypeInfo)</span>
+</code></pre></div>
+<p>:param typeName: The type name to check
+:returns: <code>some(info)</code> if it's a branch type, <code>none</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>typeName</code>
+              (<code>string</code>)
+               – The type name to check
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>Option[BranchTypeInfo]</code> – `some(info)` if it's a branch type, `none` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L145" target="_blank" rel="noopener">
+            src/typestates/registry.nim:145
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h3 id="pragmas_1">Pragmas<a class="headerlink" href="#pragmas_1" title="Permanent link">¶</a></h3>
+<p>Pragma implementations for transition validation.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="pragmas" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">pragmas</span>
+  <a href="#pragmas" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Pragmas for marking and validating state transitions.</p>
+<p>This module provides the pragmas that users apply to their procs:</p>
+<ul>
+<li><code>{.transition.}</code> - Mark a proc as a state transition (validated)</li>
+<li><code>{.notATransition.}</code> - Mark a proc as intentionally not a transition</li>
+</ul>
+<p>The <code>{.transition.}</code> pragma performs compile-time validation to ensure
+that only declared transitions are implemented.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="registerSealedStates" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">registerSealedStates</span>
+      
+        
+          <span class="doc-label" data-label="compileTime">compileTime</span>
+        
+      
+    <a href="#registerSealedStates" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc registerSealedStates(modulePath: string; stateNames: seq[string])</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Register states from a sealed typestate for external checking.</p>
+<p>:param modulePath: The module filename where the typestate is defined
+:param stateNames: List of state type names to register</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>modulePath</code>
+              (<code>string</code>)
+               – The module filename where the typestate is defined
+            </li>
+          
+            <li>
+              <code>stateNames</code>
+              (<code>seq[string]</code>)
+               – List of state type names to register
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L20" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:20
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="isStateFromSealedTypestate" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">isStateFromSealedTypestate</span>
+      
+        
+          <span class="doc-label" data-label="compileTime">compileTime</span>
+        
+      
+    <a href="#isStateFromSealedTypestate" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc isStateFromSealedTypestate(stateName: string; currentModule: string): Option[string]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a state is from a sealed typestate defined in another module.</p>
+<p>:param stateName: The state type name to check
+:param currentModule: The current module's filename
+:returns: <code>some(modulePath)</code> if from external sealed typestate, <code>none</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>stateName</code>
+              (<code>string</code>)
+               – The state type name to check
+            </li>
+          
+            <li>
+              <code>currentModule</code>
+              (<code>string</code>)
+               – The current module's filename
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>Option[string]</code> – `some(modulePath)` if from external sealed typestate, `none` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L31" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:31
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-macro">
+  
+
+  
+    <h4 id="transition" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-macro-name">transition</span>
+      
+    <a href="#transition" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">macro transition(procDef: untyped): untyped</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Mark a proc as a state transition and verify it at compile time.</p>
+<p>The compiler checks that the transition from the input state type
+to the return state type is declared in the corresponding typestate.
+If not, compilation fails with a diagnostic.</p>
+<p>This provides compile-time protocol enforcement: only declared
+transitions can be implemented.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</code></pre></div>
+<p>Error example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Error: Undeclared transition: Open -&gt; Locked
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Typestate 'File' does not declare this transition.
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  Valid transitions from 'Open': @["Closed"]
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
+</code></pre></div>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>procDef</code>
+              (<code>untyped</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>untyped</code></p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L88" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:88
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-template">
+  
+
+  
+    <h4 id="notATransition" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-template-name">notATransition</span>
+      
+        
+          <span class="doc-label" data-label="pragma">pragma</span>
+        
+      
+    <a href="#notATransition" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">template notATransition()</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Mark a proc as intentionally not a state transition.</p>
+<p>Use this pragma for procs that operate on state types but don't
+change the state. This is required when <code>strictTransitions</code> is
+enabled on the typestate.</p>
+<p>When to use:</p>
+<ul>
+<li>Procs that read from a state type</li>
+<li>Procs that perform I/O without changing state</li>
+<li>Procs that modify the underlying data without state transition</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Side effects without state change</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">rawWrite</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c"># Pure functions don't need this (use `func` instead)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">func</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span>
+</code></pre></div>
+      </div>
+    
+
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L230" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:230
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h3 id="code-generation">Code Generation<a class="headerlink" href="#code-generation" title="Permanent link">¶</a></h3>
+<p>Code generation for helper types.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="codegen" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">codegen</span>
+  <a href="#codegen" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Code generation for typestate helper types.</p>
+<p>This module generates the helper types and procs that make typestates
+easier to use at runtime:</p>
+<ul>
+<li><strong>State enum</strong>: <code>FileState = enum fsClosed, fsOpen, ...</code></li>
+<li><strong>Union type</strong>: <code>FileStates = Closed | Open | ...</code></li>
+<li><strong>State procs</strong>: <code>proc state(f: Closed): FileState</code></li>
+<li><strong>Branch types</strong>: <code>CreatedBranch</code> variant for <code>Created -&gt; Approved | Declined</code></li>
+<li><strong>Branch constructors</strong>: <code>toCreatedBranch(s: Approved): CreatedBranch</code></li>
+</ul>
+<p>These are generated automatically by the <code>typestate</code> macro.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="buildGenericParams" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">buildGenericParams</span>
+      
+    <a href="#buildGenericParams" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc buildGenericParams(typeParams: seq[NimNode]): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Build a generic params node for proc/type definitions.</p>
+<p>For <code>@[T]</code>, generates: <code>[T]</code>
+For <code>@[K, V]</code>, generates: <code>[K, V]</code>
+For <code>@[N: static int]</code>, generates: <code>[N: static int]</code>
+For <code>@[T: SomeInteger]</code>, generates: <code>[T: SomeInteger]</code>
+For <code>@[]</code>, returns empty node (non-generic)</p>
+<p>:param typeParams: Sequence of type parameter nodes
+:returns: nnkGenericParams node or newEmptyNode()</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>typeParams</code>
+              (<code>seq[NimNode]</code>)
+               – Sequence of type parameter nodes
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – nnkGenericParams node or newEmptyNode()</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L17" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:17
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="extractTypeParams" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">extractTypeParams</span>
+      
+    <a href="#extractTypeParams" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc extractTypeParams(node: NimNode): seq[NimNode]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Extract type parameters from a type node.</p>
+<p>For <code>FillResult[T]</code>, returns <code>@[T]</code>
+For <code>Map[K, V]</code>, returns <code>@[K, V]</code>
+For <code>Simple</code>, returns <code>@[]</code></p>
+<p>:param node: A type AST node (ident or bracket expr)
+:returns: Sequence of type parameter nodes</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>node</code>
+              (<code>NimNode</code>)
+               – A type AST node (ident or bracket expr)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>seq[NimNode]</code> – Sequence of type parameter nodes</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L45" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:45
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateStateEnum" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateStateEnum</span>
+      
+    <a href="#generateStateEnum" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateStateEnum(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate a runtime enum representing all states.</p>
+<p>For a typestate named <code>File</code> with states <code>Closed</code>, <code>Open</code>, <code>Errored</code>,
+generates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span><span class="p">,</span><span class="w"> </span><span class="n">fsErrored</span>
+</code></pre></div>
+<p>For generic typestates like <code>Container[T]</code> with states <code>Empty[T]</code>, <code>Full[T]</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">fsEmpty</span><span class="p">,</span><span class="w"> </span><span class="n">fsFull</span>
+</code></pre></div>
+<p>The enum values use base names (without type params) prefixed with <code>fs</code>.</p>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for the enum type definition</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for the enum type definition</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L59" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:59
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateUnionType" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateUnionType</span>
+      
+    <a href="#generateUnionType" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateUnionType(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate a type alias for "any state" using Nim's union types.</p>
+<p>For a typestate named <code>File</code> with states <code>Closed</code>, <code>Open</code>, <code>Errored</code>,
+generates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span>
+</code></pre></div>
+<p>For generic typestates like <code>Container[T]</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerStates</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+</code></pre></div>
+<p>This union type is useful for procs that can accept any state.</p>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for the union type definition</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for the union type definition</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L97" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:97
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateStateProcs" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateStateProcs</span>
+      
+    <a href="#generateStateProcs" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateStateProcs(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate <code>state()</code> procs for runtime state inspection.</p>
+<p>For each state, generates a proc that returns the enum value:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
+</code></pre></div>
+<p>For generic types:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsEmpty</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsFull</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for all state() proc definitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for all state() proc definitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L150" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:150
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="hasGenericStates" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">hasGenericStates</span>
+      
+    <a href="#hasGenericStates" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc hasGenericStates(graph: TypestateGraph): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if any states use generic type parameters.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code></p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L203" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:203
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="getBranchingTransitions" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">getBranchingTransitions</span>
+      
+    <a href="#getBranchingTransitions" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc getBranchingTransitions(graph: TypestateGraph): seq[Transition]</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Get all transitions that have multiple destinations (branching).</p>
+<p>A branching transition is one where <code>toStates.len &gt; 1</code>, like:
+<code>Created -&gt; Approved | Declined</code></p>
+<p>:param graph: The typestate graph to query
+:returns: Sequence of branching transitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to query
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>seq[Transition]</code> – Sequence of branching transitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L210" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:210
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateBranchTypes" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateBranchTypes</span>
+      
+    <a href="#generateBranchTypes" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateBranchTypes(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate variant types for branching transitions.</p>
+<p>For a transition like <code>Created -&gt; Approved | Declined as ProcessResult</code>,
+generates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">pDeclined</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">ProcessResultKind</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span><span class="w"> </span><span class="n">approved</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span><span class="w"> </span><span class="n">declined</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span>
+</code></pre></div>
+<p>For generic types like <code>Empty[T] -&gt; Full[T] | Error[T] as FillResult[T]</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">fError</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">FillResultKind</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fFull</span><span class="o">:</span><span class="w"> </span><span class="n">full</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fError</span><span class="o">:</span><span class="w"> </span><span class="n">error</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Error</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+</code></pre></div>
+<p>The type name comes from the <code>as TypeName</code> syntax in the DSL.
+Enum prefixes are derived from the first letter of the type name.</p>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for all branch type definitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for all branch type definitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L232" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:232
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateBranchConstructors" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateBranchConstructors</span>
+      
+    <a href="#generateBranchConstructors" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateBranchConstructors(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate constructor procs for branch types.</p>
+<p>For <code>Created -&gt; Approved | Declined as ProcessResult</code>, generates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">approved</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pDeclined</span><span class="p">,</span><span class="w"> </span><span class="n">declined</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+</code></pre></div>
+<p>For generic types:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toFillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">full</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for all constructor proc definitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for all constructor proc definitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L339" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:339
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateBranchOperators" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateBranchOperators</span>
+      
+    <a href="#generateBranchOperators" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateBranchOperators(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate <code>-&gt;</code> operator templates for branch types.</p>
+<p>The <code>-&gt;</code> operator provides syntactic sugar for branch construction.
+It takes the branch type on the left and the state value on the right:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Usage (for: Created -&gt; Approved | Declined as ProcessResult):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Equivalent to:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">toProcessResult</span><span class="p">(</span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">))</span>
+</code></pre></div>
+<p>For generic types:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">FillResult</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+</code></pre></div>
+<p>Generated templates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">ProcessResult</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">toProcessResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="n">toFillResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</code></pre></div>
+<p>The <code>typedesc</code> parameter disambiguates when the same state appears
+in multiple branch types.</p>
+<p>:param graph: The typestate graph to generate from
+:returns: AST for all operator template definitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for all operator template definitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L414" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:414
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateAll" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateAll</span>
+      
+    <a href="#generateAll" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateAll(graph: TypestateGraph): NimNode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate all helper types and procs for a typestate.</p>
+<p>This is the main entry point called by the <code>typestate</code> macro.
+It generates:</p>
+<ol>
+<li>State enum (<code>FileState</code>)</li>
+<li>Union type (<code>FileStates</code> or <code>ContainerStates[T]</code>)</li>
+<li>State procs (<code>state()</code> for each state)</li>
+<li>Branch types for branching transitions (user-named via <code>as TypeName</code>)</li>
+<li>Branch constructors (<code>toTypeName</code>)</li>
+<li>Branch operators (<code>-&gt;</code>)</li>
+</ol>
+<p>For generic typestates like <code>Container[T]</code>, all generated types
+and procs include proper type parameters.</p>
+<p>:param graph: The typestate graph to generate from
+:returns: AST containing all generated definitions</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to generate from
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST containing all generated definitions</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L505" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:505
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div><hr>
+<h3 id="cli_1">CLI<a class="headerlink" href="#cli_1" title="Permanent link">¶</a></h3>
+<p>Command-line tool functionality.</p>
+<div class="doc doc-object doc-module">
+  
+
+  <h3 id="cli" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>
+    <span class="doc doc-object-name doc-module-name">cli</span>
+  <a href="#cli" class="headerlink" title="Permanent link">¶</a></h3>
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Command-line tool for typestates.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestates</span><span class="w"> </span><span class="n">verify</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">typestates</span><span class="w"> </span><span class="n">dot</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
+</code></pre></div>
+<p>Parses source files using Nim's AST parser and verifies typestate rules
+or generates DOT output.</p>
+<p><strong>Note:</strong> Files must be valid Nim syntax. Parse errors cause verification
+to fail loudly with a clear error message.</p>
+      </div>
+    
+
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="SplineMode" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">SplineMode</span>
+  <a href="#SplineMode" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type SplineMode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L23" target="_blank" rel="noopener">
+            src/typestates/cli.nim:23
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
+  <h4 id="VerifyResult" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">VerifyResult</span>
+  <a href="#VerifyResult" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type VerifyResult</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L36" target="_blank" rel="noopener">
+            src/typestates/cli.nim:36
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="parseTypestates" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseTypestates</span>
+      
+    <a href="#parseTypestates" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc parseTypestates(paths: seq[string]): ParseResult</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse all Nim files in the given paths for typestates.</p>
+<p>Uses Nim's AST parser for accurate extraction. Fails loudly on
+files with syntax errors.</p>
+<p>:param paths: List of file or directory paths to scan
+:returns: All parsed typestates and total file count
+:raises ParseError: on syntax errors</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>paths</code>
+              (<code>seq[string]</code>)
+               – List of file or directory paths to scan
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>ParseResult</code> – All parsed typestates and total file count</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L48" target="_blank" rel="noopener">
+            src/typestates/cli.nim:48
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateDot" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateDot</span>
+      
+    <a href="#generateDot" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate GraphViz DOT output for a typestate.</p>
+<p>Creates a directed graph representation suitable for rendering
+with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
+<p>:param ts: The parsed typestate to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
+:returns: DOT format string</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>ts</code>
+              (<code>ParsedTypestate</code>)
+               – The parsed typestate to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – DOT format string</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L148" target="_blank" rel="noopener">
+            src/typestates/cli.nim:148
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateUnifiedDot" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateUnifiedDot</span>
+      
+    <a href="#generateUnifiedDot" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateUnifiedDot(typestates: seq[ParsedTypestate]; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate a unified GraphViz DOT output showing all typestates.</p>
+<p>Creates subgraphs for each typestate with cross-cluster edges for bridges.</p>
+<p>:param typestates: List of parsed typestates to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
+:returns: DOT format string</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>typestates</code>
+              (<code>seq[ParsedTypestate]</code>)
+               – List of parsed typestates to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – DOT format string</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L195" target="_blank" rel="noopener">
+            src/typestates/cli.nim:195
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateSeparateDot" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateSeparateDot</span>
+      
+    <a href="#generateSeparateDot" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateSeparateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate GraphViz DOT output for a single typestate.</p>
+<p>Bridges are shown as terminal nodes with dashed edges.</p>
+<p>:param ts: The parsed typestate to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
+:returns: DOT format string</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>ts</code>
+              (<code>ParsedTypestate</code>)
+               – The parsed typestate to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – DOT format string</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L290" target="_blank" rel="noopener">
+            src/typestates/cli.nim:290
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="verify" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">verify</span>
+      
+    <a href="#verify" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc verify(paths: seq[string]): VerifyResult</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Verify all Nim files in the given paths.</p>
+<p>Uses Nim's AST parser to extract typestates, then checks that all
+procs operating on state types are properly marked with
+<code>{.transition.}</code> or <code>{.notATransition.}</code>.</p>
+<p><strong>Note:</strong> Files with syntax errors cause verification to fail
+immediately with a clear error message.</p>
+<p>:param paths: List of file or directory paths to verify
+:returns: Verification results with errors, warnings, and counts
+:raises ParseError: on syntax errors</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>paths</code>
+              (<code>seq[string]</code>)
+               – List of file or directory paths to verify
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>VerifyResult</code> – Verification results with errors, warnings, and counts</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L394" target="_blank" rel="noopener">
+            src/typestates/cli.nim:394
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+
+    
+  </div>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 3, 2025 12:28:26 UTC"><span class="timeago" datetime="2025-12-03T12:28:26+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 3, 2025 12:28:26 UTC">2025-12-03</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 30, 2025 22:17:58 UTC"><span class="timeago" datetime="2025-11-30T22:17:58+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 30, 2025 22:17:58 UTC">2025-11-30</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/elijahr/nim-typestates" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "content.code.annotate", "navigation.instant", "navigation.sections", "navigation.expand", "toc.follow"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../js/timeago.min.js"></script>
+      
+        <script src="../js/timeago_mkdocs_material.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
