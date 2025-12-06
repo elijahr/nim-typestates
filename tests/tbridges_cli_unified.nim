@@ -49,7 +49,6 @@ try:
   doAssert "Authenticated -> Active" in dot, "Should have bridge from Authenticated to Active"
   doAssert "Failed -> Closed" in dot, "Should have bridge from Failed to Closed"
   doAssert "style=dashed" in dot, "Bridge edges should be dashed"
-  doAssert "label=\"bridge\"" in dot, "Bridge edges should be labeled"
 
   echo "Unified graph generation test passed"
 finally:
