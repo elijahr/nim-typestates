@@ -8,6 +8,7 @@ type
   NonZero = distinct Counter
 
 typestate Counter:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Zero, NonZero
   transitions:

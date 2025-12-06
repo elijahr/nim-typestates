@@ -8,6 +8,7 @@ type
   Stopped = distinct Process
 
 typestate Process:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Running, Paused, Stopped
   transitions:

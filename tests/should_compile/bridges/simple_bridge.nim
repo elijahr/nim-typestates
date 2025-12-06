@@ -12,10 +12,12 @@ type
   Active = distinct Session
 
 typestate Session:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Active
 
 typestate Auth:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Pending, Authenticated
   transitions:

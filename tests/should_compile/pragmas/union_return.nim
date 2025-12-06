@@ -9,6 +9,7 @@ type
   Failure = distinct Request
 
 typestate Request:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Pending, Success, Failure
   transitions:

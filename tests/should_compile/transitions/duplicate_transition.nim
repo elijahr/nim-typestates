@@ -7,6 +7,7 @@ type
   B = distinct Duped
 
 typestate Duped:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states A, B
   transitions:

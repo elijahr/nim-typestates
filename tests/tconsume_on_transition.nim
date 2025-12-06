@@ -1,29 +1,26 @@
+## Test that consumeOnTransition prevents reusing old state.
+
 import ../src/typestates
 
 type
   File = object
-    path: string
     handle: int
-
   Closed = distinct File
   Open = distinct File
 
 typestate File:
-  consumeOnTransition = false  # Opt out for existing tests
+  # consumeOnTransition = true is the default
   states Closed, Open
   transitions:
     Closed -> Open
     Open -> Closed
 
 proc open(f: Closed): Open {.transition.} =
-  result = Open(f)
+  Open(File(handle: 1))
 
 proc close(f: Open): Closed {.transition.} =
-  result = Closed(f)
+  Closed(File(handle: 0))
 
-# Test usage
-let f = Closed(File(path: "/tmp/test"))
-let opened = f.open()
-let closed = opened.close()
-
-echo "transition pragma test passed"
+# This should FAIL to compile - trying to copy a state
+let closed = Closed(File(handle: 0))
+let closed2 = closed  # ERROR: cannot copy

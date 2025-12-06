@@ -10,6 +10,7 @@ type
   Failure = distinct Request
 
 typestate Request:
+  consumeOnTransition = false  # Opt out for existing tests
   states Pending, Success, Failure
   transitions:
     Pending -> Success | Failure  # ERROR: Missing 'as TypeName'

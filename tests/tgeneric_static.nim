@@ -18,6 +18,7 @@ type
     ## Validated to be in range 0..<2*N.
 
 typestate VirtualValue[N: static int]:
+  consumeOnTransition = false  # Opt out for existing tests
   states RawLoaded[N], Wrapped[N]
   transitions:
     RawLoaded[N] -> Wrapped[N]

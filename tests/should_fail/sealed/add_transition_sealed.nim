@@ -11,12 +11,14 @@ type
 
 # Sealed by default
 typestate Payment:
+  consumeOnTransition = false  # Opt out for existing tests
   states Created, Captured
   transitions:
     Created -> Captured
 
 # Adding a new transition should fail since typestate is sealed
 typestate Payment:
+  consumeOnTransition = false  # Opt out for existing tests
   states Refunded
   transitions:
     Captured -> Refunded

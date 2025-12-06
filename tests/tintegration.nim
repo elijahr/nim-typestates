@@ -14,6 +14,7 @@ type
   Delivered = distinct Order
 
 typestate Order:
+  consumeOnTransition = false  # Opt out for existing tests
   # strictTransitions = true (default)
   # All typestates are sealed (no extension allowed)
   states Pending, Paid, Shipped, Delivered

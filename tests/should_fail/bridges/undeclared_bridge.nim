@@ -10,11 +10,13 @@ type
   Active = distinct Target
 
 typestate Source:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Ready
   # NO bridges block - bridge not declared
 
 typestate Target:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Active
 

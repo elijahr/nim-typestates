@@ -10,6 +10,7 @@ type
   HasItems = distinct Container
 
 typestate Container:
+  consumeOnTransition = false  # Opt out for existing tests
   states Empty, HasItems
   transitions:
     Empty -> HasItems

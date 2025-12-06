@@ -10,6 +10,7 @@ type
   Connected = distinct Database
 
 typestate Database:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Disconnected, Connected
   transitions:

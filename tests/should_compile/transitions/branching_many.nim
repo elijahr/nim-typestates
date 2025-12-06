@@ -12,6 +12,7 @@ type
   PathE = distinct Router
 
 typestate Router:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Start, PathA, PathB, PathC, PathD, PathE
   transitions:

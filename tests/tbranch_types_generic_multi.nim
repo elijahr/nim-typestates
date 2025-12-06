@@ -21,6 +21,7 @@ type
     inner: Map[K, V]
 
 typestate Map[K, V]:
+  consumeOnTransition = false  # Opt out for this test to allow reusing states
   states EmptyMap[K, V], HasItems[K, V], MapError[K, V]
   transitions:
     EmptyMap[K, V] -> HasItems[K, V] | MapError[K, V] as InsertResult[K, V]

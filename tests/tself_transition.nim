@@ -9,6 +9,7 @@ type
   Disconnected = distinct Connection
 
 typestate Connection:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false  # For simpler testing
   states Connected, Disconnected
   transitions:

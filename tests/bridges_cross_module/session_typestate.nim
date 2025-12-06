@@ -12,6 +12,7 @@ type
   Expired* = distinct Session
 
 typestate Session:
+  consumeOnTransition = false  # Opt out for this test
   states Active, Guest, Expired
   transitions:
     Active -> Expired

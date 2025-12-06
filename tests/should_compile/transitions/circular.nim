@@ -9,6 +9,7 @@ type
   StateC = distinct Cycle
 
 typestate Cycle:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states StateA, StateB, StateC
   transitions:

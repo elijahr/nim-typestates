@@ -8,6 +8,7 @@ type
   Authenticated = distinct Auth
 
 typestate Auth:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Unauthenticated, Authenticated
   transitions:

@@ -8,6 +8,7 @@ type
   B = distinct Broken
 
 typestate Broken:
+  consumeOnTransition = false  # Opt out for existing tests
   states A, B
   transitions:
     A <- B  # Wrong arrow direction

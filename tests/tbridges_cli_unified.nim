@@ -13,6 +13,7 @@ type
   Closed = distinct Session
 
 typestate Session:
+  consumeOnTransition = false  # Opt out for existing tests
   states Active, Closed
   transitions:
     Active -> Closed
@@ -25,6 +26,7 @@ type
   Failed = distinct AuthFlow
 
 typestate AuthFlow:
+  consumeOnTransition = false  # Opt out for existing tests
   states Authenticated, Failed
   transitions:
     Authenticated -> Failed

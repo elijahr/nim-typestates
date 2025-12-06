@@ -12,10 +12,12 @@ type
   Archived = distinct Archive
 
 typestate Archive:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Archived
 
 typestate Pipeline:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Stage1, Stage2, Complete
   transitions:

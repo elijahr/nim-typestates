@@ -9,6 +9,7 @@ type
   Archived = distinct Document
 
 typestate Document:
+  consumeOnTransition = false  # Opt out for existing tests
   # All typestates are sealed (no extension allowed)
   strictTransitions = false
   states Draft, Published, Archived

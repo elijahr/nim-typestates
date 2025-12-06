@@ -10,6 +10,7 @@ type
   Expired = distinct Session
 
 typestate Session:
+  consumeOnTransition = false  # Opt out for this test
   states Active, Guest, Expired
   transitions:
     Active -> Expired
@@ -25,6 +26,7 @@ type
   Failed = distinct AuthFlow
 
 typestate AuthFlow:
+  consumeOnTransition = false  # Opt out for this test
   states Pending, Authenticated, Failed
   transitions:
     Pending -> Authenticated

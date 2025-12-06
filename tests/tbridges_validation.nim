@@ -8,6 +8,7 @@ type
   Guest = distinct Session
 
 typestate Session:
+  consumeOnTransition = false  # Opt out for existing tests
   states Active, Guest
   transitions:
     Active -> Guest
@@ -21,6 +22,7 @@ type
   Failed = distinct AuthFlow
 
 typestate AuthFlow:
+  consumeOnTransition = false  # Opt out for existing tests
   states Pending, Authenticated, Failed
   transitions:
     Pending -> Authenticated | Failed as AuthResult

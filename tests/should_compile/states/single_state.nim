@@ -7,6 +7,7 @@ type
   Only = distinct Singleton
 
 typestate Singleton:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Only
 

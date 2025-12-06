@@ -146,6 +146,7 @@ type
     ## :var states: Map of state names to State objects
     ## :var transitions: List of all declared transitions
     ## :var strictTransitions: If true, all procs on states must be categorized
+    ## :var consumeOnTransition: If true, states cannot be copied (ownership enforcement)
     ## :var declaredAt: Source location of the typestate declaration
     ## :var declaredInModule: Module filename where typestate was declared
     name*: string
@@ -154,6 +155,7 @@ type
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
+    consumeOnTransition*: bool = true  ## If true, states cannot be copied
     declaredAt*: LineInfo
     declaredInModule*: string
 

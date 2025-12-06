@@ -11,10 +11,12 @@ type
   Terminal = distinct Shutdown
 
 typestate Shutdown:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Terminal
 
 typestate App:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states Running, Paused, Error
   transitions:

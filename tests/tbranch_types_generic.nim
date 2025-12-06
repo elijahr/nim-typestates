@@ -11,6 +11,7 @@ type
   Error[T] = distinct Container[T]
 
 typestate Container[T]:
+  consumeOnTransition = false  # Opt out for this test to allow reusing states
   states Empty[T], Full[T], Error[T]
   transitions:
     Empty[T] -> Full[T] | Error[T] as FillResult[T]

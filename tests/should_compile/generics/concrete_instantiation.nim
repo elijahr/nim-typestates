@@ -8,6 +8,7 @@ type
   NonEmptyStack[T] = distinct Stack[T]
 
 typestate Stack[T]:
+  consumeOnTransition = false  # Opt out for existing tests
   strictTransitions = false
   states EmptyStack[T], NonEmptyStack[T]
   transitions:

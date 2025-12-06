@@ -9,6 +9,7 @@ type
   Broken = distinct Machine  # Not in transitions
 
 typestate Machine:
+  consumeOnTransition = false  # Opt out for existing tests
   states On, Off
   transitions:
     Off -> On

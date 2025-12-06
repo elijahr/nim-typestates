@@ -400,7 +400,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
             ident("s"),
-            destType,
+            nnkCommand.newTree(ident("sink"), destType),  # Use sink to consume the state
             newEmptyNode()
           )
         ),
@@ -410,6 +410,58 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       )
 
       result.add procDef
+
+proc generateCopyHooks*(graph: TypestateGraph): NimNode =
+  ## Generate `=copy` error hooks to prevent state copying.
+  ##
+  ## When `consumeOnTransition = true`, generates:
+  ##
+  ## ```nim
+  ## proc `=copy`*(dest: var Closed, src: Closed) {.error: "State 'Closed' cannot be copied. Transitions consume the input state.".}
+  ## ```
+  ##
+  ## This enforces linear/affine typing - each state value can only be used once.
+  ##
+  ## :param graph: The typestate graph to generate from
+  ## :returns: AST for all copy hook definitions
+  result = newStmtList()
+
+  if not graph.consumeOnTransition:
+    return
+
+  for state in graph.states.values:
+    let stateType = state.typeName.copyNimTree
+    let errorMsg = "State '" & state.name & "' cannot be copied. Transitions consume the input state."
+
+    # proc `=copy`*(dest: var StateType, src: StateType) {.error: "...".}
+    let hookDef = nnkProcDef.newTree(
+      nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("=copy"))),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        newEmptyNode(),  # void return
+        nnkIdentDefs.newTree(
+          ident("dest"),
+          nnkVarTy.newTree(stateType),
+          newEmptyNode()
+        ),
+        nnkIdentDefs.newTree(
+          ident("src"),
+          stateType,
+          newEmptyNode()
+        )
+      ),
+      nnkPragma.newTree(
+        nnkExprColonExpr.newTree(
+          ident("error"),
+          newStrLitNode(errorMsg)
+        )
+      ),
+      newEmptyNode(),
+      newEmptyNode()
+    )
+
+    result.add hookDef
 
 proc generateBranchOperators*(graph: TypestateGraph): NimNode =
   ## Generate `->` operator templates for branch types.
@@ -476,7 +528,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
         ident("s")
       )
 
-      # template `->`*(T: typedesc[ProcessResult], s: Approved): ProcessResult =
+      # template `->`*(T: typedesc[ProcessResult], s: sink Approved): ProcessResult =
       #   toProcessResult(s)
       let templateDef = nnkTemplateDef.newTree(
         nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("->"))),
@@ -491,7 +543,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
           ),
           nnkIdentDefs.newTree(
             ident("s"),
-            destType,
+            nnkCommand.newTree(ident("sink"), destType),  # Use sink to consume the state
             newEmptyNode()
           )
         ),
@@ -511,9 +563,10 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 1. State enum (`FileState`)
   ## 2. Union type (`FileStates` or `ContainerStates[T]`)
   ## 3. State procs (`state()` for each state)
-  ## 4. Branch types for branching transitions (user-named via `as TypeName`)
-  ## 5. Branch constructors (`toTypeName`)
-  ## 6. Branch operators (`->`)
+  ## 4. Copy hooks (`=copy` error hooks when consumeOnTransition = true)
+  ## 5. Branch types for branching transitions (user-named via `as TypeName`)
+  ## 6. Branch constructors (`toTypeName`)
+  ## 7. Branch operators (`->`)
   ##
   ## For generic typestates like `Container[T]`, all generated types
   ## and procs include proper type parameters.
@@ -525,6 +578,7 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)
   result.add generateStateProcs(graph)
+  result.add generateCopyHooks(graph)
   result.add generateBranchTypes(graph)
   result.add generateBranchConstructors(graph)
   result.add generateBranchOperators(graph)

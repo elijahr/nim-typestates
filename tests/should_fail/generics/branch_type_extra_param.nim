@@ -15,6 +15,7 @@ type
 
 # Branch type has extra param U that doesn't come from typestate
 typestate Container[T]:
+  consumeOnTransition = false  # Opt out for existing tests
   states Empty[T], Full[T], Error[T]
   transitions:
     Empty[T] -> Full[T] | Error[T] as FillResult[T, U]  # U is undefined!

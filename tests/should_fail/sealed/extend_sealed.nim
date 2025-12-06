@@ -10,12 +10,14 @@ type
 
 # Sealed by default
 typestate Locked:
+  consumeOnTransition = false  # Opt out for existing tests
   states StateA, StateB
   transitions:
     StateA -> StateB
 
 # This extension should fail
 typestate Locked:
+  consumeOnTransition = false  # Opt out for existing tests
   states StateC
   transitions:
     StateB -> StateC

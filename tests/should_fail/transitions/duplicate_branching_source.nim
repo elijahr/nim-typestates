@@ -12,6 +12,7 @@ type
   Potato = distinct Payment
 
 typestate Payment:
+  consumeOnTransition = false  # Opt out for existing tests
   states Created, Approved, Declined, Banana, Potato
   transitions:
     Created -> Approved | Declined as ResultA  # First branching from Created

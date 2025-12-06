@@ -13,6 +13,7 @@ type
   Failed* = distinct AuthFlow
 
 typestate AuthFlow:
+  consumeOnTransition = false  # Opt out for this test
   states Pending, Authenticated, Failed
   transitions:
     Pending -> Authenticated | Failed as AuthResult
