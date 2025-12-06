@@ -149,8 +149,20 @@ macro transition*(procDef: untyped): untyped =
   Transitions must be defined in the same module as the typestate declaration.
   Hint: Use {{.notATransition.}} for read-only operations on imported states.""", procDef)
 
+  # Check terminal constraint - cannot transition FROM terminal state
+  if graph.isTerminalState(sourceTypeName):
+    error(fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
+  Terminal states are end states with no outgoing transitions.
+  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed.""", procDef)
+
   # Validate each transition in the union
   for destTypeName in destTypeNames:
+    # Check initial constraint - cannot transition TO initial state
+    if graph.isInitialState(destTypeName):
+      error(fmt"""Cannot transition TO initial state '{destTypeName}'.
+  Initial states can only be constructed, not transitioned to.
+  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed.""", procDef)
+
     # Check if destination belongs to a different typestate (bridge case)
     let destGraphOpt = findTypestateForState(destTypeName)
 

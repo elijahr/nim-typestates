@@ -147,6 +147,8 @@ type
     ## :var transitions: List of all declared transitions
     ## :var strictTransitions: If true, all procs on states must be categorized
     ## :var consumeOnTransition: If true, states cannot be copied (ownership enforcement)
+    ## :var initialStates: States that cannot be transitioned TO (only constructed)
+    ## :var terminalStates: States that cannot transition FROM (end states)
     ## :var declaredAt: Source location of the typestate declaration
     ## :var declaredInModule: Module filename where typestate was declared
     name*: string
@@ -156,6 +158,8 @@ type
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
     consumeOnTransition*: bool = true  ## If true, states cannot be copied
+    initialStates*: seq[string]  ## States that cannot be transitioned TO
+    terminalStates*: seq[string]  ## States that cannot transition FROM
     declaredAt*: LineInfo
     declaredInModule*: string
 
@@ -302,3 +306,49 @@ proc validBridges*(graph: TypestateGraph, fromState: string): seq[string] =
       let dest = b.toTypestate & "." & b.toState
       if dest notin result:
         result.add dest
+
+proc isInitialState*(graph: TypestateGraph, stateName: string): bool =
+  ## Check if a state is declared as initial.
+  ##
+  ## Initial states can only be constructed, not transitioned to.
+  ## Comparisons use base names to support generic types.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # Given: initial: Disconnected
+  ## graph.isInitialState("Disconnected")  # true
+  ## graph.isInitialState("Connected")     # false
+  ## ```
+  ##
+  ## :param graph: The typestate graph to check
+  ## :param stateName: The state name to check
+  ## :returns: `true` if the state is initial, `false` otherwise
+  let base = extractBaseName(stateName)
+  for s in graph.initialStates:
+    if extractBaseName(s) == base:
+      return true
+  return false
+
+proc isTerminalState*(graph: TypestateGraph, stateName: string): bool =
+  ## Check if a state is declared as terminal.
+  ##
+  ## Terminal states are end states with no outgoing transitions.
+  ## Comparisons use base names to support generic types.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # Given: terminal: Closed
+  ## graph.isTerminalState("Closed")  # true
+  ## graph.isTerminalState("Open")    # false
+  ## ```
+  ##
+  ## :param graph: The typestate graph to check
+  ## :param stateName: The state name to check
+  ## :returns: `true` if the state is terminal, `false` otherwise
+  let base = extractBaseName(stateName)
+  for s in graph.terminalStates:
+    if extractBaseName(s) == base:
+      return true
+  return false

@@ -377,6 +377,90 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
       )
       graph.bridges.add bridge
 
+proc parseStateList(node: NimNode): seq[string] =
+  ## Parse a list of states from command/call syntax.
+  ##
+  ## Handles multiple syntax forms:
+  ##
+  ## - Inline: `initial: A, B, C`
+  ## - Command: `initial A, B`
+  ## - Multiline block:
+  ##   ```
+  ##   initial:
+  ##     A
+  ##     B
+  ##   ```
+  ##
+  ## :param node: AST node of the state list declaration
+  ## :returns: Sequence of state names
+  result = @[]
+
+  case node.kind
+  of nnkCommand:
+    # initial: A, B, C or initial A, B, C
+    for i in 1..<node.len:
+      let child = node[i]
+      if child.kind == nnkStmtList:
+        # Multiline block
+        for item in child:
+          if item.kind != nnkEmpty:
+            result.add item.repr.strip(chars = {',', ' ', '\n'})
+      else:
+        result.add child.repr.strip(chars = {',', ' ', '\n'})
+  of nnkCall:
+    # initial: followed by StmtList
+    if node.len >= 2 and node[1].kind == nnkStmtList:
+      for item in node[1]:
+        if item.kind != nnkEmpty:
+          result.add item.repr.strip(chars = {',', ' ', '\n'})
+    else:
+      for i in 1..<node.len:
+        result.add node[i].repr.strip(chars = {',', ' ', '\n'})
+  else:
+    error("Expected state list", node)
+
+proc parseInitialBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the initial states block.
+  ##
+  ## Initial states can only be constructed, not transitioned to.
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## initial: Disconnected
+  ## # or
+  ## initial: Disconnected, Starting
+  ## # or
+  ## initial:
+  ##   Disconnected
+  ##   Starting
+  ## ```
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the initial block
+  graph.initialStates = parseStateList(node)
+
+proc parseTerminalBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the terminal states block.
+  ##
+  ## Terminal states are end states with no outgoing transitions.
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## terminal: Closed
+  ## # or
+  ## terminal: Closed, Failed
+  ## # or
+  ## terminal:
+  ##   Closed
+  ##   Failed
+  ## ```
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the terminal block
+  graph.terminalStates = parseStateList(node)
+
 proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that all states have unique base names.
   ##
@@ -468,6 +552,52 @@ proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNod
               "Combine destinations: " & source & " -> A | B | C", declNode)
       branchingSources.add(source)
 
+proc validateInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that initial and terminal states are declared in states list.
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :param declNode: AST node for error reporting
+  ## :raises: Compile-time error if initial/terminal states not in states list
+  for s in graph.initialStates:
+    let base = extractBaseName(s)
+    var found = false
+    for state in graph.states.values:
+      if state.name == base or state.fullRepr == s:
+        found = true
+        break
+    if not found:
+      error("Initial state '" & s & "' is not in states list", declNode)
+
+  for s in graph.terminalStates:
+    let base = extractBaseName(s)
+    var found = false
+    for state in graph.states.values:
+      if state.name == base or state.fullRepr == s:
+        found = true
+        break
+    if not found:
+      error("Terminal state '" & s & "' is not in states list", declNode)
+
+proc validateTransitionsRespectInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that transitions respect initial/terminal constraints.
+  ##
+  ## - Cannot transition TO an initial state
+  ## - Cannot transition FROM a terminal state
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :param declNode: AST node for error reporting
+  ## :raises: Compile-time error if constraints violated
+  for t in graph.transitions:
+    if not t.isWildcard:
+      # Check FROM terminal
+      if graph.isTerminalState(t.fromState):
+        error("Cannot declare transition FROM terminal state '" & t.fromState & "'", declNode)
+
+    # Check TO initial
+    for dest in t.toStates:
+      if graph.isInitialState(dest):
+        error("Cannot declare transition TO initial state '" & dest & "'", declNode)
+
 proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   ## Parse a complete typestate block body into a TypestateGraph.
   ##
@@ -531,6 +661,10 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
         parseTransitionsBlock(result, child)
       of "bridges":
         parseBridgesBlock(result, child)
+      of "initial":
+        parseInitialBlock(result, child)
+      of "terminal":
+        parseTerminalBlock(result, child)
       else:
         error("Unknown section in typestate block: " & sectionName, child)
     else:
@@ -539,3 +673,5 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   # Validate after all parsing is complete
   validateUniqueBaseNames(result, name)
   validateNoDuplicateBranchingSources(result, name)
+  validateInitialTerminal(result, name)
+  validateTransitionsRespectInitialTerminal(result, name)
