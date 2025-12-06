@@ -375,6 +375,60 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
       )
       graph.bridges.add bridge
 
+proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that all states have unique base names.
+  ##
+  ## States must have distinct base type names because the library uses
+  ## base names for enum generation, union types, and state matching.
+  ## Using the same base type with different static parameters is not supported.
+  ##
+  ## Example that would fail:
+  ##
+  ## ```nim
+  ## typestate GPIO[E: static bool]:
+  ##   states GPIO[false], GPIO[true]  # ERROR: same base name "GPIO"
+  ## ```
+  ##
+  ## Correct approach using wrapper types:
+  ##
+  ## ```nim
+  ## type
+  ##   GPIOBase[E: static bool] = object
+  ##   Disabled = distinct GPIOBase[false]
+  ##   Enabled = distinct GPIOBase[true]
+  ##
+  ## typestate GPIOBase[E: static bool]:
+  ##   states Disabled, Enabled  # OK: different base names
+  ## ```
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :param declNode: AST node for error reporting
+  ## :raises: Compile-time error if duplicate base names found
+  var baseNameCounts: seq[tuple[name: string, fullReprs: seq[string]]] = @[]
+
+  for state in graph.states.values:
+    var found = false
+    for i in 0..<baseNameCounts.len:
+      if baseNameCounts[i].name == state.name:
+        baseNameCounts[i].fullReprs.add state.fullRepr
+        found = true
+        break
+    if not found:
+      baseNameCounts.add (name: state.name, fullReprs: @[state.fullRepr])
+
+  for entry in baseNameCounts:
+    if entry.fullReprs.len > 1:
+      error("Multiple states share the base name '" & entry.name & "': " &
+            entry.fullReprs.join(", ") & "\n\n" &
+            "States must have unique base type names. " &
+            "Using the same type with different static parameters is not supported.\n\n" &
+            "Use distinct wrapper types instead:\n" &
+            "  type\n" &
+            "    " & entry.name & "Base = object  # or your base type\n" &
+            "    State1 = distinct " & entry.name & "Base\n" &
+            "    State2 = distinct " & entry.name & "Base\n\n" &
+            "See: https://elijahr.github.io/nim-typestates/guide/generics/", declNode)
+
 proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that each source state has at most one branching transition.
   ##
@@ -481,4 +535,5 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
       error("Unexpected node in typestate body: " & $child.kind, child)
 
   # Validate after all parsing is complete
+  validateUniqueBaseNames(result, name)
   validateNoDuplicateBranchingSources(result, name)

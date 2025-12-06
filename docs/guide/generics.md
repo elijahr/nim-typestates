@@ -303,11 +303,65 @@ proc use[T](r: Acquired[T]): T {.notATransition.} =
   Resource[T](r).handle
 ```
 
+## Static Parameters as State Differentiation
+
+A common pattern in embedded programming (see [Nim forum discussion](https://forum.nim-lang.org/t/9976)) uses static parameters to differentiate states at compile time:
+
+```nim
+# What you might want to write (DOES NOT WORK):
+type
+  GPIO[Enabled: static bool, Dir: static Option[Direction]] = object
+    pin: int
+
+typestate GPIO[Enabled: static bool, Dir: static Option[Direction]]:
+  states GPIO[false, none(Direction)], GPIO[true, none(Direction)]
+  transitions:
+    GPIO[false, none(Direction)] -> GPIO[true, none(Direction)]
+```
+
+This fails because all states share the same base name `GPIO`. The library cannot generate unique enum values, union types, or state procs when base names collide.
+
+**Use distinct wrapper types instead:**
+
+```nim
+type
+  GPIO[Enabled: static bool, Dir: static Option[Direction]] = object
+    pin: int
+
+  # Wrapper types with unique base names
+  Disabled = distinct GPIO[false, none(Direction)]
+  EnabledNoDir = distinct GPIO[true, none(Direction)]
+  InputMode = distinct GPIO[true, some(Input)]
+  OutputMode = distinct GPIO[true, some(Output)]
+
+typestate GPIO[Enabled: static bool, Dir: static Option[Direction]]:
+  states Disabled, EnabledNoDir, InputMode, OutputMode
+  transitions:
+    Disabled -> EnabledNoDir
+    EnabledNoDir -> InputMode
+    EnabledNoDir -> OutputMode
+
+proc enable(g: Disabled): EnabledNoDir {.transition.} =
+  EnabledNoDir(GPIO[true, none(Direction)](pin: GPIO[false, none(Direction)](g).pin))
+
+proc setInput(g: EnabledNoDir): InputMode {.transition.} =
+  InputMode(GPIO[true, some(Input)](pin: GPIO[true, none(Direction)](g).pin))
+```
+
+This approach:
+
+- Preserves the zero-cost abstraction (distinct types compile away)
+- Gives states meaningful names in error messages
+- Works with all library features (enums, unions, branching)
+
 ## Limitations
 
 1. **Constraints must be repeated**: Generic constraints (`static int`, `SomeInteger`, etc.) must be explicitly stated in the typestate header - they cannot be inferred from type definitions. See [Constrained Generic Parameters](#constrained-generic-parameters).
-2. **Same base name**: All states in a generic typestate must have distinct base names (e.g., `Empty[T]` and `Empty[V]` would conflict)
-3. **Branch type params must match**: Branch type parameters must use the same type variables as the typestate (e.g., `FillResult[K]` when typestate uses `T` will fail)
+
+2. **Unique base names required**: All states must have distinct base type names. Using the same type with different parameters (like `GPIO[false]` vs `GPIO[true]`) is not supported. See [Static Parameters as State Differentiation](#static-parameters-as-state-differentiation) for the workaround.
+
+3. **Branch type params must match**: Branch type parameters must use the same type variables as the typestate (e.g., `FillResult[K]` when typestate uses `T` will fail).
+
 4. **Distinct types with multiple params**: Due to a Nim compiler limitation, using `distinct` with multiple generic params may cause C compilation errors. Use wrapper objects instead:
 
 ```nim
