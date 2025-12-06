@@ -7,31 +7,29 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/contributing/">
       
       
-        <link rel="prev" href="../generics/">
+        <link rel="prev" href="../api/">
       
-      
-        <link rel="next" href="../error-handling/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
     
     
       
-        <title>Formal Guarantees - nim-typestates</title>
+        <title>Contributing - nim-typestates</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -50,17 +48,17 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../css/timeago.css">
+      <link rel="stylesheet" href="../css/timeago.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
-  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -89,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#formal-guarantees" class="md-skip">
+        <a href="#contributing" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +107,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="nim-typestates" class="md-header__button md-logo" aria-label="nim-typestates" data-md-component="logo">
+    <a href=".." title="nim-typestates" class="md-header__button md-logo" aria-label="nim-typestates" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
@@ -129,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Formal Guarantees
+              Contributing
             
           </span>
         </div>
@@ -245,7 +243,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="nim-typestates" class="md-nav__button md-logo" aria-label="nim-typestates" data-md-component="logo">
+    <a href=".." title="nim-typestates" class="md-nav__button md-logo" aria-label="nim-typestates" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
@@ -275,7 +273,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -299,8 +297,6 @@
       
   
   
-    
-  
   
   
     
@@ -313,11 +309,13 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -338,7 +336,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -356,7 +354,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../guide/getting-started/" class="md-nav__link">
         
   
   
@@ -384,7 +382,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dsl-reference/" class="md-nav__link">
+      <a href="../guide/dsl-reference/" class="md-nav__link">
         
   
   
@@ -412,7 +410,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../bridges/" class="md-nav__link">
+      <a href="../guide/bridges/" class="md-nav__link">
         
   
   
@@ -440,7 +438,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../generics/" class="md-nav__link">
+      <a href="../guide/generics/" class="md-nav__link">
         
   
   
@@ -465,37 +463,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Formal Guarantees
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../guide/formal-guarantees/" class="md-nav__link">
         
   
   
@@ -511,148 +482,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#correctness-by-construction" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Correctness by Construction
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-verified" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What is Verified
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="What is Verified">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#temporal-safety" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Temporal Safety
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protocol-adherence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protocol Adherence
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#state-exclusivity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Exclusivity
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limitations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Limitations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#specification-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Specification Correctness
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#functional-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Functional Correctness
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#runtime-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Runtime Behavior
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#comparison-to-full-formal-verification" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Comparison to Full Formal Verification
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -665,7 +494,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../error-handling/" class="md-nav__link">
+      <a href="../guide/error-handling/" class="md-nav__link">
         
   
   
@@ -693,7 +522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/" class="md-nav__link">
+      <a href="../guide/examples/" class="md-nav__link">
         
   
   
@@ -721,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../strict-mode/" class="md-nav__link">
+      <a href="../guide/strict-mode/" class="md-nav__link">
         
   
   
@@ -749,7 +578,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../verification/" class="md-nav__link">
+      <a href="../guide/verification/" class="md-nav__link">
         
   
   
@@ -777,7 +606,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../guide/cli/" class="md-nav__link">
         
   
   
@@ -805,7 +634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../visualization/" class="md-nav__link">
+      <a href="../guide/visualization/" class="md-nav__link">
         
   
   
@@ -840,7 +669,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/" class="md-nav__link">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -864,10 +693,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../contributing/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -883,6 +739,148 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Preview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-generated-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-Generated Diagrams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Auto-Generated Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Diagrams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-new-diagram-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating New Diagram Sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Style
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull Requests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -914,10 +912,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#correctness-by-construction" class="md-nav__link">
+  <a href="#development-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Correctness by Construction
+        Development Setup
       
     </span>
   </a>
@@ -925,22 +923,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-is-verified" class="md-nav__link">
+  <a href="#running-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is Verified
+        Running Tests
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="What is Verified">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#temporal-safety" class="md-nav__link">
+  <a href="#local-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Temporal Safety
+        Local Preview
       
     </span>
   </a>
@@ -948,10 +957,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#protocol-adherence" class="md-nav__link">
+  <a href="#auto-generated-diagrams" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Protocol Adherence
+        Auto-Generated Diagrams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Auto-Generated Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Diagrams
       
     </span>
   </a>
@@ -959,10 +980,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#state-exclusivity" class="md-nav__link">
+  <a href="#creating-new-diagram-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Exclusivity
+        Creating New Diagram Sources
       
     </span>
   </a>
@@ -973,51 +994,6 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limitations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Limitations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#specification-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Specification Correctness
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#functional-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Functional Correctness
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#runtime-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Runtime Behavior
-      
-    </span>
-  </a>
-  
-</li>
         
       </ul>
     </nav>
@@ -1025,10 +1001,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comparison-to-full-formal-verification" class="md-nav__link">
+  <a href="#code-style" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Comparison to Full Formal Verification
+        Code Style
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull Requests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Issues
       
     </span>
   </a>
@@ -1055,83 +1053,94 @@
   
 
 
-<h1 id="formal-guarantees">Formal Guarantees<a class="headerlink" href="#formal-guarantees" title="Permanent link">¶</a></h1>
-<p>This page explains the verification properties that nim-typestates provides
-and how they relate to formal methods concepts.</p>
-<h2 id="correctness-by-construction">Correctness by Construction<a class="headerlink" href="#correctness-by-construction" title="Permanent link">¶</a></h2>
-<p>nim-typestates implements a form of correctness by construction: rather than
-testing for state machine violations at runtime, the type system makes them
-impossible to express.</p>
-<p>The Nim compiler acts as a verifier. If compilation succeeds, the program
-has been proven to contain no invalid state transitions.</p>
-<h2 id="what-is-verified">What is Verified<a class="headerlink" href="#what-is-verified" title="Permanent link">¶</a></h2>
-<h3 id="temporal-safety">Temporal Safety<a class="headerlink" href="#temporal-safety" title="Permanent link">¶</a></h3>
-<p>Standard type systems verify <em>data safety</em>: a variable declared as <code>int</code>
-cannot be used as a <code>string</code>. Typestates extend this to <em>temporal safety</em>:
-an object in state <code>Closed</code> cannot be used where state <code>Open</code> is required.</p>
-<p>This prevents a class of bugs where operations are called in the wrong order
-or on objects in invalid states.</p>
-<h3 id="protocol-adherence">Protocol Adherence<a class="headerlink" href="#protocol-adherence" title="Permanent link">¶</a></h3>
-<p>Each <code>{.transition.}</code> proc is checked against the declared state graph.
-The compiler rejects any proc that:</p>
+<h1 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">¶</a></h1>
+<p>Guidelines for contributing to nim-typestates.</p>
+<h2 id="development-setup">Development Setup<a class="headerlink" href="#development-setup" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Clone the repository</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/elijahr/nim-typestates.git
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>nim-typestates
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Install dependencies</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>nimble<span class="w"> </span>install<span class="w"> </span>-d
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Build the CLI</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>nimble<span class="w"> </span>build
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Run tests</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>nimble<span class="w"> </span><span class="nb">test</span>
+</code></pre></div>
+<h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Run all tests</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nimble<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Run specific test file</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>nim<span class="w"> </span>c<span class="w"> </span>-r<span class="w"> </span>tests/tbasic.nim
+</code></pre></div>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">¶</a></h2>
+<h3 id="local-preview">Local Preview<a class="headerlink" href="#local-preview" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Install Python dependencies</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>docs-requirements.txt
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Serve docs locally</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<h3 id="auto-generated-diagrams">Auto-Generated Diagrams<a class="headerlink" href="#auto-generated-diagrams" title="Permanent link">¶</a></h3>
+<p>The diagrams in this documentation are automatically generated from source code snippets. This ensures they stay in sync with the actual typestate definitions.</p>
+<h4 id="generating-diagrams">Generating Diagrams<a class="headerlink" href="#generating-diagrams" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Generate all diagrams from examples/snippets/</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>nimble<span class="w"> </span>generateDocs
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Or manually:</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>python3<span class="w"> </span>scripts/generate_diagrams.py
+</code></pre></div>
+<p>This reads <code>*_typestate.nim</code> files from <code>examples/snippets/</code> and generates SVG diagrams in <code>docs/assets/images/generated/</code>.</p>
+<h4 id="creating-new-diagram-sources">Creating New Diagram Sources<a class="headerlink" href="#creating-new-diagram-sources" title="Permanent link">¶</a></h4>
+<p>To add a new auto-generated diagram:</p>
+<ol>
+<li>Create a snippet in <code>examples/snippets/yourname_typestate.nim</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="p">..</span><span class="o">/</span><span class="p">..</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">typestates</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">type</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">YourType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">StateA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">YourType</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">StateB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">YourType</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">typestate</span><span class="w"> </span><span class="n">YourType</span><span class="p">:</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">StateA</span><span class="p">,</span><span class="w"> </span><span class="n">StateB</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="n">StateA</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StateB</span>
+</code></pre></div>
+<ol>
+<li>
+<p>Run <code>nimble generateDocs</code> to regenerate all diagrams.</p>
+</li>
+<li>
+<p>Reference the generated image in docs: <code>![YourType](assets/images/generated/yourtype.svg)</code></p>
+</li>
+</ol>
+<h2 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">¶</a></h2>
 <ul>
-<li>Takes a state type not registered in a typestate</li>
-<li>Returns a state not reachable from the input state</li>
-<li>Implements an undeclared transition</li>
+<li>Follow standard Nim style conventions</li>
+<li>Use <code>nimble format</code> if available</li>
+<li>Keep lines under 100 characters where practical</li>
 </ul>
-<h3 id="state-exclusivity">State Exclusivity<a class="headerlink" href="#state-exclusivity" title="Permanent link">¶</a></h3>
-<p>Distinct types ensure an object cannot satisfy multiple state types
-simultaneously. The type <code>Closed</code> is incompatible with <code>Open</code> at the
-type level, not just the value level.</p>
-<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h2>
-<h3 id="specification-correctness">Specification Correctness<a class="headerlink" href="#specification-correctness" title="Permanent link">¶</a></h3>
-<p>The compiler verifies that code follows the declared state machine. It does
-not verify that the state machine correctly models the intended protocol.</p>
-<p>If the specification is wrong, the implementation will be "correctly wrong."</p>
-<h3 id="functional-correctness">Functional Correctness<a class="headerlink" href="#functional-correctness" title="Permanent link">¶</a></h3>
-<p>Typestates verify <em>when</em> operations can be called, not <em>what</em> they do.
-A <code>{.transition.}</code> proc from <code>Closed</code> to <code>Open</code> is verified to be callable
-only on <code>Closed</code> values and to return <code>Open</code> values. The proc body itself
-is not verified.</p>
-<h3 id="runtime-behavior">Runtime Behavior<a class="headerlink" href="#runtime-behavior" title="Permanent link">¶</a></h3>
-<p>Typestates operate at compile time. Runtime properties such as performance,
-memory safety, or exception behavior are outside their scope.</p>
-<p>For guidance on modeling errors as states rather than exceptions, see
-<a href="../error-handling/">Error Handling</a>.</p>
-<h2 id="comparison-to-full-formal-verification">Comparison to Full Formal Verification<a class="headerlink" href="#comparison-to-full-formal-verification" title="Permanent link">¶</a></h2>
-<table>
-<thead>
-<tr>
-<th>Aspect</th>
-<th>nim-typestates</th>
-<th>Full Formal Methods (TLA+, Coq)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>What is verified</td>
-<td>Protocol adherence</td>
-<td>Functional correctness</td>
-</tr>
-<tr>
-<td>Verification method</td>
-<td>Type checking</td>
-<td>Theorem proving</td>
-</tr>
-<tr>
-<td>Effort required</td>
-<td>Automatic</td>
-<td>Manual proofs</td>
-</tr>
-<tr>
-<td>Typical use</td>
-<td>Application protocols</td>
-<td>Safety-critical systems</td>
-</tr>
-</tbody>
-</table>
-<p>nim-typestates occupies a practical middle ground: stronger guarantees than
-testing, lower cost than full formal verification.</p>
+<h2 id="pull-requests">Pull Requests<a class="headerlink" href="#pull-requests" title="Permanent link">¶</a></h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create a feature branch</li>
+<li>Make your changes</li>
+<li>Run tests: <code>nimble test</code></li>
+<li>Submit a pull request</li>
+</ol>
+<h2 id="reporting-issues">Reporting Issues<a class="headerlink" href="#reporting-issues" title="Permanent link">¶</a></h2>
+<p>Please include:</p>
+<ul>
+<li>Nim version (<code>nim --version</code>)</li>
+<li>nim-typestates version</li>
+<li>Minimal reproduction case</li>
+<li>Expected vs actual behavior</li>
+</ul>
 
 
 
@@ -1154,7 +1163,7 @@ testing, lower cost than full formal verification.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 4, 2025 18:16:05 UTC"><span class="timeago" datetime="2025-12-04T18:16:05+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 4, 2025 18:16:05 UTC">2025-12-04</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 18:53:06 UTC"><span class="timeago" datetime="2025-12-05T18:53:06+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 18:53:06 UTC">2025-12-05</span>
   </span>
 
     
@@ -1164,7 +1173,7 @@ testing, lower cost than full formal verification.</p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 2, 2025 13:37:34 UTC"><span class="timeago" datetime="2025-12-02T13:37:34+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 2, 2025 13:37:34 UTC">2025-12-02</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 18:53:06 UTC"><span class="timeago" datetime="2025-12-05T18:53:06+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 18:53:06 UTC">2025-12-05</span>
   </span>
 
     
@@ -1229,14 +1238,14 @@ testing, lower cost than full formal verification.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "content.code.annotate", "navigation.instant", "navigation.sections", "navigation.expand", "toc.follow"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "content.code.annotate", "navigation.instant", "navigation.sections", "navigation.expand", "toc.follow"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
       
-        <script src="../../js/timeago.min.js"></script>
+        <script src="../js/timeago.min.js"></script>
       
-        <script src="../../js/timeago_mkdocs_material.js"></script>
+        <script src="../js/timeago_mkdocs_material.js"></script>
       
     
   

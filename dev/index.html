@@ -355,13 +355,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Features
+        Key Features
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-machine-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Machine Visualization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -852,6 +869,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -901,13 +945,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Features
+        Key Features
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-machine-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Machine Visualization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1062,20 +1123,27 @@ compiles, invalid state transitions are impossible. See
 <li><strong>Self-documenting</strong>: Types show valid operations</li>
 <li><strong>Zero runtime cost</strong>: It's just types</li>
 </ul>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Compile-time validation</strong> - Invalid transitions fail at compile time with clear error messages</li>
-<li><strong>Branching transitions</strong> - <code>Closed -&gt; Open | Errored as OpenResult</code> with user-named branch types</li>
-<li><strong>Wildcard transitions</strong> - <code>* -&gt; Closed</code> (any state can close)</li>
-<li><strong>Generated helpers</strong> - <code>FileState</code> enum, <code>FileStates</code> union type, branch constructors</li>
-<li><strong>Cross-typestate bridges</strong> - Connect independent state machines</li>
-<li><strong>GraphViz export</strong> - Visualize your state machine</li>
+<li><strong>Compile-time validation</strong> — Invalid transitions fail at compile time with clear error messages</li>
+<li><strong>Zero runtime cost</strong> — All validation happens during compilation, no runtime overhead</li>
+<li><strong>Branching transitions</strong> — <code>Closed -&gt; Open | Errored as OpenResult</code> with user-named branch types</li>
+<li><strong>Wildcard transitions</strong> — <code>* -&gt; Closed</code> (any state can transition to a specific state)</li>
+<li><strong>Generic typestates</strong> — <code>Container[T]</code> with states like <code>Empty[T]</code>, <code>Full[T]</code></li>
+<li><strong>Cross-typestate bridges</strong> — Connect independent state machines with validated handoffs</li>
+<li><strong>Generated helpers</strong> — <code>FileState</code> enum, <code>FileStates</code> union type, branch constructors</li>
+<li><strong>Visualization</strong> — Export to GraphViz DOT format for diagrams</li>
 </ul>
+<h3 id="state-machine-visualization">State Machine Visualization<a class="headerlink" href="#state-machine-visualization" title="Permanent link">¶</a></h3>
+<p>Generate diagrams directly from your typestate definitions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tsvg<span class="w"> </span>-o<span class="w"> </span>states.svg
+</code></pre></div>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="assets/images/generated/multi.svg" data-desc-position="bottom"><img alt="State Machine Diagram" src="assets/images/generated/multi.svg"></a></p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nimble<span class="w"> </span>install<span class="w"> </span>typestates
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nimble<span class="w"> </span>install<span class="w"> </span>typestates
 </code></pre></div>
 <p>Or add to your <code>.nimble</code> file:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">requires</span><span class="w"> </span><span class="s">"typestates &gt;= 0.1.0"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">requires</span><span class="w"> </span><span class="s">"typestates &gt;= 0.1.0"</span>
 </code></pre></div>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">¶</a></h2>
 <ul>
@@ -1125,7 +1193,7 @@ compiles, invalid state transitions are impossible. See
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 05:29:10 UTC"><span class="timeago" datetime="2025-12-05T05:29:10+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 05:29:10 UTC">2025-12-05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 11:05:13 UTC"><span class="timeago" datetime="2025-12-05T11:05:13+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 11:05:13 UTC">2025-12-05</span>
   </span>
 
     

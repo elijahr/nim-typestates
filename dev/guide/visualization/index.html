@@ -707,6 +707,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edge-routing-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge Routing Modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-styles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge Styles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-file-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -770,6 +809,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Customizing Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-no-style-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --no-style Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -791,6 +847,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Multiple Typestates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-authentication-flow-with-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Authentication Flow with Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -825,6 +898,33 @@
     
   
     API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
   
 
     
@@ -875,6 +975,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edge-routing-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge Routing Modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-styles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge Styles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-file-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -938,6 +1077,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Customizing Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-no-style-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --no-style Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -959,6 +1115,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Multiple Typestates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-authentication-flow-with-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Authentication Flow with Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -997,75 +1170,140 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Generate SVG for web</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tsvg<span class="w"> </span>-o<span class="w"> </span>states.svg
 </code></pre></div>
+<h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--splines=MODE</code></td>
+<td>Edge routing: <code>spline</code> (default), <code>ortho</code>, <code>polyline</code>, <code>line</code></td>
+</tr>
+<tr>
+<td><code>--separate</code></td>
+<td>Generate separate graph per typestate</td>
+</tr>
+<tr>
+<td><code>--no-style</code></td>
+<td>Output minimal DOT without styling</td>
+</tr>
+</tbody>
+</table>
+<h3 id="edge-routing-modes">Edge Routing Modes<a class="headerlink" href="#edge-routing-modes" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Curved edges (default) - best edge separation</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Right-angle edges only</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--splines<span class="o">=</span>ortho<span class="w"> </span>src/
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Straight line segments</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--splines<span class="o">=</span>polyline<span class="w"> </span>src/
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Direct straight lines</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--splines<span class="o">=</span>line<span class="w"> </span>src/
+</code></pre></div>
+<h2 id="edge-styles">Edge Styles<a class="headerlink" href="#edge-styles" title="Permanent link">¶</a></h2>
+<p>The CLI uses dark mode styling with different edge styles to distinguish transition types:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Style</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal</td>
+<td>Solid light gray</td>
+<td>Standard state transitions</td>
+</tr>
+<tr>
+<td>Wildcard</td>
+<td>Dotted gray</td>
+<td>Transitions from any state (<code>* -&gt; State</code>)</td>
+</tr>
+<tr>
+<td>Bridge</td>
+<td>Dashed light purple</td>
+<td>Cross-typestate transitions</td>
+</tr>
+</tbody>
+</table>
+<p>Wildcard transitions are deduplicated: if an explicit transition exists (e.g., <code>Pooled -&gt; Closed</code>), the wildcard-expanded version is skipped.</p>
 <h2 id="example-file-state-machine">Example: File State Machine<a class="headerlink" href="#example-file-state-machine" title="Permanent link">¶</a></h2>
 <p>Given this typestate definition:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">type</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">type</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
 <p>Running <code>typestates dot src/</code> produces:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">digraph</span><span class="w"> </span><span class="nt">File</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="na">rankdir</span><span class="p">=</span><span class="s">LR</span><span class="p">;</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="k">node</span><span class="w"> </span><span class="p">[</span><span class="na">shape</span><span class="p">=</span><span class="s">box</span><span class="p">];</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">Closed</span><span class="p">;</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">Open</span><span class="p">;</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Open</span><span class="p">;</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="p">;</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">digraph</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="na">rankdir</span><span class="p">=</span><span class="s">TB</span><span class="p">;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="na">splines</span><span class="p">=</span><span class="s">spline</span><span class="p">;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="na">compound</span><span class="p">=</span><span class="s">true</span><span class="p">;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="na">nodesep</span><span class="p">=</span><span class="m">1.0</span><span class="p">;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="na">ranksep</span><span class="p">=</span><span class="m">1.0</span><span class="p">;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="na">bgcolor</span><span class="p">=</span><span class="s2">"transparent"</span><span class="p">;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="na">pad</span><span class="p">=</span><span class="m">0.3</span><span class="p">;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="k">node</span><span class="w"> </span><span class="p">[</span><span class="na">shape</span><span class="p">=</span><span class="s">box</span><span class="p">,</span><span class="w"> </span><span class="na">style</span><span class="p">=</span><span class="s2">"rounded,filled"</span><span class="p">,</span><span class="w"> </span><span class="na">fillcolor</span><span class="p">=</span><span class="s2">"#2d2d2d"</span><span class="p">,</span><span class="w"> </span><span class="na">color</span><span class="p">=</span><span class="s2">"#b39ddb"</span><span class="p">,</span><span class="w"> </span><span class="na">fontcolor</span><span class="p">=</span><span class="s2">"#e0e0e0"</span><span class="p">,</span><span class="w"> </span><span class="na">fontname</span><span class="p">=</span><span class="s2">"sans-serif"</span><span class="p">,</span><span class="w"> </span><span class="na">fontsize</span><span class="p">=</span><span class="m">14</span><span class="p">,</span><span class="w"> </span><span class="na">margin</span><span class="p">=</span><span class="s2">"0.4,0.3"</span><span class="p">];</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="k">edge</span><span class="w"> </span><span class="p">[</span><span class="na">fontname</span><span class="p">=</span><span class="s2">"sans-serif"</span><span class="p">,</span><span class="w"> </span><span class="na">fontsize</span><span class="p">=</span><span class="m">11</span><span class="p">,</span><span class="w"> </span><span class="na">color</span><span class="p">=</span><span class="s2">"#b0b0b0"</span><span class="p">];</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="k">subgraph</span><span class="w"> </span><span class="nt">cluster_File</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="na">label</span><span class="p">=</span><span class="s2">"File"</span><span class="p">;</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="na">fontname</span><span class="p">=</span><span class="s2">"sans-serif"</span><span class="p">;</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="na">fontsize</span><span class="p">=</span><span class="m">16</span><span class="p">;</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="na">fontcolor</span><span class="p">=</span><span class="s2">"#e0e0e0"</span><span class="p">;</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="na">labelloc</span><span class="p">=</span><span class="s">t</span><span class="p">;</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="na">style</span><span class="p">=</span><span class="s2">"rounded"</span><span class="p">;</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="na">color</span><span class="p">=</span><span class="s2">"#b39ddb"</span><span class="p">;</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="na">bgcolor</span><span class="p">=</span><span class="s2">"#1e1e1e"</span><span class="p">;</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="na">margin</span><span class="p">=</span><span class="m">30</span><span class="p">;</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="nt">Closed</span><span class="p">;</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="nt">Open</span><span class="p">;</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">    </span><span class="nt">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Open</span><span class="p">;</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">    </span><span class="nt">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="p">;</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="p">}</span>
 </code></pre></div>
 <p>Rendered as a diagram:</p>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/file-states.svg" data-desc-position="bottom"><img alt="File State Machine" src="../../assets/images/file-states.svg"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/generated/file.svg" data-desc-position="bottom"><img alt="File State Machine" src="../../assets/images/generated/file.svg"></a></p>
+<div class="admonition note">
+<p class="admonition-title">Output Format</p>
+<p>The CLI generates a unified graph with each typestate as a labeled subgraph.
+This allows multiple typestates and bridges to be visualized together in a single diagram.</p>
+</div>
 <h2 id="example-payment-processing">Example: Payment Processing<a class="headerlink" href="#example-payment-processing" title="Permanent link">¶</a></h2>
 <p>A more complex example with branching transitions:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Payment</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Created</span><span class="p">,</span><span class="w"> </span><span class="n">Authorized</span><span class="p">,</span><span class="w"> </span><span class="n">Captured</span><span class="p">,</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="p">,</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="p">,</span><span class="w"> </span><span class="n">Settled</span><span class="p">,</span><span class="w"> </span><span class="n">Voided</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authorized</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Captured</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Voided</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">AuthResult</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">Captured</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Settled</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">CaptureResult</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Settled</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RefundResult</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Settled</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Payment</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Created</span><span class="p">,</span><span class="w"> </span><span class="n">Authorized</span><span class="p">,</span><span class="w"> </span><span class="n">Captured</span><span class="p">,</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="p">,</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="p">,</span><span class="w"> </span><span class="n">Settled</span><span class="p">,</span><span class="w"> </span><span class="n">Voided</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authorized</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="n">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Captured</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Voided</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">AuthResult</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="n">Captured</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Settled</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">CaptureResult</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">PartiallyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Settled</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RefundResult</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="n">FullyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Settled</span>
 </code></pre></div>
-<p>DOT output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">digraph</span><span class="w"> </span><span class="nt">Payment</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="na">rankdir</span><span class="p">=</span><span class="s">LR</span><span class="p">;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="k">node</span><span class="w"> </span><span class="p">[</span><span class="na">shape</span><span class="p">=</span><span class="s">box</span><span class="p">];</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">Created</span><span class="p">;</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">Authorized</span><span class="p">;</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">Captured</span><span class="p">;</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nt">PartiallyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nt">FullyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nt">Settled</span><span class="p">;</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="nt">Voided</span><span class="p">;</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="nt">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Authorized</span><span class="p">;</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nt">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Captured</span><span class="p">;</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Voided</span><span class="p">;</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="nt">Captured</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">PartiallyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="nt">Captured</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">FullyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">  </span><span class="nt">Captured</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Settled</span><span class="p">;</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span><span class="nt">PartiallyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">PartiallyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="nt">PartiallyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">FullyRefunded</span><span class="p">;</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="nt">PartiallyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Settled</span><span class="p">;</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">  </span><span class="nt">FullyRefunded</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Settled</span><span class="p">;</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="p">}</span>
-</code></pre></div>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/payment-states.svg" data-desc-position="bottom"><img alt="Payment State Machine" src="../../assets/images/payment-states.svg"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/generated/payment.svg" data-desc-position="bottom"><img alt="Payment State Machine" src="../../assets/images/generated/payment.svg"></a></p>
 <h2 id="example-wildcard-transitions">Example: Wildcard Transitions<a class="headerlink" href="#example-wildcard-transitions" title="Permanent link">¶</a></h2>
-<p>Wildcard transitions (<code>* -&gt; State</code>) are rendered with dashed edges:</p>
+<p>Wildcard transitions (<code>* -&gt; State</code>) are rendered with dotted gray edges:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">DbConnection</span><span class="p">:</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pooled</span><span class="p">,</span><span class="w"> </span><span class="n">CheckedOut</span><span class="p">,</span><span class="w"> </span><span class="n">InTransaction</span><span class="p">,</span><span class="w"> </span><span class="n">Closed</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
@@ -1074,44 +1312,22 @@
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="n">InTransaction</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">CheckedOut</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
-<p>DOT output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">digraph</span><span class="w"> </span><span class="nt">DbConnection</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="na">rankdir</span><span class="p">=</span><span class="s">LR</span><span class="p">;</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="k">node</span><span class="w"> </span><span class="p">[</span><span class="na">shape</span><span class="p">=</span><span class="s">box</span><span class="p">];</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">Pooled</span><span class="p">;</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">CheckedOut</span><span class="p">;</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="nt">InTransaction</span><span class="p">;</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="nt">Closed</span><span class="p">;</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="nt">Pooled</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">CheckedOut</span><span class="p">;</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="nt">Pooled</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="p">;</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="nt">CheckedOut</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Pooled</span><span class="p">;</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span><span class="nt">CheckedOut</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">InTransaction</span><span class="p">;</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="nt">CheckedOut</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="p">;</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span><span class="nt">InTransaction</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">CheckedOut</span><span class="p">;</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nt">Pooled</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="w"> </span><span class="p">[</span><span class="na">style</span><span class="p">=</span><span class="s">dashed</span><span class="p">];</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span><span class="nt">CheckedOut</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="w"> </span><span class="p">[</span><span class="na">style</span><span class="p">=</span><span class="s">dashed</span><span class="p">];</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">  </span><span class="nt">InTransaction</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="w"> </span><span class="p">[</span><span class="na">style</span><span class="p">=</span><span class="s">dashed</span><span class="p">];</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">  </span><span class="nt">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="w"> </span><span class="p">[</span><span class="na">style</span><span class="p">=</span><span class="s">dashed</span><span class="p">];</span>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="p">}</span>
-</code></pre></div>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/db-connection-states.svg" data-desc-position="bottom"><img alt="Database Connection States" src="../../assets/images/db-connection-states.svg"></a></p>
-<p>The dashed edges indicate transitions that apply from any state (wildcard).</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/generated/dbconnection.svg" data-desc-position="bottom"><img alt="Database Connection States" src="../../assets/images/generated/dbconnection.svg"></a></p>
+<p>The dotted gray edges indicate transitions that come only from the wildcard. Explicit transitions (like <code>Pooled -&gt; Closed</code>) remain solid.</p>
 <h2 id="installing-graphviz">Installing GraphViz<a class="headerlink" href="#installing-graphviz" title="Permanent link">¶</a></h2>
 <p>The DOT output can be rendered with GraphViz. Install it for your platform:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><input id="__tabbed_1_3" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">macOS</label><label for="__tabbed_1_2">Ubuntu/Debian</label><label for="__tabbed_1_3">Windows</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>brew<span class="w"> </span>install<span class="w"> </span>graphviz
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>brew<span class="w"> </span>install<span class="w"> </span>graphviz
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>graphviz
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>graphviz
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>choco<span class="w"> </span>install<span class="w"> </span>graphviz
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>choco<span class="w"> </span>install<span class="w"> </span>graphviz
 </code></pre></div>
 </div>
 </div>
@@ -1150,42 +1366,77 @@
 </tbody>
 </table>
 <h2 id="customizing-output">Customizing Output<a class="headerlink" href="#customizing-output" title="Permanent link">¶</a></h2>
-<p>You can post-process the DOT output for custom styling:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Add custom colors</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/shape=box/shape=box, fillcolor=lightblue, style=filled/'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>colored.png
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Change layout direction (top-to-bottom)</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/rankdir=LR/rankdir=TB/'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>vertical.png
+<p>The CLI produces dark mode styled output by default with light purple accents. For easier customization, use <code>--no-style</code> to get minimal DOT output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Minimal output without styling - easier to customize</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--no-style<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>minimal.dot
 </code></pre></div>
+<p>You can also post-process the styled output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Light mode (swap colors)</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/#2d2d2d/#f5f5f5/g; s/#1e1e1e/#fafafa/g; s/#e0e0e0/#212121/g; s/#b0b0b0/#424242/g'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>light.png
+</code></pre></div>
+<h3 id="-no-style-output">--no-style Output<a class="headerlink" href="#-no-style-output" title="Permanent link">¶</a></h3>
+<p>The <code>--no-style</code> flag produces bare DOT structure with no styling attributes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">digraph</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="k">subgraph</span><span class="w"> </span><span class="nt">cluster_File</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="na">label</span><span class="p">=</span><span class="s2">"File"</span><span class="p">;</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nt">Closed</span><span class="p">;</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nt">Open</span><span class="p">;</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="nt">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Open</span><span class="p">;</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="nt">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nt">Closed</span><span class="p">;</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="p">}</span>
+</code></pre></div>
+<p>This is ideal when you want to apply your own colors, fonts, and layout settings. Edge styles (<code>dotted</code>, <code>dashed</code>) are preserved to distinguish wildcard and bridge transitions.</p>
 <h2 id="generating-documentation-images">Generating Documentation Images<a class="headerlink" href="#generating-documentation-images" title="Permanent link">¶</a></h2>
 <p>To include diagrams in your documentation:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Create images directory</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>docs/assets/images
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Generate all typestate diagrams</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>csplit<span class="w"> </span>-f<span class="w"> </span>docs/assets/images/state-<span class="w"> </span>-b<span class="w"> </span><span class="s1">'%02d.dot'</span><span class="w"> </span>-<span class="w"> </span><span class="s1">'/^digraph/'</span><span class="w"> </span><span class="s1">'{*}'</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># Convert each to SVG</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">for</span><span class="w"> </span>f<span class="w"> </span><span class="k">in</span><span class="w"> </span>docs/assets/images/state-*.dot<span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span>dot<span class="w"> </span>-Tsvg<span class="w"> </span><span class="s2">"</span><span class="nv">$f</span><span class="s2">"</span><span class="w"> </span>-o<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">f</span><span class="p">%.dot</span><span class="si">}</span><span class="s2">.svg"</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="k">done</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Create images directory</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>docs/assets/images
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Generate all typestate diagrams</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>csplit<span class="w"> </span>-f<span class="w"> </span>docs/assets/images/state-<span class="w"> </span>-b<span class="w"> </span><span class="s1">'%02d.dot'</span><span class="w"> </span>-<span class="w"> </span><span class="s1">'/^digraph/'</span><span class="w"> </span><span class="s1">'{*}'</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Convert each to SVG</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="k">for</span><span class="w"> </span>f<span class="w"> </span><span class="k">in</span><span class="w"> </span>docs/assets/images/state-*.dot<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span>dot<span class="w"> </span>-Tsvg<span class="w"> </span><span class="s2">"</span><span class="nv">$f</span><span class="s2">"</span><span class="w"> </span>-o<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">f</span><span class="p">%.dot</span><span class="si">}</span><span class="s2">.svg"</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="k">done</span>
 </code></pre></div>
 <h2 id="multiple-typestates">Multiple Typestates<a class="headerlink" href="#multiple-typestates" title="Permanent link">¶</a></h2>
-<p>If your project has multiple typestates, the <code>dot</code> command outputs them all sequentially:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>dot<span class="w"> </span>src/
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>digraph<span class="w"> </span>File<span class="w"> </span><span class="o">{</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>...
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="o">}</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>digraph<span class="w"> </span>Payment<span class="w"> </span><span class="o">{</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span>...
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="o">}</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>digraph<span class="w"> </span>Session<span class="w"> </span><span class="o">{</span>
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">  </span>...
-<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="o">}</span>
+<p>If your project has multiple typestates, the <code>dot</code> command outputs them all in a single unified graph with separate subgraphs. Bridges between typestates are shown as dashed purple edges.</p>
+<h3 id="example-authentication-flow-with-session">Example: Authentication Flow with Session<a class="headerlink" href="#example-authentication-flow-with-session" title="Permanent link">¶</a></h3>
+<p>This example shows two typestates with bridges connecting them:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c"># Session typestate</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">type</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="n">Session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="n">Expired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Session</span><span class="p">:</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="n">Active</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="c"># AuthFlow typestate with bridges to Session</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="k">type</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">  </span><span class="n">AuthFlow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">  </span><span class="n">Pending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="w">  </span><span class="n">Failed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">,</span><span class="w"> </span><span class="n">Failed</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Failed</span>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="w">    </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Expired</span>
 </code></pre></div>
-<p>You can split them into separate files with tools like <code>csplit</code> or process them programmatically.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/generated/multi.svg" data-desc-position="bottom"><img alt="Multiple Typestates with Bridges" src="../../assets/images/generated/multi.svg"></a></p>
+<p>The dashed purple edges show bridges connecting states across different typestates.</p>
 
 
 
@@ -1208,7 +1459,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 05:29:10 UTC"><span class="timeago" datetime="2025-12-05T05:29:10+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 05:29:10 UTC">2025-12-05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 6, 2025 06:42:59 UTC"><span class="timeago" datetime="2025-12-06T06:42:59+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 6, 2025 06:42:59 UTC">2025-12-06</span>
   </span>
 
     

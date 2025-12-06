@@ -13,6 +13,8 @@
         <link rel="prev" href="../guide/visualization/">
       
       
+        <link rel="next" href="../contributing/">
+      
       
         
       
@@ -1345,6 +1347,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#SplineMode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplineMode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#VerifyResult" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1424,6 +1437,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2069,6 +2109,17 @@
   
     <nav class="md-nav" aria-label="cli">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#SplineMode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplineMode
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#VerifyResult" class="md-nav__link">
@@ -4221,8 +4272,10 @@ easier to use at runtime:</p>
         <p>Build a generic params node for proc/type definitions.</p>
 <p>For <code>@[T]</code>, generates: <code>[T]</code>
 For <code>@[K, V]</code>, generates: <code>[K, V]</code>
+For <code>@[N: static int]</code>, generates: <code>[N: static int]</code>
+For <code>@[T: SomeInteger]</code>, generates: <code>[T: SomeInteger]</code>
 For <code>@[]</code>, returns empty node (non-generic)</p>
-<p>:param typeParams: Sequence of type parameter idents
+<p>:param typeParams: Sequence of type parameter nodes
 :returns: nnkGenericParams node or newEmptyNode()</p>
       </div>
     
@@ -4235,7 +4288,7 @@ For <code>@[]</code>, returns empty node (non-generic)</p>
             <li>
               <code>typeParams</code>
               (<code>seq[NimNode]</code>)
-               – Sequence of type parameter idents
+               – Sequence of type parameter nodes
             </li>
           
         </ul>
@@ -4324,8 +4377,8 @@ For <code>Simple</code>, returns <code>@[]</code></p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L32" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:32
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L45" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:45
           </a>
         
       </div>
@@ -4400,8 +4453,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L46" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:46
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L59" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:59
           </a>
         
       </div>
@@ -4474,8 +4527,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L84" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:84
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L97" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:97
           </a>
         
       </div>
@@ -4548,8 +4601,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L137" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:137
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L150" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:150
           </a>
         
       </div>
@@ -4612,8 +4665,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L190" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:190
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L203" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:203
           </a>
         
       </div>
@@ -4680,8 +4733,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L197" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:197
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L210" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:210
           </a>
         
       </div>
@@ -4765,8 +4818,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L219" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:219
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L232" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:232
           </a>
         
       </div>
@@ -4842,8 +4895,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L325" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:325
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L339" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:339
           </a>
         
       </div>
@@ -4928,8 +4981,8 @@ in multiple branch types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L399" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:399
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L414" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:414
           </a>
         
       </div>
@@ -5006,8 +5059,8 @@ and procs include proper type parameters.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L489" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:489
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L505" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:505
           </a>
         
       </div>
@@ -5051,6 +5104,39 @@ to fail loudly with a clear error message.</p>
         <div class="doc doc-object doc-type">
   
 
+  <h4 id="SplineMode" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
+    <span class="doc doc-object-name doc-type-name">SplineMode</span>
+  <a href="#SplineMode" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">type SplineMode</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L23" target="_blank" rel="noopener">
+            src/typestates/cli.nim:23
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-type">
+  
+
   <h4 id="VerifyResult" class="doc doc-heading">
     <code class="doc-symbol doc-symbol-heading doc-symbol-type"></code>
     <span class="doc doc-object-name doc-type-name">VerifyResult</span>
@@ -5069,8 +5155,8 @@ to fail loudly with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L23" target="_blank" rel="noopener">
-            src/typestates/cli.nim:23
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L36" target="_blank" rel="noopener">
+            src/typestates/cli.nim:36
           </a>
         
       </div>
@@ -5138,8 +5224,8 @@ files with syntax errors.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L35" target="_blank" rel="noopener">
-            src/typestates/cli.nim:35
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L48" target="_blank" rel="noopener">
+            src/typestates/cli.nim:48
           </a>
         
       </div>
@@ -5163,7 +5249,7 @@ files with syntax errors.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateDot(ts: ParsedTypestate): string</code></pre>
+      <pre><code class="language-nim">proc generateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
     </div>
   
 
@@ -5173,19 +5259,9 @@ files with syntax errors.</p>
         <p>Generate GraphViz DOT output for a typestate.</p>
 <p>Creates a directed graph representation suitable for rendering
 with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
-<p>Example output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>digraph File {
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  rankdir=LR;
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  node [shape=box];
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  Closed;
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  Open;
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  Closed -&gt; Open;
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  Open -&gt; Closed;
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>}
-</code></pre></div>
 <p>:param ts: The parsed typestate to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
 :returns: DOT format string</p>
       </div>
     
@@ -5199,6 +5275,18 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
               <code>ts</code>
               (<code>ParsedTypestate</code>)
                – The parsed typestate to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
             </li>
           
         </ul>
@@ -5218,8 +5306,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L46" target="_blank" rel="noopener">
-            src/typestates/cli.nim:46
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L148" target="_blank" rel="noopener">
+            src/typestates/cli.nim:148
           </a>
         
       </div>
@@ -5243,7 +5331,7 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateUnifiedDot(typestates: seq[ParsedTypestate]): string</code></pre>
+      <pre><code class="language-nim">proc generateUnifiedDot(typestates: seq[ParsedTypestate]; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
     </div>
   
 
@@ -5252,31 +5340,9 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-description">
         <p>Generate a unified GraphViz DOT output showing all typestates.</p>
 <p>Creates subgraphs for each typestate with cross-cluster edges for bridges.</p>
-<p>Example output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>digraph {
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  rankdir=LR;
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  node [shape=box];
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  subgraph cluster_AuthFlow {
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    label="AuthFlow";
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    Authenticated;
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    Failed;
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    Authenticated -&gt; Failed;
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  }
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  subgraph cluster_Session {
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    label="Session";
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    Active;
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    Closed;
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    Active -&gt; Closed;
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  }
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  // Bridges (cross-cluster edges)
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  Authenticated -&gt; Active [style=dashed, label="bridge"];
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  Failed -&gt; Closed [style=dashed, label="bridge"];
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>}
-</code></pre></div>
 <p>:param typestates: List of parsed typestates to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
 :returns: DOT format string</p>
       </div>
     
@@ -5290,6 +5356,18 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
               <code>typestates</code>
               (<code>seq[ParsedTypestate]</code>)
                – List of parsed typestates to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
             </li>
           
         </ul>
@@ -5309,8 +5387,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L95" target="_blank" rel="noopener">
-            src/typestates/cli.nim:95
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L195" target="_blank" rel="noopener">
+            src/typestates/cli.nim:195
           </a>
         
       </div>
@@ -5334,7 +5412,7 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateSeparateDot(ts: ParsedTypestate): string</code></pre>
+      <pre><code class="language-nim">proc generateSeparateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
     </div>
   
 
@@ -5343,20 +5421,9 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-description">
         <p>Generate GraphViz DOT output for a single typestate.</p>
 <p>Bridges are shown as terminal nodes with dashed edges.</p>
-<p>Example output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>digraph AuthFlow {
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  rankdir=LR;
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  node [shape=box];
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  Authenticated;
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  Failed;
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  Authenticated -&gt; Failed;
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  Authenticated -&gt; "Session.Active" [style=dashed];
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  Failed -&gt; "Session.Closed" [style=dashed];
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>}
-</code></pre></div>
 <p>:param ts: The parsed typestate to visualize
+:param noStyle: If true, output bare DOT structure with no styling
+:param splineMode: Edge routing mode (spline, ortho, polyline, line)
 :returns: DOT format string</p>
       </div>
     
@@ -5370,6 +5437,18 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
               <code>ts</code>
               (<code>ParsedTypestate</code>)
                – The parsed typestate to visualize
+            </li>
+          
+            <li>
+              <code>noStyle</code>
+              (<code>bool</code>)
+               – If true, output bare DOT structure with no styling
+            </li>
+          
+            <li>
+              <code>splineMode</code>
+              (<code>SplineMode</code>)
+               – Edge routing mode (spline, ortho, polyline, line)
             </li>
           
         </ul>
@@ -5389,8 +5468,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L185" target="_blank" rel="noopener">
-            src/typestates/cli.nim:185
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L290" target="_blank" rel="noopener">
+            src/typestates/cli.nim:290
           </a>
         
       </div>
@@ -5461,8 +5540,8 @@ immediately with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L286" target="_blank" rel="noopener">
-            src/typestates/cli.nim:286
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L394" target="_blank" rel="noopener">
+            src/typestates/cli.nim:394
           </a>
         
       </div>

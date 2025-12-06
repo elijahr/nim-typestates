@@ -577,6 +577,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#constrained-generic-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constrained Generic Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pattern-builder-with-required-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -859,6 +870,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -956,6 +994,17 @@
     <span class="md-ellipsis">
       
         Supported Type Expressions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constrained-generic-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constrained Generic Parameters
       
     </span>
   </a>
@@ -1229,78 +1278,113 @@
 <tr>
 <td>Constrained generics</td>
 <td><code>Container[T: SomeInteger]</code></td>
-<td>With type bounds</td>
+<td>With type bounds (see below)</td>
+</tr>
+<tr>
+<td>Static parameters</td>
+<td><code>Buffer[N: static int]</code></td>
+<td>Compile-time values</td>
 </tr>
 </tbody>
 </table>
+<h2 id="constrained-generic-parameters">Constrained Generic Parameters<a class="headerlink" href="#constrained-generic-parameters" title="Permanent link">¶</a></h2>
+<p>When using constrained generic parameters, <strong>you must repeat the constraint in the typestate declaration</strong>. This applies to all constraints including type bounds (<code>SomeInteger</code>, <code>SomeNumber</code>) and static parameters (<code>static int</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">type</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="c"># Type definitions with constraints</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">array</span><span class="o">[</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">byte</span><span class="o">]</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c"># Constraint MUST be repeated in typestate header</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+</code></pre></div>
+<p>The same applies to type constraints:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">type</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">NumericContainer</span><span class="o">[</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">SomeNumber</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="n">Unset</span><span class="o">[</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">SomeNumber</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">NumericContainer</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nb">Set</span><span class="o">[</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">SomeNumber</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">NumericContainer</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c"># Constraint MUST be repeated</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="n">typestate</span><span class="w"> </span><span class="n">NumericContainer</span><span class="o">[</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">SomeNumber</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Unset</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="nb">Set</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">    </span><span class="n">Unset</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Set</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+</code></pre></div>
 <h2 id="pattern-builder-with-required-fields">Pattern: Builder with Required Fields<a class="headerlink" href="#pattern-builder-with-required-fields" title="Permanent link">¶</a></h2>
 <p>Use generics to track which fields have been set:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">type</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">UserBuilder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="n">NeedsBoth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="n">Complete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">:</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">NeedsBoth</span><span class="p">,</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">,</span><span class="w"> </span><span class="n">Complete</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="n">NeedsBoth</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">NeedsEmail</span>
-<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Complete</span>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="k">proc</span><span class="w"> </span><span class="nf">withName</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">NeedsBoth</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span><span class="n">builder</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span>
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
-<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="k">proc</span><span class="w"> </span><span class="nf">withEmail</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Complete</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">  </span><span class="n">builder</span><span class="p">.</span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">email</span>
-<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Complete</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
-<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="k">proc</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">Complete</span><span class="p">):</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">  </span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">email</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">type</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="n">UserBuilder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="n">NeedsBoth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="n">Complete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">UserBuilder</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">:</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">NeedsBoth</span><span class="p">,</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">,</span><span class="w"> </span><span class="n">Complete</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="n">NeedsBoth</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">NeedsEmail</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Complete</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="k">proc</span><span class="w"> </span><span class="nf">withName</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">NeedsBoth</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">  </span><span class="n">builder</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="k">proc</span><span class="w"> </span><span class="nf">withEmail</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">NeedsEmail</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Complete</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">  </span><span class="n">builder</span><span class="p">.</span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">email</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Complete</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="k">proc</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">Complete</span><span class="p">):</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserBuilder</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">  </span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">:</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">email</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="pattern-resource-wrapper">Pattern: Resource Wrapper<a class="headerlink" href="#pattern-resource-wrapper" title="Permanent link">¶</a></h2>
 <p>Wrap any resource type with acquire/release protocol:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">type</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">    </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="k">proc</span><span class="w"> </span><span class="nf">acquire</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="n">T</span><span class="p">):</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">  </span><span class="n">res</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">handle</span>
-<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="k">proc</span><span class="w"> </span><span class="nf">release</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
-<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>
-<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="k">proc</span><span class="w"> </span><span class="nf">use</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="w">  </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">).</span><span class="n">handle</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">type</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="k">proc</span><span class="w"> </span><span class="nf">acquire</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="n">T</span><span class="p">):</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">  </span><span class="n">res</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">handle</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="k">proc</span><span class="w"> </span><span class="nf">release</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Released</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="k">proc</span><span class="w"> </span><span class="nf">use</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Acquired</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="w">  </span><span class="n">Resource</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">r</span><span class="p">).</span><span class="n">handle</span>
 </code></pre></div>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h2>
 <ol>
+<li><strong>Constraints must be repeated</strong>: Generic constraints (<code>static int</code>, <code>SomeInteger</code>, etc.) must be explicitly stated in the typestate header - they cannot be inferred from type definitions. See <a href="#constrained-generic-parameters">Constrained Generic Parameters</a>.</li>
 <li><strong>Same base name</strong>: All states in a generic typestate must have distinct base names (e.g., <code>Empty[T]</code> and <code>Empty[V]</code> would conflict)</li>
 <li><strong>Branch type params must match</strong>: Branch type parameters must use the same type variables as the typestate (e.g., <code>FillResult[K]</code> when typestate uses <code>T</code> will fail)</li>
 <li><strong>Distinct types with multiple params</strong>: Due to a Nim compiler limitation, using <code>distinct</code> with multiple generic params may cause C compilation errors. Use wrapper objects instead:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c"># May cause issues with distinct</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">type</span><span class="w"> </span><span class="n">EmptyMap</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Map</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c"># Works reliably</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">type</span><span class="w"> </span><span class="n">EmptyMap</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="n">inner</span><span class="p">:</span><span class="w"> </span><span class="n">Map</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c"># May cause issues with distinct</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">type</span><span class="w"> </span><span class="n">EmptyMap</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Map</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c"># Works reliably</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">type</span><span class="w"> </span><span class="n">EmptyMap</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="n">inner</span><span class="p">:</span><span class="w"> </span><span class="n">Map</span><span class="o">[</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">]</span>
 </code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ul>
@@ -1329,7 +1413,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 07:08:31 UTC"><span class="timeago" datetime="2025-12-05T07:08:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 07:08:31 UTC">2025-12-05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 10:10:13 UTC"><span class="timeago" datetime="2025-12-05T10:10:13+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 10:10:13 UTC">2025-12-05</span>
   </span>
 
     
