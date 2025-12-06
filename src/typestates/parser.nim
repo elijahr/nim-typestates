@@ -45,8 +45,23 @@ proc extractBaseName(node: NimNode): string =
 proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ## Parse a states declaration and add states to the graph.
   ##
-  ## Accepts both command syntax (`states Closed, Open`) and
-  ## call syntax (`states(Closed, Open)`).
+  ## Accepts multiple syntax forms:
+  ##
+  ## - Inline: `states Closed, Open, Errored`
+  ## - Multiline block:
+  ##   ```
+  ##   states:
+  ##     Closed
+  ##     Open
+  ##     Errored
+  ##   ```
+  ## - Multiline with commas:
+  ##   ```
+  ##   states:
+  ##     Closed,
+  ##     Open,
+  ##     Errored
+  ##   ```
   ##
   ## States can be any valid Nim type expression:
   ##
@@ -73,6 +88,15 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   ##   BracketExpr
   ##     Ident "Full"
   ##     Ident "T"
+  ##
+  ## # Multiline: states:
+  ## #             Closed
+  ## #             Open
+  ## Call
+  ##   Ident "states"
+  ##   StmtList
+  ##     Ident "Closed"
+  ##     Ident "Open"
   ## ```
   ##
   ## :param graph: The typestate graph to populate
@@ -81,16 +105,32 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
   if node.kind notin {nnkCall, nnkCommand}:
     error("Expected call or command for states", node)
 
-  # First child is "states", rest are state type expressions
+  # First child is "states", rest are state type expressions or StmtList
   for i in 1 ..< node.len:
-    let stateNode = node[i]
-    let baseName = extractBaseName(stateNode)
-    let fullRepr = stateNode.repr
-    graph.states[fullRepr] = State(
-      name: baseName,
-      fullRepr: fullRepr,
-      typeName: stateNode
-    )
+    let child = node[i]
+
+    if child.kind == nnkStmtList:
+      # Multiline block: each child is a state
+      for stateNode in child:
+        if stateNode.kind == nnkEmpty:
+          continue
+        # Handle trailing commas: strip from repr if present
+        let baseName = extractBaseName(stateNode)
+        var fullRepr = stateNode.repr.strip(chars = {',', ' ', '\n'})
+        graph.states[fullRepr] = State(
+          name: baseName,
+          fullRepr: fullRepr,
+          typeName: stateNode
+        )
+    else:
+      # Inline: each child is a state
+      let baseName = extractBaseName(child)
+      let fullRepr = child.repr
+      graph.states[fullRepr] = State(
+        name: baseName,
+        fullRepr: fullRepr,
+        typeName: child
+      )
 
 proc collectBranchTargets(node: NimNode): seq[string] =
   ## Recursively collect all target states from a branching expression.
