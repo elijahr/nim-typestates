@@ -7,6 +7,38 @@ nim-typestates uses strict defaults to catch bugs early.
 By default, typestates have:
 
 - `strictTransitions = true` - All procs with state params must be marked
+- `consumeOnTransition = true` - State types cannot be copied
+
+## consumeOnTransition
+
+When enabled (default), state types cannot be copied. This prevents bugs where you accidentally use a stale state after transitioning:
+
+```nim
+typestate File:
+  states Closed, Open
+  transitions:
+    Closed -> Open
+    Open -> Closed
+
+let closed = Closed(File(handle: 0))
+let opened = closed.open()  # closed is consumed
+
+# This would be a bug - closed already transitioned!
+# let opened2 = closed.open()  # Compile error: cannot copy
+```
+
+The `=copy` hook is generated with an error pragma, ensuring compile-time enforcement.
+
+### Opting Out
+
+```nim
+typestate LegacyFile:
+  consumeOnTransition = false  # Allow copying
+  states Closed, Open
+  ...
+```
+
+Use this when you genuinely need to copy state (e.g., for logging the "before" state).
 
 ## strictTransitions
 

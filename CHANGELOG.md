@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `consumeOnTransition` flag (default: `true`)
+  - State types cannot be copied, preventing accidental reuse of stale states
+  - Opt out with `consumeOnTransition = false`
+- `initial:` and `terminal:` state declarations
+  - Initial states can only be constructed, not transitioned to
+  - Terminal states cannot transition to anything else
+  - Validated at both DSL and transition pragma level
+- Multiline state list syntax with optional newlines
+  ```nim
+  states:
+    Closed
+    Open
+    Errored
+  ```
+
+### Changed
+
+- States must have unique base type names
+  - Using same type with different static params (e.g., `GPIO[false]` vs `GPIO[true]`) now shows clear error
+  - Documentation explains wrapper type pattern as workaround
+
 ## [0.2.0] - 2025-12-06
 
 ### Added

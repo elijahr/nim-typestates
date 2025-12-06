@@ -20,6 +20,17 @@ List all state types that participate in this typestate:
 states Closed, Open, Reading, Writing, Errored
 ```
 
+Or use multiline format for readability:
+
+```nim
+states:
+  Closed
+  Open
+  Reading
+  Writing
+  Errored
+```
+
 Each state must be a `distinct` type of the base type:
 
 ```nim
@@ -71,6 +82,64 @@ Any state can transition to a destination using `*`:
 ```
 
 Wildcards are useful for "reset" or "cleanup" operations that work from any state.
+
+## Initial and Terminal States
+
+Declare entry and exit points for your typestate:
+
+### Initial States
+
+States that can only be constructed, not transitioned TO:
+
+```nim
+initial: Disconnected
+```
+
+Or multiple:
+
+```nim
+initial: Disconnected, Starting
+```
+
+Attempting to transition TO an initial state produces a compile-time error:
+
+```
+Error: Cannot transition TO initial state 'Disconnected'.
+  Initial states can only be constructed, not transitioned to.
+```
+
+### Terminal States
+
+States that cannot transition FROM (end states):
+
+```nim
+terminal: Closed
+```
+
+Or multiple:
+
+```nim
+terminal: Closed, Failed
+```
+
+Attempting to transition FROM a terminal state produces a compile-time error:
+
+```
+Error: Cannot transition FROM terminal state 'Closed'.
+  Terminal states are end states with no outgoing transitions.
+```
+
+### Complete Example
+
+```nim
+typestate Connection:
+  states Disconnected, Connected, Closed
+  initial: Disconnected
+  terminal: Closed
+  transitions:
+    Disconnected -> Connected
+    Connected -> Closed
+```
 
 ## Bridges
 
