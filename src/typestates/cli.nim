@@ -20,6 +20,19 @@ import ast_parser
 export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
 
 type
+  SplineMode* = enum
+    ## Edge routing mode for DOT output.
+    smSpline = "spline"   ## Curved splines (default, best edge separation)
+    smOrtho = "ortho"     ## Right-angle edges only
+    smPolyline = "polyline" ## Straight line segments
+    smLine = "line"       ## Direct straight lines
+
+  EdgeInfo = object
+    fromState: string
+    toState: string
+    isWildcard: bool
+    headPort: string  # Compass point for arrow head (only used with non-ortho splines)
+
   VerifyResult* = object
     ## Results from verifying source files.
     ##
@@ -43,37 +56,127 @@ proc parseTypestates*(paths: seq[string]): ParseResult =
   ## :raises ParseError: on syntax errors
   result = parseTypestatesAst(paths)
 
-proc generateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
+proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
+  ## Compute all edges with wildcard deduplication and optional compass points.
+  ##
+  ## Explicit edges take precedence over wildcard-expanded edges.
+  ## If an explicit edge exists, the wildcard version is skipped.
+  ##
+  ## When useCompassPoints is true, edges to nodes with multiple incoming
+  ## edges are distributed across compass points for better separation.
+  ##
+  ## :param ts: The parsed typestate
+  ## :param useCompassPoints: Whether to assign compass points for edge distribution
+  ## :returns: Sequence of deduplicated edges
+
+  # Compass points for incoming edges (for TB layout, prefer sides over top)
+  const compassPoints = ["e", "w", "s", "se", "sw"]
+
+  var explicitEdges: seq[(string, string)] = @[]
+  var allEdges: seq[EdgeInfo] = @[]
+
+  # Collect explicit edges first
+  for trans in ts.transitions:
+    if not trans.isWildcard:
+      for toState in trans.toStates:
+        explicitEdges.add (trans.fromState, toState)
+        allEdges.add EdgeInfo(
+          fromState: trans.fromState,
+          toState: toState,
+          isWildcard: false,
+          headPort: ""
+        )
+
+  # Add wildcard edges (skip if explicit exists)
+  for trans in ts.transitions:
+    if trans.isWildcard:
+      for fromState in ts.states:
+        for toState in trans.toStates:
+          if (fromState, toState) notin explicitEdges:
+            allEdges.add EdgeInfo(
+              fromState: fromState,
+              toState: toState,
+              isWildcard: true,
+              headPort: ""
+            )
+
+  # Assign compass points if enabled
+  if useCompassPoints:
+    # Count incoming edges per node
+    var incomingCount: Table[string, int]
+    for edge in allEdges:
+      incomingCount.mgetOrPut(edge.toState, 0).inc
+
+    # Assign compass points to nodes with multiple incoming edges
+    var incomingIndex: Table[string, int]
+
+    for i in 0..<allEdges.len:
+      let toState = allEdges[i].toState
+      let fromState = allEdges[i].fromState
+
+      if fromState == toState:
+        # Self-loop: use east side
+        allEdges[i].headPort = "e"
+      elif incomingCount.getOrDefault(toState, 0) > 1:
+        # Multiple incoming edges: distribute across compass points
+        let idx = incomingIndex.mgetOrPut(toState, 0)
+        allEdges[i].headPort = compassPoints[idx mod compassPoints.len]
+        incomingIndex[toState] = idx + 1
+
+  result = allEdges
+
+proc formatEdge(edge: EdgeInfo, indent: string, noStyle: bool): string =
+  ## Format a single edge as DOT syntax.
+  ##
+  ## :param edge: The edge info (may include compass point in headPort)
+  ## :param indent: Indentation string (e.g., "  " or "    ")
+  ## :param noStyle: If true, use minimal styling (dotted style only, no colors)
+  ## :returns: DOT edge statement
+  let target = if edge.headPort.len > 0:
+    edge.toState & ":" & edge.headPort
+  else:
+    edge.toState
+
+  if edge.isWildcard:
+    if noStyle:
+      result = indent & edge.fromState & " -> " & target & " [style=dotted];"
+    else:
+      result = indent & edge.fromState & " -> " & target & " [style=dotted, color=\"#757575\"];"
+  else:
+    result = indent & edge.fromState & " -> " & target & ";"
+
+proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline): string =
   ## Generate GraphViz DOT output for a typestate.
   ##
   ## Creates a directed graph representation suitable for rendering
   ## with `dot`, `neato`, or other GraphViz tools.
   ##
   ## :param ts: The parsed typestate to visualize
-  ## :param noStyle: If true, output minimal DOT without custom styling
+  ## :param noStyle: If true, output bare DOT structure with no styling
+  ## :param splineMode: Edge routing mode (spline, ortho, polyline, line)
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
   lines.add "digraph " & ts.name & " {"
-  lines.add "  rankdir=LR;"
-  lines.add "  splines=ortho;"     # Right-angle edges only
-  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
-  lines.add "  ranksep=1.5;"       # Horizontal spacing between ranks
 
-  if noStyle:
-    # Minimal styling for easy customization
-    lines.add "  node [shape=box];"
-  else:
+  # Compass points only work with non-ortho splines
+  # ordering=out crashes when combined with compass points, so only use it with ortho
+  let useCompassPoints = splineMode != smOrtho
+
+  if not noStyle:
     const fontStack = "sans-serif"
+    lines.add "  rankdir=TB;"
+    lines.add "  splines=" & $splineMode & ";"
+    lines.add "  nodesep=1.0;"
+    lines.add "  ranksep=1.0;"
+    if splineMode == smOrtho:
+      lines.add "  ordering=out;"
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    # Node styling: dark mode with light purple accents
     lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
-    # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
-
-  lines.add ""
+    lines.add ""
 
   # Add nodes
   for state in ts.states:
@@ -82,56 +185,45 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
   lines.add ""
 
   # Add edges
-  for trans in ts.transitions:
-    if trans.isWildcard:
-      if noStyle:
-        for fromState in ts.states:
-          for toState in trans.toStates:
-            lines.add "  " & fromState & " -> " & toState & " [style=dotted];"
-      else:
-        # Wildcard transitions: dotted medium gray
-        for fromState in ts.states:
-          for toState in trans.toStates:
-            lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
-    else:
-      for toState in trans.toStates:
-        lines.add "  " & trans.fromState & " -> " & toState & ";"
+  let edges = computeEdges(ts, useCompassPoints)
+  for edge in edges:
+    lines.add formatEdge(edge, "  ", noStyle)
 
   lines.add "}"
   result = lines.join("\n")
 
-proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false): string =
+proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false, splineMode: SplineMode = smSpline): string =
   ## Generate a unified GraphViz DOT output showing all typestates.
   ##
   ## Creates subgraphs for each typestate with cross-cluster edges for bridges.
   ##
   ## :param typestates: List of parsed typestates to visualize
-  ## :param noStyle: If true, output minimal DOT without custom styling
+  ## :param noStyle: If true, output bare DOT structure with no styling
+  ## :param splineMode: Edge routing mode (spline, ortho, polyline, line)
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
-  # Font stack: Inter is a modern, highly legible sans-serif
-  const fontStack = "sans-serif"
+  # Compass points only work with non-ortho splines
+  # ordering=out crashes when combined with compass points, so only use it with ortho
+  let useCompassPoints = splineMode != smOrtho
 
   lines.add "digraph {"
-  lines.add "  rankdir=LR;"
-  lines.add "  splines=ortho;"     # Right-angle edges only
-  lines.add "  compound=true;"     # Better cluster edge routing
-  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
-  lines.add "  ranksep=1.5;"       # Horizontal spacing between ranks/clusters
 
-  if noStyle:
-    lines.add "  node [shape=box];"
-  else:
+  if not noStyle:
+    const fontStack = "sans-serif"
+    lines.add "  rankdir=TB;"
+    lines.add "  splines=" & $splineMode & ";"
+    lines.add "  compound=true;"
+    lines.add "  nodesep=1.0;"
+    lines.add "  ranksep=1.0;"
+    if splineMode == smOrtho:
+      lines.add "  ordering=out;"
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    # Node styling: dark mode with light purple accents
     lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
-    # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
-
-  lines.add ""
+    lines.add ""
 
   # Generate subgraphs for each typestate
   for ts in typestates:
@@ -139,14 +231,15 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
     lines.add "    label=\"" & ts.name & "\";"
 
     if not noStyle:
+      const fontStack = "sans-serif"
       lines.add "    fontname=\"" & fontStack & "\";"
       lines.add "    fontsize=16;"
-      lines.add "    fontcolor=\"#e0e0e0\";"  # Light text for dark mode
-      lines.add "    labelloc=t;"             # Label at top
+      lines.add "    fontcolor=\"#e0e0e0\";"
+      lines.add "    labelloc=t;"
       lines.add "    style=\"rounded\";"
-      lines.add "    color=\"#b39ddb\";"      # Light purple border
-      lines.add "    bgcolor=\"#1e1e1e\";"    # Dark background
-      lines.add "    margin=20;"              # Cluster padding
+      lines.add "    color=\"#b39ddb\";"
+      lines.add "    bgcolor=\"#1e1e1e\";"
+      lines.add "    margin=30;"
 
     lines.add ""
 
@@ -156,21 +249,10 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
 
     lines.add ""
 
-    # Add transitions (within this typestate)
-    for trans in ts.transitions:
-      if trans.isWildcard:
-        if noStyle:
-          for fromState in ts.states:
-            for toState in trans.toStates:
-              lines.add "    " & fromState & " -> " & toState & " [style=dotted];"
-        else:
-          # Wildcard transitions: dotted medium gray
-          for fromState in ts.states:
-            for toState in trans.toStates:
-              lines.add "    " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
-      else:
-        for toState in trans.toStates:
-          lines.add "    " & trans.fromState & " -> " & toState & ";"
+    # Add edges
+    let edges = computeEdges(ts, useCompassPoints)
+    for edge in edges:
+      lines.add formatEdge(edge, "    ", noStyle)
 
     lines.add "  }"
     lines.add ""
@@ -205,37 +287,37 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
   lines.add "}"
   result = lines.join("\n")
 
-proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
+proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline): string =
   ## Generate GraphViz DOT output for a single typestate.
   ##
   ## Bridges are shown as terminal nodes with dashed edges.
   ##
   ## :param ts: The parsed typestate to visualize
-  ## :param noStyle: If true, output minimal DOT without custom styling
+  ## :param noStyle: If true, output bare DOT structure with no styling
+  ## :param splineMode: Edge routing mode (spline, ortho, polyline, line)
   ## :returns: DOT format string
   var lines: seq[string] = @[]
 
-  # Font stack: Inter is a modern, highly legible sans-serif
-  const fontStack = "sans-serif"
+  # Compass points only work with non-ortho splines
+  # ordering=out crashes when combined with compass points, so only use it with ortho
+  let useCompassPoints = splineMode != smOrtho
 
   lines.add "digraph " & ts.name & " {"
-  lines.add "  rankdir=LR;"
-  lines.add "  splines=ortho;"     # Right-angle edges only
-  lines.add "  nodesep=0.8;"       # Vertical spacing between nodes
-  lines.add "  ranksep=1.5;"       # Horizontal spacing between ranks
 
-  if noStyle:
-    lines.add "  node [shape=box];"
-  else:
+  if not noStyle:
+    const fontStack = "sans-serif"
+    lines.add "  rankdir=TB;"
+    lines.add "  splines=" & $splineMode & ";"
+    lines.add "  nodesep=1.0;"
+    lines.add "  ranksep=1.0;"
+    if splineMode == smOrtho:
+      lines.add "  ordering=out;"
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    # Node styling: dark mode with light purple accents
     lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
-    # Default edge styling: light gray for visibility on dark backgrounds
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
-
-  lines.add ""
+    lines.add ""
 
   # Add nodes for actual states
   for state in ts.states:
@@ -243,21 +325,10 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false): string =
 
   lines.add ""
 
-  # Add edges for transitions
-  for trans in ts.transitions:
-    if trans.isWildcard:
-      if noStyle:
-        for fromState in ts.states:
-          for toState in trans.toStates:
-            lines.add "  " & fromState & " -> " & toState & " [style=dotted];"
-      else:
-        # Wildcard transitions: dotted medium gray
-        for fromState in ts.states:
-          for toState in trans.toStates:
-            lines.add "  " & fromState & " -> " & toState & " [style=dotted, color=\"#757575\"];"
-    else:
-      for toState in trans.toStates:
-        lines.add "  " & trans.fromState & " -> " & toState & ";"
+  # Add edges
+  let edges = computeEdges(ts, useCompassPoints)
+  for edge in edges:
+    lines.add formatEdge(edge, "  ", noStyle)
 
   # Add edges for bridges (to terminal nodes)
   for bridge in ts.bridges:

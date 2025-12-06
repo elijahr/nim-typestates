@@ -1,9 +1,9 @@
 digraph {
-  rankdir=LR;
-  splines=ortho;
+  rankdir=TB;
+  splines=spline;
   compound=true;
-  nodesep=0.8;
-  ranksep=1.5;
+  nodesep=1.0;
+  ranksep=1.0;
   bgcolor="transparent";
   pad=0.3;
 
@@ -19,7 +19,7 @@ digraph {
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=20;
+    margin=30;
 
     Created;
     Authorized;
@@ -30,13 +30,13 @@ digraph {
 
     Created -> Authorized;
     Authorized -> Captured;
-    Captured -> PartiallyRefunded;
-    Captured -> FullyRefunded;
-    Captured -> Settled;
-    PartiallyRefunded -> PartiallyRefunded;
-    PartiallyRefunded -> FullyRefunded;
-    PartiallyRefunded -> Settled;
-    FullyRefunded -> Settled;
+    Captured -> PartiallyRefunded:e;
+    Captured -> FullyRefunded:e;
+    Captured -> Settled:e;
+    PartiallyRefunded -> PartiallyRefunded:e;
+    PartiallyRefunded -> FullyRefunded:w;
+    PartiallyRefunded -> Settled:w;
+    FullyRefunded -> Settled:s;
   }
 
 }

@@ -1,9 +1,9 @@
 digraph {
-  rankdir=LR;
-  splines=ortho;
+  rankdir=TB;
+  splines=spline;
   compound=true;
-  nodesep=0.8;
-  ranksep=1.5;
+  nodesep=1.0;
+  ranksep=1.0;
   bgcolor="transparent";
   pad=0.3;
 
@@ -19,23 +19,21 @@ digraph {
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=20;
+    margin=30;
 
     Pooled;
     CheckedOut;
     InTransaction;
     Closed;
 
-    Pooled -> CheckedOut;
-    Pooled -> Closed;
+    Pooled -> CheckedOut:e;
+    Pooled -> Closed:e;
     CheckedOut -> Pooled;
     CheckedOut -> InTransaction;
-    CheckedOut -> Closed;
-    InTransaction -> CheckedOut;
-    Pooled -> Closed [style=dotted, color="#757575"];
-    CheckedOut -> Closed [style=dotted, color="#757575"];
-    InTransaction -> Closed [style=dotted, color="#757575"];
-    Closed -> Closed [style=dotted, color="#757575"];
+    CheckedOut -> Closed:w;
+    InTransaction -> CheckedOut:w;
+    InTransaction -> Closed:s [style=dotted, color="#757575"];
+    Closed -> Closed:e [style=dotted, color="#757575"];
   }
 
 }

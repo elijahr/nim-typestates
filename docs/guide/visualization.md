@@ -18,6 +18,30 @@ typestates dot src/ | dot -Tpng -o states.png
 typestates dot src/ | dot -Tsvg -o states.svg
 ```
 
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--splines=MODE` | Edge routing: `spline` (default), `ortho`, `polyline`, `line` |
+| `--separate` | Generate separate graph per typestate |
+| `--no-style` | Output minimal DOT without styling |
+
+### Edge Routing Modes
+
+```bash
+# Curved edges (default) - best edge separation
+typestates dot src/
+
+# Right-angle edges only
+typestates dot --splines=ortho src/
+
+# Straight line segments
+typestates dot --splines=polyline src/
+
+# Direct straight lines
+typestates dot --splines=line src/
+```
+
 ## Edge Styles
 
 The CLI uses dark mode styling with different edge styles to distinguish transition types:
@@ -27,6 +51,8 @@ The CLI uses dark mode styling with different edge styles to distinguish transit
 | Normal | Solid light gray | Standard state transitions |
 | Wildcard | Dotted gray | Transitions from any state (`* -> State`) |
 | Bridge | Dashed light purple | Cross-typestate transitions |
+
+Wildcard transitions are deduplicated: if an explicit transition exists (e.g., `Pooled -> Closed`), the wildcard-expanded version is skipped.
 
 ## Example: File State Machine
 
@@ -52,25 +78,27 @@ Running `typestates dot src/` produces:
 
 ```dot
 digraph {
-  rankdir=LR;
-  splines=polyline;
-  nodesep=0.8;
+  rankdir=TB;
+  splines=spline;
+  compound=true;
+  nodesep=1.0;
   ranksep=1.0;
   bgcolor="transparent";
-  pad=1.0;
+  pad=0.3;
 
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
-  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="sans-serif", fontsize=14, margin="0.4,0.3"];
+  edge [fontname="sans-serif", fontsize=11, color="#b0b0b0"];
 
   subgraph cluster_File {
     label="File";
-    fontname="Inter";
-    fontsize=14;
+    fontname="sans-serif";
+    fontsize=16;
     fontcolor="#e0e0e0";
+    labelloc=t;
     style="rounded";
     color="#b39ddb";
     bgcolor="#1e1e1e";
-    margin=24;
+    margin=30;
 
     Closed;
     Open;
@@ -104,52 +132,6 @@ typestate Payment:
     FullyRefunded -> Settled
 ```
 
-DOT output:
-
-```dot
-digraph {
-  rankdir=LR;
-  splines=polyline;
-  nodesep=0.8;
-  ranksep=1.0;
-  bgcolor="transparent";
-  pad=1.0;
-
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
-  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
-
-  subgraph cluster_Payment {
-    label="Payment";
-    fontname="Inter";
-    fontsize=14;
-    fontcolor="#e0e0e0";
-    style="rounded";
-    color="#b39ddb";
-    bgcolor="#1e1e1e";
-    margin=24;
-
-    Created;
-    Authorized;
-    Captured;
-    PartiallyRefunded;
-    FullyRefunded;
-    Settled;
-    Voided;
-
-    Created -> Authorized;
-    Authorized -> Captured;
-    Authorized -> Voided;
-    Captured -> PartiallyRefunded;
-    Captured -> FullyRefunded;
-    Captured -> Settled;
-    PartiallyRefunded -> PartiallyRefunded;
-    PartiallyRefunded -> FullyRefunded;
-    PartiallyRefunded -> Settled;
-    FullyRefunded -> Settled;
-  }
-}
-```
-
 ![Payment State Machine](../assets/images/generated/payment.svg)
 
 ## Example: Wildcard Transitions
@@ -166,52 +148,9 @@ typestate DbConnection:
     * -> Closed
 ```
 
-DOT output:
-
-```dot
-digraph {
-  rankdir=LR;
-  splines=polyline;
-  nodesep=0.8;
-  ranksep=1.0;
-  bgcolor="transparent";
-  pad=1.0;
-
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
-  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
-
-  subgraph cluster_DbConnection {
-    label="DbConnection";
-    fontname="Inter";
-    fontsize=14;
-    fontcolor="#e0e0e0";
-    style="rounded";
-    color="#b39ddb";
-    bgcolor="#1e1e1e";
-    margin=24;
-
-    Pooled;
-    CheckedOut;
-    InTransaction;
-    Closed;
-
-    Pooled -> CheckedOut;
-    Pooled -> Closed;
-    CheckedOut -> Pooled;
-    CheckedOut -> InTransaction;
-    CheckedOut -> Closed;
-    InTransaction -> CheckedOut;
-    Pooled -> Closed [style=dotted, color="#757575"];
-    CheckedOut -> Closed [style=dotted, color="#757575"];
-    InTransaction -> Closed [style=dotted, color="#757575"];
-    Closed -> Closed [style=dotted, color="#757575"];
-  }
-}
-```
-
 ![Database Connection States](../assets/images/generated/dbconnection.svg)
 
-The dotted gray edges indicate transitions that apply from any state (wildcard).
+The dotted gray edges indicate transitions that come only from the wildcard. Explicit transitions (like `Pooled -> Closed`) remain solid.
 
 ## Installing GraphViz
 
@@ -250,30 +189,21 @@ The CLI produces dark mode styled output by default with light purple accents. F
 ```bash
 # Minimal output without styling - easier to customize
 typestates dot --no-style src/ > minimal.dot
-
-# Then add your own styling
-typestates dot --no-style src/ | sed 's/node \[shape=box\]/node [shape=box, style=filled, fillcolor=lightblue]/' | dot -Tpng -o custom.png
 ```
 
 You can also post-process the styled output:
 
 ```bash
-# Change layout direction (top-to-bottom)
-typestates dot src/ | sed 's/rankdir=LR/rankdir=TB/' | dot -Tpng -o vertical.png
-
 # Light mode (swap colors)
 typestates dot src/ | sed 's/#2d2d2d/#f5f5f5/g; s/#1e1e1e/#fafafa/g; s/#e0e0e0/#212121/g; s/#b0b0b0/#424242/g' | dot -Tpng -o light.png
 ```
 
 ### --no-style Output
 
-The `--no-style` flag produces minimal DOT:
+The `--no-style` flag produces bare DOT structure with no styling attributes:
 
 ```dot
 digraph {
-  rankdir=LR;
-  node [shape=box];
-
   subgraph cluster_File {
     label="File";
 
@@ -286,7 +216,7 @@ digraph {
 }
 ```
 
-This is ideal when you want to apply your own colors, fonts, and styling.
+This is ideal when you want to apply your own colors, fonts, and layout settings. Edge styles (`dotted`, `dashed`) are preserved to distinguish wildcard and bridge transitions.
 
 ## Generating Documentation Images
 
@@ -344,62 +274,6 @@ typestate AuthFlow:
     Failed -> Session.Expired
 ```
 
-Running `typestates dot` produces:
-
-```dot
-digraph {
-  rankdir=LR;
-  splines=polyline;
-  nodesep=0.8;
-  ranksep=1.0;
-  bgcolor="transparent";
-  pad=1.0;
-
-  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="Inter", fontsize=12, margin="0.4,0.3"];
-  edge [fontname="Inter", fontsize=9, color="#b0b0b0"];
-
-  subgraph cluster_Session {
-    label="Session";
-    fontname="Inter";
-    fontsize=14;
-    fontcolor="#e0e0e0";
-    style="rounded";
-    color="#b39ddb";
-    bgcolor="#1e1e1e";
-    margin=24;
-
-    Active;
-    Expired;
-
-    Active -> Expired;
-  }
-
-  subgraph cluster_AuthFlow {
-    label="AuthFlow";
-    fontname="Inter";
-    fontsize=14;
-    fontcolor="#e0e0e0";
-    style="rounded";
-    color="#b39ddb";
-    bgcolor="#1e1e1e";
-    margin=24;
-
-    Pending;
-    Authenticated;
-    Failed;
-
-    Pending -> Authenticated;
-    Pending -> Failed;
-  }
-
-  // Bridges (cross-typestate)
-  Authenticated -> Active [style=dashed, color="#b39ddb", penwidth=1.5];
-  Failed -> Expired [style=dashed, color="#b39ddb", penwidth=1.5];
-}
-```
-
-Rendered as a diagram:
-
 ![Multiple Typestates with Bridges](../assets/images/generated/multi.svg)
 
-This unified format allows you to visualize relationships between different typestates when using bridges.
+The dashed purple edges show bridges connecting states across different typestates.

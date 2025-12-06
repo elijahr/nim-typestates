@@ -13,10 +13,15 @@ proc showHelp() =
   echo "  typestates dot --separate [paths...]  Generate separate DOT per typestate"
   echo ""
   echo "Options:"
-  echo "  -h, --help      Show this help"
-  echo "  -v, --version   Show version"
-  echo "  --separate      For 'dot' command: generate separate graph per typestate"
-  echo "  --no-style      For 'dot' command: output minimal DOT without styling"
+  echo "  -h, --help              Show this help"
+  echo "  -v, --version           Show version"
+  echo "  --separate              For 'dot' command: generate separate graph per typestate"
+  echo "  --no-style              For 'dot' command: output minimal DOT without styling"
+  echo "  --splines=MODE          For 'dot' command: edge routing mode"
+  echo "                          spline (default) - curved edges, best separation"
+  echo "                          ortho - right-angle edges only"
+  echo "                          polyline - straight line segments"
+  echo "                          line - direct straight lines"
   echo ""
   echo "Examples:"
   echo "  typestates verify src/"
@@ -24,6 +29,7 @@ proc showHelp() =
   echo "  typestates dot --separate src/ > typestates.dot"
   echo "  typestates dot src/ | dot -Tpng -o typestates.png"
   echo "  typestates dot --no-style src/ | dot -Tpng -o custom.png"
+  echo "  typestates dot --splines=ortho src/ > ortho.dot"
   echo ""
   echo "Notes:"
   echo "  Files must be valid Nim syntax. Syntax errors cause verification"
@@ -89,6 +95,7 @@ when isMainModule:
       # Parse flags and paths from args
       var separateFlag = false
       var noStyleFlag = false
+      var splineMode = smSpline  # Default to curved splines
       var pathArgs: seq[string] = @[]
 
       for arg in paths:
@@ -96,6 +103,17 @@ when isMainModule:
           separateFlag = true
         elif arg == "--no-style":
           noStyleFlag = true
+        elif arg.startsWith("--splines="):
+          let mode = arg.split("=")[1].toLowerAscii()
+          case mode
+          of "spline", "curved": splineMode = smSpline
+          of "ortho": splineMode = smOrtho
+          of "polyline": splineMode = smPolyline
+          of "line": splineMode = smLine
+          else:
+            echo "Unknown spline mode: ", mode
+            echo "Valid modes: spline, ortho, polyline, line"
+            quit(1)
         elif not arg.startsWith("-"):
           pathArgs.add arg
 
@@ -111,11 +129,11 @@ when isMainModule:
       if separateFlag:
         # Generate separate graph for each typestate
         for ts in parseResult.typestates:
-          echo generateSeparateDot(ts, noStyleFlag)
+          echo generateSeparateDot(ts, noStyleFlag, splineMode)
           echo ""
       else:
         # Generate unified graph
-        echo generateUnifiedDot(parseResult.typestates, noStyleFlag)
+        echo generateUnifiedDot(parseResult.typestates, noStyleFlag, splineMode)
 
       quit(0)
     except ParseError as e:

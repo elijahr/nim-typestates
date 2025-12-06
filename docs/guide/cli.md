@@ -114,6 +114,25 @@ typestates dot src/ > states.dot
 typestates dot src/ | dot -Tpng -o states.png
 ```
 
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--splines=MODE` | Edge routing: `spline` (default), `ortho`, `polyline`, `line` |
+| `--separate` | Generate separate graph per typestate |
+| `--no-style` | Output minimal DOT without styling |
+
+```bash
+# Curved edges (default)
+typestates dot src/
+
+# Right-angle edges
+typestates dot --splines=ortho src/
+
+# Minimal output for custom styling
+typestates dot --no-style src/
+```
+
 ## CI Integration
 
 ### GitHub Actions
