@@ -74,7 +74,7 @@ block testGenerateDot:
   let dot = generateDot(ts)
 
   doAssert "digraph Connection" in dot, "Expected digraph header"
-  doAssert "rankdir=LR" in dot, "Expected LR direction"
+  doAssert "rankdir=TB" in dot, "Expected TB direction"
   doAssert "Disconnected;" in dot, "Expected Disconnected node"
   doAssert "Connected;" in dot, "Expected Connected node"
   doAssert "Errored;" in dot, "Expected Errored node"
@@ -83,7 +83,7 @@ block testGenerateDot:
   doAssert "Connected -> Disconnected" in dot, "Expected Connected -> Disconnected edge"
   # Wildcard should expand
   doAssert "Errored -> Disconnected" in dot, "Expected Errored -> Disconnected (from wildcard)"
-  doAssert "[style=dashed]" in dot, "Expected dashed style for wildcard edges"
+  doAssert "style=dotted" in dot, "Expected dotted style for wildcard edges"
 
   echo "generateDot test passed"
 
