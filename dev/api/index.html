@@ -4285,7 +4285,7 @@ branching transitions.</p>
 <p>This function searches all registered typestates for branching
 transitions that declare the given branch type name.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If typestate has: Created -&gt; Approved | Declined as ProcessResult</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If typestate has: Created -&gt; (Approved | Declined) as ProcessResult</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"ProcessResult"</span><span class="p">)</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c"># Returns: some(BranchTypeInfo(sourceState: "Created",</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c">#                              destinations: @["Approved", "Declined"]))</span>
@@ -5146,7 +5146,7 @@ generates:</p>
       <div class="doc-description">
         <p>Get all transitions that have multiple destinations (branching).</p>
 <p>A branching transition is one where <code>toStates.len &gt; 1</code>, like:
-<code>Created -&gt; Approved | Declined</code></p>
+<code>Created -&gt; (Approved | Declined)</code></p>
 <p>:param graph: The typestate graph to query
 :returns: Sequence of branching transitions</p>
       </div>
@@ -5213,7 +5213,7 @@ generates:</p>
     
       <div class="doc-description">
         <p>Generate variant types for branching transitions.</p>
-<p>For a transition like <code>Created -&gt; Approved | Declined as ProcessResult</code>,
+<p>For a transition like <code>Created -&gt; (Approved | Declined) as ProcessResult</code>,
 generates:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">pDeclined</span>
@@ -5298,7 +5298,7 @@ Enum prefixes are derived from the first letter of the type name.</p>
     
       <div class="doc-description">
         <p>Generate constructor procs for branch types.</p>
-<p>For <code>Created -&gt; Approved | Declined as ProcessResult</code>, generates:</p>
+<p>For <code>Created -&gt; (Approved | Declined) as ProcessResult</code>, generates:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">approved</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
