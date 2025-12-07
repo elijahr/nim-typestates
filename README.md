@@ -1,5 +1,11 @@
 # nim-typestates
 
+[![CI](https://github.com/elijahr/nim-typestates/actions/workflows/ci.yml/badge.svg)](https://github.com/elijahr/nim-typestates/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://elijahr.github.io/nim-typestates/)
+[![Release](https://img.shields.io/github/v/release/elijahr/nim-typestates)](https://github.com/elijahr/nim-typestates/releases/latest)
+[![License](https://img.shields.io/github/license/elijahr/nim-typestates)](LICENSE)
+[![Nim](https://img.shields.io/badge/Nim-2.0%2B-yellow.svg)](https://nim-lang.org)
+
 Compile-time state machine validation for Nim.
 
 ## Overview
