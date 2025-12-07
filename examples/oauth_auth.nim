@@ -29,6 +29,7 @@ type
   RefreshFailed = distinct OAuthSession    ## Refresh failed, need re-auth
 
 typestate OAuthSession:
+  consumeOnTransition = false
   states Unauthenticated, AwaitingCallback, Authenticated, TokenExpired, RefreshFailed
   transitions:
     Unauthenticated -> AwaitingCallback    # Start auth flow

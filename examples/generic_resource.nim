@@ -25,6 +25,7 @@ type
     ## Resource is held - can be used, must be released.
 
 typestate Resource[T]:
+  consumeOnTransition = false
   states Released[T], Acquired[T]
   transitions:
     Released[T] -> Acquired[T]

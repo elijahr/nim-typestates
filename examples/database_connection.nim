@@ -26,6 +26,7 @@ type
   Closed = distinct DbConnection        ## Permanently closed
 
 typestate DbConnection:
+  consumeOnTransition = false
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
     Pooled -> CheckedOut | Closed as CheckoutResult       # Checkout or close idle connection

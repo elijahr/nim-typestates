@@ -31,6 +31,7 @@ type
   Archived = distinct Document        ## Removed from public, preserved
 
 typestate Document:
+  consumeOnTransition = false
   states Draft, InReview, ChangesRequested, Approved, Published, Archived
   transitions:
     Draft -> InReview                    # Submit for review

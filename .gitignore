@@ -1,40 +1,53 @@
-# Dependencies and their artifacts
-## Ignore Nim cache
+# Nim build artifacts
 nimcache/
-## Ignore Nimble cache
 nimblecache/
-## Ignore Nimble dependencies
 nimbledeps/
-
-# Temporary documents
-## Ignore generated HTML documentation
-htmldocs/
-## Ignore temporary plan documents
-docs/plans/
-
-# Compiled files
 bin/
+*.exe
+*.dll
+*.so
+*.dylib
 
-## Nim compiled binaries (extensionless executables)
-## Test binaries start with 't' and have no extension
-tests/t[a-z]*
+# Compiled binaries (extensionless executables)
+## Test binaries (t* or test, no extension)
+tests/t[a-z_]*
+tests/test
 !tests/t*.nim
+!tests/test.nim
 ## Nested test binaries
-tests/**/[a-z]*
+tests/**/[a-z_]*
 !tests/**/*.nim
+## Debug binaries and symbols
+tests/debug_*
+**/*.dSYM/
 ## Source binaries
-src/typestates_bin
+src/[a-z_]*
+!src/*.nim
+!src/**/*.nim
 ## Example binaries
-examples/**/[a-z]*
+examples/[a-z_]*
+!examples/*.nim
+examples/**/[a-z_]*
 !examples/**/*.nim
 
-# Python
-.venv/
-
 # Generated docs
+htmldocs/
 docs/api/
 site/
 
-# Misc
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Python
+.venv/
 __pycache__/
+
+# Claude planning documents (ephemeral)
+docs/plans/

@@ -31,6 +31,7 @@ type
     ## Final stage - pipeline complete.
 
 typestate Pipeline[T]:
+  consumeOnTransition = false
   states Stage1[T], Stage2[T], Stage3[T], Stage4[T]
   transitions:
     Stage1[T] -> Stage2[T]

@@ -27,6 +27,7 @@ type
   Closed = distinct HttpRequest        ## Connection closed
 
 typestate HttpRequest:
+  consumeOnTransition = false
   states Building, HeadersSent, RequestSent, ResponseReceived, Closed
   transitions:
     Building -> HeadersSent

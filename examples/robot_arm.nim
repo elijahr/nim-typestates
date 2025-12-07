@@ -29,6 +29,7 @@ type
   EmergencyStop = distinct RobotArm  ## E-stop triggered, frozen
 
 typestate RobotArm:
+  consumeOnTransition = false
   states PoweredOff, Initializing, NeedsHoming, Homing, Ready, Moving, EmergencyStop
   transitions:
     PoweredOff -> Initializing
