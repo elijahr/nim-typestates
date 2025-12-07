@@ -211,7 +211,7 @@ proc getBranchingTransitions*(graph: TypestateGraph): seq[Transition] =
   ## Get all transitions that have multiple destinations (branching).
   ##
   ## A branching transition is one where `toStates.len > 1`, like:
-  ## `Created -> Approved | Declined`
+  ## `Created -> (Approved | Declined)`
   ##
   ## :param graph: The typestate graph to query
   ## :returns: Sequence of branching transitions
@@ -232,7 +232,7 @@ proc branchEnumPrefix(typeName: string): string =
 proc generateBranchTypes*(graph: TypestateGraph): NimNode =
   ## Generate variant types for branching transitions.
   ##
-  ## For a transition like `Created -> Approved | Declined as ProcessResult`,
+  ## For a transition like `Created -> (Approved | Declined) as ProcessResult`,
   ## generates:
   ##
   ## ```nim
@@ -339,7 +339,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
 proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
   ## Generate constructor procs for branch types.
   ##
-  ## For `Created -> Approved | Declined as ProcessResult`, generates:
+  ## For `Created -> (Approved | Declined) as ProcessResult`, generates:
   ##
   ## ```nim
   ## proc toProcessResult*(s: Approved): ProcessResult =

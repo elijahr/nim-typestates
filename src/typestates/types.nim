@@ -62,14 +62,14 @@ type
     ## Transitions define which state changes are allowed. They can be:
     ##
     ## - **Simple**: `Closed -> Open` (one source, one destination)
-    ## - **Branching**: `Closed -> Open | Errored as OpenResult` (one source, multiple destinations)
+    ## - **Branching**: `Closed -> (Open | Errored) as OpenResult` (one source, multiple destinations)
     ## - **Wildcard**: `* -> Closed` (any state can transition to Closed)
     ##
     ## Example:
     ##
     ## ```nim
     ## # This DSL:
-    ## # Closed -> Open | Errored as OpenResult
+    ## # Closed -> (Open | Errored) as OpenResult
     ## # Becomes:
     ## Transition(
     ##   fromState: "Closed",

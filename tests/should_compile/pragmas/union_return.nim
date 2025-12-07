@@ -13,7 +13,7 @@ typestate Request:
   strictTransitions = false
   states Pending, Success, Failure
   transitions:
-    Pending -> Success | Failure as ProcessResult
+    Pending -> (Success | Failure) as ProcessResult
 
 # Define separate procs for each branch - the transition pragma validates both paths
 proc processSuccess(r: Pending): Success {.transition.} =

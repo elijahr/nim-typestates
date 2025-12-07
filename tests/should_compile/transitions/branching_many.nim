@@ -16,7 +16,7 @@ typestate Router:
   strictTransitions = false
   states Start, PathA, PathB, PathC, PathD, PathE
   transitions:
-    Start -> PathA | PathB | PathC | PathD | PathE as RouteResult
+    Start -> (PathA | PathB | PathC | PathD | PathE) as RouteResult
     PathA -> Start
     PathB -> Start
     PathC -> Start

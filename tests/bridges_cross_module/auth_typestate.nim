@@ -16,7 +16,7 @@ typestate AuthFlow:
   consumeOnTransition = false  # Opt out for this test
   states Pending, Authenticated, Failed
   transitions:
-    Pending -> Authenticated | Failed as AuthResult
+    Pending -> (Authenticated | Failed) as AuthResult
   bridges:
     # Bridge to typestate defined in another module
     Authenticated -> Session.Active

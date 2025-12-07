@@ -22,6 +22,6 @@ typestate Payment:
   transitions:
     Created -> Authorized
     Authorized -> Captured
-    Captured -> PartiallyRefunded | FullyRefunded | Settled as CaptureResult
-    PartiallyRefunded -> PartiallyRefunded | FullyRefunded | Settled as RefundResult
+    Captured -> (PartiallyRefunded | FullyRefunded | Settled) as CaptureResult
+    PartiallyRefunded -> (PartiallyRefunded | FullyRefunded | Settled) as RefundResult
     FullyRefunded -> Settled

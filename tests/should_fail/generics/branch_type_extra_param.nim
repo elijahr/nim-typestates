@@ -18,7 +18,7 @@ typestate Container[T]:
   consumeOnTransition = false  # Opt out for existing tests
   states Empty[T], Full[T], Error[T]
   transitions:
-    Empty[T] -> Full[T] | Error[T] as FillResult[T, U]  # U is undefined!
+    Empty[T] -> (Full[T] | Error[T]) as FillResult[T, U]  # U is undefined!
 
 # Try to use it - this should fail
 let full = Full[int](Container[int](value: 42))

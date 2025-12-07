@@ -4,7 +4,7 @@
 [![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://elijahr.github.io/nim-typestates/)
 [![Release](https://img.shields.io/github/v/release/elijahr/nim-typestates)](https://github.com/elijahr/nim-typestates/releases/latest)
 [![License](https://img.shields.io/github/license/elijahr/nim-typestates)](LICENSE)
-[![Nim](https://img.shields.io/badge/Nim-2.0%2B-yellow.svg)](https://nim-lang.org)
+[![Nim](https://img.shields.io/badge/Nim-2.2%2B-yellow.svg)](https://nim-lang.org)
 
 Compile-time state machine validation for Nim.
 
@@ -131,7 +131,7 @@ proc write(f: Open, data: string) {.notATransition.} =
 |---------|-------------|
 | **Compile-time validation** | Invalid transitions are compilation errors |
 | **Zero runtime cost** | All validation happens at compile time |
-| **Branching transitions** | `Open -> Closed \| Error as Result` |
+| **Branching transitions** | `Open -> (Closed \| Error) as Result` |
 | **Wildcard transitions** | `* -> Closed` (any state can transition) |
 | **Generic typestates** | `Container[T]` with states like `Empty[T]`, `Full[T]` |
 | **Cross-type bridges** | Transition between different typestates |

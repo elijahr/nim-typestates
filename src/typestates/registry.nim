@@ -136,7 +136,7 @@ type
   BranchTypeInfo* = object
     ## Information about a user-defined branch type.
     ##
-    ## When a branching transition like `Created -> Approved | Declined as ProcessResult`
+    ## When a branching transition like `Created -> (Approved | Declined) as ProcessResult`
     ## is declared, the user provides the type name. This object captures the
     ## relationship between the branch type name and the original transition.
     sourceState*: string     ## The source state name ("Created")
@@ -154,7 +154,7 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
   ## Example:
   ##
   ## ```nim
-  ## # If typestate has: Created -> Approved | Declined as ProcessResult
+  ## # If typestate has: Created -> (Approved | Declined) as ProcessResult
   ## findBranchTypeInfo("ProcessResult")
   ## # Returns: some(BranchTypeInfo(sourceState: "Created",
   ## #                              destinations: @["Approved", "Declined"]))

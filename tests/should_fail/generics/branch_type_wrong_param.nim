@@ -19,4 +19,4 @@ typestate Container[T]:
   consumeOnTransition = false  # Opt out for existing tests
   states Empty[T], Full[T], Error[T]
   transitions:
-    Empty[T] -> Full[T] | Error[T] as FillResult[K]  # K instead of T!
+    Empty[T] -> (Full[T] | Error[T]) as FillResult[K]  # K instead of T!

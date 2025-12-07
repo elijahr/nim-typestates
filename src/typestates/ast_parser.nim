@@ -92,7 +92,7 @@ proc extractStates(node: PNode): seq[string] =
 
 proc extractTransition(node: PNode): Option[ParsedTransition] =
   ## Extract a transition from an infix or prefix node.
-  ## Handles: Closed -> Open, Closed -> Open | Errored, * -> Closed
+  ## Handles: Closed -> Open, Closed -> (Open | Errored), * -> Closed
   ##
   ## Note: `* -> Stopped` is parsed as nested nkPrefix because `*` has higher
   ## precedence than `->`:

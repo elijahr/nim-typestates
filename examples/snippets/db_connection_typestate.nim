@@ -16,7 +16,7 @@ type
 typestate DbConnection:
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
-    Pooled -> CheckedOut | Closed as CheckoutResult
-    CheckedOut -> Pooled | InTransaction | Closed as CheckoutAction
+    Pooled -> (CheckedOut | Closed) as CheckoutResult
+    CheckedOut -> (Pooled | InTransaction | Closed) as CheckoutAction
     InTransaction -> CheckedOut
     * -> Closed
