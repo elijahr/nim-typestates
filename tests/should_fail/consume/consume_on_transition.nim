@@ -1,6 +1,6 @@
 ## Test that consumeOnTransition prevents reusing old state.
 
-import ../src/typestates
+import ../../../src/typestates
 
 type
   File = object

@@ -2,7 +2,7 @@
 
 import std/[osproc, strutils]
 
-let (output, exitCode) = execCmdEx("nim c --hints:off tests/tconsume_on_transition.nim")
+let (output, exitCode) = execCmdEx("nim c --hints:off tests/should_fail/consume/consume_on_transition.nim")
 
 if exitCode == 0:
   echo "FAIL: Compilation should have failed but succeeded"
