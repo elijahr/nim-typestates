@@ -136,12 +136,14 @@ proc collectBranchTargets(node: NimNode): seq[string] =
   ## Recursively collect all target states from a branching expression.
   ##
   ## Handles the `|` operator for branching transitions like `Open | Errored`.
+  ## Also handles parenthesized groups like `(Open | Errored)` for clarity.
   ## States can be any valid type expression (simple, generic, ref, etc.).
   ##
   ## Examples:
   ##
   ## - `Open` -> `@["Open"]`
   ## - `Open | Errored` -> `@["Open", "Errored"]`
+  ## - `(Open | Errored)` -> `@["Open", "Errored"]`
   ## - `Full[T] | Error[T]` -> `@["Full[T]", "Error[T]"]`
   ## - `A | B | C` -> `@["A", "B", "C"]`
   ##
@@ -156,6 +158,12 @@ proc collectBranchTargets(node: NimNode): seq[string] =
       result = collectBranchTargets(node[1]) & collectBranchTargets(node[2])
     else:
       error("Expected '|' in branching transition", node)
+  of nnkPar:
+    # Parenthesized expression like (A | B) - unwrap and recurse
+    if node.len == 1:
+      result = collectBranchTargets(node[0])
+    else:
+      error("Expected single expression in parentheses", node)
   else:
     # Fallback: try to use repr for any other node type
     result = @[node.repr]

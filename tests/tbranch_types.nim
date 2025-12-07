@@ -17,9 +17,9 @@ typestate Payment:
   states Created, Approved, Declined, Review, Processed
   transitions:
     # Branching transition: 3 possible outcomes with user-defined type name
-    Created -> Approved | Declined | Review as CreatedBranch
+    Created -> (Approved | Declined | Review) as CreatedBranch
     # Another branching transition: 2 outcomes
-    Review -> Approved | Declined as ReviewBranch
+    Review -> (Approved | Declined) as ReviewBranch
     # Simple transitions (no branch type generated)
     Approved -> Processed
     Declined -> Processed

@@ -58,7 +58,7 @@ Typestates solve this by encoding states in the type system:
 
 - **Compile-time validation** — Invalid transitions fail at compile time with clear error messages
 - **Zero runtime cost** — All validation happens during compilation, no runtime overhead
-- **Branching transitions** — `Closed -> Open | Errored as OpenResult` with user-named branch types
+- **Branching transitions** — `Closed -> (Open | Errored) as OpenResult` with user-named branch types
 - **Wildcard transitions** — `* -> Closed` (any state can transition to a specific state)
 - **Generic typestates** — `Container[T]` with states like `Empty[T]`, `Full[T]`
 - **Cross-typestate bridges** — Connect independent state machines with validated handoffs

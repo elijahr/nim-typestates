@@ -36,10 +36,10 @@ typestate Document:
   states Draft, InReview, ChangesRequested, Approved, Published, Archived
   transitions:
     Draft -> InReview                    # Submit for review
-    InReview -> Approved | ChangesRequested as ReviewResult  # Review decision
+    InReview -> (Approved | ChangesRequested) as ReviewResult  # Review decision
     ChangesRequested -> InReview         # Resubmit after changes
     Approved -> Published                # Go live
-    Published -> Archived | Draft as PublishAction        # Archive or create new version
+    Published -> (Archived | Draft) as PublishAction        # Archive or create new version
     Archived -> Draft                    # Restore for new version
 
 # ============================================================================

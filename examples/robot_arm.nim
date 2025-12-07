@@ -37,9 +37,9 @@ typestate RobotArm:
     Initializing -> NeedsHoming
     NeedsHoming -> Homing
     Homing -> Ready
-    Ready -> Moving | PoweredOff as ReadyAction
-    Moving -> Ready | EmergencyStop as MovementResult
-    EmergencyStop -> NeedsHoming | PoweredOff as EmergencyAction  # Must re-home after E-stop
+    Ready -> (Moving | PoweredOff) as ReadyAction
+    Moving -> (Ready | EmergencyStop) as MovementResult
+    EmergencyStop -> (NeedsHoming | PoweredOff) as EmergencyAction  # Must re-home after E-stop
 
 # ============================================================================
 # Power and Initialization

@@ -24,7 +24,7 @@ typestate Map[K, V]:
   consumeOnTransition = false  # Opt out for this test to allow reusing states
   states EmptyMap[K, V], HasItems[K, V], MapError[K, V]
   transitions:
-    EmptyMap[K, V] -> HasItems[K, V] | MapError[K, V] as InsertResult[K, V]
+    EmptyMap[K, V] -> (HasItems[K, V] | MapError[K, V]) as InsertResult[K, V]
     HasItems[K, V] -> EmptyMap[K, V]
 
 suite "Generic Branch Types - Multiple Params":

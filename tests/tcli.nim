@@ -20,7 +20,7 @@ typestate File:
   consumeOnTransition = false  # Opt out for existing tests
   states Closed, Open, Errored
   transitions:
-    Closed -> Open | Errored as OpenResult
+    Closed -> (Open | Errored) as OpenResult
     Open -> Closed
     * -> Closed
 """)

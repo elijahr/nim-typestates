@@ -33,7 +33,7 @@ typestate Process:
   consumeOnTransition = false
   states Created, Running, Failed
   transitions:
-    Created -> Running | Failed as StartResult
+    Created -> (Running | Failed) as StartResult
 
 proc start(p: Created): StartResult {.transition.} =
   if p.Process.id > 0:

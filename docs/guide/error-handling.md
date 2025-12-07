@@ -27,7 +27,7 @@ proc open(f: Closed, path: string): Open {.transition.} =
   ...
 
 # Right: error is a state, use branch type
-# (assumes: Closed -> Open | OpenFailed as OpenResult)
+# (assumes: Closed -> (Open | OpenFailed) as OpenResult)
 proc open(f: Closed, path: string): OpenResult {.transition.} =
   if not fileExists(path):
     return OpenResult -> OpenFailed(f.File)
@@ -75,7 +75,7 @@ proc getItem(c: HasItems): Item {.transition, raises: [].} =
   result = c.items[0]  # Bug if items is empty!
 
 # Safer: check first, return error state
-# (assumes: HasItems -> Item | Empty as GetItemResult)
+# (assumes: HasItems -> (Item | Empty) as GetItemResult)
 proc getItem(c: HasItems): GetItemResult {.transition, raises: [].} =
   if c.items.len == 0:
     return GetItemResult -> Empty(c.Container)
@@ -93,7 +93,7 @@ use the `as TypeName` syntax to name the branch type. Given:
 typestate Connection:
   states Disconnected, Connected, ConnectionFailed
   transitions:
-    Disconnected -> Connected | ConnectionFailed as ConnectResult
+    Disconnected -> (Connected | ConnectionFailed) as ConnectResult
     Connected -> Disconnected
     ConnectionFailed -> Disconnected
 ```
@@ -139,7 +139,7 @@ proc tryReadFile(path: string): Option[string] {.raises: [].} =
   except IOError:
     result = none(string)
 
-# (assumes: Empty -> Loaded | LoadFailed as LoadResult)
+# (assumes: Empty -> (Loaded | LoadFailed) as LoadResult)
 proc load(f: Empty, path: string): LoadResult {.transition, raises: [].} =
   let content = tryReadFile(path)
   if content.isNone:
@@ -154,7 +154,7 @@ proc load(f: Empty, path: string): LoadResult {.transition, raises: [].} =
 Use Result[T, E] for structured error handling:
 
 ```nim
-# (assumes: Empty -> Loaded | LoadFailed as LoadResult)
+# (assumes: Empty -> (Loaded | LoadFailed) as LoadResult)
 proc load(f: Empty, path: string): LoadResult {.transition, raises: [].} =
   let content = readFileResult(path)  # returns Result[string, IOError]
   if content.isErr:

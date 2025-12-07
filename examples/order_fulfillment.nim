@@ -38,8 +38,8 @@ typestate Order:
   states Cart, Placed, Paid, Picking, Packed, Shipped, Delivered, Cancelled, Returned
   transitions:
     Cart -> Placed                     # Submit order
-    Placed -> Paid | Cancelled as PaymentResult         # Pay or cancel
-    Paid -> Picking | Cancelled as FulfillmentAction        # Start fulfillment or cancel (refund)
+    Placed -> (Paid | Cancelled) as PaymentResult         # Pay or cancel
+    Paid -> (Picking | Cancelled) as FulfillmentAction        # Start fulfillment or cancel (refund)
     Picking -> Packed                  # Finish picking
     Packed -> Shipped                  # Hand to carrier
     Shipped -> Delivered               # Delivery confirmed

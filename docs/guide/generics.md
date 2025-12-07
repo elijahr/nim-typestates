@@ -147,7 +147,7 @@ type
 typestate Container[T]:
   states Empty[T], Full[T], Error[T]
   transitions:
-    Empty[T] -> Full[T] | Error[T] as FillResult[T]
+    Empty[T] -> (Full[T] | Error[T]) as FillResult[T]
     Full[T] -> Empty[T]
 ```
 

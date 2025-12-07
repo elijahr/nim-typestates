@@ -61,7 +61,7 @@ typestate Request:
     Success
     Error
   transitions:
-    Pending -> Success | Error as RequestResult
+    Pending -> (Success | Error) as RequestResult
 
 proc execute(p: Pending): RequestResult {.transition.} =
   RequestResult -> Success(Request())

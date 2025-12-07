@@ -34,7 +34,7 @@ typestate HttpRequest:
     Building -> HeadersSent
     HeadersSent -> RequestSent         # Send body/finalize request
     RequestSent -> ResponseReceived    # Receive response
-    ResponseReceived -> Closed | Building as ResponseAction  # Close or reuse for keep-alive
+    ResponseReceived -> (Closed | Building) as ResponseAction  # Close or reuse for keep-alive
     * -> Closed                        # Can always abort
 
 # ============================================================================

@@ -157,6 +157,10 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
       elif infixOp == "as" and n.len >= 3:
         # Skip the type name (n[2]), recurse into the states (n[1])
         collectToStates(n[1], states)
+    of nkPar:
+      # Parenthesized expression like (A | B) - unwrap and recurse
+      if n.len == 1:
+        collectToStates(n[0], states)
     else:
       discard
 

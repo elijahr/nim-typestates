@@ -66,7 +66,7 @@ Closed -> Open
 One source state to multiple possible destinations using `|`, with a required result type name:
 
 ```nim
-Closed -> Open | Errored as OpenResult
+Closed -> (Open | Errored) as OpenResult
 ```
 
 The `as TypeName` syntax names the generated branch type. This is required for all branching transitions.
@@ -150,7 +150,7 @@ Cross-typestate transitions declared with dotted notation.
 ```nim
 bridges:
   SourceState -> DestTypestate.DestState
-  SourceState -> DestTypestate.State1 | DestTypestate.State2  # Branching
+  SourceState -> (DestTypestate.State1 | DestTypestate.State2)  # Branching
   * -> DestTypestate.DestState  # Wildcard
 ```
 
@@ -173,7 +173,7 @@ Branching bridge:
 
 ```nim
 bridges:
-  Authenticated -> Session.Active | Session.Guest
+  Authenticated -> (Session.Active | Session.Guest)
 ```
 
 Wildcard bridge:
@@ -275,7 +275,7 @@ proc state*(f: Errored): FileState = fsErrored
 
 ### Branch Types
 
-For branching transitions like `Created -> Approved | Declined | Review as ProcessResult`, the macro generates types and helpers for returning multiple possible states.
+For branching transitions like `Created -> (Approved | Declined | Review) as ProcessResult`, the macro generates types and helpers for returning multiple possible states.
 
 **Usage with the `->` operator:**
 
@@ -342,7 +342,7 @@ typestate Connection:
   states Disconnected, Connecting, Connected, Errored
   transitions:
     Disconnected -> Connecting
-    Connecting -> Connected | Errored as ConnectResult
+    Connecting -> (Connected | Errored) as ConnectResult
     Connected -> Disconnected
     Errored -> Disconnected
     * -> Disconnected  # Can always disconnect
@@ -401,7 +401,7 @@ proc path(f: Open): string =
 For branching transitions, use the `->` operator with the generated branch type:
 
 ```nim
-# Branching transition: Connecting -> Connected | Errored as ConnectResult
+# Branching transition: Connecting -> (Connected | Errored) as ConnectResult
 proc waitForConnection(c: Connecting): ConnectResult {.transition.} =
   if success:
     ConnectResult -> Connected(c.Connection)
