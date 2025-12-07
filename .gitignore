@@ -13,29 +13,19 @@ htmldocs/
 docs/plans/
 
 # Compiled files
-## Ignore binary files
 bin/
-## Ignore compiled files in src
-src/*
-## Ignore compiled files in tests
-tests/*
-tests/**/*
-## Ignore compiled files in examples
-examples/*
-examples/**/*
 
-# Unignore source files
-## Unignore Nim source files in src
-!src/*.nim
-## Unignore Nim source files in src subdirectories
-!src/**/*.nim
-## Unignore Nim source files in tests
-!tests/*.nim
-## Unignore Nim source files in tests
+## Nim compiled binaries (extensionless executables)
+## Test binaries start with 't' and have no extension
+tests/t[a-z]*
+!tests/t*.nim
+## Nested test binaries
+tests/**/[a-z]*
 !tests/**/*.nim
-## Unignore directories in examples
-!examples/**/
-## Unignore Nim source files in examples
+## Source binaries
+src/typestates_bin
+## Example binaries
+examples/**/[a-z]*
 !examples/**/*.nim
 
 # Python
