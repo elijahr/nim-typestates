@@ -47,6 +47,10 @@ proc extractTypeName(node: NimNode): string =
   ## - `nnkIdent`: Simple identifier like `Closed`
   ## - `nnkSym`: Symbol reference (after type resolution)
   ## - `nnkBracketExpr`: Generic type like `seq[T]` (extracts base)
+  ## - `nnkCommand`: Modifier like `sink T` or `lent T` (extracts T)
+  ## - `nnkVarTy`: `var T` type (extracts T)
+  ## - `nnkRefTy`: `ref T` type (extracts T)
+  ## - `nnkPtrTy`: `ptr T` type (extracts T)
   ##
   ## :param node: AST node representing a type
   ## :returns: The string name of the type
@@ -58,6 +62,25 @@ proc extractTypeName(node: NimNode): string =
   of nnkBracketExpr:
     # Generic type like seq[T]
     result = node[0].strVal
+  of nnkCommand:
+    # Modifier like `sink T` or `lent T` - extract the actual type
+    if node.len >= 2 and node[0].kind == nnkIdent:
+      let modifier = node[0].strVal
+      if modifier in ["sink", "lent", "out"]:
+        result = extractTypeName(node[1])
+      else:
+        result = node.repr
+    else:
+      result = node.repr
+  of nnkVarTy:
+    # var T - extract T
+    result = extractTypeName(node[0])
+  of nnkRefTy:
+    # ref T - extract T
+    result = extractTypeName(node[0])
+  of nnkPtrTy:
+    # ptr T - extract T
+    result = extractTypeName(node[0])
   else:
     result = node.repr
 
