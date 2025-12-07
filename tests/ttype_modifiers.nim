@@ -81,4 +81,53 @@ proc open[T](box: sink Sealed[T]): Opened[T] {.transition.} =
 
 discard Sealed[int](Box[int](value: 42)).open()
 
+# =============================================================================
+# Test 4: ref parameter (reference type)
+# =============================================================================
+
+type
+  Session = object
+    id: string
+  Inactive = distinct Session
+  Active = distinct Session
+
+typestate Session:
+  consumeOnTransition = false
+  states Inactive, Active
+  transitions:
+    Inactive -> Active
+    Active -> Inactive
+
+proc activate(s: ref Inactive): ref Active {.transition.} =
+  echo "Test 4 - ref param: activated"
+  cast[ref Active](s)
+
+var inactiveRef = new(Inactive)
+inactiveRef[] = Inactive(Session(id: "sess-1"))
+discard inactiveRef.activate()
+
+# =============================================================================
+# Test 5: ptr parameter (pointer type)
+# =============================================================================
+
+type
+  Buffer = object
+    data: int
+  Empty = distinct Buffer
+  Full = distinct Buffer
+
+typestate Buffer:
+  consumeOnTransition = false
+  states Empty, Full
+  transitions:
+    Empty -> Full
+    Full -> Empty
+
+proc fill(b: ptr Empty, value: int): ptr Full {.transition.} =
+  echo "Test 5 - ptr param: filled with ", value
+  cast[ptr Full](b)
+
+var bufferData = Empty(Buffer(data: 0))
+discard addr(bufferData).fill(42)
+
 echo "All type modifier tests passed!"
