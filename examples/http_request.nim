@@ -27,6 +27,7 @@ type
   Closed = distinct HttpRequest        ## Connection closed
 
 typestate HttpRequest:
+  # HTTP connections support keep-alive (reuse after response).
   consumeOnTransition = false
   states Building, HeadersSent, RequestSent, ResponseReceived, Closed
   transitions:

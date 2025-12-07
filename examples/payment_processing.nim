@@ -35,6 +35,7 @@ type
   Voided = distinct Payment       ## Authorization cancelled before capture
 
 typestate Payment:
+  # Payments may need status checks and can be refunded after completion.
   consumeOnTransition = false
   states Created, Authorized, Captured, PartiallyRefunded, FullyRefunded, Settled, Voided
   transitions:

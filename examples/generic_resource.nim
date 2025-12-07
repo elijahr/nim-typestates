@@ -25,6 +25,7 @@ type
     ## Resource is held - can be used, must be released.
 
 typestate Resource[T]:
+  # Resources can be acquired, released, and re-acquired (RAII pattern).
   consumeOnTransition = false
   states Released[T], Acquired[T]
   transitions:

@@ -33,6 +33,7 @@ type
   Returned = distinct Order       ## Items returned by customer
 
 typestate Order:
+  # Orders need to be inspected at various stages (for status, totals, etc.).
   consumeOnTransition = false
   states Cart, Placed, Paid, Picking, Packed, Shipped, Delivered, Cancelled, Returned
   transitions:

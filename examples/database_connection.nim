@@ -26,6 +26,8 @@ type
   Closed = distinct DbConnection        ## Permanently closed
 
 typestate DbConnection:
+  # Connections are pooled and reused, so we disable ownership enforcement.
+  # This allows checkout -> use -> release -> checkout cycles.
   consumeOnTransition = false
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:

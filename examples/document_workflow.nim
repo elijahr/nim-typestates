@@ -31,6 +31,7 @@ type
   Archived = distinct Document        ## Removed from public, preserved
 
 typestate Document:
+  # Documents need to be inspected at various stages without consuming them.
   consumeOnTransition = false
   states Draft, InReview, ChangesRequested, Approved, Published, Archived
   transitions:

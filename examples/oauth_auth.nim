@@ -29,6 +29,7 @@ type
   RefreshFailed = distinct OAuthSession    ## Refresh failed, need re-auth
 
 typestate OAuthSession:
+  # OAuth tokens may be read multiple times and refreshed.
   consumeOnTransition = false
   states Unauthenticated, AwaitingCallback, Authenticated, TokenExpired, RefreshFailed
   transitions:
