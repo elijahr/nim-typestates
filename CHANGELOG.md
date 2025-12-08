@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-07
+
 ### Added
 
+- Compile-time detection of Nim codegen bug ([nim-lang/Nim#25341](https://github.com/nim-lang/Nim/issues/25341))
+  - Affects `static` generic parameters with ARC/ORC/AtomicARC on Nim < 2.2.8
+  - Shows clear error message with four workaround options
+  - Regular generics (`Container[T]`) are not affected
+- `inheritsFromRootObj` flag to suppress the static generic check when using `RootObj` workaround
 - `consumeOnTransition` flag (default: `true`)
   - State types cannot be copied, preventing accidental reuse of stale states
   - Opt out with `consumeOnTransition = false`
@@ -23,12 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Open
     Errored
   ```
+- Parenthesized syntax for branching transitions: `A -> (B | C) as Result`
 
 ### Changed
 
+- Minimum Nim version bumped to 2.2.0
 - States must have unique base type names
   - Using same type with different static params (e.g., `GPIO[false]` vs `GPIO[true]`) now shows clear error
   - Documentation explains wrapper type pattern as workaround
+
+### Documentation
+
+- Added warning banner about Nim < 2.2.8 static generics bug to README, docs index, and getting started guide
+- Added Flags section to DSL reference documenting `strictTransitions`, `consumeOnTransition`, and `inheritsFromRootObj`
 
 ## [0.2.0] - 2025-12-06
 
@@ -95,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/elijahr/nim-typestates/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/elijahr/nim-typestates/releases/tag/v0.1.0

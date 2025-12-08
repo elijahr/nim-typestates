@@ -13,6 +13,19 @@ This guide walks through building a typestate-validated file handle from scratch
 nimble install typestates
 ```
 
+!!! warning "Nim < 2.2.8 with Static Generics"
+
+    If you use `static` generic parameters (e.g., `Buffer[N: static int]`) with ARC/ORC/AtomicARC,
+    you may hit a [Nim codegen bug](https://github.com/nim-lang/Nim/issues/25341) fixed in Nim 2.2.8.
+    The library detects this and shows workarounds. Options:
+
+    1. Upgrade to Nim >= 2.2.8
+    2. Use `--mm:refc` instead
+    3. Add `consumeOnTransition = false` to your typestate
+    4. Make your base type inherit from `RootObj` and add `inheritsFromRootObj = true`
+
+    Regular generics (`Container[T]`) are not affected.
+
 ## Step 1: Define Your Base Type
 
 Start with a regular object type that holds your data:

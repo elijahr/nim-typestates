@@ -141,6 +141,54 @@ typestate Connection:
     Connected -> Closed
 ```
 
+## Flags
+
+Configuration options for the typestate. Flags can appear anywhere in the block.
+
+### `strictTransitions`
+
+When `true` (default), all procs that take a state type must be marked with either `{.transition.}` or `{.notATransition.}`.
+
+```nim
+typestate File:
+  strictTransitions = false  # Allow unmarked procs
+  states Closed, Open
+  transitions:
+    Closed -> Open
+```
+
+### `consumeOnTransition`
+
+When `true` (default), generates `=copy` hooks that prevent copying state values. This enforces ownership semantics - each state value can only be used once.
+
+```nim
+typestate File:
+  consumeOnTransition = false  # Allow copying states
+  states Closed, Open
+  transitions:
+    Closed -> Open
+```
+
+### `inheritsFromRootObj`
+
+Set to `true` if your base type inherits from `RootObj`. This suppresses a compile-time error for static generic typestates on Nim < 2.2.8.
+
+```nim
+type
+  Buffer[N: static int] = object of RootObj  # Note: inherits from RootObj
+    data: array[N, byte]
+  Empty[N: static int] = distinct Buffer[N]
+  Full[N: static int] = distinct Buffer[N]
+
+typestate Buffer[N: static int]:
+  inheritsFromRootObj = true  # Required for static generics with RootObj on Nim < 2.2.8
+  states Empty[N], Full[N]
+  transitions:
+    Empty[N] -> Full[N]
+```
+
+See the [Nim codegen bug](https://github.com/nim-lang/Nim/issues/25341) for details.
+
 ## Bridges
 
 Cross-typestate transitions declared with dotted notation.

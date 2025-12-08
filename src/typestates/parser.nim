@@ -303,8 +303,10 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
     graph.strictTransitions = value
   of "consumeOnTransition":
     graph.consumeOnTransition = value
+  of "inheritsFromRootObj":
+    graph.inheritsFromRootObj = value
   else:
-    error("Unknown flag: " & flagName & ". Valid flags: strictTransitions, consumeOnTransition", node)
+    error("Unknown flag: " & flagName & ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj", node)
 
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.

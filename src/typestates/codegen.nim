@@ -463,6 +463,46 @@ proc generateCopyHooks*(graph: TypestateGraph): NimNode =
 
     result.add hookDef
 
+proc hasStaticGenericParam*(graph: TypestateGraph): bool =
+  ## Check if typestate has any static generic parameters (e.g., `N: static int`).
+  ##
+  ## These are vulnerable to a codegen bug in Nim < 2.2.8 when combined
+  ## with `=copy` hooks on distinct types. Affects ARC, ORC, AtomicARC,
+  ## and any memory manager using hooks.
+  ##
+  ## :param graph: The typestate graph to check
+  ## :returns: `true` if any type parameter uses `static`
+  for param in graph.typeParams:
+    if param.kind == nnkExprColonExpr:
+      let constraint = param[1]
+      # Check for "static X" pattern (nnkCommand with "static" as first child)
+      if constraint.kind == nnkCommand and constraint.len >= 1:
+        if constraint[0].kind == nnkIdent and constraint[0].strVal == "static":
+          return true
+  return false
+
+proc hasHookCodegenBugConditions*(graph: TypestateGraph): bool =
+  ## Check if this typestate has conditions that trigger a codegen bug in Nim < 2.2.8.
+  ##
+  ## The bug occurs when all these conditions are met:
+  ## 1. Distinct types (implicit - all typestate states are distinct)
+  ## 2. Plain object (not inheriting from RootObj)
+  ## 3. Generic with `static` parameter (e.g., `N: static int`)
+  ## 4. Lifecycle hooks are generated (`consumeOnTransition = true`)
+  ##
+  ## Note: Condition 1 is always true for typestates. Condition 2 is checked
+  ## via the `inheritsFromRootObj` flag (we can't detect inheritance at macro time).
+  ##
+  ## Affects ARC, ORC, AtomicARC, and any memory manager using hooks.
+  ## Fixed in Nim commit 099ee1ce4a308024781f6f39ddfcb876f4c3629c (>= 2.2.8).
+  ## See: https://github.com/nim-lang/Nim/issues/25341
+  ##
+  ## :param graph: The typestate graph to check
+  ## :returns: `true` if vulnerable conditions are present
+  not graph.inheritsFromRootObj and
+    graph.consumeOnTransition and
+    hasStaticGenericParam(graph)
+
 proc generateBranchOperators*(graph: TypestateGraph): NimNode =
   ## Generate `->` operator templates for branch types.
   ##

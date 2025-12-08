@@ -67,5 +67,23 @@ macro typestate*(name: untyped, body: untyped): untyped =
     stateNames.add stateName
   registerSealedStates(graph.declaredInModule, stateNames)
 
+  # Check for codegen bug vulnerability (fixed in Nim >= 2.2.8)
+  # Affects: ORC, ARC, AtomicARC, and any memory manager using hooks
+  # See: https://github.com/nim-lang/Nim/issues/25341
+  when (NimMajor, NimMinor, NimPatch) < (2, 2, 8):
+    if hasHookCodegenBugConditions(graph):
+      error(
+        "This typestate uses `static` generic parameters with `consumeOnTransition = true`, " &
+        "which triggers a codegen bug in Nim < 2.2.8 affecting ARC, ORC, AtomicARC, " &
+        "and any memory manager that uses hooks. " &
+        "Options:\n" &
+        "  1. Upgrade to Nim >= 2.2.8\n" &
+        "  2. Use `--mm:refc` instead\n" &
+        "  3. Add `consumeOnTransition = false` to disable =copy hooks\n" &
+        "  4. Make base type inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+        "See: https://github.com/nim-lang/Nim/issues/25341",
+        name
+      )
+
   # Generate helper types
   result = generateAll(graph)

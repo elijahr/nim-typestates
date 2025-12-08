@@ -158,6 +158,7 @@ type
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
     consumeOnTransition*: bool = true  ## If true, states cannot be copied
+    inheritsFromRootObj*: bool = false  ## If true, skip static generic bug check
     initialStates*: seq[string]  ## States that cannot be transitioned TO
     terminalStates*: seq[string]  ## States that cannot transition FROM
     declaredAt*: LineInfo
