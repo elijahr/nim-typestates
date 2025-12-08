@@ -583,6 +583,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stricttransitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        strictTransitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumeontransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumeOnTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inheritsfromrootobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inheritsFromRootObj
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#bridges" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1281,6 +1331,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stricttransitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        strictTransitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumeontransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumeOnTransition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inheritsfromrootobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inheritsFromRootObj
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#bridges" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1594,13 +1694,46 @@
 <a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span>
 <a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="n">Connected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
+<h2 id="flags">Flags<a class="headerlink" href="#flags" title="Permanent link">¶</a></h2>
+<p>Configuration options for the typestate. Flags can appear anywhere in the block.</p>
+<h3 id="stricttransitions"><code>strictTransitions</code><a class="headerlink" href="#stricttransitions" title="Permanent link">¶</a></h3>
+<p>When <code>true</code> (default), all procs that take a state type must be marked with either <code>{.transition.}</code> or <code>{.notATransition.}</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="n">strictTransitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">  </span><span class="c"># Allow unmarked procs</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+</code></pre></div>
+<h3 id="consumeontransition"><code>consumeOnTransition</code><a class="headerlink" href="#consumeontransition" title="Permanent link">¶</a></h3>
+<p>When <code>true</code> (default), generates <code>=copy</code> hooks that prevent copying state values. This enforces ownership semantics - each state value can only be used once.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="n">consumeOnTransition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">  </span><span class="c"># Allow copying states</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+</code></pre></div>
+<h3 id="inheritsfromrootobj"><code>inheritsFromRootObj</code><a class="headerlink" href="#inheritsfromrootobj" title="Permanent link">¶</a></h3>
+<p>Set to <code>true</code> if your base type inherits from <code>RootObj</code>. This suppresses a compile-time error for static generic typestates on Nim &lt; 2.2.8.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">type</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="n">RootObj</span><span class="w">  </span><span class="c"># Note: inherits from RootObj</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">array</span><span class="o">[</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">byte</span><span class="o">]</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Buffer</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="n">inheritsFromRootObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span><span class="w">  </span><span class="c"># Required for static generics with RootObj on Nim &lt; 2.2.8</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+</code></pre></div>
+<p>See the <a href="https://github.com/nim-lang/Nim/issues/25341">Nim codegen bug</a> for details.</p>
 <h2 id="bridges">Bridges<a class="headerlink" href="#bridges" title="Permanent link">¶</a></h2>
 <p>Cross-typestate transitions declared with dotted notation.</p>
 <h3 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="n">SourceState</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">DestState</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">SourceState</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">State1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">State2</span><span class="p">)</span><span class="w">  </span><span class="c"># Branching</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">DestState</span><span class="w">  </span><span class="c"># Wildcard</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="n">SourceState</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">DestState</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="n">SourceState</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">State1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">State2</span><span class="p">)</span><span class="w">  </span><span class="c"># Branching</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DestTypestate</span><span class="p">.</span><span class="n">DestState</span><span class="w">  </span><span class="c"># Wildcard</span>
 </code></pre></div>
 <h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">¶</a></h3>
 <ul>
@@ -1610,23 +1743,23 @@
 </ul>
 <h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">¶</a></h3>
 <p>Simple bridge:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
 </code></pre></div>
 <p>Branching bridge:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Guest</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Guest</span><span class="p">)</span>
 </code></pre></div>
 <p>Wildcard bridge:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
 </code></pre></div>
 <p>See <a href="../bridges/">Bridges</a> for full documentation.</p>
 <h2 id="pragmas">Pragmas<a class="headerlink" href="#pragmas" title="Permanent link">¶</a></h2>
 <h3 id="transition"><code>{.transition.}</code><a class="headerlink" href="#transition" title="Permanent link">¶</a></h3>
 <p>Mark a proc as a state transition. The compiler validates that the transition is declared.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Validation rules:</strong></p>
 <ul>
@@ -1638,65 +1771,65 @@
 </ul>
 <p>See <a href="../error-handling/">Error Handling</a> for patterns on modeling errors as states.</p>
 <p><strong>Error on invalid transition:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Error: Undeclared transition: Open -&gt; Locked
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>  Typestate 'File' does not declare this transition.
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>  Valid transitions from 'Open': @["Closed"]
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Error: Undeclared transition: Open -&gt; Locked
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>  Typestate 'File' does not declare this transition.
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  Valid transitions from 'Open': @["Closed"]
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
 </code></pre></div>
 <h3 id="notatransition"><code>{.notATransition.}</code><a class="headerlink" href="#notatransition" title="Permanent link">¶</a></h3>
 <p>Mark a proc as intentionally NOT a transition. Use for procs that operate on state types but don't change state:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="c"># Writes data but stays in Open state</span>
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span><span class="n">rawWrite</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="k">proc</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">  </span><span class="c"># Reads data but stays in Open state</span>
-<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rawRead</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="c"># Writes data but stays in Open state</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span><span class="n">rawWrite</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="k">proc</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">  </span><span class="c"># Reads data but stays in Open state</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rawRead</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
 </code></pre></div>
 <p>For pure functions (no side effects), use <code>func</code> instead - no pragma needed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">func</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">func</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span>
 </code></pre></div>
 <h2 id="generated-types">Generated Types<a class="headerlink" href="#generated-types" title="Permanent link">¶</a></h2>
 <p>For <code>typestate File:</code> with states <code>Closed</code>, <code>Open</code>, <code>Errored</code>:</p>
 <h3 id="state-enum">State Enum<a class="headerlink" href="#state-enum" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span><span class="p">,</span><span class="w"> </span><span class="n">fsErrored</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span><span class="p">,</span><span class="w"> </span><span class="n">fsErrored</span>
 </code></pre></div>
 <p>Enum values are prefixed with <code>fs</code> (for "file state") to avoid name collisions.</p>
 <h3 id="union-type">Union Type<a class="headerlink" href="#union-type" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span>
 </code></pre></div>
 <p>Useful for generic procs that accept any state:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">describe</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">state</span>
-<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"closed"</span>
-<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"open"</span>
-<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsErrored</span><span class="o">:</span><span class="w"> </span><span class="s">"errored"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">describe</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">state</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"closed"</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"open"</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsErrored</span><span class="o">:</span><span class="w"> </span><span class="s">"errored"</span>
 </code></pre></div>
 <h3 id="state-procs">State Procs<a class="headerlink" href="#state-procs" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
-<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Errored</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsErrored</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Errored</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsErrored</span>
 </code></pre></div>
 <h3 id="branch-types">Branch Types<a class="headerlink" href="#branch-types" title="Permanent link">¶</a></h3>
 <p>For branching transitions like <code>Created -&gt; (Approved | Declined | Review) as ProcessResult</code>, the macro generates types and helpers for returning multiple possible states.</p>
 <p><strong>Usage with the <code>-&gt;</code> operator:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Created</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span><span class="p">:</span>
-<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
-<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span><span class="k">elif</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">50</span><span class="p">:</span>
-<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Review</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
-<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Declined</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Created</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span><span class="p">:</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">  </span><span class="k">elif</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">50</span><span class="p">:</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Review</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="w">    </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Declined</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>-&gt;</code> operator takes the branch type on the left and the destination state on the right. This mirrors the DSL syntax and is unambiguous even when the same state appears in multiple branch types.</p>
 <p><strong>Pattern matching on the result:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">process</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">case</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">kind</span>
-<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Approved: "</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">approved</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span>
-<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Declined"</span>
-<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="k">of</span><span class="w"> </span><span class="nl">pReview</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Needs review"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="k">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">process</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="k">case</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">kind</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Approved: "</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">approved</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">amount</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Declined"</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="k">of</span><span class="w"> </span><span class="nl">pReview</span><span class="o">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="s">"Needs review"</span>
 </code></pre></div>
 <p><strong>What gets generated:</strong></p>
 <p>The <code>-&gt;</code> operator is syntactic sugar around constructor procs. For each branching transition with <code>as TypeName</code>, the macro generates:</p>
@@ -1716,98 +1849,98 @@
 </li>
 </ol>
 <p>You can use the constructors directly if preferred:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">toProcessResult</span><span class="p">(</span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">))</span><span class="w">  </span><span class="c"># Equivalent to: ProcessResult -&gt; Approved(c.Payment)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">toProcessResult</span><span class="p">(</span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">))</span><span class="w">  </span><span class="c"># Equivalent to: ProcessResult -&gt; Approved(c.Payment)</span>
 </code></pre></div>
 <p>See <a href="#returning-union-types">Returning Union Types</a> for more examples.</p>
 <h2 id="complete-example_1">Complete Example<a class="headerlink" href="#complete-example_1" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>
-<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="k">type</span>
-<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">  </span><span class="n">Connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="w">    </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="w">    </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="w">    </span><span class="n">socket</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>
-<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">  </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
-<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">  </span><span class="n">Connecting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
-<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="w">  </span><span class="n">Connected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
-<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="w">  </span><span class="n">Errored</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
-<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>
-<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
-<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">Connecting</span><span class="p">,</span><span class="w"> </span><span class="n">Connected</span><span class="p">,</span><span class="w"> </span><span class="n">Errored</span>
-<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="w">    </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connecting</span>
-<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">    </span><span class="n">Connecting</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Connected</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">ConnectResult</span>
-<a id="__codelineno-30-19" name="__codelineno-30-19" href="#__codelineno-30-19"></a><span class="w">    </span><span class="n">Connected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
-<a id="__codelineno-30-20" name="__codelineno-30-20" href="#__codelineno-30-20"></a><span class="w">    </span><span class="n">Errored</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
-<a id="__codelineno-30-21" name="__codelineno-30-21" href="#__codelineno-30-21"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span><span class="w">  </span><span class="c"># Can always disconnect</span>
-<a id="__codelineno-30-22" name="__codelineno-30-22" href="#__codelineno-30-22"></a>
-<a id="__codelineno-30-23" name="__codelineno-30-23" href="#__codelineno-30-23"></a><span class="k">proc</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">):</span><span class="w"> </span><span class="n">Connecting</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-24" name="__codelineno-30-24" href="#__codelineno-30-24"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
-<a id="__codelineno-30-25" name="__codelineno-30-25" href="#__codelineno-30-25"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">host</span>
-<a id="__codelineno-30-26" name="__codelineno-30-26" href="#__codelineno-30-26"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">port</span>
-<a id="__codelineno-30-27" name="__codelineno-30-27" href="#__codelineno-30-27"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Connecting</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
-<a id="__codelineno-30-28" name="__codelineno-30-28" href="#__codelineno-30-28"></a>
-<a id="__codelineno-30-29" name="__codelineno-30-29" href="#__codelineno-30-29"></a><span class="k">proc</span><span class="w"> </span><span class="nf">waitForConnection</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">ConnectResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-30" name="__codelineno-30-30" href="#__codelineno-30-30"></a><span class="w">  </span><span class="c"># In real code, this would do async I/O</span>
-<a id="__codelineno-30-31" name="__codelineno-30-31" href="#__codelineno-30-31"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="kp">true</span><span class="p">:</span><span class="w">  </span><span class="c"># Pretend success</span>
-<a id="__codelineno-30-32" name="__codelineno-30-32" href="#__codelineno-30-32"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
-<a id="__codelineno-30-33" name="__codelineno-30-33" href="#__codelineno-30-33"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-30-34" name="__codelineno-30-34" href="#__codelineno-30-34"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Errored</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
-<a id="__codelineno-30-35" name="__codelineno-30-35" href="#__codelineno-30-35"></a>
-<a id="__codelineno-30-36" name="__codelineno-30-36" href="#__codelineno-30-36"></a><span class="c"># Wildcard transitions require separate procs for each source state.</span>
-<a id="__codelineno-30-37" name="__codelineno-30-37" href="#__codelineno-30-37"></a><span class="c"># The {.transition.} pragma validates each at compile time.</span>
-<a id="__codelineno-30-38" name="__codelineno-30-38" href="#__codelineno-30-38"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-39" name="__codelineno-30-39" href="#__codelineno-30-39"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w">  </span><span class="c"># Already disconnected</span>
-<a id="__codelineno-30-40" name="__codelineno-30-40" href="#__codelineno-30-40"></a>
-<a id="__codelineno-30-41" name="__codelineno-30-41" href="#__codelineno-30-41"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-42" name="__codelineno-30-42" href="#__codelineno-30-42"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
-<a id="__codelineno-30-43" name="__codelineno-30-43" href="#__codelineno-30-43"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
-<a id="__codelineno-30-44" name="__codelineno-30-44" href="#__codelineno-30-44"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
-<a id="__codelineno-30-45" name="__codelineno-30-45" href="#__codelineno-30-45"></a>
-<a id="__codelineno-30-46" name="__codelineno-30-46" href="#__codelineno-30-46"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connected</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-47" name="__codelineno-30-47" href="#__codelineno-30-47"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
-<a id="__codelineno-30-48" name="__codelineno-30-48" href="#__codelineno-30-48"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
-<a id="__codelineno-30-49" name="__codelineno-30-49" href="#__codelineno-30-49"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
-<a id="__codelineno-30-50" name="__codelineno-30-50" href="#__codelineno-30-50"></a>
-<a id="__codelineno-30-51" name="__codelineno-30-51" href="#__codelineno-30-51"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Errored</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-52" name="__codelineno-30-52" href="#__codelineno-30-52"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
-<a id="__codelineno-30-53" name="__codelineno-30-53" href="#__codelineno-30-53"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
-<a id="__codelineno-30-54" name="__codelineno-30-54" href="#__codelineno-30-54"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
-<a id="__codelineno-30-55" name="__codelineno-30-55" href="#__codelineno-30-55"></a>
-<a id="__codelineno-30-56" name="__codelineno-30-56" href="#__codelineno-30-56"></a><span class="k">proc</span><span class="w"> </span><span class="nf">send</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connected</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-30-57" name="__codelineno-30-57" href="#__codelineno-30-57"></a><span class="w">  </span><span class="c"># Send data, stay connected</span>
-<a id="__codelineno-30-58" name="__codelineno-30-58" href="#__codelineno-30-58"></a><span class="w">  </span><span class="k">discard</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="k">type</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="w">  </span><span class="n">Connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="w">    </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="w">    </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="w">    </span><span class="n">socket</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a><span class="w">  </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="w">  </span><span class="n">Connecting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a><span class="w">  </span><span class="n">Connected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a><span class="w">  </span><span class="n">Errored</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-33-13" name="__codelineno-33-13" href="#__codelineno-33-13"></a>
+<a id="__codelineno-33-14" name="__codelineno-33-14" href="#__codelineno-33-14"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
+<a id="__codelineno-33-15" name="__codelineno-33-15" href="#__codelineno-33-15"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">Connecting</span><span class="p">,</span><span class="w"> </span><span class="n">Connected</span><span class="p">,</span><span class="w"> </span><span class="n">Errored</span>
+<a id="__codelineno-33-16" name="__codelineno-33-16" href="#__codelineno-33-16"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-33-17" name="__codelineno-33-17" href="#__codelineno-33-17"></a><span class="w">    </span><span class="n">Disconnected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connecting</span>
+<a id="__codelineno-33-18" name="__codelineno-33-18" href="#__codelineno-33-18"></a><span class="w">    </span><span class="n">Connecting</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Connected</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">ConnectResult</span>
+<a id="__codelineno-33-19" name="__codelineno-33-19" href="#__codelineno-33-19"></a><span class="w">    </span><span class="n">Connected</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
+<a id="__codelineno-33-20" name="__codelineno-33-20" href="#__codelineno-33-20"></a><span class="w">    </span><span class="n">Errored</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span>
+<a id="__codelineno-33-21" name="__codelineno-33-21" href="#__codelineno-33-21"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Disconnected</span><span class="w">  </span><span class="c"># Can always disconnect</span>
+<a id="__codelineno-33-22" name="__codelineno-33-22" href="#__codelineno-33-22"></a>
+<a id="__codelineno-33-23" name="__codelineno-33-23" href="#__codelineno-33-23"></a><span class="k">proc</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">):</span><span class="w"> </span><span class="n">Connecting</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-24" name="__codelineno-33-24" href="#__codelineno-33-24"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
+<a id="__codelineno-33-25" name="__codelineno-33-25" href="#__codelineno-33-25"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">host</span>
+<a id="__codelineno-33-26" name="__codelineno-33-26" href="#__codelineno-33-26"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">port</span>
+<a id="__codelineno-33-27" name="__codelineno-33-27" href="#__codelineno-33-27"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Connecting</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+<a id="__codelineno-33-28" name="__codelineno-33-28" href="#__codelineno-33-28"></a>
+<a id="__codelineno-33-29" name="__codelineno-33-29" href="#__codelineno-33-29"></a><span class="k">proc</span><span class="w"> </span><span class="nf">waitForConnection</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">ConnectResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-30" name="__codelineno-33-30" href="#__codelineno-33-30"></a><span class="w">  </span><span class="c"># In real code, this would do async I/O</span>
+<a id="__codelineno-33-31" name="__codelineno-33-31" href="#__codelineno-33-31"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="kp">true</span><span class="p">:</span><span class="w">  </span><span class="c"># Pretend success</span>
+<a id="__codelineno-33-32" name="__codelineno-33-32" href="#__codelineno-33-32"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
+<a id="__codelineno-33-33" name="__codelineno-33-33" href="#__codelineno-33-33"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-33-34" name="__codelineno-33-34" href="#__codelineno-33-34"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Errored</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
+<a id="__codelineno-33-35" name="__codelineno-33-35" href="#__codelineno-33-35"></a>
+<a id="__codelineno-33-36" name="__codelineno-33-36" href="#__codelineno-33-36"></a><span class="c"># Wildcard transitions require separate procs for each source state.</span>
+<a id="__codelineno-33-37" name="__codelineno-33-37" href="#__codelineno-33-37"></a><span class="c"># The {.transition.} pragma validates each at compile time.</span>
+<a id="__codelineno-33-38" name="__codelineno-33-38" href="#__codelineno-33-38"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-39" name="__codelineno-33-39" href="#__codelineno-33-39"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w">  </span><span class="c"># Already disconnected</span>
+<a id="__codelineno-33-40" name="__codelineno-33-40" href="#__codelineno-33-40"></a>
+<a id="__codelineno-33-41" name="__codelineno-33-41" href="#__codelineno-33-41"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-42" name="__codelineno-33-42" href="#__codelineno-33-42"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
+<a id="__codelineno-33-43" name="__codelineno-33-43" href="#__codelineno-33-43"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-33-44" name="__codelineno-33-44" href="#__codelineno-33-44"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+<a id="__codelineno-33-45" name="__codelineno-33-45" href="#__codelineno-33-45"></a>
+<a id="__codelineno-33-46" name="__codelineno-33-46" href="#__codelineno-33-46"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connected</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-47" name="__codelineno-33-47" href="#__codelineno-33-47"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
+<a id="__codelineno-33-48" name="__codelineno-33-48" href="#__codelineno-33-48"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-33-49" name="__codelineno-33-49" href="#__codelineno-33-49"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+<a id="__codelineno-33-50" name="__codelineno-33-50" href="#__codelineno-33-50"></a>
+<a id="__codelineno-33-51" name="__codelineno-33-51" href="#__codelineno-33-51"></a><span class="k">proc</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Errored</span><span class="p">):</span><span class="w"> </span><span class="n">Disconnected</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-52" name="__codelineno-33-52" href="#__codelineno-33-52"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span>
+<a id="__codelineno-33-53" name="__codelineno-33-53" href="#__codelineno-33-53"></a><span class="w">  </span><span class="n">conn</span><span class="p">.</span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-33-54" name="__codelineno-33-54" href="#__codelineno-33-54"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+<a id="__codelineno-33-55" name="__codelineno-33-55" href="#__codelineno-33-55"></a>
+<a id="__codelineno-33-56" name="__codelineno-33-56" href="#__codelineno-33-56"></a><span class="k">proc</span><span class="w"> </span><span class="nf">send</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connected</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-33-57" name="__codelineno-33-57" href="#__codelineno-33-57"></a><span class="w">  </span><span class="c"># Send data, stay connected</span>
+<a id="__codelineno-33-58" name="__codelineno-33-58" href="#__codelineno-33-58"></a><span class="w">  </span><span class="k">discard</span>
 </code></pre></div>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">¶</a></h2>
 <h3 id="accessing-the-base-type">Accessing the Base Type<a class="headerlink" href="#accessing-the-base-type" title="Permanent link">¶</a></h3>
 <p>State types are <code>distinct</code>, so you need to convert to access fields:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span><span class="w">  </span><span class="c"># Convert Open to File to access .path</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="w">  </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span><span class="w">  </span><span class="c"># Convert Open to File to access .path</span>
 </code></pre></div>
 <h3 id="returning-union-types">Returning Union Types<a class="headerlink" href="#returning-union-types" title="Permanent link">¶</a></h3>
 <p>For branching transitions, use the <code>-&gt;</code> operator with the generated branch type:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c"># Branching transition: Connecting -&gt; (Connected | Errored) as ConnectResult</span>
-<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">waitForConnection</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">ConnectResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="p">:</span>
-<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
-<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Errored</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c"># Branching transition: Connecting -&gt; (Connected | Errored) as ConnectResult</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">waitForConnection</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Connecting</span><span class="p">):</span><span class="w"> </span><span class="n">ConnectResult</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="p">:</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Connected</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="w">  </span><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="w">    </span><span class="n">ConnectResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Errored</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
 </code></pre></div>
 <p>Then pattern match on the result:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="k">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">conn</span><span class="p">.</span><span class="n">waitForConnection</span><span class="p">()</span>
-<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="k">case</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">kind</span>
-<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="k">of</span><span class="w"> </span><span class="nl">cConnected</span><span class="o">:</span>
-<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Connected!"</span>
-<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="w">  </span><span class="n">sendData</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">connected</span><span class="p">)</span>
-<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="k">of</span><span class="w"> </span><span class="nl">cErrored</span><span class="o">:</span>
-<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Error: "</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">errored</span><span class="p">.</span><span class="n">message</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="k">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">conn</span><span class="p">.</span><span class="n">waitForConnection</span><span class="p">()</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="k">case</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">kind</span>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="k">of</span><span class="w"> </span><span class="nl">cConnected</span><span class="o">:</span>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Connected!"</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="w">  </span><span class="n">sendData</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">connected</span><span class="p">)</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="k">of</span><span class="w"> </span><span class="nl">cErrored</span><span class="o">:</span>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="w">  </span><span class="n">echo</span><span class="w"> </span><span class="s">"Error: "</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">errored</span><span class="p">.</span><span class="n">message</span>
 </code></pre></div>
 <p><strong>Why branch types?</strong> Nim's <code>A | B</code> syntax creates a generic type constraint, not a runtime sum type. You cannot actually return different types from if/else branches. The generated branch types solve this by wrapping the result in an object variant.</p>
 <h3 id="generic-over-all-states">Generic Over All States<a class="headerlink" href="#generic-over-all-states" title="Permanent link">¶</a></h3>
 <p>Use the generated union type for generic procs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">forceClose</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="w">  </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">forceClose</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">  </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -1831,7 +1964,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 7, 2025 04:59:19 UTC"><span class="timeago" datetime="2025-12-07T04:59:19+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 7, 2025 04:59:19 UTC">2025-12-07</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 8, 2025 07:25:52 UTC"><span class="timeago" datetime="2025-12-08T07:25:52+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 8, 2025 07:25:52 UTC">2025-12-08</span>
   </span>
 
     
