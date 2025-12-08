@@ -211,8 +211,14 @@ typestates dot --no-style src/ > states.dot
 - [Cross-Type Bridges](https://elijahr.github.io/nim-typestates/latest/guide/bridges/)
 - [Generic Typestates](https://elijahr.github.io/nim-typestates/latest/guide/generics/)
 - [Formal Guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
+- [Error Handling](https://elijahr.github.io/nim-typestates/latest/guide/error-handling/)
 - [Examples](https://elijahr.github.io/nim-typestates/latest/guide/examples/)
+- [Strict Mode](https://elijahr.github.io/nim-typestates/latest/guide/strict-mode/)
+- [Verification](https://elijahr.github.io/nim-typestates/latest/guide/verification/)
+- [CLI Reference](https://elijahr.github.io/nim-typestates/latest/guide/cli/)
+- [Visualization](https://elijahr.github.io/nim-typestates/latest/guide/visualization/)
 - [API Reference](https://elijahr.github.io/nim-typestates/latest/api/)
+- [Contributing](https://elijahr.github.io/nim-typestates/latest/contributing/)
 
 ## References
 
