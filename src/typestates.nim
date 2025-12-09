@@ -73,14 +73,14 @@ macro typestate*(name: untyped, body: untyped): untyped =
   when (NimMajor, NimMinor, NimPatch) < (2, 2, 8):
     if hasHookCodegenBugConditions(graph):
       error(
-        "This typestate uses `static` generic parameters with `consumeOnTransition = true`, " &
-        "which triggers a codegen bug in Nim < 2.2.8 affecting ARC, ORC, AtomicARC, " &
-        "and any memory manager that uses hooks. " &
+        "Typestate '" & graph.name & "' uses `static` generic parameters with " &
+        "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
+        "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
         "Options:\n" &
-        "  1. Upgrade to Nim >= 2.2.8\n" &
-        "  2. Use `--mm:refc` instead\n" &
+        "  1. Make '" & graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+        "  2. Upgrade to Nim >= 2.2.8\n" &
         "  3. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-        "  4. Make base type inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+        "  4. Use `--mm:refc` instead of ARC/ORC\n" &
         "See: https://github.com/nim-lang/Nim/issues/25341",
         name
       )
