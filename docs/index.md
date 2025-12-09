@@ -93,10 +93,10 @@ requires "typestates >= 0.1.0"
     you may hit a [Nim codegen bug](https://github.com/nim-lang/Nim/issues/25341) fixed in Nim 2.2.8.
     The library detects this and shows workarounds. Options:
 
-    1. Make your base type inherit from `RootObj` and add `inheritsFromRootObj = true`
-    2. Upgrade to Nim >= 2.2.8
-    3. Add `consumeOnTransition = false` to your typestate
-    4. Use `--mm:refc` instead of ARC/ORC
+    1. Use `--mm:refc` instead of ARC/ORC
+    2. Make your base type inherit from `RootObj` and add `inheritsFromRootObj = true`
+    3. Upgrade to Nim >= 2.2.8 (when released)
+    4. Add `consumeOnTransition = false` to your typestate
 
     Regular generics (`Container[T]`) are not affected.
 

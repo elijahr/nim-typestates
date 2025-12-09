@@ -77,10 +77,10 @@ macro typestate*(name: untyped, body: untyped): untyped =
         "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
         "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
         "Options:\n" &
-        "  1. Make '" & graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
-        "  2. Upgrade to Nim >= 2.2.8\n" &
-        "  3. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-        "  4. Use `--mm:refc` instead of ARC/ORC\n" &
+        "  1. Use `--mm:refc` instead of ARC/ORC\n" &
+        "  2. Make '" & graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+        "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
+        "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
         "See: https://github.com/nim-lang/Nim/issues/25341",
         name
       )
