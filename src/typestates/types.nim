@@ -275,8 +275,50 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
         if destBase notin result:
           result.add destBase
 
+proc hasBridge*(graph: TypestateGraph, fromState, toModule, toTypestate, toState: string): bool =
+  ## Check if a bridge from `fromState` to `toModule.toTypestate.toState` is declared.
+  ##
+  ## Comparisons use base names to support generic types.
+  ## Module matching: both empty = match, both non-empty and equal = match.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## # Given: Authenticated -> Session.Active
+  ## graph.hasBridge("Authenticated", "", "Session", "Active")  # true (same module)
+  ##
+  ## # Given: StateA -> othermodule.Session.Active
+  ## graph.hasBridge("StateA", "othermodule", "Session", "Active")  # true
+  ## graph.hasBridge("StateA", "", "Session", "Active")  # false (module mismatch)
+  ## ```
+  ##
+  ## :param graph: The typestate graph to check
+  ## :param fromState: The source state name
+  ## :param toModule: The destination module name (empty string for same module)
+  ## :param toTypestate: The destination typestate name
+  ## :param toState: The destination state name
+  ## :returns: `true` if the bridge is declared, `false` otherwise
+  let fromBase = extractBaseName(fromState)
+  let toModuleBase = if toModule == "": "" else: extractBaseName(toModule)
+  let toTypestateBase = extractBaseName(toTypestate)
+  let toStateBase = extractBaseName(toState)
+  for b in graph.bridges:
+    if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
+      # Module matching logic: both empty = match, both non-empty and equal = match
+      let bridgeModuleBase = if b.toModule == "": "" else: extractBaseName(b.toModule)
+      let moduleMatches = (bridgeModuleBase == "" and toModuleBase == "") or
+                          (bridgeModuleBase != "" and bridgeModuleBase == toModuleBase)
+      if moduleMatches and
+         extractBaseName(b.toTypestate) == toTypestateBase and
+         extractBaseName(b.toState) == toStateBase:
+        return true
+  return false
+
 proc hasBridge*(graph: TypestateGraph, fromState, toTypestate, toState: string): bool =
-  ## Check if a bridge from `fromState` to `toTypestate.toState` is declared.
+  ## Check if a bridge from `fromState` to any `*.toTypestate.toState` is declared.
+  ##
+  ## This version matches bridges regardless of the module prefix, making it suitable
+  ## for validation where we only know the destination typestate and state.
   ##
   ## Comparisons use base names to support generic types.
   ##
@@ -285,7 +327,9 @@ proc hasBridge*(graph: TypestateGraph, fromState, toTypestate, toState: string):
   ## ```nim
   ## # Given: Authenticated -> Session.Active
   ## graph.hasBridge("Authenticated", "Session", "Active")  # true
-  ## graph.hasBridge("Failed", "Session", "Active")         # false
+  ##
+  ## # Given: StateA -> mymodule.Session.Active
+  ## graph.hasBridge("StateA", "Session", "Active")  # true (matches regardless of module)
   ## ```
   ##
   ## :param graph: The typestate graph to check
