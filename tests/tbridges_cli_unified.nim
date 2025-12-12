@@ -48,8 +48,9 @@ try:
   doAssert "subgraph cluster_Session" in dot, "Should have Session subgraph"
 
   # Verify bridge edges (dashed, cross-cluster)
-  doAssert "Authenticated -> Active" in dot, "Should have bridge from Authenticated to Active"
-  doAssert "Failed -> Closed" in dot, "Should have bridge from Failed to Closed"
+  # Bridges should use fullDestRepr (e.g., "Session.Active" not just "Active")
+  doAssert "Authenticated -> Session.Active" in dot, "Should have bridge from Authenticated to Session.Active"
+  doAssert "Failed -> Session.Closed" in dot, "Should have bridge from Failed to Session.Closed"
   doAssert "style=dashed" in dot, "Bridge edges should be dashed"
 
   echo "Unified graph generation test passed"

@@ -269,7 +269,8 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
     for ts in typestates:
       for bridge in ts.bridges:
         let fromState = bridge.fromState
-        let toState = bridge.toState
+        # Use fullDestRepr for complete destination representation (includes module if present)
+        let toState = bridge.fullDestRepr
 
         if fromState == "*":
           # Wildcard bridge: add edge from every state
