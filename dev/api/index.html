@@ -440,6 +440,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../guide/library-modularity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library Modularity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../guide/generics/" class="md-nav__link">
         
   
@@ -755,6 +783,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#typestateImpl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestateImpl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#typestate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -903,6 +942,17 @@
     <span class="md-ellipsis">
       
         validDestinations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasBridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasBridge
       
     </span>
   </a>
@@ -1596,6 +1646,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#typestateImpl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestateImpl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#typestate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1744,6 +1805,17 @@
     <span class="md-ellipsis">
       
         validDestinations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasBridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hasBridge
       
     </span>
   </a>
@@ -2407,6 +2479,85 @@ become unrepresentable rather than checked at runtime.</p>
   
 
   
+    <h4 id="typestateImpl" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-macro-name">typestateImpl</span>
+      
+    <a href="#typestateImpl" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">macro typestateImpl(name: untyped; body: untyped; inferredConstraints: static[seq[tuple[name: string, kind: string,
+                                      constraint: string]]]): untyped</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Internal implementation that receives inferred constraints.</p>
+<p>This macro is called after constraint inference to generate the typestate
+with properly constrained generic parameters.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>name</code>
+              (<code>untyped</code>)
+              
+            </li>
+          
+            <li>
+              <code>body</code>
+              (<code>untyped</code>)
+              
+            </li>
+          
+            <li>
+              <code>inferredConstraints</code>
+              (<code>static[seq[tuple[name: string, kind: string, constraint: string]]]</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>untyped</code></p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates.nim#L66" target="_blank" rel="noopener">
+            src/typestates.nim:66
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-macro">
+  
+
+  
     <h4 id="typestate" class="doc doc-heading">
       
       <span class="doc doc-object-name doc-macro-name">typestate</span>
@@ -2436,6 +2587,18 @@ become unrepresentable rather than checked at runtime.</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="w">    </span><span class="c"># Branching</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span><span class="w">                 </span><span class="c"># Wildcard</span>
+</code></pre></div>
+<p>Generic typestates with constraint inference:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c"># N's constraint is automatically inferred from StateA/StateB</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">StateA</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StateB</span>
 </code></pre></div>
 <p>What it generates:</p>
 <ul>
@@ -2490,8 +2653,8 @@ become unrepresentable rather than checked at runtime.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates.nim#L21" target="_blank" rel="noopener">
-            src/typestates.nim:21
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates.nim#L142" target="_blank" rel="noopener">
+            src/typestates.nim:142
           </a>
         
       </div>
@@ -2722,8 +2885,8 @@ and transitions used during compile-time validation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L125" target="_blank" rel="noopener">
-            src/typestates/types.nim:125
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L143" target="_blank" rel="noopener">
+            src/typestates/types.nim:143
           </a>
         
       </div>
@@ -2798,8 +2961,8 @@ is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L167" target="_blank" rel="noopener">
-            src/typestates/types.nim:167
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L185" target="_blank" rel="noopener">
+            src/typestates/types.nim:185
           </a>
         
       </div>
@@ -2832,8 +2995,8 @@ is not considered for equality.</p>
       <div class="doc-description">
         <p>Compare two bridges for equality.</p>
 <p>Two bridges are equal if they have the same source state,
-destination typestate, and destination state. The declaration
-location is not considered for equality.</p>
+destination module, destination typestate, and destination state.
+The declaration location is not considered for equality.</p>
 <p>:param a: First bridge to compare
 :param b: Second bridge to compare
 :returns: <code>true</code> if bridges are semantically equivalent</p>
@@ -2874,8 +3037,8 @@ location is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L181" target="_blank" rel="noopener">
-            src/typestates/types.nim:181
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L199" target="_blank" rel="noopener">
+            src/typestates/types.nim:199
           </a>
         
       </div>
@@ -2966,8 +3129,8 @@ A transition is valid if there's an explicit transition
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L195" target="_blank" rel="noopener">
-            src/typestates/types.nim:195
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L214" target="_blank" rel="noopener">
+            src/typestates/types.nim:214
           </a>
         
       </div>
@@ -3048,8 +3211,112 @@ Returns base names for clearer error messages.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L229" target="_blank" rel="noopener">
-            src/typestates/types.nim:229
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L248" target="_blank" rel="noopener">
+            src/typestates/types.nim:248
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="hasBridge" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">hasBridge</span>
+      
+    <a href="#hasBridge" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc hasBridge(graph: TypestateGraph; fromState, toModule, toTypestate, toState: string): bool</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Check if a bridge from <code>fromState</code> to <code>toModule.toTypestate.toState</code> is declared.</p>
+<p>Comparisons use base names to support generic types.
+Module matching: both empty = match, both non-empty and equal = match.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (same module)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; othermodule.Session.Active</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># false (module mismatch)</span>
+</code></pre></div>
+<p>:param graph: The typestate graph to check
+:param fromState: The source state name
+:param toModule: The destination module name (empty string for same module)
+:param toTypestate: The destination typestate name
+:param toState: The destination state name
+:returns: <code>true</code> if the bridge is declared, <code>false</code> otherwise</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph to check
+            </li>
+          
+            <li>
+              <code>fromState</code>
+              (<code>string</code>)
+               – The source state name
+            </li>
+          
+            <li>
+              <code>toModule</code>
+              (<code>string</code>)
+               – The destination module name (empty string for same module)
+            </li>
+          
+            <li>
+              <code>toTypestate</code>
+              (<code>string</code>)
+               – The destination typestate name
+            </li>
+          
+            <li>
+              <code>toState</code>
+              (<code>string</code>)
+               – The destination state name
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>bool</code> – `true` if the bridge is declared, `false` otherwise</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L278" target="_blank" rel="noopener">
+            src/typestates/types.nim:278
           </a>
         
       </div>
@@ -3080,12 +3347,16 @@ Returns base names for clearer error messages.</p>
   <div class="doc doc-contents first">
     
       <div class="doc-description">
-        <p>Check if a bridge from <code>fromState</code> to <code>toTypestate.toState</code> is declared.</p>
+        <p>Check if a bridge from <code>fromState</code> to any <code>*.toTypestate.toState</code> is declared.</p>
+<p>This version matches bridges regardless of the module prefix, making it suitable
+for validation where we only know the destination typestate and state.</p>
 <p>Comparisons use base names to support generic types.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">         </span><span class="c"># false</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; mymodule.Session.Active</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (matches regardless of module)</span>
 </code></pre></div>
 <p>:param graph: The typestate graph to check
 :param fromState: The source state name
@@ -3141,8 +3412,8 @@ Returns base names for clearer error messages.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L259" target="_blank" rel="noopener">
-            src/typestates/types.nim:259
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L317" target="_blank" rel="noopener">
+            src/typestates/types.nim:317
           </a>
         
       </div>
@@ -3174,11 +3445,11 @@ Returns base names for clearer error messages.</p>
     
       <div class="doc-description">
         <p>Get all valid bridge destinations from a given state.</p>
-<p>Returns dotted notation strings like "Session.Active".</p>
+<p>Returns dotted notation strings like "Session.Active" or "module.Session.Active".</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active, Failed -&gt; ErrorLog.Entry</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active, Failed -&gt; othermodule.ErrorLog.Entry</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Session.Active"]</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["ErrorLog.Entry"]</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["othermodule.ErrorLog.Entry"]</span>
 </code></pre></div>
 <p>:param graph: The typestate graph to query
 :param fromState: The source state to check bridges from
@@ -3220,8 +3491,8 @@ Returns base names for clearer error messages.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L287" target="_blank" rel="noopener">
-            src/typestates/types.nim:287
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L350" target="_blank" rel="noopener">
+            src/typestates/types.nim:350
           </a>
         
       </div>
@@ -3300,8 +3571,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L311" target="_blank" rel="noopener">
-            src/typestates/types.nim:311
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L378" target="_blank" rel="noopener">
+            src/typestates/types.nim:378
           </a>
         
       </div>
@@ -3380,8 +3651,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L334" target="_blank" rel="noopener">
-            src/typestates/types.nim:334
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L401" target="_blank" rel="noopener">
+            src/typestates/types.nim:401
           </a>
         
       </div>
@@ -3691,8 +3962,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L363" target="_blank" rel="noopener">
-            src/typestates/parser.nim:363
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L377" target="_blank" rel="noopener">
+            src/typestates/parser.nim:377
           </a>
         
       </div>
@@ -3768,8 +4039,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L472" target="_blank" rel="noopener">
-            src/typestates/parser.nim:472
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L488" target="_blank" rel="noopener">
+            src/typestates/parser.nim:488
           </a>
         
       </div>
@@ -3845,8 +4116,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L493" target="_blank" rel="noopener">
-            src/typestates/parser.nim:493
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L509" target="_blank" rel="noopener">
+            src/typestates/parser.nim:509
           </a>
         
       </div>
@@ -3937,8 +4208,8 @@ body of a <code>typestate</code> macro invocation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L651" target="_blank" rel="noopener">
-            src/typestates/parser.nim:651
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L667" target="_blank" rel="noopener">
+            src/typestates/parser.nim:667
           </a>
         
       </div>
@@ -6175,8 +6446,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L290" target="_blank" rel="noopener">
-            src/typestates/cli.nim:290
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L293" target="_blank" rel="noopener">
+            src/typestates/cli.nim:293
           </a>
         
       </div>
@@ -6247,8 +6518,8 @@ immediately with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L394" target="_blank" rel="noopener">
-            src/typestates/cli.nim:394
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L398" target="_blank" rel="noopener">
+            src/typestates/cli.nim:398
           </a>
         
       </div>

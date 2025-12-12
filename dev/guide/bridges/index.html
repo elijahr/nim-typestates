@@ -13,7 +13,7 @@
         <link rel="prev" href="../dsl-reference/">
       
       
-        <link rel="next" href="../generics/">
+        <link rel="next" href="../library-modularity/">
       
       
         
@@ -480,6 +480,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Declaration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-qualified-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module-Qualified Syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -616,6 +633,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-module-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Module Considerations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-Module Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consumeontransition-and-bridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumeOnTransition and Bridges
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#visualization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -658,6 +703,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../library-modularity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library Modularity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -983,6 +1056,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Declaration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-qualified-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module-Qualified Syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1119,6 +1209,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-module-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Module Considerations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-Module Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consumeontransition-and-bridges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumeOnTransition and Bridges
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#visualization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1193,32 +1311,50 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
 </code></pre></div>
 <p>The destination typestate must be imported and exist.</p>
+<h3 id="module-qualified-syntax">Module-Qualified Syntax<a class="headerlink" href="#module-qualified-syntax" title="Permanent link">¶</a></h3>
+<p>For clarity when bridging to typestates from other modules, use the full module-qualified syntax:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">session_module</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="c"># Explicit module prefix for clarity</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">session_module</span><span class="p">.</span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+</code></pre></div>
+<p>This syntax is especially useful when:</p>
+<ul>
+<li>Multiple modules define typestates with similar names</li>
+<li>You want to make cross-module dependencies explicit</li>
+<li>Working with library typestates (see <a href="../library-modularity/">Library Modularity</a>)</li>
+</ul>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">¶</a></h2>
 <h3 id="using-procs">Using Procs<a class="headerlink" href="#using-procs" title="Permanent link">¶</a></h3>
 <p>Use procs when you need extra arguments:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">startSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="n">SessionConfig</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">timeout</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">timeout</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">startSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="n">SessionConfig</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">timeout</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">timeout</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p">))</span>
 </code></pre></div>
 <h3 id="using-converters">Using Converters<a class="headerlink" href="#using-converters" title="Permanent link">¶</a></h3>
 <p>Use converters for simple 1:1 transforms:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c"># Usage - implicit conversion works</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">let</span><span class="w"> </span><span class="n">session</span><span class="p">:</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">myAuth</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c"># Usage - implicit conversion works</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">let</span><span class="w"> </span><span class="n">session</span><span class="p">:</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">myAuth</span>
 </code></pre></div>
 <h2 id="branching">Branching<a class="headerlink" href="#branching" title="Permanent link">¶</a></h2>
 <p>Bridges support branching like regular transitions:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Guest</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Guest</span>
 </code></pre></div>
 <h2 id="wildcard-bridges">Wildcard Bridges<a class="headerlink" href="#wildcard-bridges" title="Permanent link">¶</a></h2>
 <p>Use <code>*</code> to allow any state to bridge to a destination:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
 </code></pre></div>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">¶</a></h2>
 <p>The compiler validates:</p>
@@ -1231,57 +1367,74 @@
 </ol>
 <h2 id="error-messages">Error Messages<a class="headerlink" href="#error-messages" title="Permanent link">¶</a></h2>
 <h3 id="bridge-not-declared">Bridge Not Declared<a class="headerlink" href="#bridge-not-declared" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Error: Undeclared bridge: Authenticated -&gt; Session.Active
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  Typestate 'AuthFlow' does not declare this bridge.
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  Valid bridges from 'Authenticated': @[]
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  Hint: Add 'bridges: Authenticated -&gt; Session.Active' to AuthFlow.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Error: Undeclared bridge: Authenticated -&gt; Session.Active
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  Typestate 'AuthFlow' does not declare this bridge.
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  Valid bridges from 'Authenticated': @[]
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  Hint: Add 'bridges: Authenticated -&gt; Session.Active' to AuthFlow.
 </code></pre></div>
 <h3 id="unknown-typestate">Unknown Typestate<a class="headerlink" href="#unknown-typestate" title="Permanent link">¶</a></h3>
 <p>If you reference a typestate that doesn't exist, you'll get an error indicating that the destination type isn't part of any registered typestate.</p>
 <h3 id="unknown-state">Unknown State<a class="headerlink" href="#unknown-state" title="Permanent link">¶</a></h3>
 <p>If you reference a state that doesn't exist in the destination typestate, you'll get an error indicating which states are valid.</p>
 <h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c"># session.nim</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">type</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="n">Session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="n">Expired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Session</span><span class="p">:</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Expired</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="n">Active</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Expired</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="c"># auth.nim</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="kn">import</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">session</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="k">type</span>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="n">AuthFlow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span><span class="n">Pending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
-<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
-<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>
-<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">a</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># session.nim</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">type</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="n">Session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="n">Expired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Session</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Session</span><span class="p">:</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="n">Active</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Expired</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c"># auth.nim</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="kn">import</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">session</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="k">type</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">  </span><span class="n">AuthFlow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">  </span><span class="n">Pending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">AuthFlow</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="k">converter</span><span class="w"> </span><span class="n">toSession</span><span class="p">(</span><span class="n">a</span><span class="p">:</span><span class="w"> </span><span class="n">Authenticated</span><span class="p">):</span><span class="w"> </span><span class="n">Active</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">  </span><span class="n">Active</span><span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">AuthFlow</span><span class="p">.</span><span class="n">userId</span><span class="p">))</span>
 </code></pre></div>
+<h2 id="cross-module-considerations">Cross-Module Considerations<a class="headerlink" href="#cross-module-considerations" title="Permanent link">¶</a></h2>
+<h3 id="consumeontransition-and-bridges">consumeOnTransition and Bridges<a class="headerlink" href="#consumeontransition-and-bridges" title="Permanent link">¶</a></h3>
+<p><strong>Important:</strong> When bridging between typestates from different modules, both typestates should use <code>consumeOnTransition = false</code>.</p>
+<p>With <code>consumeOnTransition = true</code> (the default), state values cannot be copied. When a bridge proc takes a state from typestate A and creates a state in typestate B, the value must be passed across module boundaries. This can trigger copy errors if either typestate has copy disabled.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c"># module_a.nim</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">typestate</span><span class="w"> </span><span class="n">AuthFlow</span><span class="p">:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="n">consumeOnTransition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">  </span><span class="c"># Required for cross-module bridging</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Authenticated</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c"># module_b.nim</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Session</span><span class="p">:</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="n">consumeOnTransition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">  </span><span class="c"># Required for cross-module bridging</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Expired</span>
+</code></pre></div>
+<p>If you see errors like <code>'=copy' is not available for type &lt;State&gt;</code> when using bridges, add <code>consumeOnTransition = false</code> to both the source and destination typestates.</p>
 <h2 id="visualization">Visualization<a class="headerlink" href="#visualization" title="Permanent link">¶</a></h2>
 <h3 id="unified-graph-default">Unified Graph (default)<a class="headerlink" href="#unified-graph-default" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
 </code></pre></div>
 <p>Shows all typestates with cross-cluster dashed edges for bridges.</p>
 <h3 id="separate-graphs">Separate Graphs<a class="headerlink" href="#separate-graphs" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--separate<span class="w"> </span>src/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--separate<span class="w"> </span>src/
 </code></pre></div>
 <p>Shows individual graphs per typestate with bridges as terminal nodes.</p>
 
@@ -1306,7 +1459,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 5, 2025 00:02:25 UTC"><span class="timeago" datetime="2025-12-05T00:02:25+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 5, 2025 00:02:25 UTC">2025-12-05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 12, 2025 08:19:22 UTC"><span class="timeago" datetime="2025-12-12T08:19:22+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 12, 2025 08:19:22 UTC">2025-12-12</span>
   </span>
 
     

@@ -47,6 +47,6 @@ digraph {
   }
 
   // Bridges (cross-typestate)
-  Authenticated -> Active [style=dashed, color="#b39ddb", penwidth=1.5];
-  Failed -> Expired [style=dashed, color="#b39ddb", penwidth=1.5];
+  Authenticated -> "Session.Active" [style=dashed, color="#b39ddb", penwidth=1.5];
+  Failed -> "Session.Expired" [style=dashed, color="#b39ddb", penwidth=1.5];
 }
