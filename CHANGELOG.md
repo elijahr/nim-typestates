@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-12-12
+
+### Added
+
+- Module-qualified bridge syntax (`module.Typestate.State`) for cross-module bridges
+  - Enables explicit documentation of which module a bridge target comes from
+  - Module qualifiers are metadata for documentation and visualization
+  - Validation uses base names for flexibility
+- Automatic constraint inference for generic typestates
+  - Unconstrained generic parameters (e.g., `[N]`) are automatically inferred from state type definitions
+  - Reduces boilerplate when state types already declare constraints
+- Library Modularity guide documenting typestate composition patterns
+  - Shows how libraries can expose typestates for external consumption
+  - Uses nim-debra as a case study
+- Comprehensive test coverage for module-qualified bridges
+  - Generic typestates with module-qualified bridges
+  - Branching transitions with module-qualified bridges
+  - Visualization output verification
+
+### Fixed
+
+- DOT generation now properly quotes bridge destinations containing dots
+  - Fixes Graphviz syntax errors with module-qualified names like `module.Type.State`
+- DOT unified graph now uses `fullDestRepr` for complete bridge destination names
+- Improved error messages for codegen bug detection
+
+### Documentation
+
+- Added module-qualified syntax to bridges guide and DSL reference
+- Added all guide sections to README documentation links
+
 ## [0.2.1] - 2025-12-07
 
 ### Added
@@ -109,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/elijahr/nim-typestates/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/elijahr/nim-typestates/releases/tag/v0.1.0
