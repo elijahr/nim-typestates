@@ -21,6 +21,28 @@ typestate AuthFlow:
 
 The destination typestate must be imported and exist.
 
+### Module-Qualified Syntax
+
+For clarity when bridging to typestates from other modules, use the full module-qualified syntax:
+
+```nim
+import ./session_module
+
+typestate AuthFlow:
+  states Pending, Authenticated
+  transitions:
+    Pending -> Authenticated
+  bridges:
+    # Explicit module prefix for clarity
+    Authenticated -> session_module.Session.Active
+```
+
+This syntax is especially useful when:
+
+- Multiple modules define typestates with similar names
+- You want to make cross-module dependencies explicit
+- Working with library typestates (see [Library Modularity](library-modularity.md))
+
 ## Implementation
 
 ### Using Procs
@@ -131,6 +153,30 @@ typestate AuthFlow:
 converter toSession(a: Authenticated): Active {.transition.} =
   Active(Session(userId: a.AuthFlow.userId))
 ```
+
+## Cross-Module Considerations
+
+### consumeOnTransition and Bridges
+
+**Important:** When bridging between typestates from different modules, both typestates should use `consumeOnTransition = false`.
+
+With `consumeOnTransition = true` (the default), state values cannot be copied. When a bridge proc takes a state from typestate A and creates a state in typestate B, the value must be passed across module boundaries. This can trigger copy errors if either typestate has copy disabled.
+
+```nim
+# module_a.nim
+typestate AuthFlow:
+  consumeOnTransition = false  # Required for cross-module bridging
+  states Pending, Authenticated
+  bridges:
+    Authenticated -> Session.Active
+
+# module_b.nim
+typestate Session:
+  consumeOnTransition = false  # Required for cross-module bridging
+  states Active, Expired
+```
+
+If you see errors like `'=copy' is not available for type <State>` when using bridges, add `consumeOnTransition = false` to both the source and destination typestates.
 
 ## Visualization
 
