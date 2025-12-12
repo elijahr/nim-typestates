@@ -11,7 +11,7 @@
 ##
 ## **Internal module** - most users won't interact with this directly.
 
-import std/[macros, tables, strutils]
+import std/[macros, tables, strutils, sequtils]
 import types
 
 proc extractBaseName(node: NimNode): string =
@@ -421,8 +421,10 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
     for target in targets:
       let bridge = Bridge(
         fromState: fromState,
+        toModule: "",  # Empty for same-module (module-qualified syntax not yet implemented)
         toTypestate: target.typestate,
         toState: target.state,
+        fullDestRepr: target.typestate & "." & target.state,
         declaredAt: child.lineInfoObj
       )
       graph.bridges.add bridge

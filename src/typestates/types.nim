@@ -108,18 +108,36 @@ type
     ## # Becomes:
     ## Bridge(
     ##   fromState: "Authenticated",
+    ##   toModule: "",  # empty for same-module
     ##   toTypestate: "Session",
-    ##   toState: "Active"
+    ##   toState: "Active",
+    ##   fullDestRepr: "Session.Active"
+    ## )
+    ##
+    ## # With module prefix:
+    ## # bridges:
+    ## #   SourceState -> othermodule.Session.Active
+    ## # Becomes:
+    ## Bridge(
+    ##   fromState: "SourceState",
+    ##   toModule: "othermodule",
+    ##   toTypestate: "Session",
+    ##   toState: "Active",
+    ##   fullDestRepr: "othermodule.Session.Active"
     ## )
     ## ```
     ##
     ## :var fromState: Source state name in this typestate
+    ## :var toModule: Module name (empty string if same module)
     ## :var toTypestate: Name of the destination typestate
     ## :var toState: State name in the destination typestate
+    ## :var fullDestRepr: Full repr for error messages (e.g., "module.Typestate.State")
     ## :var declaredAt: Source location for error messages
     fromState*: string
+    toModule*: string
     toTypestate*: string
     toState*: string
+    fullDestRepr*: string
     declaredAt*: LineInfo
 
   TypestateGraph* = object
@@ -182,13 +200,14 @@ proc `==`*(a, b: Bridge): bool =
   ## Compare two bridges for equality.
   ##
   ## Two bridges are equal if they have the same source state,
-  ## destination typestate, and destination state. The declaration
-  ## location is not considered for equality.
+  ## destination module, destination typestate, and destination state.
+  ## The declaration location is not considered for equality.
   ##
   ## :param a: First bridge to compare
   ## :param b: Second bridge to compare
   ## :returns: `true` if bridges are semantically equivalent
   a.fromState == b.fromState and
+    a.toModule == b.toModule and
     a.toTypestate == b.toTypestate and
     a.toState == b.toState
 
@@ -287,14 +306,14 @@ proc hasBridge*(graph: TypestateGraph, fromState, toTypestate, toState: string):
 proc validBridges*(graph: TypestateGraph, fromState: string): seq[string] =
   ## Get all valid bridge destinations from a given state.
   ##
-  ## Returns dotted notation strings like "Session.Active".
+  ## Returns dotted notation strings like "Session.Active" or "module.Session.Active".
   ##
   ## Example:
   ##
   ## ```nim
-  ## # Given: Authenticated -> Session.Active, Failed -> ErrorLog.Entry
+  ## # Given: Authenticated -> Session.Active, Failed -> othermodule.ErrorLog.Entry
   ## graph.validBridges("Authenticated")  # @["Session.Active"]
-  ## graph.validBridges("Failed")         # @["ErrorLog.Entry"]
+  ## graph.validBridges("Failed")         # @["othermodule.ErrorLog.Entry"]
   ## ```
   ##
   ## :param graph: The typestate graph to query
@@ -304,7 +323,11 @@ proc validBridges*(graph: TypestateGraph, fromState: string): seq[string] =
   let fromBase = extractBaseName(fromState)
   for b in graph.bridges:
     if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
-      let dest = b.toTypestate & "." & b.toState
+      var dest: string
+      if b.toModule != "":
+        dest = b.toModule & "." & b.toTypestate & "." & b.toState
+      else:
+        dest = b.toTypestate & "." & b.toState
       if dest notin result:
         result.add dest
 
