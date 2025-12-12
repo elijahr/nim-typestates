@@ -49,11 +49,11 @@ typestate AuthFlow:
     let parseResult = parseTypestates(@[sessionFile, authFile])
     let dot = generateUnifiedDot(parseResult.typestates)
 
-    # Verify module qualifier appears in bridge edge
-    doAssert "sessionmodule.Session.Active" in dot,
-      "Bridge should use full module-qualified name: " & dot
-    doAssert "Authenticated -> sessionmodule.Session.Active" in dot,
-      "Bridge edge should include module qualifier"
+    # Verify module qualifier appears in bridge edge (quoted for DOT compatibility)
+    doAssert "\"sessionmodule.Session.Active\"" in dot,
+      "Bridge should use full module-qualified name (quoted): " & dot
+    doAssert "Authenticated -> \"sessionmodule.Session.Active\"" in dot,
+      "Bridge edge should include module qualifier (quoted)"
     doAssert "style=dashed" in dot,
       "Bridge edge should be dashed"
 

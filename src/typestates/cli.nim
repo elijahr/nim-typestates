@@ -272,18 +272,20 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
         # Use fullDestRepr for complete destination representation (includes module if present)
         let toState = bridge.fullDestRepr
 
+        # Quote toState for DOT compatibility (handles dots in module.Type.State)
+        let quotedToState = "\"" & toState & "\""
         if fromState == "*":
           # Wildcard bridge: add edge from every state
           for state in ts.states:
             if noStyle:
-              lines.add "  " & state & " -> " & toState & " [style=dashed];"
+              lines.add "  " & state & " -> " & quotedToState & " [style=dashed];"
             else:
-              lines.add "  " & state & " -> " & toState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+              lines.add "  " & state & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
         else:
           if noStyle:
-            lines.add "  " & fromState & " -> " & toState & " [style=dashed];"
+            lines.add "  " & fromState & " -> " & quotedToState & " [style=dashed];"
           else:
-            lines.add "  " & fromState & " -> " & toState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+            lines.add "  " & fromState & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
