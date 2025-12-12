@@ -1540,6 +1540,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#generateCode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateCode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateCodeForAll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateCodeForAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#verify" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2396,6 +2418,28 @@
     <span class="md-ellipsis">
       
         generateSeparateDot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateCode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateCode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateCodeForAll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateCodeForAll
       
     </span>
   </a>
@@ -6462,6 +6506,144 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
   
 
   
+    <h4 id="generateCode" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateCode</span>
+      
+    <a href="#generateCode" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateCode(ts: ParsedTypestate): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate Nim code for a typestate's helper types and procs.</p>
+<p>Generates:
+- State enum (<code>FileState = enum fsClosed, fsOpen, ...</code>)
+- Union type (<code>FileStates = Closed | Open | ...</code>)
+- State procs (<code>proc state(f: Closed): FileState</code>)
+- Branch types for branching transitions
+- Branch constructors and operators</p>
+<p>:param ts: The parsed typestate to generate code for
+:returns: Generated Nim code as a string</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>ts</code>
+              (<code>ParsedTypestate</code>)
+               – The parsed typestate to generate code for
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – Generated Nim code as a string</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L365" target="_blank" rel="noopener">
+            src/typestates/cli.nim:365
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateCodeForAll" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateCodeForAll</span>
+      
+    <a href="#generateCodeForAll" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim">proc generateCodeForAll(typestates: seq[ParsedTypestate]): string</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate code for all typestates.</p>
+<p>:param typestates: All parsed typestates
+:returns: Combined generated Nim code</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>typestates</code>
+              (<code>seq[ParsedTypestate]</code>)
+               – All parsed typestates
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – Combined generated Nim code</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L466" target="_blank" rel="noopener">
+            src/typestates/cli.nim:466
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
     <h4 id="verify" class="doc doc-heading">
       
       <span class="doc doc-object-name doc-proc-name">verify</span>
@@ -6518,8 +6700,8 @@ immediately with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L398" target="_blank" rel="noopener">
-            src/typestates/cli.nim:398
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L516" target="_blank" rel="noopener">
+            src/typestates/cli.nim:516
           </a>
         
       </div>
