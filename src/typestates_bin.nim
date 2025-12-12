@@ -11,6 +11,7 @@ proc showHelp() =
   echo "  typestates verify [paths...]   Verify typestate rules"
   echo "  typestates dot [paths...]      Generate unified GraphViz DOT output"
   echo "  typestates dot --separate [paths...]  Generate separate DOT per typestate"
+  echo "  typestates codegen [paths...]  Generate helper code (enum, union, procs)"
   echo ""
   echo "Options:"
   echo "  -h, --help              Show this help"
@@ -30,6 +31,7 @@ proc showHelp() =
   echo "  typestates dot src/ | dot -Tpng -o typestates.png"
   echo "  typestates dot --no-style src/ | dot -Tpng -o custom.png"
   echo "  typestates dot --splines=ortho src/ > ortho.dot"
+  echo "  typestates codegen src/myfile.nim"
   echo ""
   echo "Notes:"
   echo "  Files must be valid Nim syntax. Syntax errors cause verification"
@@ -42,9 +44,12 @@ proc showHelp() =
   echo ""
   echo "  Use --no-style for minimal DOT output that's easier to customize with"
   echo "  your own colors, fonts, and styling."
+  echo ""
+  echo "  The 'codegen' command outputs the Nim code that the typestate macro"
+  echo "  generates: state enum, union type, state procs, and branch types."
 
 proc showVersion() =
-  echo "typestates 0.1.0"
+  echo "typestates 0.3.0"
 
 when isMainModule:
   var args: seq[string] = @[]
@@ -134,6 +139,30 @@ when isMainModule:
       else:
         # Generate unified graph
         echo generateUnifiedDot(parseResult.typestates, noStyleFlag, splineMode)
+
+      quit(0)
+    except ParseError as e:
+      echo "ERROR: ", e.msg
+      quit(1)
+
+  of "codegen":
+    try:
+      var pathArgs: seq[string] = @[]
+
+      for arg in paths:
+        if not arg.startsWith("-"):
+          pathArgs.add arg
+
+      if pathArgs.len == 0:
+        pathArgs = @["."]
+
+      let parseResult = parseTypestates(pathArgs)
+
+      if parseResult.typestates.len == 0:
+        echo "No typestates found in ", pathArgs.join(", ")
+        quit(1)
+
+      echo generateCodeForAll(parseResult.typestates)
 
       quit(0)
     except ParseError as e:

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `codegen` CLI command to output generated helper code
+  - Shows the state enum, union type, state procs, and branch types
+  - Useful for understanding what the macro generates
+  - Usage: `typestates codegen src/myfile.nim`
 - Module-qualified bridge syntax (`module.Typestate.State`) for cross-module bridges
   - Enables explicit documentation of which module a bridge target comes from
   - Module qualifiers are metadata for documentation and visualization

@@ -355,6 +355,124 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
   lines.add "}"
   result = lines.join("\n")
 
+proc branchEnumPrefix(typeName: string): string =
+  ## Generate a short prefix for branch enum fields.
+  if typeName.len > 0:
+    result = ($typeName[0]).toLowerAscii()
+  else:
+    result = "b"
+
+proc generateCode*(ts: ParsedTypestate): string =
+  ## Generate Nim code for a typestate's helper types and procs.
+  ##
+  ## Generates:
+  ## - State enum (`FileState = enum fsClosed, fsOpen, ...`)
+  ## - Union type (`FileStates = Closed | Open | ...`)
+  ## - State procs (`proc state(f: Closed): FileState`)
+  ## - Branch types for branching transitions
+  ## - Branch constructors and operators
+  ##
+  ## :param ts: The parsed typestate to generate code for
+  ## :returns: Generated Nim code as a string
+  var lines: seq[string] = @[]
+
+  lines.add "# Generated code for typestate: " & ts.name
+  lines.add ""
+
+  # 1. Generate state enum
+  let enumName = ts.name & "State"
+  var enumFields: seq[string] = @[]
+  for state in ts.states:
+    let baseName = state.split("[")[0]  # Handle generics: Empty[T] -> Empty
+    enumFields.add "fs" & baseName
+
+  lines.add "type"
+  lines.add "  " & enumName & "* = enum"
+  lines.add "    " & enumFields.join(", ")
+  lines.add ""
+
+  # 2. Generate union type
+  let unionName = ts.name & "States"
+  lines.add "type"
+  lines.add "  " & unionName & "* = " & ts.states.join(" | ")
+  lines.add ""
+
+  # 3. Generate state procs
+  for state in ts.states:
+    let baseName = state.split("[")[0]
+    let enumField = "fs" & baseName
+    lines.add "proc state*(f: " & state & "): " & enumName & " = " & enumField
+  lines.add ""
+
+  # 4. Generate branch types for branching transitions
+  var branchingTransitions: seq[ParsedTransition] = @[]
+  for t in ts.transitions:
+    if t.toStates.len > 1 and not t.isWildcard:
+      branchingTransitions.add t
+
+  for t in branchingTransitions:
+    # Extract branch type name from the transition
+    # For now, use the source state + "Result" as the branch type name
+    let fromBase = t.fromState.split("[")[0]
+    let branchTypeName = fromBase & "Result"
+    let kindTypeName = branchTypeName & "Kind"
+    let prefix = branchEnumPrefix(branchTypeName)
+
+    # Generate enum
+    var kindFields: seq[string] = @[]
+    for dest in t.toStates:
+      let destBase = dest.split("[")[0]
+      kindFields.add prefix & destBase
+
+    lines.add "type"
+    lines.add "  " & kindTypeName & "* = enum"
+    lines.add "    " & kindFields.join(", ")
+    lines.add ""
+
+    # Generate object variant
+    lines.add "  " & branchTypeName & "* = object"
+    lines.add "    case kind*: " & kindTypeName
+
+    for i, dest in t.toStates:
+      let destBase = dest.split("[")[0]
+      let fieldName = destBase.toLowerAscii()
+      let kindField = kindFields[i]
+      lines.add "    of " & kindField & ":"
+      lines.add "      " & fieldName & "*: " & dest
+
+    lines.add ""
+
+    # Generate constructors
+    for i, dest in t.toStates:
+      let destBase = dest.split("[")[0]
+      let fieldName = destBase.toLowerAscii()
+      let kindField = kindFields[i]
+      let procName = "to" & branchTypeName
+
+      lines.add "proc " & procName & "*(s: sink " & dest & "): " & branchTypeName & " ="
+      lines.add "  " & branchTypeName & "(kind: " & kindField & ", " & fieldName & ": s)"
+      lines.add ""
+
+    # Generate -> operator
+    for i, dest in t.toStates:
+      let procName = "to" & branchTypeName
+
+      lines.add "template `->`*(_: typedesc[" & branchTypeName & "], s: sink " & dest & "): " & branchTypeName & " ="
+      lines.add "  " & procName & "(s)"
+      lines.add ""
+
+  result = lines.join("\n")
+
+proc generateCodeForAll*(typestates: seq[ParsedTypestate]): string =
+  ## Generate code for all typestates.
+  ##
+  ## :param typestates: All parsed typestates
+  ## :returns: Combined generated Nim code
+  var sections: seq[string] = @[]
+  for ts in typestates:
+    sections.add generateCode(ts)
+  result = sections.join("\n\n")
+
 proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
                 typestateStrict: Table[string, bool]): VerifyResult =
   ## Verify procs in a file against known typestates.
