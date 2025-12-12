@@ -8,7 +8,7 @@
 import std/[os, strutils, options]
 
 # Compiler imports - requires Nim compiler source
-import compiler/[ast, parser, llstream, idents, options as compiler_options, pathutils]
+import compiler/[ast, parser, llstream, idents, options as compiler_options, pathutils, renderer]
 
 type
   ParsedBridge* = object
@@ -16,6 +16,7 @@ type
     fromState*: string
     toTypestate*: string
     toState*: string
+    fullDestRepr*: string  ## Full destination representation (e.g., "Session.Active" or "module.Typestate.State")
 
   ParsedTransition* = object
     ## A transition parsed from source code.
@@ -234,12 +235,25 @@ proc extractBridge(node: PNode): Option[ParsedBridge] =
   else:
     return none(ParsedBridge)
 
-  # Extract destination: must be nkDotExpr (Typestate.State)
+  # Extract destination: must be nkDotExpr (Typestate.State or module.Typestate.State)
   if toNode.kind != nkDotExpr or toNode.len < 2:
     return none(ParsedBridge)
 
-  bridge.toTypestate = extractIdent(toNode[0])
-  bridge.toState = extractIdent(toNode[1])
+  # Check if this is a nested DotExpr (module.Typestate.State)
+  if toNode[0].kind == nkDotExpr:
+    # Nested: module.Typestate.State
+    # toNode[0] = module.Typestate (DotExpr)
+    # toNode[1] = State (Ident)
+    bridge.toTypestate = extractIdent(toNode[0][1])  # Get Typestate from module.Typestate
+    bridge.toState = extractIdent(toNode[1])          # Get State
+  else:
+    # Simple: Typestate.State
+    bridge.toTypestate = extractIdent(toNode[0])
+    bridge.toState = extractIdent(toNode[1])
+
+  # Build fullDestRepr from the node's representation
+  # This captures the full syntax as written (Typestate.State or module.Typestate.State)
+  bridge.fullDestRepr = renderTree(toNode, {})
 
   if bridge.toTypestate != "" and bridge.toState != "":
     return some(bridge)

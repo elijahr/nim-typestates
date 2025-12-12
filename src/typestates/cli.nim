@@ -333,7 +333,8 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
   # Add edges for bridges (to terminal nodes)
   for bridge in ts.bridges:
     let fromState = bridge.fromState
-    let toNode = "\"" & bridge.toTypestate & "." & bridge.toState & "\""
+    # Use fullDestRepr for complete destination representation (includes module if present)
+    let toNode = "\"" & bridge.fullDestRepr & "\""
 
     if fromState == "*":
       # Wildcard bridge: add edge from every state
