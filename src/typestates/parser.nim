@@ -11,7 +11,7 @@
 ##
 ## **Internal module** - most users won't interact with this directly.
 
-import std/[macros, tables, strutils, sequtils]
+import std/[macros, tables, strutils]
 import types
 
 proc extractBaseName(node: NimNode): string =
@@ -335,30 +335,44 @@ proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
     let trans = parseTransition(child)
     graph.transitions.add(trans)
 
-proc collectBridgeTargets(node: NimNode): seq[tuple[typestate: string, state: string]] =
+proc collectBridgeTargets(node: NimNode): seq[tuple[module: string, typestate: string, state: string, fullRepr: string]] =
   ## Recursively collect all target typestates/states from a branching expression.
   ##
-  ## Handles the `|` operator for branching bridges like `Session.Active | Session.Guest`.
+  ## Handles the `|` operator for branching bridges.
+  ## Supports multiple syntax forms:
   ##
-  ## Examples:
-  ##
-  ## - `Session.Active` -> `@[("Session", "Active")]`
-  ## - `Session.Active | Session.Guest` -> `@[("Session", "Active"), ("Session", "Guest")]`
+  ## - `Typestate.State` -> `[("", "Typestate", "State", "Typestate.State")]`
+  ## - `module.Typestate.State` -> `[("module", "Typestate", "State", "module.Typestate.State")]`
+  ## - `Typestate.State | Other.State` -> multiple tuples
   ##
   ## :param node: AST node representing the target(s)
-  ## :returns: Sequence of (typestate, state) tuples
+  ## :returns: Sequence of (module, typestate, state, fullRepr) tuples
   case node.kind
   of nnkDotExpr:
-    let typestate = extractBaseName(node[0])
-    let state = extractBaseName(node[1])
-    result = @[(typestate, state)]
+    # Could be Typestate.State or module.Typestate.State (nested DotExpr)
+    let fullRepr = node.repr
+
+    if node[0].kind == nnkDotExpr:
+      # Nested: module.Typestate.State
+      # node[0] = module.Typestate (DotExpr)
+      # node[1] = State (Ident)
+      let moduleDot = node[0]
+      let module = extractBaseName(moduleDot[0])
+      let typestate = extractBaseName(moduleDot[1])
+      let state = extractBaseName(node[1])
+      result = @[(module, typestate, state, fullRepr)]
+    else:
+      # Simple: Typestate.State
+      let typestate = extractBaseName(node[0])
+      let state = extractBaseName(node[1])
+      result = @[("", typestate, state, fullRepr)]
   of nnkInfix:
     if node[0].strVal == "|":
       result = collectBridgeTargets(node[1]) & collectBridgeTargets(node[2])
     else:
       error("Expected '|' in branching bridge", node)
   else:
-    error("Bridge destination must use dotted notation (Typestate.State)", node)
+    error("Bridge destination must use dotted notation (Typestate.State or module.Typestate.State), got: " & node.repr, node)
 
 proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
   ## Parse the bridges block and add all bridges to the graph.
@@ -421,10 +435,10 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
     for target in targets:
       let bridge = Bridge(
         fromState: fromState,
-        toModule: "",  # Empty for same-module (module-qualified syntax not yet implemented)
+        toModule: target.module,
         toTypestate: target.typestate,
         toState: target.state,
-        fullDestRepr: target.typestate & "." & target.state,
+        fullDestRepr: target.fullRepr,
         declaredAt: child.lineInfoObj
       )
       graph.bridges.add bridge
