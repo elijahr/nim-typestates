@@ -45,6 +45,14 @@ type
     transitionsChecked*: int
     filesChecked*: int
 
+proc dotQuote(s: string): string =
+  ## Quote a string for DOT if it contains special characters.
+  ## DOT identifiers with brackets, dots, etc. need to be quoted.
+  if '[' in s or ']' in s or '.' in s or ' ' in s or '-' in s:
+    result = "\"" & s & "\""
+  else:
+    result = s
+
 proc parseTypestates*(paths: seq[string]): ParseResult =
   ## Parse all Nim files in the given paths for typestates.
   ##
@@ -132,18 +140,20 @@ proc formatEdge(edge: EdgeInfo, indent: string, noStyle: bool): string =
   ## :param indent: Indentation string (e.g., "  " or "    ")
   ## :param noStyle: If true, use minimal styling (dotted style only, no colors)
   ## :returns: DOT edge statement
+  let fromQuoted = dotQuote(edge.fromState)
+  let toQuoted = dotQuote(edge.toState)
   let target = if edge.headPort.len > 0:
-    edge.toState & ":" & edge.headPort
+    toQuoted & ":" & edge.headPort
   else:
-    edge.toState
+    toQuoted
 
   if edge.isWildcard:
     if noStyle:
-      result = indent & edge.fromState & " -> " & target & " [style=dotted];"
+      result = indent & fromQuoted & " -> " & target & " [style=dotted];"
     else:
-      result = indent & edge.fromState & " -> " & target & " [style=dotted, color=\"#757575\"];"
+      result = indent & fromQuoted & " -> " & target & " [style=dotted, color=\"#757575\"];"
   else:
-    result = indent & edge.fromState & " -> " & target & ";"
+    result = indent & fromQuoted & " -> " & target & ";"
 
 proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline): string =
   ## Generate GraphViz DOT output for a typestate.
@@ -180,7 +190,7 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: Spline
 
   # Add nodes
   for state in ts.states:
-    lines.add "  " & state & ";"
+    lines.add "  " & dotQuote(state) & ";"
 
   lines.add ""
 
@@ -245,7 +255,7 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
 
     # Add nodes
     for state in ts.states:
-      lines.add "    " & state & ";"
+      lines.add "    " & dotQuote(state) & ";"
 
     lines.add ""
 
@@ -269,6 +279,7 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
     for ts in typestates:
       for bridge in ts.bridges:
         let fromState = bridge.fromState
+        let fromQuoted = dotQuote(fromState)
         # Use fullDestRepr for complete destination representation (includes module if present)
         let toState = bridge.fullDestRepr
 
@@ -277,15 +288,16 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
         if fromState == "*":
           # Wildcard bridge: add edge from every state
           for state in ts.states:
+            let stateQuoted = dotQuote(state)
             if noStyle:
-              lines.add "  " & state & " -> " & quotedToState & " [style=dashed];"
+              lines.add "  " & stateQuoted & " -> " & quotedToState & " [style=dashed];"
             else:
-              lines.add "  " & state & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+              lines.add "  " & stateQuoted & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
         else:
           if noStyle:
-            lines.add "  " & fromState & " -> " & quotedToState & " [style=dashed];"
+            lines.add "  " & fromQuoted & " -> " & quotedToState & " [style=dashed];"
           else:
-            lines.add "  " & fromState & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+            lines.add "  " & fromQuoted & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
@@ -324,7 +336,7 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
 
   # Add nodes for actual states
   for state in ts.states:
-    lines.add "  " & state & ";"
+    lines.add "  " & dotQuote(state) & ";"
 
   lines.add ""
 
@@ -336,21 +348,23 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
   # Add edges for bridges (to terminal nodes)
   for bridge in ts.bridges:
     let fromState = bridge.fromState
+    let fromQuoted = dotQuote(fromState)
     # Use fullDestRepr for complete destination representation (includes module if present)
     let toNode = "\"" & bridge.fullDestRepr & "\""
 
     if fromState == "*":
       # Wildcard bridge: add edge from every state
       for state in ts.states:
+        let stateQuoted = dotQuote(state)
         if noStyle:
-          lines.add "  " & state & " -> " & toNode & " [style=dashed];"
+          lines.add "  " & stateQuoted & " -> " & toNode & " [style=dashed];"
         else:
-          lines.add "  " & state & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+          lines.add "  " & stateQuoted & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
     else:
       if noStyle:
-        lines.add "  " & fromState & " -> " & toNode & " [style=dashed];"
+        lines.add "  " & fromQuoted & " -> " & toNode & " [style=dashed];"
       else:
-        lines.add "  " & fromState & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+        lines.add "  " & fromQuoted & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")

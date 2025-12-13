@@ -58,9 +58,21 @@ proc extractIdent(node: PNode): string =
   else:
     result = ""
 
+proc extractStateName(node: PNode): string =
+  ## Extract a state name from a node, handling both simple idents and generics.
+  case node.kind
+  of nkIdent:
+    result = node.ident.s
+  of nkBracketExpr:
+    # Generic state like Unpinned[MaxThreads] - use full repr
+    result = renderTree(node, {})
+  else:
+    result = ""
+
 proc extractStates(node: PNode): seq[string] =
   ## Extract state names from a states declaration.
   ## Handles: states Closed, Open, Errored
+  ## Handles: states Unpinned[MaxThreads], Pinned[MaxThreads]
   result = @[]
 
   if node.kind == nkCommand and node.len >= 2:
@@ -71,6 +83,9 @@ proc extractStates(node: PNode): seq[string] =
         case child.kind
         of nkIdent:
           result.add child.ident.s
+        of nkBracketExpr:
+          # Generic state: Unpinned[MaxThreads]
+          result.add renderTree(child, {})
         of nkInfix:
           # Handle comma-separated: Closed, Open, Errored
           # In AST this appears as nested infix with `,` operator
@@ -80,14 +95,16 @@ proc extractStates(node: PNode): seq[string] =
             if op == ",":
               # Right side is the last item or another infix
               let right = current[2]
-              if right.kind == nkIdent:
-                result.add right.ident.s
+              let name = extractStateName(right)
+              if name != "":
+                result.add name
               # Recurse into left
               current = current[1]
             else:
               break
-          if current.kind == nkIdent:
-            result.add current.ident.s
+          let name = extractStateName(current)
+          if name != "":
+            result.add name
         else:
           discard
 
@@ -130,6 +147,9 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
     of nkIdent:
       trans.fromState = fromNode.ident.s
       trans.isWildcard = trans.fromState == "*"
+    of nkBracketExpr:
+      # Generic state: Unpinned[MaxThreads]
+      trans.fromState = renderTree(fromNode, {})
     of nkPrefix:
       # Handle * (wildcard) - though this case may not occur with current grammar
       if fromNode.len >= 1 and extractIdent(fromNode[0]) == "*":
@@ -150,6 +170,9 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
     case n.kind
     of nkIdent:
       states.add n.ident.s
+    of nkBracketExpr:
+      # Generic state: Pinned[MaxThreads]
+      states.add renderTree(n, {})
     of nkInfix:
       let infixOp = extractIdent(n[0])
       if infixOp == "|" and n.len >= 3:
@@ -312,7 +335,7 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
     strictTransitions: true  # Default
   )
 
-  # Second node is the name (might be in a call with colon)
+  # Second node is the name (might be in a call with colon, or generic)
   let nameNode = node[1]
   case nameNode.kind
   of nkIdent:
@@ -320,7 +343,18 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
   of nkCall:
     # typestate Name: ...
     if nameNode.len >= 1:
-      ts.name = extractIdent(nameNode[0])
+      let inner = nameNode[0]
+      case inner.kind
+      of nkIdent:
+        ts.name = inner.ident.s
+      of nkBracketExpr:
+        # typestate Name[T]: ... - extract base name
+        ts.name = extractIdent(inner[0])
+      else:
+        ts.name = extractIdent(inner)
+  of nkBracketExpr:
+    # typestate Name[T] (without colon on same line)
+    ts.name = extractIdent(nameNode[0])
   else:
     return none(ParsedTypestate)
 

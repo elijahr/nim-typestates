@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-12-12
+
+### Fixed
+
+- CLI parser now correctly handles generic typestates (e.g., `EpochGuardContext[MaxThreads]`)
+  - Added `nkBracketExpr` handling in AST parser for generic state names
+  - Generic states now appear correctly in DOT visualization output
+- DOT output now quotes identifiers containing brackets or other special characters
+  - Fixes Graphviz syntax errors with generic states like `Unpinned[MaxThreads]`
+
 ## [0.3.0] - 2025-12-12
 
 ### Added
@@ -144,7 +154,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/elijahr/nim-typestates/compare/v0.1.0...v0.2.0
