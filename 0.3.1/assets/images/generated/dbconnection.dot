@@ -1,0 +1,39 @@
+digraph {
+  rankdir=TB;
+  splines=spline;
+  compound=true;
+  nodesep=1.0;
+  ranksep=1.0;
+  bgcolor="transparent";
+  pad=0.3;
+
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="sans-serif", fontsize=14, margin="0.4,0.3"];
+  edge [fontname="sans-serif", fontsize=11, color="#b0b0b0"];
+
+  subgraph cluster_DbConnection {
+    label="DbConnection";
+    fontname="sans-serif";
+    fontsize=16;
+    fontcolor="#e0e0e0";
+    labelloc=t;
+    style="rounded";
+    color="#b39ddb";
+    bgcolor="#1e1e1e";
+    margin=30;
+
+    Pooled;
+    CheckedOut;
+    InTransaction;
+    Closed;
+
+    Pooled -> CheckedOut:e;
+    Pooled -> Closed:e;
+    CheckedOut -> Pooled;
+    CheckedOut -> InTransaction;
+    CheckedOut -> Closed:w;
+    InTransaction -> CheckedOut:w;
+    InTransaction -> Closed:s [style=dotted, color="#757575"];
+    Closed -> Closed:e [style=dotted, color="#757575"];
+  }
+
+}
