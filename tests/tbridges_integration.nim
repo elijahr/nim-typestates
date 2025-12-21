@@ -5,12 +5,13 @@ type
   Session = object
     userId: string
     expires: int
+
   Active = distinct Session
   Guest = distinct Session
   Expired = distinct Session
 
 typestate Session:
-  consumeOnTransition = false  # Opt out for this test
+  consumeOnTransition = false # Opt out for this test
   states Active, Guest, Expired
   transitions:
     Active -> Expired
@@ -21,12 +22,13 @@ type
   AuthFlow = object
     userId: string
     token: string
+
   Pending = distinct AuthFlow
   Authenticated = distinct AuthFlow
   Failed = distinct AuthFlow
 
 typestate AuthFlow:
-  consumeOnTransition = false  # Opt out for this test
+  consumeOnTransition = false # Opt out for this test
   states Pending, Authenticated, Failed
   transitions:
     Pending -> Authenticated
@@ -37,10 +39,7 @@ typestate AuthFlow:
 
 # Test bridge with proc
 proc startSession(a: Authenticated, timeout: int): Active {.transition.} =
-  result = Active(Session(
-    userId: a.AuthFlow.userId,
-    expires: timeout
-  ))
+  result = Active(Session(userId: a.AuthFlow.userId, expires: timeout))
 
 # Test authentication success
 proc authenticate(a: Pending): Authenticated {.transition.} =
@@ -52,10 +51,7 @@ proc fail(a: Pending): Failed {.transition.} =
 
 # Test bridge with converter
 converter toGuest(a: Failed): Guest {.transition.} =
-  result = Guest(Session(
-    userId: "anonymous",
-    expires: 3600
-  ))
+  result = Guest(Session(userId: "anonymous", expires: 3600))
 
 # Test that bridges work end-to-end
 block test_bridge_flow:
@@ -92,7 +88,7 @@ typestate Request:
   transitions:
     Processing -> Complete
   bridges:
-    * -> Shutdown.Terminal
+    * ->Shutdown.Terminal
 
 proc emergency(r: Processing): Terminal {.transition.} =
   result = Terminal(Shutdown())

@@ -6,11 +6,12 @@ import ../src/typestates
 type
   Container = object
     items: seq[int]
+
   Empty = distinct Container
   HasItems = distinct Container
 
 typestate Container:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states Empty, HasItems
   transitions:
     Empty -> HasItems
@@ -19,7 +20,7 @@ typestate Container:
 # This compiles even though seq[0] can raise IndexDefect
 # Defects are NOT tracked by {.raises.} - they're bugs
 proc getFirst(c: HasItems): int {.noSideEffect.} =
-  c.Container.items[0]  # Could raise IndexDefect if items is empty
+  c.Container.items[0] # Could raise IndexDefect if items is empty
 
 proc addItem(c: Empty, item: int): HasItems {.transition.} =
   result = HasItems(c)
@@ -33,5 +34,5 @@ proc clear(c: HasItems): Empty {.transition.} =
 when isMainModule:
   var c = Empty(Container(items: @[]))
   let withItems = c.addItem(42)
-  echo "First item: ", withItems.getFirst()  # Safe - we just added an item
+  echo "First item: ", withItems.getFirst() # Safe - we just added an item
   echo "Defect behavior test passed - Defects are not tracked by raises"

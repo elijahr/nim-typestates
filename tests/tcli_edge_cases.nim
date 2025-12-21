@@ -4,7 +4,9 @@ import std/[osproc, strutils]
 
 # Test that syntax errors cause verification to fail with clear message
 block syntaxErrorTest:
-  let (output, exitCode) = execCmdEx("nim c -r --hints:off --path:src src/typestates_bin.nim verify tests/fixtures/syntax_error.nim 2>&1")
+  let (output, exitCode) = execCmdEx(
+    "nim c -r --hints:off --path:src src/typestates_bin.nim verify tests/fixtures/syntax_error.nim 2>&1"
+  )
 
   if exitCode != 1:
     echo "FAIL: Expected exit code 1 for syntax error, got ", exitCode
@@ -21,7 +23,9 @@ block syntaxErrorTest:
 
 # Test parsing multiple files works correctly
 block multiFileTest:
-  let (output, exitCode) = execCmdEx("nim c -r --hints:off --path:src src/typestates_bin.nim dot tests/fixtures/basic_typestate.nim tests/fixtures/with_flags.nim 2>&1")
+  let (output, exitCode) = execCmdEx(
+    "nim c -r --hints:off --path:src src/typestates_bin.nim dot tests/fixtures/basic_typestate.nim tests/fixtures/with_flags.nim 2>&1"
+  )
 
   if exitCode != 0:
     echo "FAIL: Expected exit code 0, got ", exitCode
@@ -40,7 +44,9 @@ block multiFileTest:
 
 # Test that dot command produces valid DOT output
 block dotOutputTest:
-  let (output, exitCode) = execCmdEx("nim c -r --hints:off --path:src src/typestates_bin.nim dot tests/fixtures/branching_transitions.nim 2>&1")
+  let (output, exitCode) = execCmdEx(
+    "nim c -r --hints:off --path:src src/typestates_bin.nim dot tests/fixtures/branching_transitions.nim 2>&1"
+  )
 
   if exitCode != 0:
     echo "FAIL: dot command failed"

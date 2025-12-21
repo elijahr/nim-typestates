@@ -72,17 +72,15 @@ proc continueTask(t: TaskRunning, retry: bool): TaskContinue {.transition.} =
 
 # Bridge to success log
 proc logSuccess(t: TaskRunning): LogSuccess {.transition.} =
-  LogSuccess(SuccessLog(
-    message: "Task " & $t.Task.id & " completed: " & t.Task.data,
-    timestamp: 12345
-  ))
+  LogSuccess(
+    SuccessLog(
+      message: "Task " & $t.Task.id & " completed: " & t.Task.data, timestamp: 12345
+    )
+  )
 
 # Bridge to error log
 proc logError(t: TaskRunning, errorMsg: string): LogError {.transition.} =
-  LogError(ErrorLog(
-    error: errorMsg & " (task " & $t.Task.id & ")",
-    code: 500
-  ))
+  LogError(ErrorLog(error: errorMsg & " (task " & $t.Task.id & ")", code: 500))
 
 # Test branching within typestate
 block test_branching_transition:

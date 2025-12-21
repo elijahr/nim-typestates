@@ -7,12 +7,13 @@ type
   Session* = object
     userId*: string
     expires*: int
+
   Active* = distinct Session
   Guest* = distinct Session
   Expired* = distinct Session
 
 typestate Session:
-  consumeOnTransition = false  # Opt out for this test
+  consumeOnTransition = false # Opt out for this test
   states Active, Guest, Expired
   transitions:
     Active -> Expired

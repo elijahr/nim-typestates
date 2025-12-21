@@ -34,9 +34,9 @@ proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
       # ExprColonExpr[0] = name (N or T)
       # ExprColonExpr[1] = constraint (static int or SomeInteger)
       result.add nnkIdentDefs.newTree(
-        p[0].copyNimTree,  # name
-        p[1].copyNimTree,  # constraint
-        newEmptyNode()     # default value
+        p[0].copyNimTree, # name
+        p[1].copyNimTree, # constraint
+        newEmptyNode(), # default value
       )
     else:
       # Simple generic: T
@@ -53,7 +53,7 @@ proc extractTypeParams*(node: NimNode): seq[NimNode] =
   ## :returns: Sequence of type parameter nodes
   result = @[]
   if node.kind == nnkBracketExpr:
-    for i in 1..<node.len:
+    for i in 1 ..< node.len:
       result.add node[i].copyNimTree
 
 proc generateStateEnum*(graph: TypestateGraph): NimNode =
@@ -88,9 +88,7 @@ proc generateStateEnum*(graph: TypestateGraph): NimNode =
 
   result = nnkTypeSection.newTree(
     nnkTypeDef.newTree(
-      nnkPostfix.newTree(ident("*"), enumName),
-      newEmptyNode(),
-      enumFields
+      nnkPostfix.newTree(ident("*"), enumName), newEmptyNode(), enumFields
     )
   )
 
@@ -128,22 +126,17 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   else:
     # Build: State1 | State2 | State3 using stored AST nodes
     unionType = nnkInfix.newTree(
-      ident("|"),
-      states[0].typeName.copyNimTree,
-      states[1].typeName.copyNimTree
+      ident("|"), states[0].typeName.copyNimTree, states[1].typeName.copyNimTree
     )
     for i in 2 ..< states.len:
-      unionType = nnkInfix.newTree(
-        ident("|"),
-        unionType,
-        states[i].typeName.copyNimTree
-      )
+      unionType =
+        nnkInfix.newTree(ident("|"), unionType, states[i].typeName.copyNimTree)
 
   result = nnkTypeSection.newTree(
     nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), unionName),
       buildGenericParams(graph.typeParams),
-      unionType
+      unionType,
     )
   )
 
@@ -179,23 +172,18 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
     # Build proc with doc comment
     let docComment = newCommentStmtNode(
       "Runtime state inspection for " & state.name & ".\n" &
-      "Returns the enum value for pattern matching in case expressions."
+        "Returns the enum value for pattern matching in case expressions."
     )
     let procDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), ident("state")),
       newEmptyNode(),
       buildGenericParams(graph.typeParams),
       nnkFormalParams.newTree(
-        enumName,
-        nnkIdentDefs.newTree(
-          ident("f"),
-          stateType,
-          newEmptyNode()
-        )
+        enumName, nnkIdentDefs.newTree(ident("f"), stateType, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(docComment, fieldName)
+      nnkStmtList.newTree(docComment, fieldName),
     )
 
     result.add procDef
@@ -283,9 +271,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
       enumFields.add fieldName
 
     let enumDef = nnkTypeDef.newTree(
-      nnkPostfix.newTree(ident("*"), ident(kindTypeName)),
-      newEmptyNode(),
-      enumFields
+      nnkPostfix.newTree(ident("*"), ident(kindTypeName)), newEmptyNode(), enumFields
     )
 
     # Generate object variant: CreatedBranch = object case kind: ...
@@ -293,7 +279,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
       nnkIdentDefs.newTree(
         nnkPostfix.newTree(ident("*"), ident("kind")),
         ident(kindTypeName),
-        newEmptyNode()
+        newEmptyNode(),
       )
     )
 
@@ -316,9 +302,9 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
           nnkIdentDefs.newTree(
             nnkPostfix.newTree(ident("*"), ident(varFieldName)),
             destType,
-            newEmptyNode()
+            newEmptyNode(),
           )
-        )
+        ),
       )
       recCase.add branch
 
@@ -326,11 +312,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     let objectDef = nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), ident(branchBaseName)),
       buildGenericParams(branchTypeParams),
-      nnkObjectTy.newTree(
-        newEmptyNode(),
-        newEmptyNode(),
-        nnkRecList.newTree(recCase)
-      )
+      nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase)),
     )
 
     # Add both to a type section
@@ -389,7 +371,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       let constructorCall = nnkObjConstr.newTree(
         branchTypeNode.copyNimTree,
         nnkExprColonExpr.newTree(ident("kind"), kindField),
-        nnkExprColonExpr.newTree(ident(varFieldName), ident("s"))
+        nnkExprColonExpr.newTree(ident(varFieldName), ident("s")),
       )
 
       let procDef = nnkProcDef.newTree(
@@ -400,13 +382,13 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
             ident("s"),
-            nnkCommand.newTree(ident("sink"), destType),  # Use sink to consume the state
-            newEmptyNode()
-          )
+            nnkCommand.newTree(ident("sink"), destType), # Use sink to consume the state
+            newEmptyNode(),
+          ),
         ),
         newEmptyNode(),
         newEmptyNode(),
-        nnkStmtList.newTree(constructorCall)
+        nnkStmtList.newTree(constructorCall),
       )
 
       result.add procDef
@@ -431,7 +413,8 @@ proc generateCopyHooks*(graph: TypestateGraph): NimNode =
 
   for state in graph.states.values:
     let stateType = state.typeName.copyNimTree
-    let errorMsg = "State '" & state.name & "' cannot be copied. Transitions consume the input state."
+    let errorMsg =
+      "State '" & state.name & "' cannot be copied. Transitions consume the input state."
 
     # proc `=copy`*(dest: var StateType, src: StateType) {.error: "...".}
     let hookDef = nnkProcDef.newTree(
@@ -439,26 +422,15 @@ proc generateCopyHooks*(graph: TypestateGraph): NimNode =
       newEmptyNode(),
       buildGenericParams(graph.typeParams),
       nnkFormalParams.newTree(
-        newEmptyNode(),  # void return
-        nnkIdentDefs.newTree(
-          ident("dest"),
-          nnkVarTy.newTree(stateType),
-          newEmptyNode()
-        ),
-        nnkIdentDefs.newTree(
-          ident("src"),
-          stateType,
-          newEmptyNode()
-        )
+        newEmptyNode(), # void return
+        nnkIdentDefs.newTree(ident("dest"), nnkVarTy.newTree(stateType), newEmptyNode()),
+        nnkIdentDefs.newTree(ident("src"), stateType, newEmptyNode()),
       ),
       nnkPragma.newTree(
-        nnkExprColonExpr.newTree(
-          ident("error"),
-          newStrLitNode(errorMsg)
-        )
+        nnkExprColonExpr.newTree(ident("error"), newStrLitNode(errorMsg))
       ),
       newEmptyNode(),
-      newEmptyNode()
+      newEmptyNode(),
     )
 
     result.add hookDef
@@ -499,8 +471,7 @@ proc hasHookCodegenBugConditions*(graph: TypestateGraph): bool =
   ##
   ## :param graph: The typestate graph to check
   ## :returns: `true` if vulnerable conditions are present
-  not graph.inheritsFromRootObj and
-    graph.consumeOnTransition and
+  not graph.inheritsFromRootObj and graph.consumeOnTransition and
     hasStaticGenericParam(graph)
 
 proc generateBranchOperators*(graph: TypestateGraph): NimNode =
@@ -563,10 +534,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
         destType = ident(destBase)
 
       # Build: toProcessResult(s)
-      let callExpr = nnkCall.newTree(
-        ident(procName),
-        ident("s")
-      )
+      let callExpr = nnkCall.newTree(ident(procName), ident("s"))
 
       # template `->`*(T: typedesc[ProcessResult], s: sink Approved): ProcessResult =
       #   toProcessResult(s)
@@ -579,17 +547,17 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
           nnkIdentDefs.newTree(
             ident("_"),
             nnkBracketExpr.newTree(ident("typedesc"), branchTypeNode.copyNimTree),
-            newEmptyNode()
+            newEmptyNode(),
           ),
           nnkIdentDefs.newTree(
             ident("s"),
-            nnkCommand.newTree(ident("sink"), destType),  # Use sink to consume the state
-            newEmptyNode()
-          )
+            nnkCommand.newTree(ident("sink"), destType), # Use sink to consume the state
+            newEmptyNode(),
+          ),
         ),
         newEmptyNode(),
         newEmptyNode(),
-        nnkStmtList.newTree(callExpr)
+        nnkStmtList.newTree(callExpr),
       )
 
       result.add templateDef

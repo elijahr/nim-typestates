@@ -14,7 +14,7 @@ type
   Delivered = distinct Order
 
 typestate Order:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   # strictTransitions = true (default)
   # All typestates are sealed (no extension allowed)
   states Pending, Paid, Shipped, Delivered
@@ -22,7 +22,7 @@ typestate Order:
     Pending -> Paid
     Paid -> Shipped
     Shipped -> Delivered
-    Shipped -> Shipped  # Self-transition: update tracking
+    Shipped -> Shipped # Self-transition: update tracking
 
 # Transitions
 proc pay(o: Pending): Paid {.transition.} =
@@ -32,7 +32,7 @@ proc ship(o: Paid): Shipped {.transition.} =
   result = Shipped(o.Order)
 
 proc updateTracking(o: Shipped): Shipped {.transition.} =
-  result = o  # Self-transition
+  result = o # Self-transition
 
 proc deliver(o: Shipped): Delivered {.transition.} =
   result = Delivered(o.Order)
@@ -55,8 +55,8 @@ let paid = order.pay()
 doAssert paid.id() == "ORD-123"
 
 var shipped = paid.ship()
-shipped = shipped.updateTracking()  # Self-transition
-shipped = shipped.updateTracking()  # Again
+shipped = shipped.updateTracking() # Self-transition
+shipped = shipped.updateTracking() # Again
 
 let delivered = shipped.deliver()
 

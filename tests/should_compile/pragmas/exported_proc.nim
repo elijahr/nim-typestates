@@ -4,11 +4,12 @@ import ../../../src/typestates
 type
   Counter = object
     value: int
+
   Zero = distinct Counter
   NonZero = distinct Counter
 
 typestate Counter:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Zero, NonZero
   transitions:

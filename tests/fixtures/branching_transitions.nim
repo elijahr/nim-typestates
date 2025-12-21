@@ -3,6 +3,7 @@
 type
   Request = object
     url: string
+
   Pending = distinct Request
   Success = distinct Request
   Failed = distinct Request

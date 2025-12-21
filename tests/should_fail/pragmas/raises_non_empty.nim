@@ -8,7 +8,7 @@ type
   Off = distinct Machine
 
 typestate Machine:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states On, Off
   transitions:
     Off -> On

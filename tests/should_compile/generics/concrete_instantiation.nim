@@ -4,11 +4,12 @@ import ../../../src/typestates
 type
   Stack[T] = object
     items: seq[T]
+
   EmptyStack[T] = distinct Stack[T]
   NonEmptyStack[T] = distinct Stack[T]
 
 typestate Stack[T]:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states EmptyStack[T], NonEmptyStack[T]
   transitions:

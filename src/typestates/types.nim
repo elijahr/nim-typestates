@@ -23,17 +23,17 @@ proc extractBaseName*(stateRepr: string): string =
   result = stateRepr
   # Strip ref/ptr prefix
   if result.startsWith("ref "):
-    result = result[4..^1]
+    result = result[4 ..^ 1]
   elif result.startsWith("ptr "):
-    result = result[4..^1]
+    result = result[4 ..^ 1]
   # Strip generic parameters
   let bracketPos = result.find('[')
   if bracketPos >= 0:
-    result = result[0..<bracketPos]
+    result = result[0 ..< bracketPos]
   # Strip module qualification
   let dotPos = result.rfind('.')
   if dotPos >= 0:
-    result = result[dotPos+1..^1]
+    result = result[dotPos + 1 ..^ 1]
   result = result.strip()
 
 type
@@ -87,8 +87,9 @@ type
     ## :var declaredAt: Source location for error messages
     fromState*: string
     toStates*: seq[string]
-    branchTypeName*: string  ## Empty for non-branching, required for branching
-    branchTypeNode*: NimNode  ## Raw AST node for codegen (supports generics like Result[T])
+    branchTypeName*: string ## Empty for non-branching, required for branching
+    branchTypeNode*: NimNode
+      ## Raw AST node for codegen (supports generics like Result[T])
     isWildcard*: bool
     declaredAt*: LineInfo
 
@@ -170,15 +171,15 @@ type
     ## :var declaredAt: Source location of the typestate declaration
     ## :var declaredInModule: Module filename where typestate was declared
     name*: string
-    typeParams*: seq[NimNode]  ## Generic params: @[T] or @[K, V] or @[]
+    typeParams*: seq[NimNode] ## Generic params: @[T] or @[K, V] or @[]
     states*: Table[string, State]
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
-    consumeOnTransition*: bool = true  ## If true, states cannot be copied
-    inheritsFromRootObj*: bool = false  ## If true, skip static generic bug check
-    initialStates*: seq[string]  ## States that cannot be transitioned TO
-    terminalStates*: seq[string]  ## States that cannot transition FROM
+    consumeOnTransition*: bool = true ## If true, states cannot be copied
+    inheritsFromRootObj*: bool = false ## If true, skip static generic bug check
+    initialStates*: seq[string] ## States that cannot be transitioned TO
+    terminalStates*: seq[string] ## States that cannot transition FROM
     declaredAt*: LineInfo
     declaredInModule*: string
 
@@ -192,8 +193,7 @@ proc `==`*(a, b: Transition): bool =
   ## :param a: First transition to compare
   ## :param b: Second transition to compare
   ## :returns: `true` if transitions are semantically equivalent
-  a.fromState == b.fromState and
-    a.toStates == b.toStates and
+  a.fromState == b.fromState and a.toStates == b.toStates and
     a.isWildcard == b.isWildcard
 
 proc `==`*(a, b: Bridge): bool =
@@ -206,10 +206,8 @@ proc `==`*(a, b: Bridge): bool =
   ## :param a: First bridge to compare
   ## :param b: Second bridge to compare
   ## :returns: `true` if bridges are semantically equivalent
-  a.fromState == b.fromState and
-    a.toModule == b.toModule and
-    a.toTypestate == b.toTypestate and
-    a.toState == b.toState
+  a.fromState == b.fromState and a.toModule == b.toModule and
+    a.toTypestate == b.toTypestate and a.toState == b.toState
 
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Check if a transition from `fromState` to `toState` is valid.
@@ -275,7 +273,9 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
         if destBase notin result:
           result.add destBase
 
-proc hasBridge*(graph: TypestateGraph, fromState, toModule, toTypestate, toState: string): bool =
+proc hasBridge*(
+    graph: TypestateGraph, fromState, toModule, toTypestate, toState: string
+): bool =
   ## Check if a bridge from `fromState` to `toModule.toTypestate.toState` is declared.
   ##
   ## Comparisons use base names to support generic types.
@@ -299,18 +299,26 @@ proc hasBridge*(graph: TypestateGraph, fromState, toModule, toTypestate, toState
   ## :param toState: The destination state name
   ## :returns: `true` if the bridge is declared, `false` otherwise
   let fromBase = extractBaseName(fromState)
-  let toModuleBase = if toModule == "": "" else: extractBaseName(toModule)
+  let toModuleBase =
+    if toModule == "":
+      ""
+    else:
+      extractBaseName(toModule)
   let toTypestateBase = extractBaseName(toTypestate)
   let toStateBase = extractBaseName(toState)
   for b in graph.bridges:
     if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
       # Module matching logic: both empty = match, both non-empty and equal = match
-      let bridgeModuleBase = if b.toModule == "": "" else: extractBaseName(b.toModule)
-      let moduleMatches = (bridgeModuleBase == "" and toModuleBase == "") or
-                          (bridgeModuleBase != "" and bridgeModuleBase == toModuleBase)
-      if moduleMatches and
-         extractBaseName(b.toTypestate) == toTypestateBase and
-         extractBaseName(b.toState) == toStateBase:
+      let bridgeModuleBase =
+        if b.toModule == "":
+          ""
+        else:
+          extractBaseName(b.toModule)
+      let moduleMatches =
+        (bridgeModuleBase == "" and toModuleBase == "") or
+        (bridgeModuleBase != "" and bridgeModuleBase == toModuleBase)
+      if moduleMatches and extractBaseName(b.toTypestate) == toTypestateBase and
+          extractBaseName(b.toState) == toStateBase:
         return true
   return false
 
@@ -343,7 +351,7 @@ proc hasBridge*(graph: TypestateGraph, fromState, toTypestate, toState: string):
   for b in graph.bridges:
     if b.fromState == "*" or extractBaseName(b.fromState) == fromBase:
       if extractBaseName(b.toTypestate) == toTypestateBase and
-         extractBaseName(b.toState) == toStateBase:
+          extractBaseName(b.toState) == toStateBase:
         return true
   return false
 

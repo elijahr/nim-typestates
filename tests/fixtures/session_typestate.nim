@@ -5,6 +5,7 @@ type
   Session* = object
     userId*: string
     timeout*: int
+
   Active* = distinct Session
   Expired* = distinct Session
   Guest* = distinct Session
@@ -15,4 +16,4 @@ typestate Session:
   transitions:
     Active -> Expired
     Guest -> Active
-    * -> Expired
+    * ->Expired

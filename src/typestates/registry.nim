@@ -15,7 +15,7 @@
 import std/[tables, macros, options]
 import types
 
-export tables  # Needed for `in` operator on Table
+export tables # Needed for `in` operator on Table
 
 var typestateRegistry* {.compileTime.}: Table[string, TypestateGraph]
   ## Global compile-time storage for all registered typestates.
@@ -54,9 +54,10 @@ proc validateBridgeDestinations(graph: TypestateGraph) {.compileTime.} =
       var validStates: seq[string] = @[]
       for stateKey, state in destGraph.states:
         validStates.add state.name
-      error("Bridge destination state '" & bridge.toState &
-            "' does not exist in typestate '" & bridge.toTypestate &
-            "'. Valid states: " & $validStates)
+      error(
+        "Bridge destination state '" & bridge.toState & "' does not exist in typestate '" &
+          bridge.toTypestate & "'. Valid states: " & $validStates
+      )
 
 template registerTypestate*(graph: TypestateGraph) =
   ## Register a typestate graph in the compile-time registry.
@@ -76,8 +77,10 @@ template registerTypestate*(graph: TypestateGraph) =
   ##
   ## :param graph: The typestate graph to register
   if graph.name in typestateRegistry:
-    error("Typestate '" & graph.name & "' is already defined. " &
-          "Each typestate can only be declared once.")
+    error(
+      "Typestate '" & graph.name & "' is already defined. " &
+        "Each typestate can only be declared once."
+    )
 
   typestateRegistry[graph.name] = graph
 
@@ -132,15 +135,14 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
         return some(graph)
   return none(TypestateGraph)
 
-type
-  BranchTypeInfo* = object
-    ## Information about a user-defined branch type.
-    ##
-    ## When a branching transition like `Created -> (Approved | Declined) as ProcessResult`
-    ## is declared, the user provides the type name. This object captures the
-    ## relationship between the branch type name and the original transition.
-    sourceState*: string     ## The source state name ("Created")
-    destinations*: seq[string]  ## The destination states (["Approved", "Declined"])
+type BranchTypeInfo* = object
+  ## Information about a user-defined branch type.
+  ##
+  ## When a branching transition like `Created -> (Approved | Declined) as ProcessResult`
+  ## is declared, the user provides the type name. This object captures the
+  ## relationship between the branch type name and the original transition.
+  sourceState*: string ## The source state name ("Created")
+  destinations*: seq[string] ## The destination states (["Approved", "Declined"])
 
 proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime.} =
   ## Check if a type name is a user-defined branch type.
@@ -173,9 +175,11 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
       if trans.toStates.len > 1 and not trans.isWildcard:
         # Compare base names (handles generic branch types like EmptyCheck[N])
         if extractBaseName(trans.branchTypeName) == typeBase:
-          return some(BranchTypeInfo(
-            sourceState: extractBaseName(trans.fromState),
-            destinations: trans.toStates
-          ))
+          return some(
+            BranchTypeInfo(
+              sourceState: extractBaseName(trans.fromState),
+              destinations: trans.toStates,
+            )
+          )
 
   return none(BranchTypeInfo)

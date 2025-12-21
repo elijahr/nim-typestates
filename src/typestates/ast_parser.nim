@@ -8,24 +8,24 @@
 import std/[os, strutils, options]
 
 # Compiler imports - requires Nim compiler source
-import compiler/[ast, parser, llstream, idents, options as compiler_options, pathutils, renderer]
+import
+  compiler/
+    [ast, parser, llstream, idents, options as compiler_options, pathutils, renderer]
 
 type
-  ParsedBridge* = object
-    ## A bridge parsed from source code.
+  ParsedBridge* = object ## A bridge parsed from source code.
     fromState*: string
     toTypestate*: string
     toState*: string
-    fullDestRepr*: string  ## Full destination representation (e.g., "Session.Active" or "module.Typestate.State")
+    fullDestRepr*: string
+      ## Full destination representation (e.g., "Session.Active" or "module.Typestate.State")
 
-  ParsedTransition* = object
-    ## A transition parsed from source code.
+  ParsedTransition* = object ## A transition parsed from source code.
     fromState*: string
     toStates*: seq[string]
     isWildcard*: bool
 
-  ParsedTypestate* = object
-    ## A typestate definition parsed from source code.
+  ParsedTypestate* = object ## A typestate definition parsed from source code.
     name*: string
     states*: seq[string]
     transitions*: seq[ParsedTransition]
@@ -33,13 +33,11 @@ type
     isSealed*: bool
     strictTransitions*: bool
 
-  ParseResult* = object
-    ## Results from parsing source files.
+  ParseResult* = object ## Results from parsing source files.
     typestates*: seq[ParsedTypestate]
     filesChecked*: int
 
-  ParseError* = object of CatchableError
-    ## Error during parsing.
+  ParseError* = object of CatchableError ## Error during parsing.
 
 proc newParseError(msg: string): ref ParseError =
   result = newException(ParseError, msg)
@@ -157,7 +155,6 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
         trans.isWildcard = true
     else:
       return none(ParsedTransition)
-
   else:
     return none(ParsedTransition)
 
@@ -254,7 +251,6 @@ proc extractBridge(node: PNode): Option[ParsedBridge] =
         bridge.fromState = "*"
     else:
       return none(ParsedBridge)
-
   else:
     return none(ParsedBridge)
 
@@ -267,8 +263,8 @@ proc extractBridge(node: PNode): Option[ParsedBridge] =
     # Nested: module.Typestate.State
     # toNode[0] = module.Typestate (DotExpr)
     # toNode[1] = State (Ident)
-    bridge.toTypestate = extractIdent(toNode[0][1])  # Get Typestate from module.Typestate
-    bridge.toState = extractIdent(toNode[1])          # Get State
+    bridge.toTypestate = extractIdent(toNode[0][1]) # Get Typestate from module.Typestate
+    bridge.toState = extractIdent(toNode[1]) # Get State
   else:
     # Simple: Typestate.State
     bridge.toTypestate = extractIdent(toNode[0])
@@ -331,8 +327,8 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
     return none(ParsedTypestate)
 
   var ts = ParsedTypestate(
-    isSealed: true,  # Default
-    strictTransitions: true  # Default
+    isSealed: true, # Default
+    strictTransitions: true, # Default
   )
 
   # Second node is the name (might be in a call with colon, or generic)
@@ -416,7 +412,7 @@ proc walkAst(node: PNode, typestates: var seq[ParsedTypestate]) =
   let ts = parseTypestateNode(node)
   if ts.isSome:
     typestates.add ts.get
-    return  # Don't recurse into typestate body
+    return # Don't recurse into typestate body
 
   # Recurse into children
   for child in node:

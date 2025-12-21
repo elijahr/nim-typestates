@@ -6,10 +6,10 @@ type
   Machine = object
   On = distinct Machine
   Off = distinct Machine
-  NotAState = object  # Regular object, not distinct
+  NotAState = object # Regular object, not distinct
 
 typestate Machine:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states On, Off
   transitions:
     Off -> On

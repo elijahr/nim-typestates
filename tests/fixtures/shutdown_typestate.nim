@@ -4,6 +4,7 @@ import ../../src/typestates
 type
   Shutdown* = object
     reason*: string
+
   Terminal* = distinct Shutdown
 
 typestate Shutdown:

@@ -12,9 +12,9 @@ import types, registry
 type
   ProcKind* = enum
     ## Classification of procs operating on state types.
-    pkTransition       ## Marked with `{.transition.}`
-    pkNotATransition   ## Marked with `{.notATransition.}`
-    pkUnmarked         ## No pragma specified
+    pkTransition ## Marked with `{.transition.}`
+    pkNotATransition ## Marked with `{.notATransition.}`
+    pkUnmarked ## No pragma specified
 
   RegisteredProc* = object
     ## Information about a proc registered for verification.
@@ -80,16 +80,20 @@ macro verifyTypestates*(): untyped =
 
         # Check strictTransitions
         if graph.strictTransitions:
-          error(fmt"""Unmarked proc '{procInfo.name}' operates on state '{procInfo.sourceState}'.
+          error(
+            fmt"""Unmarked proc '{procInfo.name}' operates on state '{procInfo.sourceState}'.
   Typestate '{graph.name}' has strictTransitions = true.
   Add {{.transition.}} or {{.notATransition.}} pragma.
-  Declared at: {procInfo.declaredAt}""")
+  Declared at: {procInfo.declaredAt}"""
+          )
 
         # Check for external procs
         if procInfo.modulePath != graph.declaredInModule:
-          error(fmt"""Unmarked proc '{procInfo.name}' on typestate '{graph.name}' from external module.
+          error(
+            fmt"""Unmarked proc '{procInfo.name}' on typestate '{graph.name}' from external module.
   External modules must use {{.notATransition.}} for procs on typestate states.
-  Declared at: {procInfo.declaredAt}""")
+  Declared at: {procInfo.declaredAt}"""
+          )
 
   # Return empty - just for compile-time checking
   result.add newCommentStmtNode("typestates verified")

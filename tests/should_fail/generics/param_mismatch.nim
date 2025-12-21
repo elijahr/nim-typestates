@@ -5,12 +5,13 @@ import ../../../src/typestates
 type
   Box[T] = object
     value: T
+
   Empty[T] = distinct Box[T]
   Full[T] = distinct Box[T]
-  Overflow[T] = distinct Box[T]  # Not in transitions
+  Overflow[T] = distinct Box[T] # Not in transitions
 
 typestate Box[T]:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Empty[T], Full[T]
   transitions:

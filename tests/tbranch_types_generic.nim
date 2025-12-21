@@ -6,12 +6,13 @@ import ../src/typestates
 type
   Container[T] = object
     value: T
+
   Empty[T] = distinct Container[T]
   Full[T] = distinct Container[T]
   Error[T] = distinct Container[T]
 
 typestate Container[T]:
-  consumeOnTransition = false  # Opt out for this test to allow reusing states
+  consumeOnTransition = false # Opt out for this test to allow reusing states
   states Empty[T], Full[T], Error[T]
   transitions:
     Empty[T] -> (Full[T] | Error[T]) as FillResult[T]

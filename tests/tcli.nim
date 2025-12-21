@@ -9,7 +9,9 @@ block testParseTypestates:
   let tempDir = getTempDir()
   let testFile = tempDir / "test_typestate.nim"
 
-  writeFile(testFile, """
+  writeFile(
+    testFile,
+    """
 type
   File = object
   Closed = distinct File
@@ -23,7 +25,8 @@ typestate File:
     Closed -> (Open | Errored) as OpenResult
     Open -> Closed
     * -> Closed
-""")
+""",
+  )
 
   let result = parseTypestates(@[testFile])
 
@@ -36,7 +39,8 @@ typestate File:
   doAssert "Closed" in ts.states
   doAssert "Open" in ts.states
   doAssert "Errored" in ts.states
-  doAssert ts.transitions.len == 3, "Expected 3 transitions, got: " & $ts.transitions.len
+  doAssert ts.transitions.len == 3,
+    "Expected 3 transitions, got: " & $ts.transitions.len
 
   # Check branching transition
   var foundBranching = false
@@ -65,11 +69,12 @@ block testGenerateDot:
   let ts = ParsedTypestate(
     name: "Connection",
     states: @["Disconnected", "Connected", "Errored"],
-    transitions: @[
-      ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
-      ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
-      ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true)
-    ]
+    transitions:
+      @[
+        ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
+        ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
+        ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true),
+      ],
   )
 
   let dot = generateDot(ts)
@@ -83,7 +88,8 @@ block testGenerateDot:
   doAssert "Disconnected -> Errored" in dot, "Expected Disconnected -> Errored edge"
   doAssert "Connected -> Disconnected" in dot, "Expected Connected -> Disconnected edge"
   # Wildcard should expand
-  doAssert "Errored -> Disconnected" in dot, "Expected Errored -> Disconnected (from wildcard)"
+  doAssert "Errored -> Disconnected" in dot,
+    "Expected Errored -> Disconnected (from wildcard)"
   doAssert "style=dotted" in dot, "Expected dotted style for wildcard edges"
 
   echo "generateDot test passed"
@@ -93,7 +99,9 @@ block testVerify:
   let tempDir = getTempDir()
   let testFile = tempDir / "test_verify.nim"
 
-  writeFile(testFile, """
+  writeFile(
+    testFile,
+    """
 type
   File = object
   Closed = distinct File
@@ -110,7 +118,8 @@ proc open(f: Closed): Open {.transition.} =
 
 proc read(f: Open): string {.notATransition.} =
   result = "data"
-""")
+""",
+  )
 
   let result = verify(@[testFile])
 
@@ -125,7 +134,9 @@ block testVerifyUnmarked:
   let tempDir = getTempDir()
   let testFile = tempDir / "test_verify_unmarked.nim"
 
-  writeFile(testFile, """
+  writeFile(
+    testFile,
+    """
 type
   File = object
   Closed = distinct File
@@ -139,7 +150,8 @@ typestate File:
 
 proc unmarkedProc(f: Closed): string =
   result = "bad"
-""")
+""",
+  )
 
   let result = verify(@[testFile])
 

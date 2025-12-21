@@ -13,10 +13,11 @@ block testGenerateCodeSimple:
   let ts = ParsedTypestate(
     name: "File",
     states: @["Closed", "Open", "Errored"],
-    transitions: @[
-      ParsedTransition(fromState: "Closed", toStates: @["Open"]),
-      ParsedTransition(fromState: "Open", toStates: @["Closed"])
-    ]
+    transitions:
+      @[
+        ParsedTransition(fromState: "Closed", toStates: @["Open"]),
+        ParsedTransition(fromState: "Open", toStates: @["Closed"]),
+      ],
   )
 
   let code = generateCode(ts)
@@ -31,9 +32,12 @@ block testGenerateCodeSimple:
   doAssert "FileStates* = Closed | Open | Errored" in code, "Missing union type"
 
   # Verify state procs
-  doAssert "proc state*(f: Closed): FileState = fsClosed" in code, "Missing state proc for Closed"
-  doAssert "proc state*(f: Open): FileState = fsOpen" in code, "Missing state proc for Open"
-  doAssert "proc state*(f: Errored): FileState = fsErrored" in code, "Missing state proc for Errored"
+  doAssert "proc state*(f: Closed): FileState = fsClosed" in code,
+    "Missing state proc for Closed"
+  doAssert "proc state*(f: Open): FileState = fsOpen" in code,
+    "Missing state proc for Open"
+  doAssert "proc state*(f: Errored): FileState = fsErrored" in code,
+    "Missing state proc for Errored"
 
   echo "generateCode simple test passed"
 
@@ -42,10 +46,11 @@ block testGenerateCodeBranching:
   let ts = ParsedTypestate(
     name: "Connection",
     states: @["Disconnected", "Connected", "Failed"],
-    transitions: @[
-      ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Failed"]),
-      ParsedTransition(fromState: "Connected", toStates: @["Disconnected"])
-    ]
+    transitions:
+      @[
+        ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Failed"]),
+        ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
+      ],
   )
 
   let code = generateCode(ts)
@@ -80,9 +85,7 @@ block testGenerateCodeGeneric:
   let ts = ParsedTypestate(
     name: "Container",
     states: @["Empty[T]", "Full[T]"],
-    transitions: @[
-      ParsedTransition(fromState: "Empty[T]", toStates: @["Full[T]"])
-    ]
+    transitions: @[ParsedTransition(fromState: "Empty[T]", toStates: @["Full[T]"])],
   )
 
   let code = generateCode(ts)
@@ -111,16 +114,18 @@ block testGenerateCodeCompiles:
   let ts = ParsedTypestate(
     name: "Light",
     states: @["Off", "On"],
-    transitions: @[
-      ParsedTransition(fromState: "Off", toStates: @["On"]),
-      ParsedTransition(fromState: "On", toStates: @["Off"])
-    ]
+    transitions:
+      @[
+        ParsedTransition(fromState: "Off", toStates: @["On"]),
+        ParsedTransition(fromState: "On", toStates: @["Off"]),
+      ],
   )
 
   let generatedCode = generateCode(ts)
 
   # Write a complete file that includes types and generated code
-  let fullCode = """
+  let fullCode =
+    """
 # Type definitions (normally in user code)
 type
   Light = object
@@ -129,7 +134,9 @@ type
   On = distinct Light
 
 # --- Generated code below ---
-""" & generatedCode & """
+""" &
+    generatedCode &
+    """
 
 # Test the generated code works
 when isMainModule:
@@ -187,15 +194,17 @@ block testGenerateCodeBranchingCompiles:
   let ts = ParsedTypestate(
     name: "Door",
     states: @["Locked", "Unlocked", "Open"],
-    transitions: @[
-      ParsedTransition(fromState: "Locked", toStates: @["Unlocked"]),
-      ParsedTransition(fromState: "Unlocked", toStates: @["Locked", "Open"])
-    ]
+    transitions:
+      @[
+        ParsedTransition(fromState: "Locked", toStates: @["Unlocked"]),
+        ParsedTransition(fromState: "Unlocked", toStates: @["Locked", "Open"]),
+      ],
   )
 
   let generatedCode = generateCode(ts)
 
-  let fullCode = """
+  let fullCode =
+    """
 type
   Door = object
     id: int
@@ -203,7 +212,9 @@ type
   Unlocked = distinct Door
   Open = distinct Door
 
-""" & generatedCode & """
+""" &
+    generatedCode &
+    """
 
 when isMainModule:
   # Test branch type construction

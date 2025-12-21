@@ -4,6 +4,7 @@ import ../../src/typestates
 type
   Container*[T] = object
     items*: seq[T]
+
   Empty*[T] = distinct Container[T]
   HasItems*[T] = distinct Container[T]
   Full*[T] = distinct Container[T]

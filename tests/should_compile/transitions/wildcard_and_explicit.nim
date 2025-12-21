@@ -8,13 +8,13 @@ type
   Stopped = distinct Process
 
 typestate Process:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Running, Paused, Stopped
   transitions:
-    Running -> Paused      # Explicit
-    Paused -> Running      # Explicit
-    * -> Stopped           # Wildcard: any state can stop
+    Running -> Paused # Explicit
+    Paused -> Running # Explicit
+    * ->Stopped # Wildcard: any state can stop
 
 proc pause(p: Running): Paused {.transition.} =
   Paused(p.Process)

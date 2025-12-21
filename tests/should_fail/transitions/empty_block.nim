@@ -8,7 +8,7 @@ type
   B = distinct Broken
 
 typestate Broken:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states A, B
   transitions:
-    discard  # Empty - should fail or at minimum do nothing useful
+    discard # Empty - should fail or at minimum do nothing useful

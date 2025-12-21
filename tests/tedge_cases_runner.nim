@@ -38,18 +38,22 @@ shouldCompile("multiline states edge cases", "tests/tedge_cases_multiline.nim")
 
 echo ""
 echo "=== Negative Edge Cases (should fail) ==="
-shouldFail("wildcard to initial state",
-           "tests/should_fail/states/wildcard_to_initial.nim",
-           "initial state")
-shouldFail("transition from terminal (declared)",
-           "tests/should_fail/states/transition_from_terminal_declared.nim",
-           "terminal state")
-shouldFail("initial not in states list",
-           "tests/should_fail/states/initial_not_in_states.nim",
-           "not in states list")
-shouldFail("terminal not in states list",
-           "tests/should_fail/states/terminal_not_in_states.nim",
-           "not in states list")
+shouldFail(
+  "wildcard to initial state", "tests/should_fail/states/wildcard_to_initial.nim",
+  "initial state",
+)
+shouldFail(
+  "transition from terminal (declared)",
+  "tests/should_fail/states/transition_from_terminal_declared.nim", "terminal state",
+)
+shouldFail(
+  "initial not in states list", "tests/should_fail/states/initial_not_in_states.nim",
+  "not in states list",
+)
+shouldFail(
+  "terminal not in states list", "tests/should_fail/states/terminal_not_in_states.nim",
+  "not in states list",
+)
 
 echo ""
 echo "=== Results ==="

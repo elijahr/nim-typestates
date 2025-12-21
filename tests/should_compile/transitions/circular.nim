@@ -4,12 +4,13 @@ import ../../../src/typestates
 type
   Cycle = object
     count: int
+
   StateA = distinct Cycle
   StateB = distinct Cycle
   StateC = distinct Cycle
 
 typestate Cycle:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states StateA, StateB, StateC
   transitions:

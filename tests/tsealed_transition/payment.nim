@@ -3,6 +3,7 @@ import ../../src/typestates
 type
   Payment* = object
     amount*: int
+
   Created* = distinct Payment
   Authorized* = distinct Payment
 

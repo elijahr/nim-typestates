@@ -6,6 +6,7 @@ import ../src/typestates
 type
   Box[T] = object
     value: T
+
   Sealed[T] = distinct Box[T]
   Opened[T] = distinct Box[T]
 
@@ -18,8 +19,11 @@ typestate Box[T]:
     Sealed[T] -> Opened[T]
     Opened[T] -> Sealed[T]
 
-proc open[T](b: Sealed[T]): Opened[T] {.transition.} = Opened[T](Box[T](b))
-proc close[T](b: Opened[T]): Sealed[T] {.transition.} = Sealed[T](Box[T](b))
+proc open[T](b: Sealed[T]): Opened[T] {.transition.} =
+  Opened[T](Box[T](b))
+
+proc close[T](b: Opened[T]): Sealed[T] {.transition.} =
+  Sealed[T](Box[T](b))
 
 # Test 2: Multiline with initial/terminal blocks
 type
@@ -36,16 +40,23 @@ typestate Workflow:
     Review
     Approved
     Rejected
-  initial: Draft
-  terminal: Approved
+  initial:
+    Draft
+  terminal:
+    Approved
   transitions:
     Draft -> Review
     Review -> Approved
     Review -> Rejected
 
-proc submit(d: Draft): Review {.transition.} = Review(Workflow())
-proc approve(r: Review): Approved {.transition.} = Approved(Workflow())
-proc reject(r: Review): Rejected {.transition.} = Rejected(Workflow())
+proc submit(d: Draft): Review {.transition.} =
+  Review(Workflow())
+
+proc approve(r: Review): Approved {.transition.} =
+  Approved(Workflow())
+
+proc reject(r: Review): Rejected {.transition.} =
+  Rejected(Workflow())
 
 # Test 3: Multiline states with branching transitions
 type

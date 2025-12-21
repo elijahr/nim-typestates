@@ -5,6 +5,7 @@ import ../../../src/typestates
 type
   File = object
     handle: int
+
   Closed = distinct File
   Open = distinct File
 
@@ -23,4 +24,4 @@ proc close(f: Open): Closed {.transition.} =
 
 # This should FAIL to compile - trying to copy a state
 let closed = Closed(File(handle: 0))
-let closed2 = closed  # ERROR: cannot copy
+let closed2 = closed # ERROR: cannot copy

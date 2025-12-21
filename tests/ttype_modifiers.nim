@@ -12,11 +12,12 @@ import ../src/typestates
 type
   Token = object
     id: string
+
   Valid = distinct Token
   Used = distinct Token
 
 typestate Token:
-  consumeOnTransition = false  # For testing, disable copy prevention
+  consumeOnTransition = false # For testing, disable copy prevention
   states Valid, Used
   transitions:
     Valid -> Used
@@ -39,6 +40,7 @@ discard createToken("test-sink").consume()
 type
   Counter = object
     value: int
+
   Zero = distinct Counter
   NonZero = distinct Counter
 
@@ -66,6 +68,7 @@ discard z.increment()
 type
   Box[T] = object
     value: T
+
   Sealed[T] = distinct Box[T]
   Opened[T] = distinct Box[T]
 
@@ -88,6 +91,7 @@ discard Sealed[int](Box[int](value: 42)).open()
 type
   Session = object
     id: string
+
   Inactive = distinct Session
   Active = distinct Session
 
@@ -113,6 +117,7 @@ discard inactiveRef.activate()
 type
   Buffer = object
     data: int
+
   Empty = distinct Buffer
   Full = distinct Buffer
 

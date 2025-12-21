@@ -11,6 +11,7 @@ import ../../src/typestates
 type
   File = object
     path: string
+
   Closed = distinct File
   Open = distinct File
 
@@ -24,4 +25,4 @@ typestate File:
 # but returns the wrong type (Closed instead of Open)
 # The transition pragma passes, but Nim's type checker catches the error
 proc open(f: Closed, path: string): Open {.transition.} =
-  result = Closed(f)  # Wrong! Returns Closed, not Open
+  result = Closed(f) # Wrong! Returns Closed, not Open

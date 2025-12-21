@@ -5,7 +5,8 @@
 
 import std/[osproc, strutils]
 
-let (output, exitCode) = execCmdEx("nim c --path:src tests/ttype_mismatch/mismatch_code.nim 2>&1")
+let (output, exitCode) =
+  execCmdEx("nim c --path:src tests/ttype_mismatch/mismatch_code.nim 2>&1")
 
 if exitCode == 0:
   echo "FAIL: Expected compilation to fail but it succeeded"
@@ -16,7 +17,7 @@ let lowerOutput = output.toLower
 # Check for type mismatch error - Nim should catch that we're returning
 # Closed when Open is expected
 if "type mismatch" in lowerOutput or "cannot convert" in lowerOutput or
-   "got 'closed'" in lowerOutput:
+    "got 'closed'" in lowerOutput:
   echo "PASS: Nim correctly catches type mismatch in transition implementation"
   echo ""
   echo "This demonstrates that:"

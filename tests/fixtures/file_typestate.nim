@@ -5,6 +5,7 @@ type
   File* = object
     path*: string
     fd*: int
+
   Closed* = distinct File
   Open* = distinct File
   Reading* = distinct File
@@ -20,4 +21,4 @@ typestate File:
     Open -> Writing
     Reading -> Open
     Writing -> Open
-    * -> Closed
+    * ->Closed

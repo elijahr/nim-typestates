@@ -4,11 +4,12 @@ import ../src/typestates
 type
   Session = object
     userId: string
+
   Active = distinct Session
   Guest = distinct Session
 
 typestate Session:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states Active, Guest
   transitions:
     Active -> Guest
@@ -17,12 +18,13 @@ typestate Session:
 type
   AuthFlow = object
     userId: string
+
   Pending = distinct AuthFlow
   Authenticated = distinct AuthFlow
   Failed = distinct AuthFlow
 
 typestate AuthFlow:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states Pending, Authenticated, Failed
   transitions:
     Pending -> (Authenticated | Failed) as AuthResult

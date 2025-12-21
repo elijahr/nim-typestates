@@ -3,6 +3,7 @@
 type
   Task = object
     name: string
+
   Pending = distinct Task
   Running = distinct Task
   Done = distinct Task

@@ -18,7 +18,9 @@ import typestates/[types, parser, registry, pragmas, codegen, constraints]
 
 export types, pragmas, constraints
 
-proc needsConstraintInference(name, body: NimNode): tuple[needed: bool, stateIdent: NimNode] =
+proc needsConstraintInference(
+    name, body: NimNode
+): tuple[needed: bool, stateIdent: NimNode] =
   ## Check if the typestate needs constraint inference.
   ##
   ## Returns true if:
@@ -31,7 +33,7 @@ proc needsConstraintInference(name, body: NimNode): tuple[needed: bool, stateIde
   # Extract type params from name
   var typeParams: seq[NimNode] = @[]
   if name.kind == nnkBracketExpr:
-    for i in 1..<name.len:
+    for i in 1 ..< name.len:
       typeParams.add name[i]
 
   if typeParams.len == 0:
@@ -52,7 +54,7 @@ proc needsConstraintInference(name, body: NimNode): tuple[needed: bool, stateIde
     if child.kind in {nnkCall, nnkCommand}:
       if child[0].kind == nnkIdent and child[0].strVal == "states":
         # Found states section - check for generic states
-        for i in 1..<child.len:
+        for i in 1 ..< child.len:
           let stateNode = child[i]
           if stateNode.kind == nnkBracketExpr:
             # Found a generic state - return it for inference
@@ -64,9 +66,10 @@ proc needsConstraintInference(name, body: NimNode): tuple[needed: bool, stateIde
                 return (true, sub[0].copyNimTree)
 
 macro typestateImpl*(
-  name: untyped,
-  body: untyped,
-  inferredConstraints: static[seq[tuple[name: string, kind: string, constraint: string]]]
+    name: untyped,
+    body: untyped,
+    inferredConstraints:
+      static[seq[tuple[name: string, kind: string, constraint: string]]],
 ): untyped =
   ## Internal implementation that receives inferred constraints.
   ##
@@ -79,7 +82,7 @@ macro typestateImpl*(
   if name.kind == nnkBracketExpr and inferredConstraints.len > 0:
     # Rebuild the bracket expr with constrained params
     augmentedName = nnkBracketExpr.newTree(name[0].copyNimTree)
-    for i in 1..<name.len:
+    for i in 1 ..< name.len:
       let p = name[i]
       if p.kind == nnkIdent:
         # Unconstrained - look for inferred constraint
@@ -92,12 +95,11 @@ macro typestateImpl*(
             of "static":
               augmentedName.add nnkExprColonExpr.newTree(
                 ident(paramName),
-                nnkCommand.newTree(ident("static"), ident(c.constraint))
+                nnkCommand.newTree(ident("static"), ident(c.constraint)),
               )
             of "typeclass":
               augmentedName.add nnkExprColonExpr.newTree(
-                ident(paramName),
-                ident(c.constraint)
+                ident(paramName), ident(c.constraint)
               )
             else:
               augmentedName.add p.copyNimTree
@@ -125,15 +127,14 @@ macro typestateImpl*(
     if hasHookCodegenBugConditions(graph):
       error(
         "Typestate '" & graph.name & "' uses `static` generic parameters with " &
-        "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
-        "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
-        "Options:\n" &
-        "  1. Use `--mm:refc` instead of ARC/ORC\n" &
-        "  2. Make '" & graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
-        "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
-        "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-        "See: https://github.com/nim-lang/Nim/issues/25341",
-        augmentedName
+          "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
+          "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
+          "Options:\n" & "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" &
+          graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+          "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
+          "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
+          "See: https://github.com/nim-lang/Nim/issues/25341",
+        augmentedName,
       )
 
   # Generate helper types
@@ -206,10 +207,7 @@ macro typestate*(name: untyped, body: untyped): untyped =
       bindSym("typestateImpl"),
       name.copyNimTree,
       body.copyNimTree,
-      nnkCall.newTree(
-        bindSym("inferConstraintsTyped"),
-        stateIdent
-      )
+      nnkCall.newTree(bindSym("inferConstraintsTyped"), stateIdent),
     )
   else:
     # No inference needed - proceed with direct implementation
@@ -232,15 +230,14 @@ macro typestate*(name: untyped, body: untyped): untyped =
       if hasHookCodegenBugConditions(graph):
         error(
           "Typestate '" & graph.name & "' uses `static` generic parameters with " &
-          "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
-          "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
-          "Options:\n" &
-          "  1. Use `--mm:refc` instead of ARC/ORC\n" &
-          "  2. Make '" & graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
-          "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
-          "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-          "See: https://github.com/nim-lang/Nim/issues/25341",
-          name
+            "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
+            "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
+            "Options:\n" & "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" &
+            graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+            "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
+            "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
+            "See: https://github.com/nim-lang/Nim/issues/25341",
+          name,
         )
 
     # Generate helper types

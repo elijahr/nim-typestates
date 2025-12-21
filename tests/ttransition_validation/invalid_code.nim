@@ -6,7 +6,7 @@ type
   File = object
   Closed = distinct File
   Open = distinct File
-  Locked = distinct File  # Not in typestate
+  Locked = distinct File # Not in typestate
 
 typestate File:
   states Closed, Open

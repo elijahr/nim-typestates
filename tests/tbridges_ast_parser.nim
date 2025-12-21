@@ -3,7 +3,8 @@ import ../src/typestates/ast_parser
 
 # Create temporary test file
 let testFile = "test_bridges_ast.nim"
-let content = """
+let content =
+  """
 type
   Session = object
   Active = distinct Session
@@ -42,11 +43,16 @@ try:
       break
 
   doAssert authFlow.name == "AuthFlow", "Should find AuthFlow typestate"
-  doAssert authFlow.bridges.len == 2, "Should parse 2 bridges, got: " & $authFlow.bridges.len
-  doAssert authFlow.bridges[0].fromState == "Authenticated", "First bridge source should be Authenticated"
-  doAssert authFlow.bridges[0].toTypestate == "Session", "First bridge typestate should be Session"
-  doAssert authFlow.bridges[0].toState == "Active", "First bridge state should be Active"
-  doAssert authFlow.bridges[1].fromState == "Failed", "Second bridge source should be Failed"
+  doAssert authFlow.bridges.len == 2,
+    "Should parse 2 bridges, got: " & $authFlow.bridges.len
+  doAssert authFlow.bridges[0].fromState == "Authenticated",
+    "First bridge source should be Authenticated"
+  doAssert authFlow.bridges[0].toTypestate == "Session",
+    "First bridge typestate should be Session"
+  doAssert authFlow.bridges[0].toState == "Active",
+    "First bridge state should be Active"
+  doAssert authFlow.bridges[1].fromState == "Failed",
+    "Second bridge source should be Failed"
 
   echo "AST bridge parser test passed"
 finally:

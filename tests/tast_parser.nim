@@ -79,12 +79,13 @@ suite "AST Parser":
 
   test "parse multiple files":
     # Parse specific valid files to avoid syntax_error.nim
-    let result = parseTypestatesAst(@[
-      "tests/fixtures/basic_typestate.nim",
-      "tests/fixtures/branching_transitions.nim",
-      "tests/fixtures/typestate_with_comments.nim",
-      "tests/fixtures/wildcard_transitions.nim",
-      "tests/fixtures/with_flags.nim"
-    ])
+    let result = parseTypestatesAst(
+      @[
+        "tests/fixtures/basic_typestate.nim",
+        "tests/fixtures/branching_transitions.nim",
+        "tests/fixtures/typestate_with_comments.nim",
+        "tests/fixtures/wildcard_transitions.nim", "tests/fixtures/with_flags.nim",
+      ]
+    )
     check result.filesChecked == 5
     check result.typestates.len == 5

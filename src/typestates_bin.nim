@@ -54,7 +54,7 @@ proc showVersion() =
 when isMainModule:
   var args: seq[string] = @[]
 
-  for i in 1..paramCount():
+  for i in 1 .. paramCount():
     args.add paramStr(i)
 
   if args.len == 0:
@@ -62,22 +62,25 @@ when isMainModule:
     quit(0)
 
   let command = args[0]
-  let paths = if args.len > 1: args[1..^1] else: @["."]
+  let paths =
+    if args.len > 1:
+      args[1 ..^ 1]
+    else:
+      @["."]
 
   case command
   of "help", "-h", "--help":
     showHelp()
     quit(0)
-
   of "version", "-v", "--version":
     showVersion()
     quit(0)
-
   of "verify":
     try:
       let result = verify(paths)
 
-      echo "Checked ", result.filesChecked, " files, ", result.transitionsChecked, " transitions"
+      echo "Checked ",
+        result.filesChecked, " files, ", result.transitionsChecked, " transitions"
 
       for warning in result.warnings:
         echo "WARNING: ", warning
@@ -94,13 +97,12 @@ when isMainModule:
     except ParseError as e:
       echo "ERROR: ", e.msg
       quit(1)
-
   of "dot":
     try:
       # Parse flags and paths from args
       var separateFlag = false
       var noStyleFlag = false
-      var splineMode = smSpline  # Default to curved splines
+      var splineMode = smSpline # Default to curved splines
       var pathArgs: seq[string] = @[]
 
       for arg in paths:
@@ -111,10 +113,14 @@ when isMainModule:
         elif arg.startsWith("--splines="):
           let mode = arg.split("=")[1].toLowerAscii()
           case mode
-          of "spline", "curved": splineMode = smSpline
-          of "ortho": splineMode = smOrtho
-          of "polyline": splineMode = smPolyline
-          of "line": splineMode = smLine
+          of "spline", "curved":
+            splineMode = smSpline
+          of "ortho":
+            splineMode = smOrtho
+          of "polyline":
+            splineMode = smPolyline
+          of "line":
+            splineMode = smLine
           else:
             echo "Unknown spline mode: ", mode
             echo "Valid modes: spline, ortho, polyline, line"
@@ -144,7 +150,6 @@ when isMainModule:
     except ParseError as e:
       echo "ERROR: ", e.msg
       quit(1)
-
   of "codegen":
     try:
       var pathArgs: seq[string] = @[]
@@ -168,7 +173,6 @@ when isMainModule:
     except ParseError as e:
       echo "ERROR: ", e.msg
       quit(1)
-
   else:
     echo "Unknown command: ", command
     echo "Run 'typestates --help' for usage."

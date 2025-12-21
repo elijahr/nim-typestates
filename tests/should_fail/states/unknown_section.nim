@@ -7,7 +7,7 @@ type
   A = distinct Broken
 
 typestate Broken:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states A
-  foobar:  # Unknown section
+  foobar:
     A -> A

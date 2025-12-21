@@ -4,6 +4,7 @@ import ../../../src/typestates
 type
   Hybrid[T] = object
     data: T
+
   SimpleState = distinct Hybrid[int]
   GenericState[T] = distinct Hybrid[T]
 

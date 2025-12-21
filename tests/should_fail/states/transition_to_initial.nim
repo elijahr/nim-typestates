@@ -11,12 +11,14 @@ type
 typestate Connection:
   consumeOnTransition = false
   states Disconnected, Connected, Closed
-  initial: Disconnected
-  terminal: Closed
+  initial:
+    Disconnected
+  terminal:
+    Closed
   transitions:
     Disconnected -> Connected
     Connected -> Closed
-    Connected -> Disconnected  # ERROR: Cannot transition TO initial state
+    Connected -> Disconnected # ERROR: Cannot transition TO initial state
 
 # This should fail during typestate validation
 proc reconnect(c: Connected): Disconnected {.transition.} =

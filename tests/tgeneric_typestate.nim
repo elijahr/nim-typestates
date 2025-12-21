@@ -8,11 +8,12 @@ import ../src/typestates
 type
   Container[T] = object
     value: T
+
   Empty[T] = distinct Container[T]
   Full[T] = distinct Container[T]
 
 typestate Container[T]:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states Empty[T], Full[T]
   transitions:
     Empty[T] -> Full[T]
@@ -31,12 +32,13 @@ type
   KeyValue[K, V] = object
     key: K
     value: V
+
   EmptyKV[K, V] = distinct KeyValue[K, V]
   HasKey[K, V] = distinct KeyValue[K, V]
   HasBoth[K, V] = distinct KeyValue[K, V]
 
 typestate KeyValue[K, V]:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states EmptyKV[K, V], HasKey[K, V], HasBoth[K, V]
   transitions:
     EmptyKV[K, V] -> HasKey[K, V]

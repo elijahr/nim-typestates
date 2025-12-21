@@ -6,6 +6,7 @@ import ../src/typestates
 type
   Payment = object
     amount: int
+
   Created = distinct Payment
   Approved = distinct Payment
   Declined = distinct Payment
@@ -13,7 +14,7 @@ type
   Processed = distinct Payment
 
 typestate Payment:
-  consumeOnTransition = false  # Opt out for this test to allow reusing states
+  consumeOnTransition = false # Opt out for this test to allow reusing states
   states Created, Approved, Declined, Review, Processed
   transitions:
     # Branching transition: 3 possible outcomes with user-defined type name

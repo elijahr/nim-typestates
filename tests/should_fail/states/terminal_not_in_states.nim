@@ -11,6 +11,7 @@ type
 typestate Flow:
   consumeOnTransition = false
   states Start, End
-  terminal: NotDeclared  # ERROR: NotDeclared is not in states list
+  terminal:
+    NotDeclared # ERROR: NotDeclared is not in states list
   transitions:
     Start -> End

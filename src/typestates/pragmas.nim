@@ -17,7 +17,9 @@ export verify
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
 
-proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compileTime.} =
+proc registerSealedStates*(
+    modulePath: string, stateNames: seq[string]
+) {.compileTime.} =
   ## Register states from a sealed typestate for external checking.
   ##
   ## :param modulePath: The module filename where the typestate is defined
@@ -28,7 +30,9 @@ proc registerSealedStates*(modulePath: string, stateNames: seq[string]) {.compil
     if state notin sealedTypestateModules[modulePath]:
       sealedTypestateModules[modulePath].add state
 
-proc isStateFromSealedTypestate*(stateName: string, currentModule: string): Option[string] {.compileTime.} =
+proc isStateFromSealedTypestate*(
+    stateName: string, currentModule: string
+): Option[string] {.compileTime.} =
   ## Check if a state is from a sealed typestate defined in another module.
   ##
   ## :param stateName: The state type name to check
@@ -160,31 +164,42 @@ macro transition*(procDef: untyped): untyped =
   # Look up typestate
   let graphOpt = findTypestateForState(sourceTypeName)
   if graphOpt.isNone:
-    error(fmt"State '{sourceTypeName}' is not part of any registered typestate", procDef)
+    error(
+      fmt"State '{sourceTypeName}' is not part of any registered typestate", procDef
+    )
 
   let graph = graphOpt.get
 
   # Transitions can only be defined in the same module as the typestate
   let procModule = procDef.lineInfoObj.filename
   if procModule != graph.declaredInModule:
-    error(fmt"""Cannot define transition on typestate '{graph.name}' from external module.
+    error(
+      fmt"""Cannot define transition on typestate '{graph.name}' from external module.
   The typestate was defined in '{graph.declaredInModule}'.
   Transitions must be defined in the same module as the typestate declaration.
-  Hint: Use {{.notATransition.}} for read-only operations on imported states.""", procDef)
+  Hint: Use {{.notATransition.}} for read-only operations on imported states.""",
+      procDef,
+    )
 
   # Check terminal constraint - cannot transition FROM terminal state
   if graph.isTerminalState(sourceTypeName):
-    error(fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
+    error(
+      fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
   Terminal states are end states with no outgoing transitions.
-  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed.""", procDef)
+  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed.""",
+      procDef,
+    )
 
   # Validate each transition in the union
   for destTypeName in destTypeNames:
     # Check initial constraint - cannot transition TO initial state
     if graph.isInitialState(destTypeName):
-      error(fmt"""Cannot transition TO initial state '{destTypeName}'.
+      error(
+        fmt"""Cannot transition TO initial state '{destTypeName}'.
   Initial states can only be constructed, not transitioned to.
-  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed.""", procDef)
+  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed.""",
+        procDef,
+      )
 
     # Check if destination belongs to a different typestate (bridge case)
     let destGraphOpt = findTypestateForState(destTypeName)
@@ -196,20 +211,26 @@ macro transition*(procDef: untyped): untyped =
         if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
           let validBridges = graph.validBridges(sourceTypeName)
           let bridgeDest = destGraph.name & "." & destTypeName
-          error(fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
+          error(
+            fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
   Typestate '{graph.name}' does not declare this bridge.
   Valid bridges from '{sourceTypeName}': {validBridges}
-  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}.""", procDef)
+  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}.""",
+            procDef,
+          )
         # Bridge is valid, continue to next destination
         continue
 
     # Same typestate or destination not in any typestate: validate as regular transition
     if not graph.hasTransition(sourceTypeName, destTypeName):
       let validDests = graph.validDestinations(sourceTypeName)
-      error(fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
+      error(
+        fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
   Typestate '{graph.name}' does not declare this transition.
   Valid transitions from '{sourceTypeName}': {validDests}
-  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block.""", procDef)
+  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block.""",
+        procDef,
+      )
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false
@@ -244,8 +265,13 @@ macro transition*(procDef: untyped): untyped =
         discard
 
   if hasRaises and not raisesIsEmpty:
-    let procName = if procDef[0].kind == nnkPostfix: procDef[0][1].strVal else: procDef[0].strVal
-    error(fmt"""Transition '{procName}' has non-empty raises list.
+    let procName =
+      if procDef[0].kind == nnkPostfix:
+        procDef[0][1].strVal
+      else:
+        procDef[0].strVal
+    error(
+      fmt"""Transition '{procName}' has non-empty raises list.
   Transitions must have {{.raises: [].}} to ensure errors are modeled as states.
 
   Options:
@@ -253,14 +279,13 @@ macro transition*(procDef: untyped): untyped =
   2. Handle exceptions internally and return error state on failure
   3. If truly impossible to raise, verify and keep {{.raises: [].}}
 
-  See: https://elijahr.github.io/nim-typestates/guide/error-handling/""", procDef)
+  See: https://elijahr.github.io/nim-typestates/guide/error-handling/""",
+      procDef,
+    )
 
   # If no raises pragma, add {.raises: [].} to enable compiler checking
   if not hasRaises:
-    result.addPragma(nnkExprColonExpr.newTree(
-      ident("raises"),
-      nnkBracket.newTree()
-    ))
+    result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
 
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.

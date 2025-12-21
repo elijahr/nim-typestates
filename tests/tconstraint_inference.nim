@@ -25,7 +25,7 @@ typestate Buffer1[N]:
 
 proc fill1[N: static int](e: Empty1[N]): Filled1[N] {.transition.} =
   var buf = Buffer1[N](e)
-  for i in 0..<N:
+  for i in 0 ..< N:
     buf.data[i] = i
   result = Filled1[N](buf)
 
@@ -37,7 +37,6 @@ block test1:
   let filled = empty.fill1()
   let cleared = filled.clear1()
   echo "Test 1: Static int inference - PASSED"
-
 
 # Test 2: Verify inference doesn't break already-constrained params
 type
@@ -62,7 +61,6 @@ block test2:
   let final = init.finish2()
   echo "Test 2: Explicit constraints still work - PASSED"
 
-
 # Test 3: Multiple generic parameters with same constraint
 type
   Matrix3[R: static int, C: static int] = object
@@ -79,13 +77,14 @@ typestate Matrix3[R, C]:
   transitions:
     Uninit3 -> Ready3
 
-proc init3[R: static int, C: static int](u: Uninit3[R, C]): Ready3[R, C] {.transition.} =
+proc init3[R: static int, C: static int](
+    u: Uninit3[R, C]
+): Ready3[R, C] {.transition.} =
   result = Ready3[R, C](Matrix3[R, C](rows: R, cols: C))
 
 block test3:
   let uninit = Uninit3[3, 4](Matrix3[3, 4]())
   let ready = uninit.init3()
   echo "Test 3: Multiple generic params - PASSED"
-
 
 echo "All constraint inference tests passed!"

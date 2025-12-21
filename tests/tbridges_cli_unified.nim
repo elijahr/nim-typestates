@@ -6,7 +6,8 @@ import ../src/typestates/ast_parser
 let sessionFile = "test_session.nim"
 let authFile = "test_auth.nim"
 
-let sessionContent = """
+let sessionContent =
+  """
 type
   Session = object
   Active = distinct Session
@@ -19,7 +20,8 @@ typestate Session:
     Active -> Closed
 """
 
-let authContent = """
+let authContent =
+  """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow
@@ -49,11 +51,15 @@ try:
 
   # Verify bridge edges (dashed, cross-cluster)
   # Bridges should use fullDestRepr with quotes for DOT compatibility (e.g., "Session.Active")
-  doAssert "Authenticated -> \"Session.Active\"" in dot, "Should have bridge from Authenticated to Session.Active"
-  doAssert "Failed -> \"Session.Closed\"" in dot, "Should have bridge from Failed to Session.Closed"
+  doAssert "Authenticated -> \"Session.Active\"" in dot,
+    "Should have bridge from Authenticated to Session.Active"
+  doAssert "Failed -> \"Session.Closed\"" in dot,
+    "Should have bridge from Failed to Session.Closed"
   doAssert "style=dashed" in dot, "Bridge edges should be dashed"
 
   echo "Unified graph generation test passed"
 finally:
-  if fileExists(sessionFile): removeFile(sessionFile)
-  if fileExists(authFile): removeFile(authFile)
+  if fileExists(sessionFile):
+    removeFile(sessionFile)
+  if fileExists(authFile):
+    removeFile(authFile)

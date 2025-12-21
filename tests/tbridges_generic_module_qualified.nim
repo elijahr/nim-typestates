@@ -55,14 +55,16 @@ block test_generic_bridge_int:
 
 # Test with string
 block test_generic_bridge_string:
-  let container = ContainerProcessed[string](Container[string](value: "hello", capacity: 50))
+  let container =
+    ContainerProcessed[string](Container[string](value: "hello", capacity: 50))
   let storage = transfer(container)
   doAssert Storage[string](storage).data == "hello"
   echo "Generic bridge works with string"
 
 # Test with seq
 block test_generic_bridge_seq:
-  let container = ContainerProcessed[seq[int]](Container[seq[int]](value: @[1, 2, 3], capacity: 10))
+  let container =
+    ContainerProcessed[seq[int]](Container[seq[int]](value: @[1, 2, 3], capacity: 10))
   let storage = transfer(container)
   doAssert Storage[seq[int]](storage).data == @[1, 2, 3]
   echo "Generic bridge works with seq[int]"

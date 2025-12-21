@@ -6,12 +6,11 @@
 
 import std/[osproc, strutils, os, terminal]
 
-type
-  TestResult = object
-    name: string
-    passed: bool
-    output: string
-    category: string
+type TestResult = object
+  name: string
+  passed: bool
+  output: string
+  category: string
 
 var results: seq[TestResult] = @[]
 var totalPassed = 0
@@ -41,7 +40,8 @@ proc runShouldCompileTest(path: string): TestResult =
   let binPath = path.changeFileExt("")
 
   # Compile
-  let compileCmd = "nim c --skipUserCfg --skipParentCfg --hints:off -o:" & binPath & " " & path
+  let compileCmd =
+    "nim c --skipUserCfg --skipParentCfg --hints:off -o:" & binPath & " " & path
   let (compileOutput, compileExit) = execCmdEx(compileCmd)
 
   result.name = category & "/" & name

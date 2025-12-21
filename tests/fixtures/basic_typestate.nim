@@ -3,6 +3,7 @@
 type
   File = object
     path: string
+
   Closed = distinct File
   Open = distinct File
 

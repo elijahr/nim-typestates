@@ -6,11 +6,12 @@ import ../src/typestates
 type
   Container[T] = object
     value: T
+
   Empty[T] = distinct Container[T]
   Full[T] = distinct Container[T]
 
 typestate Container[T]:
-  consumeOnTransition = false  # Needed for test to compile
+  consumeOnTransition = false # Needed for test to compile
   states Empty[T], Full[T]
   transitions:
     Empty[T] -> Full[T]
@@ -25,6 +26,7 @@ proc fill[T](c: Empty[T], val: T): Full[T] {.transition.} =
 type
   Process = object
     id: int
+
   Created = distinct Process
   Running = distinct Process
   Failed = distinct Process
@@ -45,7 +47,9 @@ proc start(p: Created): StartResult {.transition.} =
 let created = Created(Process(id: 1))
 let result = created.start()
 case result.kind
-of sRunning: echo "Running"
-of sFailed: echo "Failed"
+of sRunning:
+  echo "Running"
+of sFailed:
+  echo "Failed"
 
 echo "Edge case tests for consumeOnTransition passed!"

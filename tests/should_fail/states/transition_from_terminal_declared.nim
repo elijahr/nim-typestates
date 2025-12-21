@@ -11,7 +11,8 @@ type
 typestate Flow:
   consumeOnTransition = false
   states Start, End, AfterEnd
-  terminal: End
+  terminal:
+    End
   transitions:
     Start -> End
-    End -> AfterEnd  # ERROR: Cannot transition FROM terminal state
+    End -> AfterEnd # ERROR: Cannot transition FROM terminal state

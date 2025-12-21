@@ -15,15 +15,15 @@ import std/[macros, tables]
 
 type
   ConstraintKind* = enum
-    ckNone        ## No constraint (plain type variable)
-    ckStatic      ## static constraint (e.g., static int)
-    ckTypeClass   ## Type class constraint (e.g., SomeNumber)
+    ckNone ## No constraint (plain type variable)
+    ckStatic ## static constraint (e.g., static int)
+    ckTypeClass ## Type class constraint (e.g., SomeNumber)
 
   InferredConstraint* = object
     ## Represents an inferred constraint for a generic parameter
     paramName*: string
     kind*: ConstraintKind
-    constraint*: NimNode  ## The constraint AST
+    constraint*: NimNode ## The constraint AST
 
 proc extractConstraintsFromType*(typeSym: NimNode): seq[InferredConstraint] =
   ## Extract generic constraints from a type symbol.
@@ -53,7 +53,11 @@ proc extractConstraintsFromType*(typeSym: NimNode): seq[InferredConstraint] =
 
       if paramType.kind == nnkBracketExpr:
         # Has a constraint - check what kind
-        let constraintName = if paramType[0].kind == nnkSym: paramType[0].strVal else: ""
+        let constraintName =
+          if paramType[0].kind == nnkSym:
+            paramType[0].strVal
+          else:
+            ""
         if constraintName == "static":
           constraint.kind = ckStatic
           # Extract the inner type if present (e.g., `int` from `static[int]`)
@@ -86,18 +90,11 @@ proc buildConstraintNode*(c: InferredConstraint): NimNode =
   of ckStatic:
     # Build: N: static int
     result = nnkExprColonExpr.newTree(
-      ident(c.paramName),
-      nnkCommand.newTree(
-        ident("static"),
-        c.constraint.copyNimTree
-      )
+      ident(c.paramName), nnkCommand.newTree(ident("static"), c.constraint.copyNimTree)
     )
   of ckTypeClass:
     # Build: T: SomeNumber
-    result = nnkExprColonExpr.newTree(
-      ident(c.paramName),
-      c.constraint.copyNimTree
-    )
+    result = nnkExprColonExpr.newTree(ident(c.paramName), c.constraint.copyNimTree)
 
 proc constraintsMatch*(a, b: InferredConstraint): bool =
   ## Check if two constraints are compatible.
@@ -133,20 +130,16 @@ macro inferConstraintsFromState*(T: typedesc): untyped =
   # Build result as a tuple of (name, kind, constraintRepr) tuples
   result = nnkTupleConstr.newTree()
   for c in constraints:
-    let kindStr = case c.kind
+    let kindStr =
+      case c.kind
       of ckNone: "none"
       of ckStatic: "static"
       of ckTypeClass: "typeclass"
 
-    let constraintRepr = if c.constraint.kind != nnkEmpty:
-      c.constraint.repr
-    else:
-      ""
+    let constraintRepr = if c.constraint.kind != nnkEmpty: c.constraint.repr else: ""
 
     result.add nnkTupleConstr.newTree(
-      newLit(c.paramName),
-      newLit(kindStr),
-      newLit(constraintRepr)
+      newLit(c.paramName), newLit(kindStr), newLit(constraintRepr)
     )
 
 proc parseInferredConstraints*(tupleData: NimNode): seq[InferredConstraint] =
@@ -168,7 +161,8 @@ proc parseInferredConstraints*(tupleData: NimNode): seq[InferredConstraint] =
     let kindStr = item[1].strVal
     let constraintRepr = item[2].strVal
 
-    c.kind = case kindStr
+    c.kind =
+      case kindStr
       of "static": ckStatic
       of "typeclass": ckTypeClass
       else: ckNone
@@ -181,8 +175,7 @@ proc parseInferredConstraints*(tupleData: NimNode): seq[InferredConstraint] =
     result.add c
 
 proc mergeConstraints*(
-  explicit: seq[NimNode],
-  inferred: seq[InferredConstraint]
+    explicit: seq[NimNode], inferred: seq[InferredConstraint]
 ): seq[NimNode] =
   ## Merge explicitly provided constraints with inferred ones.
   ##
@@ -238,7 +231,7 @@ proc extractStateBaseNames*(statesSection: NimNode): seq[NimNode] =
   ##
   ## For `states StateA[N], StateB[N]`, returns `@[StateA, StateB]`
   result = @[]
-  for i in 1..<statesSection.len:
+  for i in 1 ..< statesSection.len:
     let stateNode = statesSection[i]
     case stateNode.kind
     of nnkBracketExpr:
@@ -255,7 +248,9 @@ proc extractStateBaseNames*(statesSection: NimNode): seq[NimNode] =
     else:
       discard
 
-macro inferConstraintsTyped*(T: typedesc): seq[tuple[name: string, kind: string, constraint: string]] =
+macro inferConstraintsTyped*(
+    T: typedesc
+): seq[tuple[name: string, kind: string, constraint: string]] =
   ## Typed macro to infer constraints from a single state type.
   ##
   ## Returns a compile-time sequence that can be used in static blocks.
@@ -267,23 +262,22 @@ macro inferConstraintsTyped*(T: typedesc): seq[tuple[name: string, kind: string,
     let constraints = extractConstraintsFromType(typeSym)
 
     for c in constraints:
-      let kindStr = case c.kind
+      let kindStr =
+        case c.kind
         of ckNone: "none"
         of ckStatic: "static"
         of ckTypeClass: "typeclass"
       let constrStr = if c.constraint.kind != nnkEmpty: c.constraint.repr else: ""
 
       result.add nnkTupleConstr.newTree(
-        newStrLitNode(c.paramName),
-        newStrLitNode(kindStr),
-        newStrLitNode(constrStr)
+        newStrLitNode(c.paramName), newStrLitNode(kindStr), newStrLitNode(constrStr)
       )
 
   result = nnkPrefix.newTree(ident("@"), result)
 
 proc augmentTypeParams*(
-  typeParams: seq[NimNode],
-  constraints: seq[tuple[name: string, kind: string, constraint: string]]
+    typeParams: seq[NimNode],
+    constraints: seq[tuple[name: string, kind: string, constraint: string]],
 ): seq[NimNode] =
   ## Augment unconstrained type parameters with inferred constraints.
   ##
@@ -302,14 +296,10 @@ proc augmentTypeParams*(
           case c.kind
           of "static":
             result.add nnkExprColonExpr.newTree(
-              ident(paramName),
-              nnkCommand.newTree(ident("static"), ident(c.constraint))
+              ident(paramName), nnkCommand.newTree(ident("static"), ident(c.constraint))
             )
           of "typeclass":
-            result.add nnkExprColonExpr.newTree(
-              ident(paramName),
-              ident(c.constraint)
-            )
+            result.add nnkExprColonExpr.newTree(ident(paramName), ident(c.constraint))
           else:
             result.add p.copyNimTree
           break

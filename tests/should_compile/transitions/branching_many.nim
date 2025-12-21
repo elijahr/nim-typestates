@@ -4,6 +4,7 @@ import ../../../src/typestates
 type
   Router = object
     path: int
+
   Start = distinct Router
   PathA = distinct Router
   PathB = distinct Router
@@ -12,7 +13,7 @@ type
   PathE = distinct Router
 
 typestate Router:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Start, PathA, PathB, PathC, PathD, PathE
   transitions:

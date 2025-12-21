@@ -2,7 +2,8 @@
 
 import std/[osproc, strutils]
 
-let (output, exitCode) = execCmdEx("nim c --hints:off tests/should_fail/states/same_base_name.nim")
+let (output, exitCode) =
+  execCmdEx("nim c --hints:off tests/should_fail/states/same_base_name.nim")
 
 if exitCode == 0:
   echo "FAIL: Compilation should have failed but succeeded"

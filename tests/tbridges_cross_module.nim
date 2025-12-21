@@ -21,7 +21,7 @@ block test_successful_auth:
     doAssert false, "Expected authentication to succeed"
 
 block test_failed_auth:
-  let pending = Pending(AuthFlow(userId: "bob", token: ""))  # Empty token = fail
+  let pending = Pending(AuthFlow(userId: "bob", token: "")) # Empty token = fail
   let result = authenticate(pending)
 
   case result.kind

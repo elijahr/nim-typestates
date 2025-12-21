@@ -7,13 +7,13 @@ type
   B = distinct Duped
 
 typestate Duped:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states A, B
   transitions:
     A -> B
-    A -> B  # Duplicate - should be silently ignored
-    A -> B  # Another duplicate
+    A -> B # Duplicate - should be silently ignored
+    A -> B # Another duplicate
 
 proc go(d: A): B {.transition.} =
   B(d.Duped)

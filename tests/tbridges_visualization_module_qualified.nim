@@ -15,7 +15,8 @@ block test_unified_with_module_qualifier:
   let sessionFile = "test_viz_session.nim"
   let authFile = "test_viz_auth.nim"
 
-  let sessionContent = """
+  let sessionContent =
+    """
 type
   Session = object
   Active = distinct Session
@@ -27,7 +28,8 @@ typestate Session:
     Active -> Active
 """
 
-  let authContent = """
+  let authContent =
+    """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow
@@ -54,19 +56,21 @@ typestate AuthFlow:
       "Bridge should use full module-qualified name (quoted): " & dot
     doAssert "Authenticated -> \"sessionmodule.Session.Active\"" in dot,
       "Bridge edge should include module qualifier (quoted)"
-    doAssert "style=dashed" in dot,
-      "Bridge edge should be dashed"
+    doAssert "style=dashed" in dot, "Bridge edge should be dashed"
 
     echo "Unified DOT with module qualifier test passed"
   finally:
-    if fileExists(sessionFile): removeFile(sessionFile)
-    if fileExists(authFile): removeFile(authFile)
+    if fileExists(sessionFile):
+      removeFile(sessionFile)
+    if fileExists(authFile):
+      removeFile(authFile)
 
 # Test 2: Separate view with module-qualified bridge
 block test_separate_with_module_qualifier:
   let authFile = "test_viz_separate.nim"
 
-  let authContent = """
+  let authContent =
+    """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow
@@ -95,18 +99,19 @@ typestate AuthFlow:
       "Bridge destination should be quoted with module qualifier: " & dot
     doAssert "Authenticated -> \"othermodule.Session.Active\"" in dot,
       "Bridge edge should reference fully qualified node"
-    doAssert "style=dashed" in dot,
-      "Bridge edge should be dashed"
+    doAssert "style=dashed" in dot, "Bridge edge should be dashed"
 
     echo "Separate DOT with module qualifier test passed"
   finally:
-    if fileExists(authFile): removeFile(authFile)
+    if fileExists(authFile):
+      removeFile(authFile)
 
 # Test 3: Multiple bridges with different module qualifiers
 block test_multiple_module_qualifiers:
   let multiFile = "test_viz_multi.nim"
 
-  let multiContent = """
+  let multiContent =
+    """
 type
   Workflow = object
   Processing = distinct Workflow
@@ -128,22 +133,22 @@ typestate Workflow:
     let dot = generateSeparateDot(ts)
 
     # All module qualifiers should be preserved
-    doAssert "\"moduleA.TypeX.StateX\"" in dot,
-      "Should preserve moduleA qualifier"
-    doAssert "\"moduleB.TypeY.StateY\"" in dot,
-      "Should preserve moduleB qualifier"
+    doAssert "\"moduleA.TypeX.StateX\"" in dot, "Should preserve moduleA qualifier"
+    doAssert "\"moduleB.TypeY.StateY\"" in dot, "Should preserve moduleB qualifier"
     doAssert "\"moduleC.deep.nested.TypeZ.StateZ\"" in dot,
       "Should preserve deep nested module qualifier"
 
     echo "Multiple module qualifiers test passed"
   finally:
-    if fileExists(multiFile): removeFile(multiFile)
+    if fileExists(multiFile):
+      removeFile(multiFile)
 
 # Test 4: Compare with and without module qualifier
 block test_with_without_comparison:
   let compareFile = "test_viz_compare.nim"
 
-  let compareContent = """
+  let compareContent =
+    """
 type
   Source = object
   StateA = distinct Source
@@ -178,13 +183,15 @@ typestate Source:
 
     echo "Comparison with/without module qualifier test passed"
   finally:
-    if fileExists(compareFile): removeFile(compareFile)
+    if fileExists(compareFile):
+      removeFile(compareFile)
 
 # Test 5: Wildcard bridge with module qualifier
 block test_wildcard_with_module:
   let wildcardFile = "test_viz_wildcard.nim"
 
-  let wildcardContent = """
+  let wildcardContent =
+    """
 type
   Task = object
   Ready = distinct Task
@@ -218,6 +225,7 @@ typestate Task:
 
     echo "Wildcard bridge with module qualifier test passed"
   finally:
-    if fileExists(wildcardFile): removeFile(wildcardFile)
+    if fileExists(wildcardFile):
+      removeFile(wildcardFile)
 
 echo "All visualization tests for module-qualified bridges passed"

@@ -6,14 +6,18 @@
 import std/options
 
 type
-  Direction = enum Input, Output
+  Direction = enum
+    Input
+    Output
+
   GPIO[TEnabled: static bool, TDir: static Option[Direction]] = object
     pin: int
 
 import ../../../src/typestates
 
 typestate GPIO[TEnabled: static bool, TDir: static Option[Direction]]:
-  consumeOnTransition = false  # Opt out for existing tests
-  states GPIO[false, none(Direction)], GPIO[true, none(Direction)], GPIO[true, some(Input)]
+  consumeOnTransition = false # Opt out for existing tests
+  states GPIO[false, none(Direction)],
+    GPIO[true, none(Direction)], GPIO[true, some(Input)]
   transitions:
     GPIO[false, none(Direction)] -> GPIO[true, none(Direction)]

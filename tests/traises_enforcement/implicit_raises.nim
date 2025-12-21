@@ -8,6 +8,7 @@ import std/os
 type
   Document = object
     content: string
+
   Empty = distinct Document
   Loaded = distinct Document
 
@@ -19,4 +20,4 @@ typestate Document:
 # This should fail: readFile raises IOError, but we've enforced raises: []
 proc load(d: Empty, path: string): Loaded {.transition.} =
   result = Loaded(d)
-  result.Document.content = readFile(path)  # raises IOError!
+  result.Document.content = readFile(path) # raises IOError!

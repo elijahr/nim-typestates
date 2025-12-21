@@ -4,6 +4,7 @@ import ../../../src/typestates
 type
   Pipeline = object
     stage: int
+
   Stage1 = distinct Pipeline
   Stage2 = distinct Pipeline
   Complete = distinct Pipeline
@@ -12,20 +13,20 @@ type
   Archived = distinct Archive
 
 typestate Archive:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Archived
 
 typestate Pipeline:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Stage1, Stage2, Complete
   transitions:
     Stage1 -> Stage2
     Stage2 -> Complete
-    Complete -> Stage1  # Can restart
+    Complete -> Stage1 # Can restart
   bridges:
-    Complete -> Archive.Archived  # Or archive when done
+    Complete -> Archive.Archived # Or archive when done
 
 proc advance1(p: Stage1): Stage2 {.transition.} =
   var pipe = p.Pipeline

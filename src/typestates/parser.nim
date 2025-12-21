@@ -117,20 +117,14 @@ proc parseStates*(graph: var TypestateGraph, node: NimNode) =
         # Handle trailing commas: strip from repr if present
         let baseName = extractBaseName(stateNode)
         var fullRepr = stateNode.repr.strip(chars = {',', ' ', '\n'})
-        graph.states[fullRepr] = State(
-          name: baseName,
-          fullRepr: fullRepr,
-          typeName: stateNode
-        )
+        graph.states[fullRepr] =
+          State(name: baseName, fullRepr: fullRepr, typeName: stateNode)
     else:
       # Inline: each child is a state
       let baseName = extractBaseName(child)
       let fullRepr = child.repr
-      graph.states[fullRepr] = State(
-        name: baseName,
-        fullRepr: fullRepr,
-        typeName: child
-      )
+      graph.states[fullRepr] =
+        State(name: baseName, fullRepr: fullRepr, typeName: child)
 
 proc collectBranchTargets(node: NimNode): seq[string] =
   ## Recursively collect all target states from a branching expression.
@@ -212,7 +206,7 @@ proc parseTransition*(node: NimNode): Transition =
         fromState: "*",
         toStates: toStates,
         isWildcard: true,
-        declaredAt: node.lineInfoObj
+        declaredAt: node.lineInfoObj,
       )
 
   expectKind(node, nnkInfix)
@@ -263,15 +257,19 @@ proc parseTransition*(node: NimNode): Transition =
 
   # Validate: branching transitions MUST have a type name
   if toStates.len > 1 and branchTypeName == "":
-    error("Branching transitions require a result type name. " &
-          "Use: " & fromState & " -> " & toStates.join(" | ") & " as ResultTypeName",
-          node)
+    error(
+      "Branching transitions require a result type name. " & "Use: " & fromState & " -> " &
+        toStates.join(" | ") & " as ResultTypeName",
+      node,
+    )
 
   # Validate: non-branching transitions should NOT have a type name
   if toStates.len == 1 and branchTypeName != "":
-    error("Non-branching transition should not have 'as " & branchTypeName & "'. " &
-          "The 'as TypeName' syntax is only for branching transitions (A -> B | C).",
-          node)
+    error(
+      "Non-branching transition should not have 'as " & branchTypeName & "'. " &
+        "The 'as TypeName' syntax is only for branching transitions (A -> B | C).",
+      node,
+    )
 
   result = Transition(
     fromState: fromState,
@@ -279,7 +277,7 @@ proc parseTransition*(node: NimNode): Transition =
     branchTypeName: branchTypeName,
     branchTypeNode: branchTypeNode,
     isWildcard: isWildcard,
-    declaredAt: node.lineInfoObj
+    declaredAt: node.lineInfoObj,
   )
 
 proc parseFlag(graph: var TypestateGraph, node: NimNode) =
@@ -306,7 +304,11 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
   of "inheritsFromRootObj":
     graph.inheritsFromRootObj = value
   else:
-    error("Unknown flag: " & flagName & ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj", node)
+    error(
+      "Unknown flag: " & flagName &
+        ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj",
+      node,
+    )
 
 proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
   ## Parse the transitions block and add all transitions to the graph.
@@ -335,7 +337,9 @@ proc parseTransitionsBlock(graph: var TypestateGraph, node: NimNode) =
     let trans = parseTransition(child)
     graph.transitions.add(trans)
 
-proc collectBridgeTargets(node: NimNode): seq[tuple[module: string, typestate: string, state: string, fullRepr: string]] =
+proc collectBridgeTargets(
+    node: NimNode
+): seq[tuple[module: string, typestate: string, state: string, fullRepr: string]] =
   ## Recursively collect all target typestates/states from a branching expression.
   ##
   ## Handles the `|` operator for branching bridges.
@@ -372,7 +376,11 @@ proc collectBridgeTargets(node: NimNode): seq[tuple[module: string, typestate: s
     else:
       error("Expected '|' in branching bridge", node)
   else:
-    error("Bridge destination must use dotted notation (Typestate.State or module.Typestate.State), got: " & node.repr, node)
+    error(
+      "Bridge destination must use dotted notation (Typestate.State or module.Typestate.State), got: " &
+        node.repr,
+      node,
+    )
 
 proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
   ## Parse the bridges block and add all bridges to the graph.
@@ -439,7 +447,7 @@ proc parseBridgesBlock*(graph: var TypestateGraph, node: NimNode) =
         toTypestate: target.typestate,
         toState: target.state,
         fullDestRepr: target.fullRepr,
-        declaredAt: child.lineInfoObj
+        declaredAt: child.lineInfoObj,
       )
       graph.bridges.add bridge
 
@@ -464,7 +472,7 @@ proc parseStateList(node: NimNode): seq[string] =
   case node.kind
   of nnkCommand:
     # initial: A, B, C or initial A, B, C
-    for i in 1..<node.len:
+    for i in 1 ..< node.len:
       let child = node[i]
       if child.kind == nnkStmtList:
         # Multiline block
@@ -480,7 +488,7 @@ proc parseStateList(node: NimNode): seq[string] =
         if item.kind != nnkEmpty:
           result.add item.repr.strip(chars = {',', ' ', '\n'})
     else:
-      for i in 1..<node.len:
+      for i in 1 ..< node.len:
         result.add node[i].repr.strip(chars = {',', ' ', '\n'})
   else:
     error("Expected state list", node)
@@ -560,7 +568,7 @@ proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
 
   for state in graph.states.values:
     var found = false
-    for i in 0..<baseNameCounts.len:
+    for i in 0 ..< baseNameCounts.len:
       if baseNameCounts[i].name == state.name:
         baseNameCounts[i].fullReprs.add state.fullRepr
         found = true
@@ -570,16 +578,17 @@ proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
 
   for entry in baseNameCounts:
     if entry.fullReprs.len > 1:
-      error("Multiple states share the base name '" & entry.name & "': " &
-            entry.fullReprs.join(", ") & "\n\n" &
-            "States must have unique base type names. " &
-            "Using the same type with different static parameters is not supported.\n\n" &
-            "Use distinct wrapper types instead:\n" &
-            "  type\n" &
-            "    " & entry.name & "Base = object  # or your base type\n" &
-            "    State1 = distinct " & entry.name & "Base\n" &
-            "    State2 = distinct " & entry.name & "Base\n\n" &
-            "See: https://elijahr.github.io/nim-typestates/guide/generics/", declNode)
+      error(
+        "Multiple states share the base name '" & entry.name & "': " &
+          entry.fullReprs.join(", ") & "\n\n" &
+          "States must have unique base type names. " &
+          "Using the same type with different static parameters is not supported.\n\n" &
+          "Use distinct wrapper types instead:\n" & "  type\n" & "    " & entry.name &
+          "Base = object  # or your base type\n" & "    State1 = distinct " & entry.name &
+          "Base\n" & "    State2 = distinct " & entry.name & "Base\n\n" &
+          "See: https://elijahr.github.io/nim-typestates/guide/generics/",
+        declNode,
+      )
 
 proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that each source state has at most one branching transition.
@@ -613,9 +622,12 @@ proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNod
     if trans.toStates.len > 1 and not trans.isWildcard:
       let source = extractBaseName(trans.fromState)
       if source in branchingSources:
-        error("Duplicate branching transition from '" & source & "'. " &
-              "Each source state can only have one branching transition. " &
-              "Combine destinations: " & source & " -> A | B | C", declNode)
+        error(
+          "Duplicate branching transition from '" & source & "'. " &
+            "Each source state can only have one branching transition. " &
+            "Combine destinations: " & source & " -> A | B | C",
+          declNode,
+        )
       branchingSources.add(source)
 
 proc validateInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
@@ -644,7 +656,9 @@ proc validateInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
     if not found:
       error("Terminal state '" & s & "' is not in states list", declNode)
 
-proc validateTransitionsRespectInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
+proc validateTransitionsRespectInitialTerminal(
+    graph: TypestateGraph, declNode: NimNode
+) =
   ## Validate that transitions respect initial/terminal constraints.
   ##
   ## - Cannot transition TO an initial state
@@ -657,7 +671,10 @@ proc validateTransitionsRespectInitialTerminal(graph: TypestateGraph, declNode: 
     if not t.isWildcard:
       # Check FROM terminal
       if graph.isTerminalState(t.fromState):
-        error("Cannot declare transition FROM terminal state '" & t.fromState & "'", declNode)
+        error(
+          "Cannot declare transition FROM terminal state '" & t.fromState & "'",
+          declNode,
+        )
 
     # Check TO initial
     for dest in t.toStates:
@@ -701,7 +718,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   if name.kind == nnkBracketExpr:
     # Generic: Container[T] or Map[K, V] or VirtualValueN[N: static int]
     baseName = extractBaseName(name[0])
-    for i in 1..<name.len:
+    for i in 1 ..< name.len:
       typeParams.add name[i].copyNimTree
   else:
     # Simple: File
@@ -711,7 +728,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     name: baseName,
     typeParams: typeParams,
     declaredAt: name.lineInfoObj,
-    declaredInModule: name.lineInfoObj.filename
+    declaredInModule: name.lineInfoObj.filename,
   )
 
   for child in body:

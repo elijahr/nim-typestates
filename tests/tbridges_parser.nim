@@ -7,15 +7,13 @@ macro testParseBridges(): untyped =
   # bridges:
   #   Authenticated -> Session.Active
   #   Failed -> ErrorLog.Entry
-  let bridgesBlock = quote do:
+  let bridgesBlock = quote:
     bridges:
       Authenticated -> Session.Active
       Failed -> ErrorLog.Entry
 
   var graph = TypestateGraph(
-    name: "AuthFlow",
-    declaredAt: default(LineInfo),
-    declaredInModule: "test.nim"
+    name: "AuthFlow", declaredAt: default(LineInfo), declaredInModule: "test.nim"
   )
 
   # quote do creates a Call node directly for bridges: ...

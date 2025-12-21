@@ -6,7 +6,7 @@ type
   Open = distinct File
 
 typestate File:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states Closed, Open
   transitions:
     Closed -> Open

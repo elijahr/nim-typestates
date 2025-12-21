@@ -11,12 +11,12 @@ type
   Terminal = distinct Shutdown
 
 typestate Shutdown:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Terminal
 
 typestate App:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Running, Paused, Error
   transitions:
@@ -24,7 +24,7 @@ typestate App:
     Paused -> Running
     Running -> Error
   bridges:
-    * -> Shutdown.Terminal  # Any state can shutdown
+    * ->Shutdown.Terminal # Any state can shutdown
 
 proc pause(a: Running): Paused {.transition.} =
   Paused(a.App)

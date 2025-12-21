@@ -4,20 +4,22 @@ import ../../../src/typestates
 type
   Auth = object
     userId: string
+
   Pending = distinct Auth
   Authenticated = distinct Auth
 
   Session = object
     userId: string
+
   Active = distinct Session
 
 typestate Session:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Active
 
 typestate Auth:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Pending, Authenticated
   transitions:

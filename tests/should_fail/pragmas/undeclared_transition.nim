@@ -6,10 +6,10 @@ type
   Machine = object
   On = distinct Machine
   Off = distinct Machine
-  Broken = distinct Machine  # Not in transitions
+  Broken = distinct Machine # Not in transitions
 
 typestate Machine:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   states On, Off
   transitions:
     Off -> On

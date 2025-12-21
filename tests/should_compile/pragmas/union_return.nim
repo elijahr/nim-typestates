@@ -4,12 +4,13 @@ import ../../../src/typestates
 type
   Request = object
     valid: bool
+
   Pending = distinct Request
   Success = distinct Request
   Failure = distinct Request
 
 typestate Request:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Pending, Success, Failure
   transitions:

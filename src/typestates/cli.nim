@@ -22,16 +22,16 @@ export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
 type
   SplineMode* = enum
     ## Edge routing mode for DOT output.
-    smSpline = "spline"   ## Curved splines (default, best edge separation)
-    smOrtho = "ortho"     ## Right-angle edges only
+    smSpline = "spline" ## Curved splines (default, best edge separation)
+    smOrtho = "ortho" ## Right-angle edges only
     smPolyline = "polyline" ## Straight line segments
-    smLine = "line"       ## Direct straight lines
+    smLine = "line" ## Direct straight lines
 
   EdgeInfo = object
     fromState: string
     toState: string
     isWildcard: bool
-    headPort: string  # Compass point for arrow head (only used with non-ortho splines)
+    headPort: string # Compass point for arrow head (only used with non-ortho splines)
 
   VerifyResult* = object
     ## Results from verifying source files.
@@ -89,10 +89,7 @@ proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
       for toState in trans.toStates:
         explicitEdges.add (trans.fromState, toState)
         allEdges.add EdgeInfo(
-          fromState: trans.fromState,
-          toState: toState,
-          isWildcard: false,
-          headPort: ""
+          fromState: trans.fromState, toState: toState, isWildcard: false, headPort: ""
         )
 
   # Add wildcard edges (skip if explicit exists)
@@ -102,10 +99,7 @@ proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
         for toState in trans.toStates:
           if (fromState, toState) notin explicitEdges:
             allEdges.add EdgeInfo(
-              fromState: fromState,
-              toState: toState,
-              isWildcard: true,
-              headPort: ""
+              fromState: fromState, toState: toState, isWildcard: true, headPort: ""
             )
 
   # Assign compass points if enabled
@@ -118,7 +112,7 @@ proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
     # Assign compass points to nodes with multiple incoming edges
     var incomingIndex: Table[string, int]
 
-    for i in 0..<allEdges.len:
+    for i in 0 ..< allEdges.len:
       let toState = allEdges[i].toState
       let fromState = allEdges[i].fromState
 
@@ -142,20 +136,24 @@ proc formatEdge(edge: EdgeInfo, indent: string, noStyle: bool): string =
   ## :returns: DOT edge statement
   let fromQuoted = dotQuote(edge.fromState)
   let toQuoted = dotQuote(edge.toState)
-  let target = if edge.headPort.len > 0:
-    toQuoted & ":" & edge.headPort
-  else:
-    toQuoted
+  let target =
+    if edge.headPort.len > 0:
+      toQuoted & ":" & edge.headPort
+    else:
+      toQuoted
 
   if edge.isWildcard:
     if noStyle:
       result = indent & fromQuoted & " -> " & target & " [style=dotted];"
     else:
-      result = indent & fromQuoted & " -> " & target & " [style=dotted, color=\"#757575\"];"
+      result =
+        indent & fromQuoted & " -> " & target & " [style=dotted, color=\"#757575\"];"
   else:
     result = indent & fromQuoted & " -> " & target & ";"
 
-proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline): string =
+proc generateDot*(
+    ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline
+): string =
   ## Generate GraphViz DOT output for a typestate.
   ##
   ## Creates a directed graph representation suitable for rendering
@@ -184,7 +182,8 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: Spline
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" &
+      fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
     lines.add ""
 
@@ -202,7 +201,11 @@ proc generateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: Spline
   lines.add "}"
   result = lines.join("\n")
 
-proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false, splineMode: SplineMode = smSpline): string =
+proc generateUnifiedDot*(
+    typestates: seq[ParsedTypestate],
+    noStyle: bool = false,
+    splineMode: SplineMode = smSpline,
+): string =
   ## Generate a unified GraphViz DOT output showing all typestates.
   ##
   ## Creates subgraphs for each typestate with cross-cluster edges for bridges.
@@ -231,7 +234,8 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" &
+      fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
     lines.add ""
 
@@ -292,17 +296,21 @@ proc generateUnifiedDot*(typestates: seq[ParsedTypestate], noStyle: bool = false
             if noStyle:
               lines.add "  " & stateQuoted & " -> " & quotedToState & " [style=dashed];"
             else:
-              lines.add "  " & stateQuoted & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+              lines.add "  " & stateQuoted & " -> " & quotedToState &
+                " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
         else:
           if noStyle:
             lines.add "  " & fromQuoted & " -> " & quotedToState & " [style=dashed];"
           else:
-            lines.add "  " & fromQuoted & " -> " & quotedToState & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+            lines.add "  " & fromQuoted & " -> " & quotedToState &
+              " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
 
-proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline): string =
+proc generateSeparateDot*(
+    ts: ParsedTypestate, noStyle: bool = false, splineMode: SplineMode = smSpline
+): string =
   ## Generate GraphViz DOT output for a single typestate.
   ##
   ## Bridges are shown as terminal nodes with dashed edges.
@@ -330,7 +338,8 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
     lines.add "  bgcolor=\"transparent\";"
     lines.add "  pad=0.3;"
     lines.add ""
-    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" & fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
+    lines.add "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#2d2d2d\", color=\"#b39ddb\", fontcolor=\"#e0e0e0\", fontname=\"" &
+      fontStack & "\", fontsize=14, margin=\"0.4,0.3\"];"
     lines.add "  edge [fontname=\"" & fontStack & "\", fontsize=11, color=\"#b0b0b0\"];"
     lines.add ""
 
@@ -359,12 +368,14 @@ proc generateSeparateDot*(ts: ParsedTypestate, noStyle: bool = false, splineMode
         if noStyle:
           lines.add "  " & stateQuoted & " -> " & toNode & " [style=dashed];"
         else:
-          lines.add "  " & stateQuoted & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+          lines.add "  " & stateQuoted & " -> " & toNode &
+            " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
     else:
       if noStyle:
         lines.add "  " & fromQuoted & " -> " & toNode & " [style=dashed];"
       else:
-        lines.add "  " & fromQuoted & " -> " & toNode & " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
+        lines.add "  " & fromQuoted & " -> " & toNode &
+          " [style=dashed, color=\"#b39ddb\", penwidth=1.5];"
 
   lines.add "}"
   result = lines.join("\n")
@@ -397,7 +408,7 @@ proc generateCode*(ts: ParsedTypestate): string =
   let enumName = ts.name & "State"
   var enumFields: seq[string] = @[]
   for state in ts.states:
-    let baseName = state.split("[")[0]  # Handle generics: Empty[T] -> Empty
+    let baseName = state.split("[")[0] # Handle generics: Empty[T] -> Empty
     enumFields.add "fs" & baseName
 
   lines.add "type"
@@ -471,7 +482,8 @@ proc generateCode*(ts: ParsedTypestate): string =
     for i, dest in t.toStates:
       let procName = "to" & branchTypeName
 
-      lines.add "template `->`*(_: typedesc[" & branchTypeName & "], s: sink " & dest & "): " & branchTypeName & " ="
+      lines.add "template `->`*(_: typedesc[" & branchTypeName & "], s: sink " & dest &
+        "): " & branchTypeName & " ="
       lines.add "  " & procName & "(s)"
       lines.add ""
 
@@ -487,8 +499,11 @@ proc generateCodeForAll*(typestates: seq[ParsedTypestate]): string =
     sections.add generateCode(ts)
   result = sections.join("\n\n")
 
-proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
-                typestateStrict: Table[string, bool]): VerifyResult =
+proc verifyFile(
+    path: string,
+    typestateStates: Table[string, seq[string]],
+    typestateStrict: Table[string, bool],
+): VerifyResult =
   ## Verify procs in a file against known typestates.
   ##
   ## :param path: Path to the Nim source file
@@ -510,12 +525,14 @@ proc verifyFile(path: string, typestateStates: Table[string, seq[string]],
 
     if trimmed.startsWith("proc ") or trimmed.startsWith("func "):
       let hasTransition = "{.transition.}" in trimmed or "{. transition .}" in trimmed
-      let hasNotATransition = "{.notATransition.}" in trimmed or "{. notATransition .}" in trimmed
+      let hasNotATransition =
+        "{.notATransition.}" in trimmed or "{. notATransition .}" in trimmed
 
       if "(" in trimmed and ":" in trimmed:
         let paramsPart = trimmed.split("(")[1].split(")")[0]
         if ":" in paramsPart:
-          let firstParamType = paramsPart.split(":")[1].split(",")[0].split(")")[0].strip()
+          let firstParamType =
+            paramsPart.split(":")[1].split(",")[0].split(")")[0].strip()
 
           for tsName, states in typestateStates:
             if firstParamType in states:

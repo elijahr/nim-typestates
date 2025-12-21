@@ -5,16 +5,17 @@ import ../src/typestates
 type
   Connection = object
     retries: int
+
   Connected = distinct Connection
   Disconnected = distinct Connection
 
 typestate Connection:
-  consumeOnTransition = false  # Opt out for existing tests
-  strictTransitions = false  # For simpler testing
+  consumeOnTransition = false # Opt out for existing tests
+  strictTransitions = false # For simpler testing
   states Connected, Disconnected
   transitions:
     Disconnected -> Connected
-    Connected -> Connected      # Self-transition: reconnect/refresh
+    Connected -> Connected # Self-transition: reconnect/refresh
     Connected -> Disconnected
 
 proc connect(c: Disconnected): Connected {.transition.} =
@@ -32,8 +33,8 @@ proc disconnect(c: Connected): Disconnected {.transition.} =
 # Test self-transition
 var conn = Disconnected(Connection(retries: 0))
 var connected = conn.connect()
-connected = connected.reconnect()  # Self-transition
-connected = connected.reconnect()  # Again
+connected = connected.reconnect() # Self-transition
+connected = connected.reconnect() # Again
 doAssert connected.Connection.retries == 2
 let disconnected = connected.disconnect()
 

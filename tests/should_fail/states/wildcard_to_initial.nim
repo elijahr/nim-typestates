@@ -11,8 +11,9 @@ type
 typestate Flow:
   consumeOnTransition = false
   states Start, Middle, End
-  initial: Start
+  initial:
+    Start
   transitions:
     Start -> Middle
     Middle -> End
-    * -> Start  # ERROR: Cannot transition TO initial state
+    * ->Start # ERROR: Cannot transition TO initial state

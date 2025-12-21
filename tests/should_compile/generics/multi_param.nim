@@ -5,12 +5,13 @@ type
   Pair[K, V] = object
     key: K
     value: V
+
   EmptyPair[K, V] = distinct Pair[K, V]
   HasKey[K, V] = distinct Pair[K, V]
   Complete[K, V] = distinct Pair[K, V]
 
 typestate Pair[K, V]:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states EmptyPair[K, V], HasKey[K, V], Complete[K, V]
   transitions:

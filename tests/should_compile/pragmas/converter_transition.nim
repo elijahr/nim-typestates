@@ -4,11 +4,12 @@ import ../../../src/typestates
 type
   Auth = object
     token: string
+
   Unauthenticated = distinct Auth
   Authenticated = distinct Auth
 
 typestate Auth:
-  consumeOnTransition = false  # Opt out for existing tests
+  consumeOnTransition = false # Opt out for existing tests
   strictTransitions = false
   states Unauthenticated, Authenticated
   transitions:
@@ -20,6 +21,6 @@ converter authenticate(a: Unauthenticated): Authenticated {.transition.} =
   Authenticated(auth)
 
 let unauth = Unauthenticated(Auth(token: ""))
-let authed: Authenticated = unauth  # Implicit conversion via converter
+let authed: Authenticated = unauth # Implicit conversion via converter
 doAssert authed.Auth.token == "valid_token"
 echo "converter_transition test passed"
