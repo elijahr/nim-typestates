@@ -1128,6 +1128,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#typestateRegistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestateRegistry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#registerTypestate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1220,6 +1231,17 @@
   
     <nav class="md-nav" aria-label="pragmas">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sealedTypestateModules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sealedTypestateModules
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#registerSealedStates" class="md-nav__link">
@@ -2013,6 +2035,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#typestateRegistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        typestateRegistry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#registerTypestate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2105,6 +2138,17 @@
   
     <nav class="md-nav" aria-label="pragmas">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sealedTypestateModules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sealedTypestateModules
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#registerSealedStates" class="md-nav__link">
@@ -2534,8 +2578,9 @@ become unrepresentable rather than checked at runtime.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">macro typestateImpl(name: untyped; body: untyped; inferredConstraints: static[seq[tuple[name: string, kind: string,
-                                      constraint: string]]]): untyped</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">macro</span><span class="w"> </span><span class="nf">typestateImpl</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">;</span><span class="w"> </span><span class="n">body</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">;</span><span class="w"> </span><span class="n">inferredConstraints</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="o">[</span><span class="nb">seq</span><span class="o">[</span><span class="k">tuple</span><span class="o">[</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">constraint</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="o">]]]</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span>
+</code></pre>
     </div>
   
 
@@ -2613,7 +2658,8 @@ with properly constrained generic parameters.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">macro typestate(name: untyped; body: untyped): untyped</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">macro</span><span class="w"> </span><span class="nf">typestate</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">;</span><span class="w"> </span><span class="n">body</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span>
+</code></pre>
     </div>
   
 
@@ -2659,9 +2705,6 @@ with properly constrained generic parameters.</p>
 <li><code>* -&gt; X</code> - Wildcard (any state can go to X)</li>
 </ul>
 <p>See also: <code>{.transition.}</code> pragma for implementing transitions</p>
-<p>:param name: The base type name (must match your type definition)
-:param body: The states and transitions declarations
-:returns: Generated helper types (enum, union, state procs)</p>
       </div>
     
 
@@ -2751,7 +2794,8 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc extractBaseName(stateRepr: string): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">extractBaseName</span><span class="p">(</span><span class="n">stateRepr</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -2766,8 +2810,6 @@ and transitions used during compile-time validation.</p>
 <li><code>"Container[K, V]"</code> -&gt; <code>"Container"</code></li>
 <li><code>"ref Closed"</code> -&gt; <code>"Closed"</code></li>
 </ul>
-<p>:param stateRepr: Full state repr string
-:returns: Base name without generic parameters</p>
       </div>
     
 
@@ -2821,11 +2863,62 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type State</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Represents a single state in a typestate machine.</p>
+<p>Each state corresponds to a distinct type that the user defines.
+States can be simple identifiers or generic types.</p>
+<p>Examples:</p>
+<ul>
+<li>Simple: <code>name="Closed"</code>, <code>fullRepr="Closed"</code></li>
+<li>Generic: <code>name="Container"</code>, <code>fullRepr="Container[T]"</code></li>
+<li>Ref type: <code>name="Closed"</code>, <code>fullRepr="ref Closed"</code></li>
+</ul>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">name</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">fullRepr</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">typeName</code>
+            <code class="doc-field-type">NimNode</code>
+            
+            
+            
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -2854,11 +2947,95 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type Transition</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">Transition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Represents a valid state transition in the typestate graph.</p>
+<p>Transitions define which state changes are allowed. They can be:</p>
+<ul>
+<li><strong>Simple</strong>: <code>Closed -&gt; Open</code> (one source, one destination)</li>
+<li><strong>Branching</strong>: <code>Closed -&gt; (Open | Errored) as OpenResult</code> (one source, multiple destinations)</li>
+<li><strong>Wildcard</strong>: <code>* -&gt; Closed</code> (any state can transition to Closed)</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># This DSL:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># Closed -&gt; (Open | Errored) as OpenResult</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c"># Becomes:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">Transition</span><span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">toStates</span><span class="p">:</span><span class="w"> </span><span class="o">@[</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Errored"</span><span class="o">]</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">branchTypeName</span><span class="p">:</span><span class="w"> </span><span class="s">"OpenResult"</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">isWildcard</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+</code></pre></div>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">fromState</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">toStates</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">branchTypeName</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            <span class="doc-field-description"> – Empty for non-branching, required for branching</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">branchTypeNode</code>
+            <code class="doc-field-type">NimNode</code>
+            
+            
+            <span class="doc-field-description"> – Raw AST node for codegen (supports generics like Result[T])</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">isWildcard</code>
+            <code class="doc-field-type">bool</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">declaredAt</code>
+            <code class="doc-field-type">LineInfo</code>
+            
+            
+            
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -2887,11 +3064,106 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type Bridge</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">Bridge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Represents a cross-typestate bridge declaration.</p>
+<p>Bridges allow terminal states of one typestate to transition into
+states of a completely different typestate. They enable modeling
+resource transformation, wrapping, and protocol handoff.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># In AuthFlow typestate:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># bridges:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c">#   Authenticated -&gt; Session.Active</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Becomes:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">Bridge</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Authenticated"</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w">  </span><span class="c"># empty for same-module</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"Session.Active"</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c"># With module prefix:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c"># bridges:</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c">#   SourceState -&gt; othermodule.Session.Active</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c"># Becomes:</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">Bridge</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"SourceState"</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule.Session.Active"</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">)</span>
+</code></pre></div>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">fromState</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">toModule</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">toTypestate</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">toState</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">fullDestRepr</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">declaredAt</code>
+            <code class="doc-field-type">LineInfo</code>
+            
+            
+            
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -2920,11 +3192,137 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type TypestateGraph</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>The complete graph of states and transitions for a typestate.</p>
+<p>This is the central data structure that holds all information about
+a typestate declaration. It is built by the parser from the DSL syntax
+and stored in the compile-time registry for later validation.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+</code></pre></div>
+<p>Creates a TypestateGraph with name="File", two states, and two transitions.</p>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">name</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">typeParams</code>
+            <code class="doc-field-type">seq[NimNode]</code>
+            
+            
+            <span class="doc-field-description"> – Generic params: @[T] or @[K, V] or @[]</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">states</code>
+            <code class="doc-field-type">Table[string, State]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">transitions</code>
+            <code class="doc-field-type">seq[Transition]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">bridges</code>
+            <code class="doc-field-type">seq[Bridge]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">strictTransitions</code>
+            <code class="doc-field-type">bool</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">consumeOnTransition</code>
+            <code class="doc-field-type">bool</code>
+            
+            
+            <span class="doc-field-description"> – If true, states cannot be copied</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">inheritsFromRootObj</code>
+            <code class="doc-field-type">bool</code>
+            
+            
+            <span class="doc-field-description"> – If true, skip static generic bug check</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">initialStates</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            <span class="doc-field-description"> – States that cannot be transitioned TO</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">terminalStates</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            <span class="doc-field-description"> – States that cannot transition FROM</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">declaredAt</code>
+            <code class="doc-field-type">LineInfo</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">declaredInModule</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -2956,7 +3354,8 @@ and transitions used during compile-time validation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc ==(a, b: Transition): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="err">==(</span><span class="nf">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">Transition</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -2967,9 +3366,6 @@ and transitions used during compile-time validation.</p>
 <p>Two transitions are equal if they have the same source state,
 destination states, and wildcard status. The declaration location
 is not considered for equality.</p>
-<p>:param a: First transition to compare
-:param b: Second transition to compare
-:returns: <code>true</code> if transitions are semantically equivalent</p>
       </div>
     
 
@@ -3032,7 +3428,8 @@ is not considered for equality.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc ==(a, b: Bridge): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="err">==(</span><span class="nf">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">:</span><span class="w"> </span><span class="n">Bridge</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3043,9 +3440,6 @@ is not considered for equality.</p>
 <p>Two bridges are equal if they have the same source state,
 destination module, destination typestate, and destination state.
 The declaration location is not considered for equality.</p>
-<p>:param a: First bridge to compare
-:param b: Second bridge to compare
-:returns: <code>true</code> if bridges are semantically equivalent</p>
       </div>
     
 
@@ -3108,7 +3502,8 @@ The declaration location is not considered for equality.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasTransition(graph: TypestateGraph; fromState, toState: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasTransition</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">fromState</span><span class="p">,</span><span class="w"> </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3128,10 +3523,6 @@ A transition is valid if there's an explicit transition
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w"> </span><span class="c"># true (via wildcard)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">     </span><span class="c"># false (not declared)</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to check
-:param fromState: The source state name (base name or full repr)
-:param toState: The destination state name (base name or full repr)
-:returns: <code>true</code> if the transition is allowed, <code>false</code> otherwise</p>
       </div>
     
 
@@ -3200,7 +3591,8 @@ A transition is valid if there's an explicit transition
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc validDestinations(graph: TypestateGraph; fromState: string): seq[string]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">validDestinations</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -3217,9 +3609,6 @@ Returns base names for clearer error messages.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Open", "Errored", "Closed"]</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># @["Closed"]</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to query
-:param fromState: The source state to check transitions from
-:returns: A sequence of state base names that can be transitioned to</p>
       </div>
     
 
@@ -3282,7 +3671,8 @@ Returns base names for clearer error messages.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasBridge(graph: TypestateGraph; fromState, toModule, toTypestate, toState: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasBridge</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">fromState</span><span class="p">,</span><span class="w"> </span><span class="n">toModule</span><span class="p">,</span><span class="w"> </span><span class="n">toTypestate</span><span class="p">,</span><span class="w"> </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3300,12 +3690,6 @@ Module matching: both empty = match, both non-empty and equal = match.</p>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># false (module mismatch)</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to check
-:param fromState: The source state name
-:param toModule: The destination module name (empty string for same module)
-:param toTypestate: The destination typestate name
-:param toState: The destination state name
-:returns: <code>true</code> if the bridge is declared, <code>false</code> otherwise</p>
       </div>
     
 
@@ -3386,7 +3770,8 @@ Module matching: both empty = match, both non-empty and equal = match.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasBridge(graph: TypestateGraph; fromState, toTypestate, toState: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasBridge</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">fromState</span><span class="p">,</span><span class="w"> </span><span class="n">toTypestate</span><span class="p">,</span><span class="w"> </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3404,11 +3789,6 @@ for validation where we only know the destination typestate and state.</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; mymodule.Session.Active</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (matches regardless of module)</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to check
-:param fromState: The source state name
-:param toTypestate: The destination typestate name
-:param toState: The destination state name
-:returns: <code>true</code> if the bridge is declared, <code>false</code> otherwise</p>
       </div>
     
 
@@ -3483,7 +3863,8 @@ for validation where we only know the destination typestate and state.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc validBridges(graph: TypestateGraph; fromState: string): seq[string]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">validBridges</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -3497,9 +3878,6 @@ for validation where we only know the destination typestate and state.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Session.Active"]</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["othermodule.ErrorLog.Entry"]</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to query
-:param fromState: The source state to check bridges from
-:returns: A sequence of dotted destination names</p>
       </div>
     
 
@@ -3562,7 +3940,8 @@ for validation where we only know the destination typestate and state.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc isInitialState(graph: TypestateGraph; stateName: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">isInitialState</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">stateName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3577,9 +3956,6 @@ Comparisons use base names to support generic types.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Disconnected"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Connected"</span><span class="p">)</span><span class="w">     </span><span class="c"># false</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to check
-:param stateName: The state name to check
-:returns: <code>true</code> if the state is initial, <code>false</code> otherwise</p>
       </div>
     
 
@@ -3642,7 +4018,8 @@ Comparisons use base names to support generic types.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc isTerminalState(graph: TypestateGraph; stateName: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">isTerminalState</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">stateName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -3657,9 +4034,6 @@ Comparisons use base names to support generic types.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># false</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to check
-:param stateName: The state name to check
-:returns: <code>true</code> if the state is terminal, <code>false</code> otherwise</p>
       </div>
     
 
@@ -3753,7 +4127,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseStates(graph: var TypestateGraph; node: NimNode)</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseStates</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -3810,9 +4185,6 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>    Ident "Closed"
 <a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    Ident "Open"
 </code></pre></div>
-<p>:param graph: The typestate graph to populate
-:param node: AST node of the states declaration
-:raises: Compile-time error if syntax is invalid</p>
       </div>
     
 
@@ -3870,7 +4242,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseTransition(node: NimNode): Transition</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseTransition</span><span class="p">(</span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">):</span><span class="w"> </span><span class="n">Transition</span>
+</code></pre>
     </div>
   
 
@@ -3900,9 +4273,6 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    Ident "-&gt;"
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    Ident "Closed"
 </code></pre></div>
-<p>:param node: AST node of the transition expression
-:returns: A <code>Transition</code> object
-:raises: Compile-time error if syntax is invalid</p>
       </div>
     
 
@@ -3959,7 +4329,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseBridgesBlock(graph: var TypestateGraph; node: NimNode)</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseBridgesBlock</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -3973,9 +4344,6 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to populate
-:param node: AST node of the bridges block
-:raises: Compile-time error if block is malformed</p>
       </div>
     
 
@@ -4033,7 +4401,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseInitialBlock(graph: var TypestateGraph; node: NimNode)</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseInitialBlock</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -4051,8 +4420,6 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">Disconnected</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">Starting</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to populate
-:param node: AST node of the initial block</p>
       </div>
     
 
@@ -4110,7 +4477,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseTerminalBlock(graph: var TypestateGraph; node: NimNode)</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseTerminalBlock</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -4128,8 +4496,6 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">Closed</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">Failed</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to populate
-:param node: AST node of the terminal block</p>
       </div>
     
 
@@ -4187,7 +4553,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseTypestateBody(name: NimNode; body: NimNode): TypestateGraph</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseTypestateBody</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">body</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">):</span><span class="w"> </span><span class="n">TypestateGraph</span>
+</code></pre>
     </div>
   
 
@@ -4213,10 +4580,6 @@ body of a <code>typestate</code> macro invocation.</p>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
 </code></pre></div>
-<p>:param name: The typestate name (identifier or bracket expression)
-:param body: The statement list containing states and transitions
-:returns: A fully populated <code>TypestateGraph</code>
-:raises: Compile-time error for invalid syntax</p>
       </div>
     
 
@@ -4298,6 +4661,53 @@ transitions are allowed.</p>
     
       
       
+        <div class="doc doc-object doc-var">
+  
+
+  <h4 id="typestateRegistry" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-var"></code>
+    <span class="doc doc-object-name doc-var-name">typestateRegistry</span>
+  <a href="#typestateRegistry" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="kd">var</span><span class="w"> </span><span class="n">typestateRegistry</span><span class="p">:</span><span class="w"> </span><span class="n">Table</span><span class="o">[</span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="o">]</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Global compile-time storage for all registered typestates.</p>
+<p>Maps typestate names (e.g., "File") to their graph definitions.
+This variable is populated by the <code>typestate</code> macro and queried
+by the <code>{.transition.}</code> pragma.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-type">
+        <p><strong>Type:</strong> <code>Table[string, TypestateGraph]</code></p>
+      </div>
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/registry.nim#L20" target="_blank" rel="noopener">
+            src/typestates/registry.nim:20
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
         <div class="doc doc-object doc-template">
   
 
@@ -4311,7 +4721,8 @@ transitions are allowed.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">template registerTypestate(graph: TypestateGraph)</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">template</span><span class="w"> </span><span class="nf">registerTypestate</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -4328,7 +4739,6 @@ a typestate with the same name twice results in a compile error.</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to register</p>
       </div>
     
 
@@ -4380,7 +4790,8 @@ a typestate with the same name twice results in a compile error.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">template hasTypestate(name: string): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">template</span><span class="w"> </span><span class="nf">hasTypestate</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -4388,8 +4799,6 @@ a typestate with the same name twice results in a compile error.</p>
     
       <div class="doc-description">
         <p>Check if a typestate with the given name exists in the registry.</p>
-<p>:param name: The typestate name to look up
-:returns: <code>true</code> if registered, <code>false</code> otherwise</p>
       </div>
     
 
@@ -4446,7 +4855,8 @@ a typestate with the same name twice results in a compile error.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">template getTypestate(name: string): TypestateGraph</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">template</span><span class="w"> </span><span class="nf">getTypestate</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">TypestateGraph</span>
+</code></pre>
     </div>
   
 
@@ -4454,9 +4864,6 @@ a typestate with the same name twice results in a compile error.</p>
     
       <div class="doc-description">
         <p>Retrieve a typestate graph by name.</p>
-<p>:param name: The typestate name to look up
-:returns: The <code>TypestateGraph</code> for the typestate
-:raises: Compile-time error if not found</p>
       </div>
     
 
@@ -4517,7 +4924,8 @@ a typestate with the same name twice results in a compile error.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc findTypestateForState(stateName: string): Option[TypestateGraph]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">findTypestateForState</span><span class="p">(</span><span class="n">stateName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="n">TypestateGraph</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -4538,8 +4946,6 @@ which typestate graph to validate against.</p>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c"># If Container typestate has states Empty[T], Full[T]:</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Empty"</span><span class="p">)</span><span class="w">   </span><span class="c"># some(ContainerGraph)</span>
 </code></pre></div>
-<p>:param stateName: The state type name (base name, e.g., "Closed", "Empty")
-:returns: <code>some(graph)</code> if found, <code>none</code> if state is not in any typestate</p>
       </div>
     
 
@@ -4593,11 +4999,49 @@ which typestate graph to validate against.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type BranchTypeInfo</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">BranchTypeInfo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Information about a user-defined branch type.</p>
+<p>When a branching transition like <code>Created -&gt; (Approved | Declined) as ProcessResult</code>
+is declared, the user provides the type name. This object captures the
+relationship between the branch type name and the original transition.</p>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">sourceState</code>
+            <code class="doc-field-type">string</code>
+            
+            
+            <span class="doc-field-description"> – The source state name ("Created")</span>
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">destinations</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            <span class="doc-field-description"> – The destination states (["Approved", "Declined"])</span>
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -4633,7 +5077,8 @@ which typestate graph to validate against.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc findBranchTypeInfo(typeName: string): Option[BranchTypeInfo]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">findBranchTypeInfo</span><span class="p">(</span><span class="n">typeName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="n">BranchTypeInfo</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -4654,8 +5099,6 @@ transitions that declare the given branch type name.</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"NotABranch"</span><span class="p">)</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Returns: none(BranchTypeInfo)</span>
 </code></pre></div>
-<p>:param typeName: The type name to check
-:returns: <code>some(info)</code> if it's a branch type, <code>none</code> otherwise</p>
       </div>
     
 
@@ -4728,6 +5171,50 @@ that only declared transitions are implemented.</p>
     
       
       
+        <div class="doc doc-object doc-var">
+  
+
+  <h4 id="sealedTypestateModules" class="doc doc-heading">
+    <code class="doc-symbol doc-symbol-heading doc-symbol-var"></code>
+    <span class="doc doc-object-name doc-var-name">sealedTypestateModules</span>
+  <a href="#sealedTypestateModules" class="headerlink" title="Permanent link">¶</a></h4>
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="kd">var</span><span class="w"> </span><span class="n">sealedTypestateModules</span><span class="p">:</span><span class="w"> </span><span class="n">Table</span><span class="o">[</span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]]</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Maps module filename -&gt; list of state type names from sealed typestates</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-type">
+        <p><strong>Type:</strong> <code>Table[string, seq[string]]</code></p>
+      </div>
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L17" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:17
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
         <div class="doc doc-object doc-proc">
   
 
@@ -4745,7 +5232,8 @@ that only declared transitions are implemented.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc registerSealedStates(modulePath: string; stateNames: seq[string])</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">registerSealedStates</span><span class="p">(</span><span class="n">modulePath</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">;</span><span class="w"> </span><span class="n">stateNames</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="p">)</span>
+</code></pre>
     </div>
   
 
@@ -4753,8 +5241,6 @@ that only declared transitions are implemented.</p>
     
       <div class="doc-description">
         <p>Register states from a sealed typestate for external checking.</p>
-<p>:param modulePath: The module filename where the typestate is defined
-:param stateNames: List of state type names to register</p>
       </div>
     
 
@@ -4816,7 +5302,8 @@ that only declared transitions are implemented.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc isStateFromSealedTypestate(stateName: string; currentModule: string): Option[string]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">isStateFromSealedTypestate</span><span class="p">(</span><span class="n">stateName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">;</span><span class="w"> </span><span class="n">currentModule</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -4824,9 +5311,6 @@ that only declared transitions are implemented.</p>
     
       <div class="doc-description">
         <p>Check if a state is from a sealed typestate defined in another module.</p>
-<p>:param stateName: The state type name to check
-:param currentModule: The current module's filename
-:returns: <code>some(modulePath)</code> if from external sealed typestate, <code>none</code> otherwise</p>
       </div>
     
 
@@ -4889,7 +5373,8 @@ that only declared transitions are implemented.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">macro transition(procDef: untyped): untyped</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">macro</span><span class="w"> </span><span class="nf">transition</span><span class="p">(</span><span class="n">procDef</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span>
+</code></pre>
     </div>
   
 
@@ -4975,7 +5460,8 @@ transitions can be implemented.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">template notATransition()</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">template</span><span class="w"> </span><span class="nf">notATransition</span><span class="p">()</span>
+</code></pre>
     </div>
   
 
@@ -5070,7 +5556,8 @@ easier to use at runtime:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc buildGenericParams(typeParams: seq[NimNode]): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildGenericParams</span><span class="p">(</span><span class="n">typeParams</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5083,8 +5570,6 @@ For <code>@[K, V]</code>, generates: <code>[K, V]</code>
 For <code>@[N: static int]</code>, generates: <code>[N: static int]</code>
 For <code>@[T: SomeInteger]</code>, generates: <code>[T: SomeInteger]</code>
 For <code>@[]</code>, returns empty node (non-generic)</p>
-<p>:param typeParams: Sequence of type parameter nodes
-:returns: nnkGenericParams node or newEmptyNode()</p>
       </div>
     
 
@@ -5141,7 +5626,8 @@ For <code>@[]</code>, returns empty node (non-generic)</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc extractTypeParams(node: NimNode): seq[NimNode]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">extractTypeParams</span><span class="p">(</span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">):</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -5152,8 +5638,6 @@ For <code>@[]</code>, returns empty node (non-generic)</p>
 <p>For <code>FillResult[T]</code>, returns <code>@[T]</code>
 For <code>Map[K, V]</code>, returns <code>@[K, V]</code>
 For <code>Simple</code>, returns <code>@[]</code></p>
-<p>:param node: A type AST node (ident or bracket expr)
-:returns: Sequence of type parameter nodes</p>
       </div>
     
 
@@ -5210,7 +5694,8 @@ For <code>Simple</code>, returns <code>@[]</code></p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateStateEnum(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateStateEnum</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5228,8 +5713,6 @@ generates:</p>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">fsEmpty</span><span class="p">,</span><span class="w"> </span><span class="n">fsFull</span>
 </code></pre></div>
 <p>The enum values use base names (without type params) prefixed with <code>fs</code>.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for the enum type definition</p>
       </div>
     
 
@@ -5286,7 +5769,8 @@ generates:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateUnionType(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateUnionType</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5302,8 +5786,6 @@ generates:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerStates</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
 </code></pre></div>
 <p>This union type is useful for procs that can accept any state.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for the union type definition</p>
       </div>
     
 
@@ -5360,7 +5842,8 @@ generates:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateStateProcs(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateStateProcs</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5376,8 +5859,6 @@ generates:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsEmpty</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsFull</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for all state() proc definitions</p>
       </div>
     
 
@@ -5434,7 +5915,8 @@ generates:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasGenericStates(graph: TypestateGraph): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasGenericStates</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -5498,7 +5980,8 @@ generates:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc getBranchingTransitions(graph: TypestateGraph): seq[Transition]</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">getBranchingTransitions</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">Transition</span><span class="o">]</span>
+</code></pre>
     </div>
   
 
@@ -5508,8 +5991,6 @@ generates:</p>
         <p>Get all transitions that have multiple destinations (branching).</p>
 <p>A branching transition is one where <code>toStates.len &gt; 1</code>, like:
 <code>Created -&gt; (Approved | Declined)</code></p>
-<p>:param graph: The typestate graph to query
-:returns: Sequence of branching transitions</p>
       </div>
     
 
@@ -5566,7 +6047,8 @@ generates:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateBranchTypes(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateBranchTypes</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5593,8 +6075,6 @@ generates:</p>
 </code></pre></div>
 <p>The type name comes from the <code>as TypeName</code> syntax in the DSL.
 Enum prefixes are derived from the first letter of the type name.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for all branch type definitions</p>
       </div>
     
 
@@ -5651,7 +6131,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateBranchConstructors(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateBranchConstructors</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5670,8 +6151,6 @@ Enum prefixes are derived from the first letter of the type name.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toFillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">full</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
 </code></pre></div>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for all constructor proc definitions</p>
       </div>
     
 
@@ -5728,7 +6207,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateCopyHooks(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateCopyHooks</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5740,8 +6220,6 @@ Enum prefixes are derived from the first letter of the type name.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=copy`</span><span class="o">*</span><span class="p">(</span><span class="n">dest</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">src</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">)</span><span class="w"> </span><span class="sx">{.error</span>:<span class="w"> </span><span class="sx">"State</span><span class="w"> </span><span class="sx">'Closed' cannot</span><span class="w"> </span><span class="sx">be</span><span class="w"> </span><span class="sx">copied. Transitions</span><span class="w"> </span><span class="sx">consume</span><span class="w"> </span><span class="sx">the</span><span class="w"> </span><span class="sx">input</span><span class="w"> </span><span class="sx">state.".}</span>
 </code></pre></div>
 <p>This enforces linear/affine typing - each state value can only be used once.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for all copy hook definitions</p>
       </div>
     
 
@@ -5798,7 +6276,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasStaticGenericParam(graph: TypestateGraph): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasStaticGenericParam</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -5809,8 +6288,6 @@ Enum prefixes are derived from the first letter of the type name.</p>
 <p>These are vulnerable to a codegen bug in Nim &lt; 2.2.8 when combined
 with <code>=copy</code> hooks on distinct types. Affects ARC, ORC, AtomicARC,
 and any memory manager using hooks.</p>
-<p>:param graph: The typestate graph to check
-:returns: <code>true</code> if any type parameter uses <code>static</code></p>
       </div>
     
 
@@ -5867,7 +6344,8 @@ and any memory manager using hooks.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc hasHookCodegenBugConditions(graph: TypestateGraph): bool</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">hasHookCodegenBugConditions</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="nb">bool</span>
+</code></pre>
     </div>
   
 
@@ -5885,8 +6363,6 @@ via the <code>inheritsFromRootObj</code> flag (we can't detect inheritance at ma
 <p>Affects ARC, ORC, AtomicARC, and any memory manager using hooks.
 Fixed in Nim commit 099ee1ce4a308024781f6f39ddfcb876f4c3629c (&gt;= 2.2.8).
 See: https://github.com/nim-lang/Nim/issues/25341</p>
-<p>:param graph: The typestate graph to check
-:returns: <code>true</code> if vulnerable conditions are present</p>
       </div>
     
 
@@ -5943,7 +6419,8 @@ See: https://github.com/nim-lang/Nim/issues/25341</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateBranchOperators(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateBranchOperators</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -5971,8 +6448,6 @@ It takes the branch type on the left and the state value on the right:</p>
 </code></pre></div>
 <p>The <code>typedesc</code> parameter disambiguates when the same state appears
 in multiple branch types.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST for all operator template definitions</p>
       </div>
     
 
@@ -6029,7 +6504,8 @@ in multiple branch types.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateAll(graph: TypestateGraph): NimNode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateAll</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
     </div>
   
 
@@ -6050,8 +6526,6 @@ It generates:</p>
 </ol>
 <p>For generic typestates like <code>Container[T]</code>, all generated types
 and procs include proper type parameters.</p>
-<p>:param graph: The typestate graph to generate from
-:returns: AST containing all generated definitions</p>
       </div>
     
 
@@ -6135,11 +6609,51 @@ to fail loudly with a clear error message.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type SplineMode</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">SplineMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Edge routing mode for DOT output.</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-section doc-section-values">
+        <p class="doc-section-title">Values</p>
+        <ul class="doc-value-list">
+          
+          <li class="doc-value">
+            <code class="doc-value-name">smSpline</code>
+            <span class="doc-value-explicit"> = <code>"spline"</code></span>
+            <span class="doc-value-description"> – Curved splines (default, best edge separation)</span>
+          </li>
+          
+          <li class="doc-value">
+            <code class="doc-value-name">smOrtho</code>
+            <span class="doc-value-explicit"> = <code>"ortho"</code></span>
+            <span class="doc-value-description"> – Right-angle edges only</span>
+          </li>
+          
+          <li class="doc-value">
+            <code class="doc-value-name">smPolyline</code>
+            <span class="doc-value-explicit"> = <code>"polyline"</code></span>
+            <span class="doc-value-description"> – Straight line segments</span>
+          </li>
+          
+          <li class="doc-value">
+            <code class="doc-value-name">smLine</code>
+            <span class="doc-value-explicit"> = <code>"line"</code></span>
+            <span class="doc-value-description"> – Direct straight lines</span>
+          </li>
+          
+        </ul>
+      </div>
     
 
     
@@ -6168,11 +6682,62 @@ to fail loudly with a clear error message.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">type VerifyResult</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">type</span><span class="w"> </span><span class="n">VerifyResult</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+</code></pre>
     </div>
   
 
   <div class="doc doc-contents">
+    
+      <div class="doc-description">
+        <p>Results from verifying source files.</p>
+      </div>
+    
+
+    
+      
+      
+      <div class="doc-section doc-section-fields">
+        <p class="doc-section-title">Fields</p>
+        <ul class="doc-field-list">
+          
+          <li class="doc-field">
+            <code class="doc-field-name">errors</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">warnings</code>
+            <code class="doc-field-type">seq[string]</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">transitionsChecked</code>
+            <code class="doc-field-type">int</code>
+            
+            
+            
+          </li>
+          
+          <li class="doc-field">
+            <code class="doc-field-name">filesChecked</code>
+            <code class="doc-field-type">int</code>
+            
+            
+            
+          </li>
+          
+        </ul>
+      </div>
+      
+    
+
     
 
     
@@ -6204,7 +6769,8 @@ to fail loudly with a clear error message.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc parseTypestates(paths: seq[string]): ParseResult</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseTypestates</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ParseResult</span>
+</code></pre>
     </div>
   
 
@@ -6214,9 +6780,6 @@ to fail loudly with a clear error message.</p>
         <p>Parse all Nim files in the given paths for typestates.</p>
 <p>Uses Nim's AST parser for accurate extraction. Fails loudly on
 files with syntax errors.</p>
-<p>:param paths: List of file or directory paths to scan
-:returns: All parsed typestates and total file count
-:raises ParseError: on syntax errors</p>
       </div>
     
 
@@ -6273,7 +6836,8 @@ files with syntax errors.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateDot</span><span class="p">(</span><span class="n">ts</span><span class="p">:</span><span class="w"> </span><span class="n">ParsedTypestate</span><span class="p">;</span><span class="w"> </span><span class="n">noStyle</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="p">;</span><span class="w"> </span><span class="n">splineMode</span><span class="p">:</span><span class="w"> </span><span class="n">SplineMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smSpline</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -6283,10 +6847,6 @@ files with syntax errors.</p>
         <p>Generate GraphViz DOT output for a typestate.</p>
 <p>Creates a directed graph representation suitable for rendering
 with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
-<p>:param ts: The parsed typestate to visualize
-:param noStyle: If true, output bare DOT structure with no styling
-:param splineMode: Edge routing mode (spline, ortho, polyline, line)
-:returns: DOT format string</p>
       </div>
     
 
@@ -6355,7 +6915,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateUnifiedDot(typestates: seq[ParsedTypestate]; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateUnifiedDot</span><span class="p">(</span><span class="n">typestates</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">ParsedTypestate</span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="n">noStyle</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="p">;</span><span class="w"> </span><span class="n">splineMode</span><span class="p">:</span><span class="w"> </span><span class="n">SplineMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smSpline</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -6364,10 +6925,6 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-description">
         <p>Generate a unified GraphViz DOT output showing all typestates.</p>
 <p>Creates subgraphs for each typestate with cross-cluster edges for bridges.</p>
-<p>:param typestates: List of parsed typestates to visualize
-:param noStyle: If true, output bare DOT structure with no styling
-:param splineMode: Edge routing mode (spline, ortho, polyline, line)
-:returns: DOT format string</p>
       </div>
     
 
@@ -6436,7 +6993,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateSeparateDot(ts: ParsedTypestate; noStyle: bool = false; splineMode: SplineMode = smSpline): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateSeparateDot</span><span class="p">(</span><span class="n">ts</span><span class="p">:</span><span class="w"> </span><span class="n">ParsedTypestate</span><span class="p">;</span><span class="w"> </span><span class="n">noStyle</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="p">;</span><span class="w"> </span><span class="n">splineMode</span><span class="p">:</span><span class="w"> </span><span class="n">SplineMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smSpline</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -6445,10 +7003,6 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-description">
         <p>Generate GraphViz DOT output for a single typestate.</p>
 <p>Bridges are shown as terminal nodes with dashed edges.</p>
-<p>:param ts: The parsed typestate to visualize
-:param noStyle: If true, output bare DOT structure with no styling
-:param splineMode: Edge routing mode (spline, ortho, polyline, line)
-:returns: DOT format string</p>
       </div>
     
 
@@ -6517,7 +7071,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateCode(ts: ParsedTypestate): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateCode</span><span class="p">(</span><span class="n">ts</span><span class="p">:</span><span class="w"> </span><span class="n">ParsedTypestate</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -6531,8 +7086,6 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 - State procs (<code>proc state(f: Closed): FileState</code>)
 - Branch types for branching transitions
 - Branch constructors and operators</p>
-<p>:param ts: The parsed typestate to generate code for
-:returns: Generated Nim code as a string</p>
       </div>
     
 
@@ -6589,7 +7142,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc generateCodeForAll(typestates: seq[ParsedTypestate]): string</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateCodeForAll</span><span class="p">(</span><span class="n">typestates</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">ParsedTypestate</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
     </div>
   
 
@@ -6597,8 +7151,6 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
     
       <div class="doc-description">
         <p>Generate code for all typestates.</p>
-<p>:param typestates: All parsed typestates
-:returns: Combined generated Nim code</p>
       </div>
     
 
@@ -6655,7 +7207,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim">proc verify(paths: seq[string]): VerifyResult</code></pre>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">VerifyResult</span>
+</code></pre>
     </div>
   
 
@@ -6668,9 +7221,6 @@ procs operating on state types are properly marked with
 <code>{.transition.}</code> or <code>{.notATransition.}</code>.</p>
 <p><strong>Note:</strong> Files with syntax errors cause verification to fail
 immediately with a clear error message.</p>
-<p>:param paths: List of file or directory paths to verify
-:returns: Verification results with errors, warnings, and counts
-:raises ParseError: on syntax errors</p>
       </div>
     
 
