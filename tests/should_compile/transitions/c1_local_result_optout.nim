@@ -14,6 +14,8 @@ import ../../../src/typestates
 
 static:
   unregisterTransparentWrapper("Result")
+  doAssert not isTransparentWrapper("Result"),
+    "unregisterTransparentWrapper failed to mutate the registry"
 
 type
   Flow = object

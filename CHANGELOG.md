@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **C3 composition caveat VERIFIED** (was CONTRADICTED): `{.transition.}`
+  now accepts union source parameters like `Open | PartiallyFilled`.
+  Per-source diagnostics name the specific failing source state.
+  Implements via new `extractAllSourceTypeNames` proc that mirrors
+  the existing return-side union-type recursion.
+
+### Added
+
+- **C1 composition caveat VERIFIED** (was CONTRADICTED): `{.transition.}`
+  now looks through transparent wrappers (built-in: `Result`, `Option`,
+  `Future`) to find the destination state. Procs like
+  `proc f(s: A): Result[B, E] {.transition.}` and
+  `proc g(s: A): Option[B] {.transition.}` validate the underlying
+  A → B edge transparently.
+- **C2 composition caveat VERIFIED** (was CONTRADICTED):
+  `{.async, transition.}` procs returning `Future[T]`,
+  `Future[Result[T, E]]`, or any combination of registered transparent
+  wrappers now validate the underlying destination state.
+- New public API for transparent-wrapper management:
+    - `{.transparentWrapper.}` marker pragma
+    - `registerTransparentWrapper(name: string)` — register a wrapper
+      type (base or module-qualified name) at `static:` time
+    - `unregisterTransparentWrapper(name: string)` — opt out of a
+      built-in or previously-registered wrapper
+    - `isTransparentWrapper(name: string): bool` — predicate
+- Test runner extension: `tests/tcomprehensive_runner.nim` now
+  supports `# expects: "<substring>"` directives in `should_fail/`
+  test files. The runner AND-checks each substring against captured
+  compiler output. Backward-compatible (existing tests unaffected).
+
+### Behavior notes
+
+- Users with a project-local generic type named `Result` used as a
+  typestate state (rather than an error wrapper) should call
+  `static: unregisterTransparentWrapper("Result")` near the typestate
+  declaration to opt out of the built-in unwrap.
+- Combining `{.async, transition.}` with `consumeOnTransition = true`
+  may hit a chronos `Future.complete` by-value issue (chronos
+  limitation, not nim-typestates). Mitigation: set
+  `consumeOnTransition = false` for the affected typestate, or use
+  `sink` parameter modifier explicitly.
+- Recommended pragma order is `{.transition, async.}` (both orderings
+  work for signature validation; transition-first is forward-compat
+  with future body-level analysis).
+
+### Known limitations
+
+- Wrapper-name registry uses string-based matching against bare or
+  module-qualified names. A user defining their own `Result` type in
+  a project would silently get unwrapped. Use
+  `unregisterTransparentWrapper("Result")` to opt out, or a different
+  name that doesn't collide with the built-in seeds.
+
+### Deferred
+
+- Version bump (deferred until paperplanes downstream verifies the
+  fixes against this branch).
+- C4 (Nim version-guard fix in typestates.nim:231 area) — separate
+  follow-up issue.
+
 ## [0.3.1] - 2025-12-12
 
 ### Fixed
