@@ -7,13 +7,13 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/getting-started/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/transparent-wrappers/">
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../dsl-reference/">
       
       
-        <link rel="next" href="../dsl-reference/">
+        <link rel="next" href="../bridges/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Getting Started - nim-typestates</title>
+        <title>Transparent Wrappers - nim-typestates</title>
       
     
     
@@ -91,7 +91,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#transparent-wrappers" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              Transparent Wrappers
             
           </span>
         </div>
@@ -355,37 +355,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Getting Started
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -401,175 +374,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-define-your-base-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Define Your Base Type
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-define-state-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Define State Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-declare-the-typestate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Declare the Typestate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-implement-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Implement Transitions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-use-it" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Use It
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-invalid-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Happens on Invalid Transitions?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-helpers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generated Helpers
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Generated Helpers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#state-enum" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Enum
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#union-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Union Type
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#state-procs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State Procs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -607,10 +411,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../transparent-wrappers/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transparent Wrappers
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -626,6 +457,209 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#built-in-wrappers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Wrappers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-type-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Return-Type Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Return-Type Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resultt-e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result[T, E]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optiont" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option[T]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#futuret-async" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future[T] (async)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#futureresultt-e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future[Result[T, E]]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registering-your-own-wrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registering Your Own Wrapper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registering Your Own Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-first-generic-argument-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The First-Generic-Argument Contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opting-out-local-types-that-shadow-a-built-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opting Out: Local Types That Shadow a Built-in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transparentwrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        {.transparentWrapper.}
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registertransparentwrappername-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerTransparentWrapper(name: string)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unregistertransparentwrappername-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unregisterTransparentWrapper(name: string)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#istransparentwrappername-string-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        isTransparentWrapper(name: string): bool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -999,10 +1033,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#built-in-wrappers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Built-in Wrappers
       
     </span>
   </a>
@@ -1010,99 +1044,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#return-type-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Return-Type Validation
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-define-your-base-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Define Your Base Type
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-define-state-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Define State Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-declare-the-typestate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Declare the Typestate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-implement-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Implement Transitions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-use-it" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Use It
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-invalid-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Happens on Invalid Transitions?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-helpers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generated Helpers
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Generated Helpers">
+    <nav class="md-nav" aria-label="Return-Type Validation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#state-enum" class="md-nav__link">
+  <a href="#resultt-e" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Enum
+        Result[T, E]
       
     </span>
   </a>
@@ -1110,10 +1067,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#union-type" class="md-nav__link">
+  <a href="#optiont" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Union Type
+        Option[T]
       
     </span>
   </a>
@@ -1121,10 +1078,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#state-procs" class="md-nav__link">
+  <a href="#futuret-async" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Procs
+        Future[T] (async)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#futureresultt-e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future[Result[T, E]]
       
     </span>
   </a>
@@ -1137,10 +1105,110 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#registering-your-own-wrapper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Registering Your Own Wrapper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registering Your Own Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-first-generic-argument-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The First-Generic-Argument Contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opting-out-local-types-that-shadow-a-built-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opting Out: Local Types That Shadow a Built-in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transparentwrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        {.transparentWrapper.}
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registertransparentwrappername-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        registerTransparentWrapper(name: string)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unregistertransparentwrappername-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unregisterTransparentWrapper(name: string)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#istransparentwrappername-string-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        isTransparentWrapper(name: string): bool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
       
     </span>
   </a>
@@ -1167,143 +1235,183 @@
   
 
 
-<h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h1>
-<p>This guide walks through building a typestate-validated file handle from scratch.</p>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
-<ul>
-<li>Nim 2.0 or later</li>
-<li>Basic familiarity with Nim's type system</li>
-</ul>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nimble<span class="w"> </span>install<span class="w"> </span>typestates
+<h1 id="transparent-wrappers">Transparent Wrappers<a class="headerlink" href="#transparent-wrappers" title="Permanent link">¶</a></h1>
+<p>Starting in v0.4.0, <code>{.transition.}</code> looks through common wrapper types
+(<code>Result</code>, <code>Option</code>, <code>Future</code>) to find the destination state. A proc
+that returns <code>Result[B, E]</code>, <code>Option[B]</code>, or <code>Future[B]</code> from source
+<code>A</code> validates the <code>A -&gt; B</code> edge — the wrapper is transparent to the
+transition check.</p>
+<p>You can also register your own wrappers.</p>
+<h2 id="built-in-wrappers">Built-in Wrappers<a class="headerlink" href="#built-in-wrappers" title="Permanent link">¶</a></h2>
+<p>The following generic types are registered out of the box:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Module</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Result[T, E]</code></td>
+<td><a href="https://github.com/arnetheduck/nim-results">arnetheduck/nim-results</a></td>
+<td>Structured success/error return</td>
+</tr>
+<tr>
+<td><code>Option[T]</code></td>
+<td><code>std/options</code></td>
+<td>Optional value</td>
+</tr>
+<tr>
+<td><code>Future[T]</code></td>
+<td><code>chronos</code> / <code>std/asyncdispatch</code></td>
+<td>Async result</td>
+</tr>
+</tbody>
+</table>
+<p>Wrappers chain: <code>Future[Result[T, E]]</code> unwraps through both layers, so
+the common async-with-error return shape validates the final state.</p>
+<h2 id="return-type-validation">Return-Type Validation<a class="headerlink" href="#return-type-validation" title="Permanent link">¶</a></h2>
+<h3 id="resultt-e"><code>Result[T, E]</code><a class="headerlink" href="#resultt-e" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">results</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">proc</span><span class="w"> </span><span class="nf">preCheck</span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="w"> </span><span class="n">Proposed</span><span class="p">):</span><span class="w"> </span><span class="n">Result</span><span class="o">[</span><span class="n">PreChecked</span><span class="p">,</span><span class="w"> </span><span class="nb">string</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">ok</span><span class="p">(</span><span class="n">PreChecked</span><span class="p">(</span><span class="n">Order</span><span class="p">(</span><span class="n">p</span><span class="p">)))</span>
 </code></pre></div>
-<div class="admonition warning">
-<p class="admonition-title">Nim &lt; 2.2.8 with Static Generics</p>
-<p>If you use <code>static</code> generic parameters (e.g., <code>Buffer[N: static int]</code>) with ARC/ORC/AtomicARC,
-you may hit a <a href="https://github.com/nim-lang/Nim/issues/25341">Nim codegen bug</a> fixed in Nim 2.2.8.
-The library detects this and shows workarounds. Options:</p>
-<ol>
-<li>Use <code>--mm:refc</code> instead of ARC/ORC</li>
-<li>Make your base type inherit from <code>RootObj</code> and add <code>inheritsFromRootObj = true</code></li>
-<li>Upgrade to Nim &gt;= 2.2.8 (when released)</li>
-<li>Add <code>consumeOnTransition = false</code> to your typestate</li>
-</ol>
-<p>Regular generics (<code>Container[T]</code>) are not affected.</p>
-</div>
-<h2 id="step-1-define-your-base-type">Step 1: Define Your Base Type<a class="headerlink" href="#step-1-define-your-base-type" title="Permanent link">¶</a></h2>
-<p>Start with a regular object type that holds your data:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="w">  </span><span class="c"># OS file descriptor</span>
+<p>The pragma unwraps <code>Result[PreChecked, string]</code> to <code>PreChecked</code> and
+verifies the <code>Proposed -&gt; PreChecked</code> edge.</p>
+<h3 id="optiont"><code>Option[T]</code><a class="headerlink" href="#optiont" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">std</span><span class="o">/</span><span class="n">options</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">proc</span><span class="w"> </span><span class="nf">tryAdvance</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">A</span><span class="p">):</span><span class="w"> </span><span class="n">Option</span><span class="o">[</span><span class="n">B</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">some</span><span class="p">(</span><span class="n">B</span><span class="p">(</span><span class="n">Flow</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
 </code></pre></div>
-<h2 id="step-2-define-state-types">Step 2: Define State Types<a class="headerlink" href="#step-2-define-state-types" title="Permanent link">¶</a></h2>
-<p>Create distinct types for each state. Using <code>distinct</code> ensures the compiler treats them as different types:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">type</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<p>The pragma unwraps <code>Option[B]</code> to <code>B</code> and verifies <code>A -&gt; B</code>.</p>
+<h3 id="futuret-async"><code>Future[T]</code> (async)<a class="headerlink" href="#futuret-async" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">chronos</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">proc</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">):</span><span class="w"> </span><span class="n">Future</span><span class="o">[</span><span class="n">Connecting</span><span class="o">]</span><span class="w"> </span><span class="sx">{.async</span>,<span class="w"> </span><span class="sx">transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">Connecting</span><span class="p">(</span><span class="n">Socket</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
 </code></pre></div>
-<p>Now <code>Closed</code> and <code>Open</code> are incompatible types - you can't pass a <code>Closed</code> where an <code>Open</code> is expected.</p>
-<h2 id="step-3-declare-the-typestate">Step 3: Declare the Typestate<a class="headerlink" href="#step-3-declare-the-typestate" title="Permanent link">¶</a></h2>
-<p>Import the library and declare valid transitions:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">type</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<p>Both pragma orderings — <code>{.async, transition.}</code> and
+<code>{.transition, async.}</code> — produce identical signature AST from the
+pragma's perspective, so both work. <code>{.transition, async.}</code> is
+recommended for forward-compatibility with future body-level analysis.</p>
+<h3 id="futureresultt-e"><code>Future[Result[T, E]]</code><a class="headerlink" href="#futureresultt-e" title="Permanent link">¶</a></h3>
+<p>The most common async-with-error shape:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">send</span><span class="p">(</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">p</span><span class="p">:</span><span class="w"> </span><span class="n">PreChecked</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">):</span><span class="w"> </span><span class="n">Future</span><span class="o">[</span><span class="n">Result</span><span class="o">[</span><span class="n">SentUnacked</span><span class="p">,</span><span class="w"> </span><span class="n">SendError</span><span class="o">]]</span><span class="w"> </span><span class="sx">{.async</span>,<span class="w"> </span><span class="sx">transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">ok</span><span class="p">(</span><span class="n">SentUnacked</span><span class="p">(</span><span class="n">Message</span><span class="p">(</span><span class="n">p</span><span class="p">)))</span>
 </code></pre></div>
-<p>This tells the compiler:</p>
-<ul>
-<li><code>File</code> has two states: <code>Closed</code> and <code>Open</code></li>
-<li><code>Closed</code> can transition to <code>Open</code></li>
-<li><code>Open</code> can transition to <code>Closed</code></li>
-<li>No other transitions are valid</li>
-</ul>
-<h2 id="step-4-implement-transitions">Step 4: Implement Transitions<a class="headerlink" href="#step-4-implement-transitions" title="Permanent link">¶</a></h2>
-<p>Use the <code>{.transition.}</code> pragma to mark state-changing procs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="sd">## Open a closed file, returning it in the Open state.</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="w">  </span><span class="c"># Access underlying File</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">path</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="c"># Pretend we opened it</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="sd">## Close an open file, returning it in the Closed state.</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="n">file</span><span class="p">.</span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">  </span><span class="c"># Pretend we closed it</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+<p>The pragma walks <code>Future -&gt; Result -&gt; SentUnacked</code> and validates
+<code>PreChecked -&gt; SentUnacked</code>.</p>
+<h2 id="registering-your-own-wrapper">Registering Your Own Wrapper<a class="headerlink" href="#registering-your-own-wrapper" title="Permanent link">¶</a></h2>
+<p>Mark the type with <code>{.transparentWrapper.}</code> (cosmetic), then register
+it at compile time:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">type</span><span class="w"> </span><span class="n">MyBox</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transparentWrapper.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">inner</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">static</span><span class="p">:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">registerTransparentWrapper</span><span class="p">(</span><span class="s">"MyBox"</span><span class="p">)</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c"># Now this validates the A -&gt; B edge through MyBox:</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">advance</span><span class="p">(</span><span class="n">a</span><span class="p">:</span><span class="w"> </span><span class="n">A</span><span class="p">):</span><span class="w"> </span><span class="n">MyBox</span><span class="o">[</span><span class="n">B</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="n">MyBox</span><span class="o">[</span><span class="n">B</span><span class="o">]</span><span class="p">(</span><span class="n">inner</span><span class="p">:</span><span class="w"> </span><span class="n">B</span><span class="p">(</span><span class="n">Flow</span><span class="p">(</span><span class="n">a</span><span class="p">)))</span>
 </code></pre></div>
-<p>The <code>{.transition.}</code> pragma validates at compile time that:</p>
-<ol>
-<li>The input type (<code>Closed</code> or <code>Open</code>) is a registered state</li>
-<li>The return type is a valid transition target</li>
-<li>The transition is declared in the typestate block</li>
-</ol>
-<h2 id="step-5-use-it">Step 5: Use It<a class="headerlink" href="#step-5-use-it" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Create a file in the Closed state</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">var</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="n">handle</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<h3 id="the-first-generic-argument-contract">The First-Generic-Argument Contract<a class="headerlink" href="#the-first-generic-argument-contract" title="Permanent link">¶</a></h3>
+<p>Registered wrappers MUST put the wrapped state type at the <strong>first</strong>
+generic-argument position. This matches the built-in seeds:</p>
+<table>
+<thead>
+<tr>
+<th>Wrapper</th>
+<th>Shape</th>
+<th>State position</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Result[T, E]</code></td>
+<td><code>T</code> is state, <code>E</code> is error</td>
+<td>First</td>
+</tr>
+<tr>
+<td><code>Option[T]</code></td>
+<td><code>T</code> is state</td>
+<td>First</td>
+</tr>
+<tr>
+<td><code>Future[T]</code></td>
+<td><code>T</code> is state</td>
+<td>First</td>
+</tr>
+<tr>
+<td><code>MyBox[T]</code></td>
+<td>Your wrapper</td>
+<td>First</td>
+</tr>
+</tbody>
+</table>
+<p>For a wrapper like <code>Container[Metadata, State]</code> where the state is at
+position 1, do NOT register it. Use a non-transparent wrapper and
+validate the transition at the call site instead.</p>
+<h2 id="opting-out-local-types-that-shadow-a-built-in">Opting Out: Local Types That Shadow a Built-in<a class="headerlink" href="#opting-out-local-types-that-shadow-a-built-in" title="Permanent link">¶</a></h2>
+<p>If your project defines its own generic type that happens to share a
+name with a built-in wrapper (e.g., a local <code>Result</code> type used as a
+typestate state), call <code>unregisterTransparentWrapper</code> near the
+typestate declaration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">static</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">unregisterTransparentWrapper</span><span class="p">(</span><span class="s">"Result"</span><span class="p">)</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c"># Open it - returns Open type</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">let</span><span class="w"> </span><span class="n">opened</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="s">"/tmp/example.txt"</span><span class="p">)</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c"># Close it - returns Closed type</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">let</span><span class="w"> </span><span class="n">closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">opened</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c"># This won't compile!</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c"># let bad = opened.open("/other.txt")</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c"># Error: Undeclared transition: Open -&gt; Open</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">type</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="n">Flow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">Pending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Flow</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="n">Result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Flow</span><span class="w">  </span><span class="c"># local state, shadows the wrapper name</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Flow</span><span class="p">:</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Pending</span><span class="p">,</span><span class="w"> </span><span class="n">Result</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="n">Pending</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Result</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="k">proc</span><span class="w"> </span><span class="nf">finish</span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="w"> </span><span class="n">Pending</span><span class="p">):</span><span class="w"> </span><span class="n">Result</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span><span class="n">Result</span><span class="p">(</span><span class="n">Flow</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
 </code></pre></div>
-<h2 id="what-happens-on-invalid-transitions">What Happens on Invalid Transitions?<a class="headerlink" href="#what-happens-on-invalid-transitions" title="Permanent link">¶</a></h2>
-<p>If you try to implement an undeclared transition:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">lock</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Locked</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">discard</span>
-</code></pre></div>
-<p>You get a compile-time error:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Error: Undeclared transition: Open -&gt; Locked
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  Typestate 'File' does not declare this transition.
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  Valid transitions from 'Open': @["Closed"]
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
-</code></pre></div>
-<h2 id="generated-helpers">Generated Helpers<a class="headerlink" href="#generated-helpers" title="Permanent link">¶</a></h2>
-<p>The <code>typestate</code> macro generates some useful types:</p>
-<h3 id="state-enum">State Enum<a class="headerlink" href="#state-enum" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span>
-</code></pre></div>
-<h3 id="union-type">Union Type<a class="headerlink" href="#union-type" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span>
-</code></pre></div>
-<h3 id="state-procs">State Procs<a class="headerlink" href="#state-procs" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
-</code></pre></div>
-<p>Use them for runtime inspection when needed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">describe</span><span class="o">[</span><span class="n">S</span><span class="p">:</span><span class="w"> </span><span class="n">FileStates</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">S</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">state</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"File is closed"</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"File is open"</span>
-</code></pre></div>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<p>Without the <code>unregisterTransparentWrapper("Result")</code> call, the pragma
+would try to unwrap <code>Result</code> as a wrapper and fail (or silently do the
+wrong thing, depending on whether the local <code>Result</code> is generic).</p>
+<h2 id="api">API<a class="headerlink" href="#api" title="Permanent link">¶</a></h2>
+<h3 id="transparentwrapper"><code>{.transparentWrapper.}</code><a class="headerlink" href="#transparentwrapper" title="Permanent link">¶</a></h3>
+<p>Cosmetic marker pragma. Applying it to a generic type does NOT
+register the wrapper; it documents intent and pairs with an explicit
+<code>registerTransparentWrapper(...)</code> call. The actual registration is
+always a compile-time <code>static:</code> block.</p>
+<h3 id="registertransparentwrappername-string"><code>registerTransparentWrapper(name: string)</code><a class="headerlink" href="#registertransparentwrappername-string" title="Permanent link">¶</a></h3>
+<p>Register a wrapper type as transparent for <code>{.transition.}</code> return
+validation. Accepts either a bare name (<code>"MyBox"</code>) or a
+module-qualified name (<code>"mymod.MyBox"</code>). Call inside a <code>static:</code>
+block.</p>
+<h3 id="unregistertransparentwrappername-string"><code>unregisterTransparentWrapper(name: string)</code><a class="headerlink" href="#unregistertransparentwrappername-string" title="Permanent link">¶</a></h3>
+<p>Remove a wrapper from the registry. Use this to opt a built-in wrapper
+out when your project has a same-name type that shouldn't be
+unwrapped. Also callable inside a <code>static:</code> block.</p>
+<h3 id="istransparentwrappername-string-bool"><code>isTransparentWrapper(name: string): bool</code><a class="headerlink" href="#istransparentwrappername-string-bool" title="Permanent link">¶</a></h3>
+<p>Predicate. Checks both the given name and its extracted base name, so
+module-qualified forms (<code>"results.Result"</code>) and bare forms
+(<code>"Result"</code>) both hit the registry.</p>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../dsl-reference/">DSL Reference</a> - Learn about branching, wildcards, and more</li>
-<li><a href="../examples/">Examples</a> - See real-world patterns</li>
-<li><a href="../error-handling/">Error Handling</a> - Model errors as states</li>
+<li>Wrapper matching is string-based: the registry stores names, not
+  type symbols. A user-defined <code>Result</code> type in a project would
+  silently get unwrapped unless you call
+  <code>unregisterTransparentWrapper("Result")</code>.</li>
+<li>Cycle and depth protection: the unwrap walk detects wrapper cycles
+  (<code>W1[W2[W1[X]]]</code>) and caps depth at 32.</li>
+<li>The pragma validates the outermost wrapper chain only. <code>seq[T]</code> is
+  NOT a transparent wrapper — if you return <code>seq[B]</code> from source <code>A</code>,
+  the pragma will report the literal <code>"seq"</code> and reject the edge.</li>
 </ul>
-<p>For details on what the compiler verifies, see <a href="../formal-guarantees/">Formal Guarantees</a>.</p>
 
 
 
@@ -1326,7 +1434,7 @@ The library detects this and shows workarounds. Options:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 9, 2025 20:01:12 UTC"><span class="timeago" datetime="2025-12-09T20:01:12+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 9, 2025 20:01:12 UTC">2025-12-09</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="April 23, 2026 22:29:47 UTC"><span class="timeago" datetime="2026-04-23T22:29:47+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="April 23, 2026 22:29:47 UTC">2026-04-23</span>
   </span>
 
     
@@ -1336,7 +1444,7 @@ The library detects this and shows workarounds. Options:</p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 30, 2025 08:52:39 UTC"><span class="timeago" datetime="2025-11-30T08:52:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 30, 2025 08:52:39 UTC">2025-11-30</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="April 23, 2026 22:29:47 UTC"><span class="timeago" datetime="2026-04-23T22:29:47+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="April 23, 2026 22:29:47 UTC">2026-04-23</span>
   </span>
 
     
