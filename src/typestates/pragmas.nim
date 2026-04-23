@@ -255,10 +255,14 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   ## unwrapped first via `unwrapTransparent` so the inner union / state
   ## is what gets matched against the typestate graph.
   ##
-  ## Parenthesized unions inside a wrapper (e.g., `Result[(A | B), E]`)
-  ## are stripped of their `nnkPar` / `nnkTupleConstr` wrapping before the
-  ## union dispatch so each branch is matched individually, not as the
-  ## literal `"(A | B)"` string.
+  ## Parenthesized unions and reference/pointer/sink modifiers inside a
+  ## wrapper (e.g., `Result[(A | B), E]` or `Result[ref (A | B), E]`)
+  ## are peeled before the union dispatch so each branch is matched
+  ## individually, not as the literal `"(A | B)"` / `"ref (A | B)"`.
+  ##
+  ## Bracket heads are delegated to `extractTypeName` so a
+  ## module-qualified generic like `mymod.State[T]` does not crash the
+  ## macro on `node[0].strVal` (DotExpr has no strVal).
   ##
   ## :param node: AST node representing a type (possibly a union)
   ## :returns: Sequence of all type names in the type
@@ -269,6 +273,15 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   of nnkPar, nnkTupleConstr:
     if node.len == 1:
       return extractAllTypeNames(node[0])
+    result = @[node.repr]
+  of nnkVarTy, nnkRefTy, nnkPtrTy:
+    # `ref (A | B)`, `var A`, `ptr State[T]` — peel the modifier so the
+    # inner shape participates in union / wrapper dispatch uniformly.
+    return extractAllTypeNames(node[0])
+  of nnkCommand:
+    # `sink (A | B)` — first child is the modifier ident.
+    if node.len == 2 and node[0].kind == nnkIdent and node[0].strVal == "sink":
+      return extractAllTypeNames(node[1])
     result = @[node.repr]
   of nnkInfix:
     # Union type like `A | B`
@@ -282,7 +295,9 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   of nnkSym:
     result = @[node.strVal]
   of nnkBracketExpr:
-    result = @[node[0].strVal]
+    # Same delegation as `extractTypeName`: a DotExpr head
+    # (`mymod.State[T]`) must not crash on `.strVal`.
+    result = @[extractTypeName(node[0])]
   else:
     result = @[node.repr]
 
