@@ -39,10 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   test files. The runner AND-checks each substring against captured
   compiler output. Backward-compatible (existing tests unaffected).
 - Direct test coverage for the Nim issue #25341 codegen-bug gate:
-    - `tests/should_fail/consume/c4_codegen_bug_gate.nim` exercises
+    - `tests/should_fail/consume/codegen_bug_gate.nim` exercises
       the live gate on Nim < 2.2.8 and emits an equivalent diagnostic
       on Nim >= 2.2.8 to remain green on both.
-    - `tests/should_compile/consume/c4_codegen_bug_clean.nim` proves
+    - `tests/should_compile/consume/codegen_bug_clean.nim` proves
       the gated typestate shape compiles cleanly on Nim >= 2.2.8.
   Together these tests verify the version triple gate is empirically
   correct against the upstream multi-file repro on both Nim 2.2.6
