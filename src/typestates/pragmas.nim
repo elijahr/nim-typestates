@@ -318,7 +318,11 @@ macro transition*(procDef: untyped): untyped =
     error("Transition proc must take at least one state parameter", procDef)
 
   let firstParam = params[1]
-  let firstParamTypes = extractAllSourceTypeNames(firstParam[1])
+  # nnkIdentDefs is [ident, ident, ..., type, default]. For grouped
+  # parameters like `proc f(a, b: State)` there are multiple leading
+  # idents, so `firstParam[1]` is the second IDENT, not the type.
+  # The type is always second-to-last.
+  let firstParamTypes = extractAllSourceTypeNames(firstParam[^2])
   let returnType = params[0]
 
   # Extract all destination types (handles union types like A | B)
