@@ -192,7 +192,12 @@ proc extractAllSourceTypeNames(node: NimNode): seq[string] =
     result.add(extractAllSourceTypeNames(n[1]))
     result.add(extractAllSourceTypeNames(n[2]))
   else:
-    result.add(extractTypeName(node))
+    # Pass the stripped node `n`, not the original `node`: without the
+    # strip, a single parenthesized source like `(A)` would reach
+    # `extractTypeName` as an nnkPar and fall through to `node.repr`,
+    # producing the literal string `"(A)"` which never matches the
+    # typestate graph.
+    result.add(extractTypeName(n))
 
 proc unwrapTransparent(node: NimNode): NimNode {.compileTime.} =
   ## Walk through transparent-wrapper `BracketExpr` layers and return the
