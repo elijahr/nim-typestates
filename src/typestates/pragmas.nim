@@ -184,8 +184,8 @@ proc unwrapTransparent(node: NimNode): NimNode {.compileTime.} =
       break
     if headName in unwrappedHeads:
       error(
-        "transparent wrapper cycle in return type: " &
-          unwrappedHeads.join(" -> ") & " -> " & headName
+        "transparent wrapper cycle in return type: " & unwrappedHeads.join(" -> ") &
+          " -> " & headName
       )
     unwrappedHeads.add(headName)
     result = result[1] # first generic arg = inner type

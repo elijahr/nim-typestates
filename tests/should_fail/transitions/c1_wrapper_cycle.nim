@@ -11,6 +11,7 @@ import ../../../src/typestates
 type
   W1*[T] {.transparentWrapper.} = object
     value: T
+
   W2*[T] {.transparentWrapper.} = object
     value: T
 

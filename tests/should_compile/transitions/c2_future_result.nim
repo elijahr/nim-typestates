@@ -25,9 +25,7 @@ typestate Message:
   transitions:
     PreChecked -> SentUnacked
 
-proc send(
-    p: PreChecked
-): Future[Result[SentUnacked, SendError]] {.async, transition.} =
+proc send(p: PreChecked): Future[Result[SentUnacked, SendError]] {.async, transition.} =
   return ok(SentUnacked(Message(p)))
 
 let p = PreChecked(Message(payload: "hi"))

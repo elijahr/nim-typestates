@@ -21,6 +21,7 @@ when (NimMajor, NimMinor, NimPatch) >= (2, 2, 8):
 type
   C4Base[N: static int] = object
     v: int
+
   C4StateA[N: static int] = distinct C4Base[N]
   C4StateB[N: static int] = distinct C4Base[N]
 
