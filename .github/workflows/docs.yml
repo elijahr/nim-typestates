@@ -41,6 +41,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nimble-docs-
 
+      - name: Install Nim compiler source
+        run: |
+          if ! nimble path nim > /dev/null 2>&1; then
+            nimble install nim -y
+          else
+            echo "Nim compiler source already installed (from cache)"
+          fi
+
       - name: Install Graphviz
         run: sudo apt-get install -y graphviz
 
