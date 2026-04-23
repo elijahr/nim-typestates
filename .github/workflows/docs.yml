@@ -28,16 +28,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install asdf
-        uses: asdf-vm/actions/setup@v3
-
-      - name: Install asdf-nim plugin
-        run: asdf plugin add nim https://github.com/asdf-community/asdf-nim.git
-
-      - name: Install Nim
-        run: |
-          asdf install nim latest:2
-          asdf global nim latest:2
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: '2.2.8'
 
       - name: Cache Nimble packages
         uses: actions/cache@v4
@@ -46,14 +40,6 @@ jobs:
           key: ${{ runner.os }}-nimble-docs-${{ hashFiles('*.nimble') }}
           restore-keys: |
             ${{ runner.os }}-nimble-docs-
-
-      - name: Install Nim compiler source
-        run: |
-          if ! nimble path nim > /dev/null 2>&1; then
-            nimble install nim -y
-          else
-            echo "Nim compiler source already installed (from cache)"
-          fi
 
       - name: Install Graphviz
         run: sudo apt-get install -y graphviz
