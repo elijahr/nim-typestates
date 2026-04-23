@@ -31,7 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nim-version: ['stable', '2.2.0']
+        # 2.2.0 is the minimum supported Nim (per typestates.nimble) and
+        # exercises the < 2.2.8 path of the codegen-bug gate. 2.2.8 is the
+        # boundary version containing the nim-lang/Nim#25341 fix and
+        # exercises the >= 2.2.8 path. Bump explicitly when supporting
+        # newer Nim; do NOT use `stable` (moves silently).
+        nim-version: ['2.2.8', '2.2.0']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
