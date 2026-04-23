@@ -58,6 +58,15 @@ template transparentWrapper*() {.pragma.}
   ## call to register it as transparent for `{.transition.}` return-type
   ## validation.
   ##
+  ## **Contract for wrapper authors:** the unwrap logic assumes the wrapped
+  ## state type is the **first** generic argument of the wrapper. For
+  ## `Wrapper[State, ...Extras]` this picks up `State`; for `Wrapper[A, B]`
+  ## with no clear "primary" arg, only `A` is validated as a typestate
+  ## destination. This matches the built-in seeds (`Result[T, E]`,
+  ## `Option[T]`, `Future[T]`). If your wrapper puts the state anywhere
+  ## other than position 0, do NOT register it — write a non-transparent
+  ## wrapper and validate the transition at the call site instead.
+  ##
   ## Example:
   ##
   ## ```nim
@@ -151,11 +160,37 @@ proc extractAllSourceTypeNames(node: NimNode): seq[string] =
   ## `extractTypeName` understands (plain idents, generics, `sink`, `var`,
   ## `ref`, `ptr`) works here too.
   ##
+  ## Modifier and parenthesis unwrapping happens BEFORE the union check so
+  ## that `sink (A | B)`, `var (A | B)`, and `(A | B)` split into their
+  ## individual source states instead of collapsing to a single `"A | B"`
+  ## string via the leaf fallback.
+  ##
   ## :param node: AST node representing the first parameter's type
   ## :returns: Sequence of all source state type names, in source order
-  if node.kind == nnkInfix and node[0].kind == nnkIdent and node[0].strVal == "|":
-    result.add(extractAllSourceTypeNames(node[1]))
-    result.add(extractAllSourceTypeNames(node[2]))
+  var n = node
+  # Strip parameter modifiers that wrap union sources.
+  while true:
+    case n.kind
+    of nnkPar, nnkTupleConstr:
+      # `(A | B)` parses as nnkPar (single element) or nnkTupleConstr
+      # depending on Nim version; both wrap a single inner expression.
+      if n.len == 1:
+        n = n[0]
+      else:
+        break
+    of nnkVarTy, nnkRefTy, nnkPtrTy:
+      n = n[0]
+    of nnkCommand:
+      # `sink (A | B)` — first child is the modifier ident, second is the type.
+      if n.len == 2 and n[0].kind == nnkIdent and n[0].strVal == "sink":
+        n = n[1]
+      else:
+        break
+    else:
+      break
+  if n.kind == nnkInfix and n[0].kind == nnkIdent and n[0].strVal == "|":
+    result.add(extractAllSourceTypeNames(n[1]))
+    result.add(extractAllSourceTypeNames(n[2]))
   else:
     result.add(extractTypeName(node))
 
@@ -182,6 +217,13 @@ proc unwrapTransparent(node: NimNode): NimNode {.compileTime.} =
     let headName = extractTypeName(result[0])
     if not isTransparentWrapper(headName):
       break
+    if result.len < 2:
+      # Defensive: a wrapper must have at least one generic arg for the
+      # "first generic argument is the wrapped state" convention to be
+      # meaningful. Empty-arg brackets can arise from macro rewrites or
+      # malformed user input; treat as non-wrapper and stop unwrapping
+      # rather than crashing the macro on an out-of-bounds access.
+      break
     if headName in unwrappedHeads:
       error(
         "transparent wrapper cycle in return type: " & unwrappedHeads.join(" -> ") &
@@ -204,12 +246,21 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   ## unwrapped first via `unwrapTransparent` so the inner union / state
   ## is what gets matched against the typestate graph.
   ##
+  ## Parenthesized unions inside a wrapper (e.g., `Result[(A | B), E]`)
+  ## are stripped of their `nnkPar` / `nnkTupleConstr` wrapping before the
+  ## union dispatch so each branch is matched individually, not as the
+  ## literal `"(A | B)"` string.
+  ##
   ## :param node: AST node representing a type (possibly a union)
   ## :returns: Sequence of all type names in the type
   let unwrapped = unwrapTransparent(node)
   if unwrapped != node:
     return extractAllTypeNames(unwrapped)
   case node.kind
+  of nnkPar, nnkTupleConstr:
+    if node.len == 1:
+      return extractAllTypeNames(node[0])
+    result = @[node.repr]
   of nnkInfix:
     # Union type like `A | B`
     let op = node[0]
