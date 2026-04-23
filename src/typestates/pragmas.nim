@@ -8,7 +8,7 @@
 ## The `{.transition.}` pragma performs compile-time validation to ensure
 ## that only declared transitions are implemented.
 
-import std/[macros, options, strformat, tables]
+import std/[macros, options, strformat, strutils, tables]
 import types, registry, verify
 
 export verify
@@ -88,6 +88,23 @@ proc extractTypeName(node: NimNode): string =
   else:
     result = node.repr
 
+proc extractAllSourceTypeNames(node: NimNode): seq[string] =
+  ## Extract all source type names from a first-parameter type AST node.
+  ##
+  ## Mirrors `extractAllTypeNames` for return types: recurses into
+  ## `nnkInfix |` union nodes to support sources like `Open | Filled`.
+  ## Leaf nodes are delegated to `extractTypeName` so every shape that
+  ## `extractTypeName` understands (plain idents, generics, `sink`, `var`,
+  ## `ref`, `ptr`) works here too.
+  ##
+  ## :param node: AST node representing the first parameter's type
+  ## :returns: Sequence of all source state type names, in source order
+  if node.kind == nnkInfix and node[0].kind == nnkIdent and node[0].strVal == "|":
+    result.add(extractAllSourceTypeNames(node[1]))
+    result.add(extractAllSourceTypeNames(node[2]))
+  else:
+    result.add(extractTypeName(node))
+
 proc extractAllTypeNames(node: NimNode): seq[string] =
   ## Extract all type names from a type AST node.
   ##
@@ -148,7 +165,7 @@ macro transition*(procDef: untyped): untyped =
     error("Transition proc must take at least one state parameter", procDef)
 
   let firstParam = params[1]
-  let sourceTypeName = extractTypeName(firstParam[1])
+  let firstParamTypes = extractAllSourceTypeNames(firstParam[1])
   let returnType = params[0]
 
   # Extract all destination types (handles union types like A | B)
@@ -161,76 +178,98 @@ macro transition*(procDef: untyped): untyped =
     if branchInfo.isSome:
       destTypeNames = branchInfo.get.destinations
 
-  # Look up typestate
-  let graphOpt = findTypestateForState(sourceTypeName)
-  if graphOpt.isNone:
-    error(
-      fmt"State '{sourceTypeName}' is not part of any registered typestate", procDef
-    )
+  # Per-source validation with diagnostic accumulation. Every source in
+  # the union gets the same validation chain as a single-source proc
+  # (typestate lookup -> shared-graph check -> terminal source -> per-dest
+  # initial/bridge/transition checks). Diagnostics are collected and
+  # emitted as a single error() at the end so that a union with multiple
+  # invalid sources reports every failure in one go.
+  var allDiagnostics: seq[string] = @[]
+  var commonGraph: TypestateGraph
+  var commonGraphSet = false
 
-  let graph = graphOpt.get
+  for sourceTypeName in firstParamTypes:
+    let graphOpt = findTypestateForState(sourceTypeName)
+    if graphOpt.isNone:
+      allDiagnostics.add(
+        fmt"State '{sourceTypeName}' is not part of any registered typestate"
+      )
+      continue
 
-  # Transitions can only be defined in the same module as the typestate
-  let procModule = procDef.lineInfoObj.filename
-  if procModule != graph.declaredInModule:
-    error(
-      fmt"""Cannot define transition on typestate '{graph.name}' from external module.
+    let graph = graphOpt.get
+
+    if not commonGraphSet:
+      commonGraph = graph
+      commonGraphSet = true
+    elif graph.name != commonGraph.name:
+      allDiagnostics.add(
+        fmt"source `{sourceTypeName}` belongs to typestate `{graph.name}` but earlier sources belong to `{commonGraph.name}`; union sources must share a typestate"
+      )
+      continue
+
+    # Transitions can only be defined in the same module as the typestate
+    let procModule = procDef.lineInfoObj.filename
+    if procModule != graph.declaredInModule:
+      allDiagnostics.add(
+        fmt"""Cannot define transition on typestate '{graph.name}' from external module.
   The typestate was defined in '{graph.declaredInModule}'.
   Transitions must be defined in the same module as the typestate declaration.
-  Hint: Use {{.notATransition.}} for read-only operations on imported states.""",
-      procDef,
-    )
-
-  # Check terminal constraint - cannot transition FROM terminal state
-  if graph.isTerminalState(sourceTypeName):
-    error(
-      fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
-  Terminal states are end states with no outgoing transitions.
-  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed.""",
-      procDef,
-    )
-
-  # Validate each transition in the union
-  for destTypeName in destTypeNames:
-    # Check initial constraint - cannot transition TO initial state
-    if graph.isInitialState(destTypeName):
-      error(
-        fmt"""Cannot transition TO initial state '{destTypeName}'.
-  Initial states can only be constructed, not transitioned to.
-  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed.""",
-        procDef,
+  Hint: Use {{.notATransition.}} for read-only operations on imported states."""
       )
+      continue
 
-    # Check if destination belongs to a different typestate (bridge case)
-    let destGraphOpt = findTypestateForState(destTypeName)
+    # Check terminal constraint - cannot transition FROM terminal state
+    if graph.isTerminalState(sourceTypeName):
+      allDiagnostics.add(
+        fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
+  Terminal states are end states with no outgoing transitions.
+  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed."""
+      )
+      continue
 
-    if destGraphOpt.isSome:
-      let destGraph = destGraphOpt.get
-      if destGraph.name != graph.name:
-        # Cross-typestate transition: validate as a bridge
-        if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
-          let validBridges = graph.validBridges(sourceTypeName)
-          let bridgeDest = destGraph.name & "." & destTypeName
-          error(
-            fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
-  Typestate '{graph.name}' does not declare this bridge.
-  Valid bridges from '{sourceTypeName}': {validBridges}
-  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}.""",
-            procDef,
-          )
-        # Bridge is valid, continue to next destination
+    # Validate each destination for this source
+    for destTypeName in destTypeNames:
+      # Check initial constraint - cannot transition TO initial state
+      if graph.isInitialState(destTypeName):
+        allDiagnostics.add(
+          fmt"""Cannot transition TO initial state '{destTypeName}'.
+  Initial states can only be constructed, not transitioned to.
+  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed."""
+        )
         continue
 
-    # Same typestate or destination not in any typestate: validate as regular transition
-    if not graph.hasTransition(sourceTypeName, destTypeName):
-      let validDests = graph.validDestinations(sourceTypeName)
-      error(
-        fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
+      # Check if destination belongs to a different typestate (bridge case)
+      let destGraphOpt = findTypestateForState(destTypeName)
+
+      if destGraphOpt.isSome:
+        let destGraph = destGraphOpt.get
+        if destGraph.name != graph.name:
+          # Cross-typestate transition: validate as a bridge
+          if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
+            let validBridges = graph.validBridges(sourceTypeName)
+            let bridgeDest = destGraph.name & "." & destTypeName
+            allDiagnostics.add(
+              fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
+  Typestate '{graph.name}' does not declare this bridge.
+  Valid bridges from '{sourceTypeName}': {validBridges}
+  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}."""
+            )
+          # Bridge case handled (valid or reported); move to next destination
+          continue
+
+      # Same typestate or destination not in any typestate: regular transition
+      if not graph.hasTransition(sourceTypeName, destTypeName):
+        let validDests = graph.validDestinations(sourceTypeName)
+        allDiagnostics.add(
+          fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
   Typestate '{graph.name}' does not declare this transition.
+  state `{sourceTypeName}` is not a declared source of `{destTypeName}` in typestate `{graph.name}`
   Valid transitions from '{sourceTypeName}': {validDests}
-  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block.""",
-        procDef,
-      )
+  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block."""
+        )
+
+  if allDiagnostics.len > 0:
+    error(allDiagnostics.join("\n"), procDef)
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false
