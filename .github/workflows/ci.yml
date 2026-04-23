@@ -52,6 +52,9 @@ jobs:
       - name: Clear compilation cache
         run: rm -rf ~/.cache/nim
 
+      - name: Install test dependencies
+        run: nimble install -y results chronos
+
       - name: Run tests
         run: nimble test
 
