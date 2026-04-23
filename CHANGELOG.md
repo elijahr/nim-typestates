@@ -7,6 +7,131 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-23
+
+### Added
+
+- **Transparent-wrapper unwrapping for transition return types.**
+  `{.transition.}` now looks through transparent wrappers (built-in:
+  `Result`, `Option`, `Future`) to find the destination state. Procs
+  like `proc f(s: A): Result[B, E] {.transition.}` and
+  `proc g(s: A): Option[B] {.transition.}` validate the underlying
+  A → B edge transparently.
+- **Async/Future return-type validation.** `{.async, transition.}`
+  procs returning `Future[T]`, `Future[Result[T, E]]`, or any
+  combination of registered transparent wrappers now validate the
+  underlying destination state. Pragma order is interchangeable;
+  `{.transition, async.}` is recommended for forward-compat with
+  future body-level analysis.
+- New public API for transparent-wrapper management:
+    - `{.transparentWrapper.}` marker pragma (cosmetic; the wrapped
+      state type must be the wrapper's first generic argument)
+    - `registerTransparentWrapper(name: string)` — register a wrapper
+      type (base or module-qualified name) at `static:` time
+    - `unregisterTransparentWrapper(name: string)` — opt out of a
+      built-in or previously-registered wrapper
+    - `isTransparentWrapper(name: string): bool` — predicate
+- Test runner extension: `tests/tcomprehensive_runner.nim` now
+  supports `# expects: "<substring>"` directives in `should_fail/`
+  test files. The runner AND-checks each substring against captured
+  compiler output. Backward-compatible (existing tests unaffected).
+- Direct test coverage for the Nim issue #25341 codegen-bug gate:
+    - `tests/should_fail/consume/codegen_bug_gate.nim` exercises
+      the live gate on Nim < 2.2.8 and emits an equivalent diagnostic
+      on Nim >= 2.2.8 to remain green on both.
+    - `tests/should_compile/consume/codegen_bug_clean.nim` proves
+      the gated typestate shape compiles cleanly on Nim >= 2.2.8.
+  Together these tests verify the version triple gate is empirically
+  correct against the upstream multi-file repro on both Nim 2.2.6
+  (gate must fire) and Nim 2.2.8 (gate must be silent).
+
+### Fixed
+
+- **Union source parameters on transition procs.** `{.transition.}`
+  now accepts union source parameters like `Open | PartiallyFilled`.
+  Per-source diagnostics name the specific failing source state.
+  Implemented via a new `extractAllSourceTypeNames` proc that mirrors
+  the existing return-side union-type recursion.
+- `extractAllSourceTypeNames` strips parameter modifiers
+  (`sink`, `var`, `ref`, `ptr`) and explicit parentheses
+  (`nnkPar` / `nnkTupleConstr`) before splitting on the union operator,
+  so `sink (A | B)`, `var (A | B)`, and `(A | B)` all behave like
+  `A | B` instead of falling through to the leaf fallback as a single
+  opaque string.
+- `extractAllTypeNames` peels single-element parenthesis wrappers ahead
+  of the union case, so a parenthesized union inside a transparent
+  wrapper (e.g., `Result[(A | B), E]`) matches each branch against the
+  transition graph rather than the literal `"(A | B)"`.
+- `extractAllTypeNames` also peels `ref` / `ptr` / `var` / `sink`
+  modifiers on return types, so `proc f(a: A): ref B` validates
+  `A -> B` instead of reporting "Undeclared transition: A -> ref B".
+- `extractTypeName` on an `nnkBracketExpr` no longer crashes on a
+  module-qualified head (`mymod.State[T]`). The head is delegated back
+  to `extractTypeName`, which routes `DotExpr` through `node.repr`
+  instead of a missing `.strVal`.
+- The source-type extractor uses `nnkIdentDefs[^2]` instead of `[1]`,
+  so transitions with grouped parameter idents (e.g.,
+  `proc m(a, b: State)`) correctly identify the type node rather than
+  reporting a confusing "<second-ident-name> is not part of any
+  registered typestate" error.
+- The single-source fallback in `extractAllSourceTypeNames` now uses
+  the stripped node, so a lone parenthesized source like `(A)`
+  resolves to `A` and matches the graph.
+- `unwrapTransparent` bails out when an `nnkBracketExpr` has fewer than
+  two children, avoiding an out-of-bounds access on macro-generated or
+  malformed empty-arg wrappers.
+
+### Behavior notes
+
+- Users with a project-local generic type named `Result` used as a
+  typestate state (rather than an error wrapper) should call
+  `static: unregisterTransparentWrapper("Result")` near the typestate
+  declaration to opt out of the built-in unwrap.
+- Combining `{.async, transition.}` with `consumeOnTransition = true`
+  may hit a chronos `Future.complete` by-value issue (chronos
+  limitation, not nim-typestates). Mitigation: set
+  `consumeOnTransition = false` for the affected typestate, or use
+  `sink` parameter modifier explicitly.
+- Recommended pragma order is `{.transition, async.}` (both orderings
+  work for signature validation; transition-first is forward-compat
+  with future body-level analysis).
+- Registered transparent wrappers must put the wrapped state type at
+  the first generic-argument position (`Wrapper[State, ...]`). This
+  matches the built-in seeds (`Result[T, E]`, `Option[T]`, `Future[T]`).
+  Wrappers that put the state elsewhere should NOT be registered.
+
+### Known limitations
+
+- Wrapper-name registry uses string-based matching against bare or
+  module-qualified names. A user defining their own `Result` type in
+  a project would silently get unwrapped. Use
+  `unregisterTransparentWrapper("Result")` to opt out, or a different
+  name that doesn't collide with the built-in seeds.
+
+### Tooling
+
+- Pre-commit hook configured for `nph` formatting; CI now runs a
+  dedicated lint job alongside the test matrix.
+- CI test matrix pinned to Nim `2.2.0` (minimum supported) and `2.2.8`
+  (boundary version with the Nim issue #25341 fix). Avoids silent
+  drift from `stable`.
+- Replaced the broken `asdf-vm/actions/setup` chain with
+  `jiro4989/setup-nim-action@v2`; added explicit installation of
+  `results` and `chronos` test dependencies.
+- `mkdocstrings-nim` updated to v0.2.1.
+
+### Documentation
+
+- New guide page: [Transparent Wrappers](docs/guide/transparent-wrappers.md)
+  covers `Result` / `Option` / `Future` return-type unwrapping, custom
+  wrapper registration, the first-generic-argument contract, and the
+  opt-out path.
+- DSL reference documents union source parameters and links to the
+  transparent-wrappers page under `{.transition.}`.
+- Error-handling guide documents direct `Result[State, E]` and
+  `Future[Result[State, E]]` returns as alternatives to branch types.
+- README and landing page list the new features.
+
 ## [0.3.1] - 2025-12-12
 
 ### Fixed
@@ -154,7 +279,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...v0.2.1

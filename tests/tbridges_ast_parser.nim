@@ -3,8 +3,7 @@ import ../src/typestates/ast_parser
 
 # Create temporary test file
 let testFile = "test_bridges_ast.nim"
-let content =
-  """
+let content = """
 type
   Session = object
   Active = distinct Session

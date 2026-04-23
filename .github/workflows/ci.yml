@@ -31,21 +31,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nim-version: ['latest:2', '2.2.0']
+        # 2.2.0 is the minimum supported Nim (per typestates.nimble) and
+        # exercises the < 2.2.8 path of the codegen-bug gate. 2.2.8 is the
+        # boundary version containing the nim-lang/Nim#25341 fix and
+        # exercises the >= 2.2.8 path. Bump explicitly when supporting
+        # newer Nim; do NOT use `stable` (moves silently).
+        nim-version: ['2.2.8', '2.2.0']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install asdf
-        uses: asdf-vm/actions/setup@v3
-
-      - name: Install asdf-nim plugin
-        run: asdf plugin add nim https://github.com/asdf-community/asdf-nim.git
-
-      - name: Install Nim ${{ matrix.nim-version }}
-        run: |
-          asdf install nim ${{ matrix.nim-version }}
-          asdf global nim ${{ matrix.nim-version }}
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: ${{ matrix.nim-version }}
 
       - name: Cache Nimble packages
         uses: actions/cache@v4
@@ -55,16 +54,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nimble-${{ matrix.nim-version }}-
 
-      - name: Install Nim compiler source
-        run: |
-          if ! nimble path nim > /dev/null 2>&1; then
-            nimble install nim -y
-          else
-            echo "Nim compiler source already installed (from cache)"
-          fi
-
       - name: Clear compilation cache
         run: rm -rf ~/.cache/nim
+
+      - name: Install test dependencies
+        run: nimble install -y results chronos
 
       - name: Run tests
         run: nimble test

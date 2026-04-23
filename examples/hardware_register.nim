@@ -29,14 +29,16 @@ typestate Register:
   states Uninitialized, Configured, Locked
   transitions:
     Uninitialized -> Configured
-    Configured -> Configured   # Can reconfigure
-    Configured -> Locked       # Lock to prevent further changes
+    Configured -> Configured # Can reconfigure
+    Configured -> Locked # Lock to prevent further changes
 
 # ============================================================================
 # Register Operations (ptr types)
 # ============================================================================
 
-proc initRegister(reg: ptr Uninitialized, value: uint32): ptr Configured {.transition.} =
+proc initRegister(
+    reg: ptr Uninitialized, value: uint32
+): ptr Configured {.transition.} =
   ## Initialize a hardware register with a value.
   echo "  [REG 0x", reg[].Register.address.toHex, "] Init: 0x", value.toHex
   var r = Register(reg[])
@@ -77,15 +79,15 @@ when isMainModule:
   var gpioSpeedReg = Uninitialized(Register(address: 0x4002_0008'u32, value: 0))
 
   echo "1. Initializing GPIO registers..."
-  let modePtr = addr(gpioModeReg).initRegister(0x0000_0001)  # Output mode
-  let speedPtr = addr(gpioSpeedReg).initRegister(0x0000_0003)  # High speed
+  let modePtr = addr(gpioModeReg).initRegister(0x0000_0001) # Output mode
+  let speedPtr = addr(gpioSpeedReg).initRegister(0x0000_0003) # High speed
 
   echo "\n2. Reading configured values..."
   echo "   Mode register: 0x", modePtr.read().toHex
   echo "   Speed register: 0x", speedPtr.read().toHex
 
   echo "\n3. Reconfiguring mode register..."
-  let modePtr2 = modePtr.configure(0x0000_0002)  # Alternate function mode
+  let modePtr2 = modePtr.configure(0x0000_0002) # Alternate function mode
   echo "   New mode: 0x", modePtr2.read().toHex
 
   echo "\n4. Locking speed register..."

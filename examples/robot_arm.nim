@@ -13,20 +13,20 @@ import ../src/typestates
 
 type
   RobotArm = object
-    x, y, z: float          # Current position
-    homeX, homeY, homeZ: float  # Home position
-    speed: float            # Movement speed
+    x, y, z: float # Current position
+    homeX, homeY, homeZ: float # Home position
+    speed: float # Movement speed
     toolAttached: bool
     emergencyReason: string
 
   # Robot arm states
-  PoweredOff = distinct RobotArm     ## No power to motors
-  Initializing = distinct RobotArm   ## Powering up, running diagnostics
-  NeedsHoming = distinct RobotArm    ## Powered but position unknown
-  Homing = distinct RobotArm         ## Currently finding home position
-  Ready = distinct RobotArm          ## Homed and ready for commands
-  Moving = distinct RobotArm         ## Currently executing movement
-  EmergencyStop = distinct RobotArm  ## E-stop triggered, frozen
+  PoweredOff = distinct RobotArm ## No power to motors
+  Initializing = distinct RobotArm ## Powering up, running diagnostics
+  NeedsHoming = distinct RobotArm ## Powered but position unknown
+  Homing = distinct RobotArm ## Currently finding home position
+  Ready = distinct RobotArm ## Homed and ready for commands
+  Moving = distinct RobotArm ## Currently executing movement
+  EmergencyStop = distinct RobotArm ## E-stop triggered, frozen
 
 typestate RobotArm:
   # Robot arm state needs to be inspected for position, calibration, etc.
@@ -39,7 +39,8 @@ typestate RobotArm:
     Homing -> Ready
     Ready -> (Moving | PoweredOff) as ReadyAction
     Moving -> (Ready | EmergencyStop) as MovementResult
-    EmergencyStop -> (NeedsHoming | PoweredOff) as EmergencyAction  # Must re-home after E-stop
+    EmergencyStop -> (NeedsHoming | PoweredOff) as EmergencyAction
+      # Must re-home after E-stop
 
 # ============================================================================
 # Power and Initialization
@@ -169,9 +170,7 @@ when isMainModule:
   let ready = homing.homingComplete(0.0, 0.0, 100.0)
 
   echo "\n6. Configuring arm..."
-  let configured = ready
-    .setSpeed(50.0)
-    .attachTool("gripper")
+  let configured = ready.setSpeed(50.0).attachTool("gripper")
 
   echo "\n7. Moving to pick position..."
   let moving1 = configured.moveTo(100.0, 50.0, 20.0)

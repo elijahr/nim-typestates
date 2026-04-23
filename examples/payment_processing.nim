@@ -18,7 +18,7 @@ import ../src/typestates
 type
   Payment = object
     id: string
-    amount: int           # cents, to avoid float issues
+    amount: int # cents, to avoid float issues
     currency: string
     cardToken: string
     authCode: string
@@ -26,18 +26,19 @@ type
     refundedAmount: int
 
   # States represent where in the lifecycle this payment is
-  Created = distinct Payment      ## Just created, not yet authorized
-  Authorized = distinct Payment   ## Card charged, funds held, not yet captured
-  Captured = distinct Payment     ## Funds transferred to merchant
-  PartiallyRefunded = distinct Payment  ## Some amount refunded
-  FullyRefunded = distinct Payment      ## Entire amount refunded
-  Settled = distinct Payment      ## Batch settled, funds in bank
-  Voided = distinct Payment       ## Authorization cancelled before capture
+  Created = distinct Payment ## Just created, not yet authorized
+  Authorized = distinct Payment ## Card charged, funds held, not yet captured
+  Captured = distinct Payment ## Funds transferred to merchant
+  PartiallyRefunded = distinct Payment ## Some amount refunded
+  FullyRefunded = distinct Payment ## Entire amount refunded
+  Settled = distinct Payment ## Batch settled, funds in bank
+  Voided = distinct Payment ## Authorization cancelled before capture
 
 typestate Payment:
   # Payments may need status checks and can be refunded after completion.
   consumeOnTransition = false
-  states Created, Authorized, Captured, PartiallyRefunded, FullyRefunded, Settled, Voided
+  states Created,
+    Authorized, Captured, PartiallyRefunded, FullyRefunded, Settled, Voided
   transitions:
     Created -> Authorized
     Authorized -> (Captured | Voided) as AuthResult
@@ -63,7 +64,7 @@ proc capture(p: Authorized): Captured {.transition.} =
   ## Capture the authorized funds - money moves to merchant.
   ## Must happen within auth window (usually 7 days).
   var payment = p.Payment
-  payment.capturedAt = 1234567890  # In real code: current timestamp
+  payment.capturedAt = 1234567890 # In real code: current timestamp
   echo "  [GATEWAY] Captured $", payment.amount, " (auth: ", payment.authCode, ")"
   result = Captured(payment)
 
@@ -137,11 +138,13 @@ when isMainModule:
   echo "=== Payment Processing Demo ===\n"
 
   echo "1. Creating payment for $99.99..."
-  var payment = Created(Payment(
-    id: "pay_abc123",
-    amount: 9999,  # $99.99 in cents
-    currency: "USD"
-  ))
+  var payment = Created(
+    Payment(
+      id: "pay_abc123",
+      amount: 9999, # $99.99 in cents
+      currency: "USD",
+    )
+  )
 
   echo "\n2. Authorizing payment..."
   let authorized = payment.authorize("card_tok_visa_4242")

@@ -8,7 +8,7 @@
 ## The `{.transition.}` pragma performs compile-time validation to ensure
 ## that only declared transitions are implemented.
 
-import std/[macros, options, strformat, tables]
+import std/[macros, options, sets, strformat, strutils, tables]
 import types, registry, verify
 
 export verify
@@ -16,6 +16,15 @@ export verify
 # Compile-time tracking of which modules have sealed typestates
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
+
+# Compile-time registry of transparent wrapper type names. Seeded with the
+# common cases Result (nim-results), Option (std/options), and Future
+# (chronos / std/asyncdispatch). The {.transition.} return-type inspector
+# unwraps registered wrappers before matching the destination state, so a
+# proc like `proc f(s: A): Result[B, E] {.transition.}` validates the
+# A -> B edge transparently.
+var transparentWrappers* {.compileTime.}: HashSet[string] =
+  toHashSet(["Result", "Option", "Future"])
 
 proc registerSealedStates*(
     modulePath: string, stateNames: seq[string]
@@ -43,6 +52,60 @@ proc isStateFromSealedTypestate*(
       return some(modulePath)
   return none(string)
 
+template transparentWrapper*() {.pragma.}
+  ## Marker pragma (cosmetic, does NOT register). Apply to a generic type
+  ## and follow with an explicit `static: registerTransparentWrapper("YourType")`
+  ## call to register it as transparent for `{.transition.}` return-type
+  ## validation.
+  ##
+  ## **Contract for wrapper authors:** the unwrap logic assumes the wrapped
+  ## state type is the **first** generic argument of the wrapper. For
+  ## `Wrapper[State, ...Extras]` this picks up `State`; for `Wrapper[A, B]`
+  ## with no clear "primary" arg, only `A` is validated as a typestate
+  ## destination. This matches the built-in seeds (`Result[T, E]`,
+  ## `Option[T]`, `Future[T]`). If your wrapper puts the state anywhere
+  ## other than position 0, do NOT register it — write a non-transparent
+  ## wrapper and validate the transition at the call site instead.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## type MyResult*[T] {.transparentWrapper.} = object
+  ##   value: T
+  ## static:
+  ##   registerTransparentWrapper("MyResult")
+  ## ```
+  ##
+  ## The pragma itself is a no-op in v1; actual registration is the
+  ## separate `registerTransparentWrapper` call. The two-step form keeps
+  ## type-level AST interactions simple and consistent with the
+  ## `notATransition` marker pattern.
+
+proc registerTransparentWrapper*(name: string) {.compileTime.} =
+  ## Register a generic wrapper type as transparent for `{.transition.}`
+  ## return-type validation. Name may be a base name (`"MyResult"`) or a
+  ## module-qualified name (`"mymod.MyResult"`); the lookup checks both
+  ## forms via `isTransparentWrapper`.
+  transparentWrappers.incl(name)
+
+proc unregisterTransparentWrapper*(name: string) {.compileTime.} =
+  ## Remove a wrapper from the registry. Intended for users whose
+  ## project-local type of the same name is itself a typestate STATE
+  ## (rather than an error/option wrapper) and must be validated as the
+  ## destination — not unwrapped. Call from a `static:` block near the
+  ## typestate declaration, before the `{.transition.}` procs that use it.
+  transparentWrappers.excl(name)
+
+proc isTransparentWrapper*(name: string): bool {.compileTime.} =
+  ## Predicate: is this type name registered as a transparent wrapper?
+  ##
+  ## Checks both the full name as given and the extracted base name, so
+  ## module-qualified forms (`results.Result`) and bare forms (`Result`)
+  ## both hit the registry.
+  result =
+    transparentWrappers.contains(name) or
+    transparentWrappers.contains(extractBaseName(name))
+
 proc extractTypeName(node: NimNode): string =
   ## Extract the type name from a type AST node.
   ##
@@ -64,8 +127,12 @@ proc extractTypeName(node: NimNode): string =
   of nnkSym:
     result = node.strVal
   of nnkBracketExpr:
-    # Generic type like seq[T]
-    result = node[0].strVal
+    # Generic type like seq[T]. The head may be an Ident/Sym
+    # ("State[T]") OR a module-qualified DotExpr ("mymod.State[T]").
+    # Recursing delegates the head to the case that knows how to name
+    # it — critically, DotExpr falls through to `node.repr` in the
+    # `else` arm instead of crashing on `.strVal`.
+    result = extractTypeName(node[0])
   of nnkCommand:
     # Modifier like `sink T` - extract the actual type
     if node.len >= 2 and node[0].kind == nnkIdent:
@@ -88,14 +155,134 @@ proc extractTypeName(node: NimNode): string =
   else:
     result = node.repr
 
+proc extractAllSourceTypeNames(node: NimNode): seq[string] =
+  ## Extract all source type names from a first-parameter type AST node.
+  ##
+  ## Mirrors `extractAllTypeNames` for return types: recurses into
+  ## `nnkInfix |` union nodes to support sources like `Open | Filled`.
+  ## Leaf nodes are delegated to `extractTypeName` so every shape that
+  ## `extractTypeName` understands (plain idents, generics, `sink`, `var`,
+  ## `ref`, `ptr`) works here too.
+  ##
+  ## Modifier and parenthesis unwrapping happens BEFORE the union check so
+  ## that `sink (A | B)`, `var (A | B)`, and `(A | B)` split into their
+  ## individual source states instead of collapsing to a single `"A | B"`
+  ## string via the leaf fallback.
+  ##
+  ## :param node: AST node representing the first parameter's type
+  ## :returns: Sequence of all source state type names, in source order
+  var n = node
+  # Strip parameter modifiers that wrap union sources.
+  while true:
+    case n.kind
+    of nnkPar, nnkTupleConstr:
+      # `(A | B)` parses as nnkPar (single element) or nnkTupleConstr
+      # depending on Nim version; both wrap a single inner expression.
+      if n.len == 1:
+        n = n[0]
+      else:
+        break
+    of nnkVarTy, nnkRefTy, nnkPtrTy:
+      n = n[0]
+    of nnkCommand:
+      # `sink (A | B)` — first child is the modifier ident, second is the type.
+      if n.len == 2 and n[0].kind == nnkIdent and n[0].strVal == "sink":
+        n = n[1]
+      else:
+        break
+    else:
+      break
+  if n.kind == nnkInfix and n[0].kind == nnkIdent and n[0].strVal == "|":
+    result.add(extractAllSourceTypeNames(n[1]))
+    result.add(extractAllSourceTypeNames(n[2]))
+  else:
+    # Pass the stripped node `n`, not the original `node`: without the
+    # strip, a single parenthesized source like `(A)` would reach
+    # `extractTypeName` as an nnkPar and fall through to `node.repr`,
+    # producing the literal string `"(A)"` which never matches the
+    # typestate graph.
+    result.add(extractTypeName(n))
+
+proc unwrapTransparent(node: NimNode): NimNode {.compileTime.} =
+  ## Walk through transparent-wrapper `BracketExpr` layers and return the
+  ## innermost non-wrapper type node.
+  ##
+  ## A wrapper is any `nnkBracketExpr` whose head name is registered via
+  ## `registerTransparentWrapper` (seeded with `Result`, `Option`,
+  ## `Future`). Non-bracket nodes and brackets whose head is NOT a
+  ## registered wrapper are returned as-is, so union types, generic
+  ## state types, and plain identifiers pass through unchanged.
+  ##
+  ## Safety: the head-name stack detects wrapper cycles (e.g.,
+  ## `W1[W2[W1[X]]]`) and a depth cap of 32 acts as a backstop against
+  ## pathological chains.
+  ##
+  ## :param node: return-type AST (or sub-node of a union)
+  ## :returns: innermost non-wrapper node (or `node` unchanged)
+  result = node
+  var unwrappedHeads: seq[string] = @[]
+  var depth = 0
+  while result.kind == nnkBracketExpr and depth < 32:
+    let headName = extractTypeName(result[0])
+    if not isTransparentWrapper(headName):
+      break
+    if result.len < 2:
+      # Defensive: a wrapper must have at least one generic arg for the
+      # "first generic argument is the wrapped state" convention to be
+      # meaningful. Empty-arg brackets can arise from macro rewrites or
+      # malformed user input; treat as non-wrapper and stop unwrapping
+      # rather than crashing the macro on an out-of-bounds access.
+      break
+    if headName in unwrappedHeads:
+      error(
+        "transparent wrapper cycle in return type: " & unwrappedHeads.join(" -> ") &
+          " -> " & headName
+      )
+    unwrappedHeads.add(headName)
+    result = result[1] # first generic arg = inner type
+    inc depth
+  if depth >= 32:
+    error(
+      "transparent wrapper depth cap (32) exceeded; chain so far: " &
+        unwrappedHeads.join(" -> ")
+    )
+
 proc extractAllTypeNames(node: NimNode): seq[string] =
   ## Extract all type names from a type AST node.
   ##
   ## Handles union types like `A | B | C` by returning all components.
+  ## Transparent wrappers on the outside (e.g., `Result[A | B, E]`) are
+  ## unwrapped first via `unwrapTransparent` so the inner union / state
+  ## is what gets matched against the typestate graph.
+  ##
+  ## Parenthesized unions and reference/pointer/sink modifiers inside a
+  ## wrapper (e.g., `Result[(A | B), E]` or `Result[ref (A | B), E]`)
+  ## are peeled before the union dispatch so each branch is matched
+  ## individually, not as the literal `"(A | B)"` / `"ref (A | B)"`.
+  ##
+  ## Bracket heads are delegated to `extractTypeName` so a
+  ## module-qualified generic like `mymod.State[T]` does not crash the
+  ## macro on `node[0].strVal` (DotExpr has no strVal).
   ##
   ## :param node: AST node representing a type (possibly a union)
   ## :returns: Sequence of all type names in the type
+  let unwrapped = unwrapTransparent(node)
+  if unwrapped != node:
+    return extractAllTypeNames(unwrapped)
   case node.kind
+  of nnkPar, nnkTupleConstr:
+    if node.len == 1:
+      return extractAllTypeNames(node[0])
+    result = @[node.repr]
+  of nnkVarTy, nnkRefTy, nnkPtrTy:
+    # `ref (A | B)`, `var A`, `ptr State[T]` — peel the modifier so the
+    # inner shape participates in union / wrapper dispatch uniformly.
+    return extractAllTypeNames(node[0])
+  of nnkCommand:
+    # `sink (A | B)` — first child is the modifier ident.
+    if node.len == 2 and node[0].kind == nnkIdent and node[0].strVal == "sink":
+      return extractAllTypeNames(node[1])
+    result = @[node.repr]
   of nnkInfix:
     # Union type like `A | B`
     let op = node[0]
@@ -108,7 +295,9 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   of nnkSym:
     result = @[node.strVal]
   of nnkBracketExpr:
-    result = @[node[0].strVal]
+    # Same delegation as `extractTypeName`: a DotExpr head
+    # (`mymod.State[T]`) must not crash on `.strVal`.
+    result = @[extractTypeName(node[0])]
   else:
     result = @[node.repr]
 
@@ -148,7 +337,11 @@ macro transition*(procDef: untyped): untyped =
     error("Transition proc must take at least one state parameter", procDef)
 
   let firstParam = params[1]
-  let sourceTypeName = extractTypeName(firstParam[1])
+  # nnkIdentDefs is [ident, ident, ..., type, default]. For grouped
+  # parameters like `proc f(a, b: State)` there are multiple leading
+  # idents, so `firstParam[1]` is the second IDENT, not the type.
+  # The type is always second-to-last.
+  let firstParamTypes = extractAllSourceTypeNames(firstParam[^2])
   let returnType = params[0]
 
   # Extract all destination types (handles union types like A | B)
@@ -161,76 +354,98 @@ macro transition*(procDef: untyped): untyped =
     if branchInfo.isSome:
       destTypeNames = branchInfo.get.destinations
 
-  # Look up typestate
-  let graphOpt = findTypestateForState(sourceTypeName)
-  if graphOpt.isNone:
-    error(
-      fmt"State '{sourceTypeName}' is not part of any registered typestate", procDef
-    )
+  # Per-source validation with diagnostic accumulation. Every source in
+  # the union gets the same validation chain as a single-source proc
+  # (typestate lookup -> shared-graph check -> terminal source -> per-dest
+  # initial/bridge/transition checks). Diagnostics are collected and
+  # emitted as a single error() at the end so that a union with multiple
+  # invalid sources reports every failure in one go.
+  var allDiagnostics: seq[string] = @[]
+  var commonGraph: TypestateGraph
+  var commonGraphSet = false
 
-  let graph = graphOpt.get
+  for sourceTypeName in firstParamTypes:
+    let graphOpt = findTypestateForState(sourceTypeName)
+    if graphOpt.isNone:
+      allDiagnostics.add(
+        fmt"State '{sourceTypeName}' is not part of any registered typestate"
+      )
+      continue
 
-  # Transitions can only be defined in the same module as the typestate
-  let procModule = procDef.lineInfoObj.filename
-  if procModule != graph.declaredInModule:
-    error(
-      fmt"""Cannot define transition on typestate '{graph.name}' from external module.
+    let graph = graphOpt.get
+
+    if not commonGraphSet:
+      commonGraph = graph
+      commonGraphSet = true
+    elif graph.name != commonGraph.name:
+      allDiagnostics.add(
+        fmt"source `{sourceTypeName}` belongs to typestate `{graph.name}` but earlier sources belong to `{commonGraph.name}`; union sources must share a typestate"
+      )
+      continue
+
+    # Transitions can only be defined in the same module as the typestate
+    let procModule = procDef.lineInfoObj.filename
+    if procModule != graph.declaredInModule:
+      allDiagnostics.add(
+        fmt"""Cannot define transition on typestate '{graph.name}' from external module.
   The typestate was defined in '{graph.declaredInModule}'.
   Transitions must be defined in the same module as the typestate declaration.
-  Hint: Use {{.notATransition.}} for read-only operations on imported states.""",
-      procDef,
-    )
-
-  # Check terminal constraint - cannot transition FROM terminal state
-  if graph.isTerminalState(sourceTypeName):
-    error(
-      fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
-  Terminal states are end states with no outgoing transitions.
-  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed.""",
-      procDef,
-    )
-
-  # Validate each transition in the union
-  for destTypeName in destTypeNames:
-    # Check initial constraint - cannot transition TO initial state
-    if graph.isInitialState(destTypeName):
-      error(
-        fmt"""Cannot transition TO initial state '{destTypeName}'.
-  Initial states can only be constructed, not transitioned to.
-  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed.""",
-        procDef,
+  Hint: Use {{.notATransition.}} for read-only operations on imported states."""
       )
+      continue
 
-    # Check if destination belongs to a different typestate (bridge case)
-    let destGraphOpt = findTypestateForState(destTypeName)
+    # Check terminal constraint - cannot transition FROM terminal state
+    if graph.isTerminalState(sourceTypeName):
+      allDiagnostics.add(
+        fmt"""Cannot transition FROM terminal state '{sourceTypeName}'.
+  Terminal states are end states with no outgoing transitions.
+  Consider removing '{sourceTypeName}' from the terminal: block if transitions from it are needed."""
+      )
+      continue
 
-    if destGraphOpt.isSome:
-      let destGraph = destGraphOpt.get
-      if destGraph.name != graph.name:
-        # Cross-typestate transition: validate as a bridge
-        if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
-          let validBridges = graph.validBridges(sourceTypeName)
-          let bridgeDest = destGraph.name & "." & destTypeName
-          error(
-            fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
-  Typestate '{graph.name}' does not declare this bridge.
-  Valid bridges from '{sourceTypeName}': {validBridges}
-  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}.""",
-            procDef,
-          )
-        # Bridge is valid, continue to next destination
+    # Validate each destination for this source
+    for destTypeName in destTypeNames:
+      # Check initial constraint - cannot transition TO initial state
+      if graph.isInitialState(destTypeName):
+        allDiagnostics.add(
+          fmt"""Cannot transition TO initial state '{destTypeName}'.
+  Initial states can only be constructed, not transitioned to.
+  Consider removing '{destTypeName}' from the initial: block if transitions to it are needed."""
+        )
         continue
 
-    # Same typestate or destination not in any typestate: validate as regular transition
-    if not graph.hasTransition(sourceTypeName, destTypeName):
-      let validDests = graph.validDestinations(sourceTypeName)
-      error(
-        fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
+      # Check if destination belongs to a different typestate (bridge case)
+      let destGraphOpt = findTypestateForState(destTypeName)
+
+      if destGraphOpt.isSome:
+        let destGraph = destGraphOpt.get
+        if destGraph.name != graph.name:
+          # Cross-typestate transition: validate as a bridge
+          if not graph.hasBridge(sourceTypeName, destGraph.name, destTypeName):
+            let validBridges = graph.validBridges(sourceTypeName)
+            let bridgeDest = destGraph.name & "." & destTypeName
+            allDiagnostics.add(
+              fmt"""Undeclared bridge: {sourceTypeName} -> {bridgeDest}
+  Typestate '{graph.name}' does not declare this bridge.
+  Valid bridges from '{sourceTypeName}': {validBridges}
+  Hint: Add 'bridges: {sourceTypeName} -> {bridgeDest}' to {graph.name}."""
+            )
+          # Bridge case handled (valid or reported); move to next destination
+          continue
+
+      # Same typestate or destination not in any typestate: regular transition
+      if not graph.hasTransition(sourceTypeName, destTypeName):
+        let validDests = graph.validDestinations(sourceTypeName)
+        allDiagnostics.add(
+          fmt"""Undeclared transition: {sourceTypeName} -> {destTypeName}
   Typestate '{graph.name}' does not declare this transition.
+  state `{sourceTypeName}` is not a declared source of `{destTypeName}` in typestate `{graph.name}`
   Valid transitions from '{sourceTypeName}': {validDests}
-  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block.""",
-        procDef,
-      )
+  Hint: Add '{sourceTypeName} -> {destTypeName}' to the transitions block."""
+        )
+
+  if allDiagnostics.len > 0:
+    error(allDiagnostics.join("\n"), procDef)
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false

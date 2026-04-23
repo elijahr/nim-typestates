@@ -146,6 +146,9 @@ proc write(f: Open, data: string) {.notATransition.} =
 | **Zero runtime cost** | All validation happens at compile time |
 | **Branching transitions** | `Open -> (Closed \| Error) as Result` |
 | **Wildcard transitions** | `* -> Closed` (any state can transition) |
+| **Union source params** | `proc cancel(o: Open \| PartiallyFilled): Cancelling` |
+| **Transparent wrappers** | `Result[State, E]`, `Option[State]`, `Future[State]` in returns |
+| **Async transitions** | `Future[T]` / `Future[Result[T, E]]` with `{.async, transition.}` |
 | **Generic typestates** | `Container[T]` with states like `Empty[T]`, `Full[T]` |
 | **Cross-type bridges** | Transition between different typestates |
 | **Visualization** | Export to GraphViz DOT, PNG, SVG |
@@ -208,6 +211,7 @@ typestates dot --no-style src/ > states.dot
 
 - [Getting Started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
 - [DSL Reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
+- [Transparent Wrappers](https://elijahr.github.io/nim-typestates/latest/guide/transparent-wrappers/)
 - [Cross-Type Bridges](https://elijahr.github.io/nim-typestates/latest/guide/bridges/)
 - [Generic Typestates](https://elijahr.github.io/nim-typestates/latest/guide/generics/)
 - [Formal Guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)

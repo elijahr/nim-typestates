@@ -23,24 +23,24 @@ type
     publishedAt: int64
 
   # Document states
-  Draft = distinct Document           ## Being written/edited
-  InReview = distinct Document        ## Submitted for review
+  Draft = distinct Document ## Being written/edited
+  InReview = distinct Document ## Submitted for review
   ChangesRequested = distinct Document ## Reviewer requested changes
-  Approved = distinct Document        ## Passed review, ready to publish
-  Published = distinct Document       ## Live/public
-  Archived = distinct Document        ## Removed from public, preserved
+  Approved = distinct Document ## Passed review, ready to publish
+  Published = distinct Document ## Live/public
+  Archived = distinct Document ## Removed from public, preserved
 
 typestate Document:
   # Documents need to be inspected at various stages without consuming them.
   consumeOnTransition = false
   states Draft, InReview, ChangesRequested, Approved, Published, Archived
   transitions:
-    Draft -> InReview                    # Submit for review
-    InReview -> (Approved | ChangesRequested) as ReviewResult  # Review decision
-    ChangesRequested -> InReview         # Resubmit after changes
-    Approved -> Published                # Go live
-    Published -> (Archived | Draft) as PublishAction        # Archive or create new version
-    Archived -> Draft                    # Restore for new version
+    Draft -> InReview # Submit for review
+    InReview -> (Approved | ChangesRequested) as ReviewResult # Review decision
+    ChangesRequested -> InReview # Resubmit after changes
+    Approved -> Published # Go live
+    Published -> (Archived | Draft) as PublishAction # Archive or create new version
+    Archived -> Draft # Restore for new version
 
 # ============================================================================
 # Creating and Editing
@@ -49,12 +49,8 @@ typestate Document:
 proc newDocument(title: string, author: string): Draft =
   ## Create a new document draft.
   echo "  [DOC] Created: '", title, "' by ", author
-  result = Draft(Document(
-    id: "doc_" & $hash(title),
-    title: title,
-    author: author,
-    version: 1
-  ))
+  result =
+    Draft(Document(id: "doc_" & $hash(title), title: title, author: author, version: 1))
 
 proc edit(doc: Draft, content: string): Draft {.notATransition.} =
   ## Edit the document content.
@@ -94,7 +90,9 @@ proc requestChanges(doc: InReview, feedback: string): ChangesRequested {.transit
   echo "  [DOC] Changes requested: ", feedback
   result = ChangesRequested(doc.Document)
 
-proc updateContent(doc: ChangesRequested, newContent: string): ChangesRequested {.notATransition.} =
+proc updateContent(
+    doc: ChangesRequested, newContent: string
+): ChangesRequested {.notATransition.} =
   ## Update content while in ChangesRequested state.
   var d = doc.Document
   d.content = newContent
@@ -113,7 +111,7 @@ proc resubmit(doc: ChangesRequested): InReview {.transition.} =
 proc publish(doc: Approved): Published {.transition.} =
   ## Publish the approved document.
   var d = doc.Document
-  d.publishedAt = 1234567890  # In real code: current timestamp
+  d.publishedAt = 1234567890 # In real code: current timestamp
   echo "  [DOC] Published! '", d.title, "'"
   result = Published(d)
 
@@ -151,7 +149,8 @@ func author(doc: DocumentStates): string =
 func version(doc: DocumentStates): int =
   doc.Document.version
 
-func isPublished(doc: Published): bool = true
+func isPublished(doc: Published): bool =
+  true
 
 # ============================================================================
 # Example Usage

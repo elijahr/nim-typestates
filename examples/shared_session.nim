@@ -41,7 +41,9 @@ proc newSession(id: string): ref Unauthenticated =
   result[] = Unauthenticated(Session(id: id))
   echo "  [SESSION] Created: ", id
 
-proc authenticate(session: ref Unauthenticated, userId: int): ref Authenticated {.transition.} =
+proc authenticate(
+    session: ref Unauthenticated, userId: int
+): ref Authenticated {.transition.} =
   ## Authenticate the session - works with ref types.
   var s = Session(session[])
   s.userId = userId

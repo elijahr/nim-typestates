@@ -13,13 +13,11 @@ import ../src/typestates
 # =============================================================================
 
 type
-  Resource*[T] = object
-    ## Base type holding any resource.
+  Resource*[T] = object ## Base type holding any resource.
     handle*: T
-    name*: string  # For diagnostics
+    name*: string # For diagnostics
 
-  Released*[T] = distinct Resource[T]
-    ## Resource is not held - cannot be used.
+  Released*[T] = distinct Resource[T] ## Resource is not held - cannot be used.
 
   Acquired*[T] = distinct Resource[T]
     ## Resource is held - can be used, must be released.
@@ -48,8 +46,9 @@ proc use*[T](r: Acquired[T]): T {.notATransition.} =
   ## Access the underlying handle (only when acquired).
   Resource[T](r).handle
 
-proc withResource*[T, R](r: Released[T], handle: T,
-                          body: proc(h: T): R): (R, Released[T]) =
+proc withResource*[T, R](
+    r: Released[T], handle: T, body: proc(h: T): R
+): (R, Released[T]) =
   ## RAII-style helper: acquire, use, release automatically.
   let acquired = r.acquire(handle)
   let res = body(acquired.use())
@@ -150,9 +149,9 @@ block lockExample:
   var mutex = Released[SimpleLock](Resource[SimpleLock](name: "mutex"))
 
   # Using withResource for RAII-style usage
-  let (result, mutexReleased) = mutex.withResource(lock(1)) do (l: SimpleLock) -> int:
+  let (result, mutexReleased) = mutex.withResource(lock(1)) do(l: SimpleLock) -> int:
     echo "  Critical section with lock #", l.id
-    42  # Return value from critical section
+    42 # Return value from critical section
 
   echo "  Result from critical section: ", result
   unlock(SimpleLock(id: 1))

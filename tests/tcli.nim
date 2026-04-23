@@ -69,12 +69,11 @@ block testGenerateDot:
   let ts = ParsedTypestate(
     name: "Connection",
     states: @["Disconnected", "Connected", "Errored"],
-    transitions:
-      @[
-        ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
-        ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
-        ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true),
-      ],
+    transitions: @[
+      ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
+      ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
+      ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true),
+    ],
   )
 
   let dot = generateDot(ts)

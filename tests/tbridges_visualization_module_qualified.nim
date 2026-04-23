@@ -15,8 +15,7 @@ block test_unified_with_module_qualifier:
   let sessionFile = "test_viz_session.nim"
   let authFile = "test_viz_auth.nim"
 
-  let sessionContent =
-    """
+  let sessionContent = """
 type
   Session = object
   Active = distinct Session
@@ -28,8 +27,7 @@ typestate Session:
     Active -> Active
 """
 
-  let authContent =
-    """
+  let authContent = """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow
@@ -69,8 +67,7 @@ typestate AuthFlow:
 block test_separate_with_module_qualifier:
   let authFile = "test_viz_separate.nim"
 
-  let authContent =
-    """
+  let authContent = """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow
@@ -110,8 +107,7 @@ typestate AuthFlow:
 block test_multiple_module_qualifiers:
   let multiFile = "test_viz_multi.nim"
 
-  let multiContent =
-    """
+  let multiContent = """
 type
   Workflow = object
   Processing = distinct Workflow
@@ -147,8 +143,7 @@ typestate Workflow:
 block test_with_without_comparison:
   let compareFile = "test_viz_compare.nim"
 
-  let compareContent =
-    """
+  let compareContent = """
 type
   Source = object
   StateA = distinct Source
@@ -190,8 +185,7 @@ typestate Source:
 block test_wildcard_with_module:
   let wildcardFile = "test_viz_wildcard.nim"
 
-  let wildcardContent =
-    """
+  let wildcardContent = """
 type
   Task = object
   Ready = distinct Task

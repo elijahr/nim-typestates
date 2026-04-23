@@ -16,8 +16,36 @@ var results: seq[TestResult] = @[]
 var totalPassed = 0
 var totalFailed = 0
 
+proc parseExpectsDirectives(path: string): seq[string] =
+  ## Parse `# expects: "<substring>"` directives from a test source file.
+  ##
+  ## Each directive must appear on its own line (after optional whitespace),
+  ## starting with `#`, then `expects:`, then a double-quoted substring.
+  ## Lines that do not match are ignored.
+  ##
+  ## :param path: Absolute or relative path to the .nim test file
+  ## :returns: List of substrings expected to appear in the compiler output
+  result = @[]
+  for rawLine in lines(path):
+    let line = rawLine.strip()
+    if not line.startsWith("#"):
+      continue
+    let body = line[1 ..^ 1].strip()
+    if not body.startsWith("expects:"):
+      continue
+    let after = body["expects:".len ..^ 1].strip()
+    # Require at least one character between the quotes: `# expects: ""` is
+    # rejected so an empty body cannot silently match every compiler output.
+    if after.len <= 2 or after[0] != '"' or after[^1] != '"':
+      continue
+    result.add(after[1 ..^ 2])
+
 proc runShouldFailTest(path: string): TestResult =
-  ## Test that a file fails to compile
+  ## Test that a file fails to compile.
+  ##
+  ## When `# expects: "..."` directives are present in the source file,
+  ## each quoted substring must also appear in the captured compiler
+  ## output, otherwise the test fails with a diff-style report.
   let name = path.extractFilename.changeFileExt("")
   let category = path.parentDir.extractFilename
   let cmd = "nim c --skipUserCfg --skipParentCfg --hints:off " & path
@@ -27,11 +55,21 @@ proc runShouldFailTest(path: string): TestResult =
   result.category = "should_fail"
   result.output = output
 
-  if exitCode != 0:
-    result.passed = true
-  else:
+  if exitCode == 0:
     result.passed = false
     result.output = "ERROR: File compiled successfully but should have failed"
+    return
+
+  let expects = parseExpectsDirectives(path)
+  for substr in expects:
+    if substr notin output:
+      result.passed = false
+      result.output =
+        "ERROR: expected substring not found in compiler output: " & substr.escape &
+        "\n--- compiler output ---\n" & output
+      return
+
+  result.passed = true
 
 proc runShouldCompileTest(path: string): TestResult =
   ## Test that a file compiles and runs successfully
