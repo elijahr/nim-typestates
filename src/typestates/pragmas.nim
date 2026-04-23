@@ -8,7 +8,7 @@
 ## The `{.transition.}` pragma performs compile-time validation to ensure
 ## that only declared transitions are implemented.
 
-import std/[macros, options, strformat, strutils, tables]
+import std/[macros, options, sets, strformat, strutils, tables]
 import types, registry, verify
 
 export verify
@@ -16,6 +16,15 @@ export verify
 # Compile-time tracking of which modules have sealed typestates
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
+
+# Compile-time registry of transparent wrapper type names. Seeded with the
+# common cases Result (nim-results), Option (std/options), and Future
+# (chronos / std/asyncdispatch). The {.transition.} return-type inspector
+# unwraps registered wrappers before matching the destination state, so a
+# proc like `proc f(s: A): Result[B, E] {.transition.}` validates the
+# A -> B edge transparently.
+var transparentWrappers* {.compileTime.}: HashSet[string] =
+  toHashSet(["Result", "Option", "Future"])
 
 proc registerSealedStates*(
     modulePath: string, stateNames: seq[string]
@@ -42,6 +51,51 @@ proc isStateFromSealedTypestate*(
     if modulePath != currentModule and stateName in states:
       return some(modulePath)
   return none(string)
+
+template transparentWrapper*() {.pragma.}
+  ## Marker pragma (cosmetic, does NOT register). Apply to a generic type
+  ## and follow with an explicit `static: registerTransparentWrapper("YourType")`
+  ## call to register it as transparent for `{.transition.}` return-type
+  ## validation.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## type MyResult*[T] {.transparentWrapper.} = object
+  ##   value: T
+  ## static:
+  ##   registerTransparentWrapper("MyResult")
+  ## ```
+  ##
+  ## The pragma itself is a no-op in v1; actual registration is the
+  ## separate `registerTransparentWrapper` call. The two-step form keeps
+  ## type-level AST interactions simple and consistent with the
+  ## `notATransition` marker pattern.
+
+proc registerTransparentWrapper*(name: string) {.compileTime.} =
+  ## Register a generic wrapper type as transparent for `{.transition.}`
+  ## return-type validation. Name may be a base name (`"MyResult"`) or a
+  ## module-qualified name (`"mymod.MyResult"`); the lookup checks both
+  ## forms via `isTransparentWrapper`.
+  transparentWrappers.incl(name)
+
+proc unregisterTransparentWrapper*(name: string) {.compileTime.} =
+  ## Remove a wrapper from the registry. Intended for users whose
+  ## project-local type of the same name is itself a typestate STATE
+  ## (rather than an error/option wrapper) and must be validated as the
+  ## destination — not unwrapped. Call from a `static:` block near the
+  ## typestate declaration, before the `{.transition.}` procs that use it.
+  transparentWrappers.excl(name)
+
+proc isTransparentWrapper*(name: string): bool {.compileTime.} =
+  ## Predicate: is this type name registered as a transparent wrapper?
+  ##
+  ## Checks both the full name as given and the extracted base name, so
+  ## module-qualified forms (`results.Result`) and bare forms (`Result`)
+  ## both hit the registry.
+  result =
+    transparentWrappers.contains(name) or
+    transparentWrappers.contains(extractBaseName(name))
 
 proc extractTypeName(node: NimNode): string =
   ## Extract the type name from a type AST node.
@@ -105,13 +159,56 @@ proc extractAllSourceTypeNames(node: NimNode): seq[string] =
   else:
     result.add(extractTypeName(node))
 
+proc unwrapTransparent(node: NimNode): NimNode {.compileTime.} =
+  ## Walk through transparent-wrapper `BracketExpr` layers and return the
+  ## innermost non-wrapper type node.
+  ##
+  ## A wrapper is any `nnkBracketExpr` whose head name is registered via
+  ## `registerTransparentWrapper` (seeded with `Result`, `Option`,
+  ## `Future`). Non-bracket nodes and brackets whose head is NOT a
+  ## registered wrapper are returned as-is, so union types, generic
+  ## state types, and plain identifiers pass through unchanged.
+  ##
+  ## Safety: the head-name stack detects wrapper cycles (e.g.,
+  ## `W1[W2[W1[X]]]`) and a depth cap of 32 acts as a backstop against
+  ## pathological chains.
+  ##
+  ## :param node: return-type AST (or sub-node of a union)
+  ## :returns: innermost non-wrapper node (or `node` unchanged)
+  result = node
+  var unwrappedHeads: seq[string] = @[]
+  var depth = 0
+  while result.kind == nnkBracketExpr and depth < 32:
+    let headName = extractTypeName(result[0])
+    if not isTransparentWrapper(headName):
+      break
+    if headName in unwrappedHeads:
+      error(
+        "transparent wrapper cycle in return type: " &
+          unwrappedHeads.join(" -> ") & " -> " & headName
+      )
+    unwrappedHeads.add(headName)
+    result = result[1] # first generic arg = inner type
+    inc depth
+  if depth >= 32:
+    error(
+      "transparent wrapper depth cap (32) exceeded; chain so far: " &
+        unwrappedHeads.join(" -> ")
+    )
+
 proc extractAllTypeNames(node: NimNode): seq[string] =
   ## Extract all type names from a type AST node.
   ##
   ## Handles union types like `A | B | C` by returning all components.
+  ## Transparent wrappers on the outside (e.g., `Result[A | B, E]`) are
+  ## unwrapped first via `unwrapTransparent` so the inner union / state
+  ## is what gets matched against the typestate graph.
   ##
   ## :param node: AST node representing a type (possibly a union)
   ## :returns: Sequence of all type names in the type
+  let unwrapped = unwrapTransparent(node)
+  if unwrapped != node:
+    return extractAllTypeNames(unwrapped)
   case node.kind
   of nnkInfix:
     # Union type like `A | B`

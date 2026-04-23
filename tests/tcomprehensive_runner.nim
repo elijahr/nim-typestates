@@ -34,7 +34,9 @@ proc parseExpectsDirectives(path: string): seq[string] =
     if not body.startsWith("expects:"):
       continue
     let after = body["expects:".len ..^ 1].strip()
-    if after.len < 2 or after[0] != '"' or after[^1] != '"':
+    # Require at least one character between the quotes: `# expects: ""` is
+    # rejected so an empty body cannot silently match every compiler output.
+    if after.len <= 2 or after[0] != '"' or after[^1] != '"':
       continue
     result.add(after[1 ..^ 2])
 
