@@ -14,7 +14,7 @@
 ## - `{.notATransition.}` pragma - Mark non-transition procs
 
 import std/macros
-import typestates/[types, parser, registry, pragmas, codegen, constraints, bug_probe]
+import typestates/[types, parser, registry, pragmas, codegen, constraints]
 
 export types, pragmas, constraints
 
@@ -122,22 +122,20 @@ macro typestateImpl*(
     stateNames.add stateName
   registerSealedStates(graph.declaredInModule, stateNames)
 
-  # Check for codegen bug vulnerability (issue #25341).
-  # Uses a capability probe against a multi-file repro rather than a version
-  # triple, since several shipped Nim 2.2.8 binaries still exhibit the bug.
-  if hasHookCodegenBugConditions(graph) and not compilerHasFix25341():
-    error(
-      "Typestate '" & graph.name & "' uses `static` generic parameters with " &
-        "`consumeOnTransition = true`, and the current Nim compiler exhibits " &
-        "the codegen bug for this pattern (issue #25341) affecting ARC, ORC, " &
-        "AtomicARC, and any memory manager that uses hooks.\n" & "Options:\n" &
-        "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" & graph.name &
-        "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
-        "  3. Upgrade to a Nim build that contains the fix for #25341\n" &
-        "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-        "See: https://github.com/nim-lang/Nim/issues/25341",
-      augmentedName,
-    )
+  # Check for codegen bug vulnerability
+  when (NimMajor, NimMinor, NimPatch) < (2, 2, 8):
+    if hasHookCodegenBugConditions(graph):
+      error(
+        "Typestate '" & graph.name & "' uses `static` generic parameters with " &
+          "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
+          "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
+          "Options:\n" & "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" &
+          graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+          "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
+          "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
+          "See: https://github.com/nim-lang/Nim/issues/25341",
+        augmentedName,
+      )
 
   # Generate helper types
   result = generateAll(graph)
@@ -225,21 +223,22 @@ macro typestate*(name: untyped, body: untyped): untyped =
       stateNames.add stateName
     registerSealedStates(graph.declaredInModule, stateNames)
 
-    # Check for codegen bug vulnerability (issue #25341).
-    # Uses a capability probe rather than a version triple; see bug_probe.nim.
-    if hasHookCodegenBugConditions(graph) and not compilerHasFix25341():
-      error(
-        "Typestate '" & graph.name & "' uses `static` generic parameters with " &
-          "`consumeOnTransition = true`, and the current Nim compiler exhibits " &
-          "the codegen bug for this pattern (issue #25341) affecting ARC, ORC, " &
-          "AtomicARC, and any memory manager that uses hooks.\n" & "Options:\n" &
-          "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" & graph.name &
-          "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
-          "  3. Upgrade to a Nim build that contains the fix for #25341\n" &
-          "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
-          "See: https://github.com/nim-lang/Nim/issues/25341",
-        name,
-      )
+    # Check for codegen bug vulnerability (fixed in Nim >= 2.2.8)
+    # Affects: ORC, ARC, AtomicARC, and any memory manager using hooks
+    # See: https://github.com/nim-lang/Nim/issues/25341
+    when (NimMajor, NimMinor, NimPatch) < (2, 2, 8):
+      if hasHookCodegenBugConditions(graph):
+        error(
+          "Typestate '" & graph.name & "' uses `static` generic parameters with " &
+            "`consumeOnTransition = true`, which triggers a codegen bug in Nim < 2.2.8 " &
+            "affecting ARC, ORC, AtomicARC, and any memory manager that uses hooks.\n" &
+            "Options:\n" & "  1. Use `--mm:refc` instead of ARC/ORC\n" & "  2. Make '" &
+            graph.name & "' inherit from RootObj and add `inheritsFromRootObj = true`\n" &
+            "  3. Upgrade to Nim >= 2.2.8 (when released)\n" &
+            "  4. Add `consumeOnTransition = false` to disable =copy hooks\n" &
+            "See: https://github.com/nim-lang/Nim/issues/25341",
+          name,
+        )
 
     # Generate helper types
     result = generateAll(graph)

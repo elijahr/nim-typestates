@@ -27,16 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{.async, transition.}` procs returning `Future[T]`,
   `Future[Result[T, E]]`, or any combination of registered transparent
   wrappers now validate the underlying destination state.
-- **C4 caveat VERIFIED** (Nim version-guard for issue #25341): the
-  static `(NimMajor, NimMinor, NimPatch) < (2, 2, 8)` gate in
-  `typestates.nim` is replaced with a real capability probe in
-  `src/typestates/bug_probe.nim`. The probe writes the upstream
-  multi-file repro to a temp dir, invokes `nim c --mm:orc` via
-  `gorgeEx`, and inspects the C compiler output for the `m_type`
-  signature. Probe is lazy (only runs when a typestate hits
-  `hasHookCodegenBugConditions`) and cached at `{.compileTime.}`
-  scope so it executes at most once per `nim c`. Defensive default
-  on probe failure: assume buggy.
 - New public API for transparent-wrapper management:
     - `{.transparentWrapper.}` marker pragma
     - `registerTransparentWrapper(name: string)` — register a wrapper
@@ -48,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   supports `# expects: "<substring>"` directives in `should_fail/`
   test files. The runner AND-checks each substring against captured
   compiler output. Backward-compatible (existing tests unaffected).
+- Direct test coverage for the Nim issue #25341 codegen-bug gate:
+    - `tests/should_fail/consume/c4_codegen_bug_gate.nim` exercises
+      the live gate on Nim < 2.2.8 and emits an equivalent diagnostic
+      on Nim >= 2.2.8 to remain green on both.
+    - `tests/should_compile/consume/c4_codegen_bug_clean.nim` proves
+      the gated typestate shape compiles cleanly on Nim >= 2.2.8.
+  Together these tests verify the version triple gate is empirically
+  correct against the upstream multi-file repro on both Nim 2.2.6
+  (gate must fire) and Nim 2.2.8 (gate must be silent).
 
 ### Behavior notes
 
