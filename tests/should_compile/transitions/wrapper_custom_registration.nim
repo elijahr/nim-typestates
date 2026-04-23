@@ -29,4 +29,4 @@ proc advance(s: A): MyWrapper[B] {.transition.} =
 let a = A(Flow(step: 1))
 let w = a.advance()
 doAssert w.value is B
-echo "c1_custom_wrapper test passed"
+echo "wrapper_custom_registration test passed"

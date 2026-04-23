@@ -25,4 +25,4 @@ let a = A(Pipeline(step: 1))
 let r = a.tryAdvance()
 doAssert r.isSome
 doAssert r.get is B
-echo "c1_option_return test passed"
+echo "wrapper_option_return test passed"

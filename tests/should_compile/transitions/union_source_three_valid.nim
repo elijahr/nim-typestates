@@ -30,4 +30,4 @@ proc advance(p: A | B | C): D {.transition.} =
 let a = A(Pipeline(step: 1))
 let d = a.advance()
 doAssert d is D
-echo "c3_union_three_valid test passed"
+echo "union_source_three_valid test passed"

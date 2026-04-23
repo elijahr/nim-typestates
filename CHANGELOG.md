@@ -7,28 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **C3 composition caveat VERIFIED** (was CONTRADICTED): `{.transition.}`
-  now accepts union source parameters like `Open | PartiallyFilled`.
-  Per-source diagnostics name the specific failing source state.
-  Implements via new `extractAllSourceTypeNames` proc that mirrors
-  the existing return-side union-type recursion.
+## [0.4.0] - 2026-04-23
 
 ### Added
 
-- **C1 composition caveat VERIFIED** (was CONTRADICTED): `{.transition.}`
-  now looks through transparent wrappers (built-in: `Result`, `Option`,
-  `Future`) to find the destination state. Procs like
-  `proc f(s: A): Result[B, E] {.transition.}` and
+- **Transparent-wrapper unwrapping for transition return types.**
+  `{.transition.}` now looks through transparent wrappers (built-in:
+  `Result`, `Option`, `Future`) to find the destination state. Procs
+  like `proc f(s: A): Result[B, E] {.transition.}` and
   `proc g(s: A): Option[B] {.transition.}` validate the underlying
   A → B edge transparently.
-- **C2 composition caveat VERIFIED** (was CONTRADICTED):
-  `{.async, transition.}` procs returning `Future[T]`,
-  `Future[Result[T, E]]`, or any combination of registered transparent
-  wrappers now validate the underlying destination state.
+- **Async/Future return-type validation.** `{.async, transition.}`
+  procs returning `Future[T]`, `Future[Result[T, E]]`, or any
+  combination of registered transparent wrappers now validate the
+  underlying destination state. Pragma order is interchangeable;
+  `{.transition, async.}` is recommended for forward-compat with
+  future body-level analysis.
 - New public API for transparent-wrapper management:
-    - `{.transparentWrapper.}` marker pragma
+    - `{.transparentWrapper.}` marker pragma (cosmetic; the wrapped
+      state type must be the wrapper's first generic argument)
     - `registerTransparentWrapper(name: string)` — register a wrapper
       type (base or module-qualified name) at `static:` time
     - `unregisterTransparentWrapper(name: string)` — opt out of a
@@ -48,6 +45,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correct against the upstream multi-file repro on both Nim 2.2.6
   (gate must fire) and Nim 2.2.8 (gate must be silent).
 
+### Fixed
+
+- **Union source parameters on transition procs.** `{.transition.}`
+  now accepts union source parameters like `Open | PartiallyFilled`.
+  Per-source diagnostics name the specific failing source state.
+  Implemented via a new `extractAllSourceTypeNames` proc that mirrors
+  the existing return-side union-type recursion.
+- `extractAllSourceTypeNames` strips parameter modifiers
+  (`sink`, `var`, `ref`, `ptr`) and explicit parentheses
+  (`nnkPar` / `nnkTupleConstr`) before splitting on the union operator,
+  so `sink (A | B)`, `var (A | B)`, and `(A | B)` all behave like
+  `A | B` instead of falling through to the leaf fallback as a single
+  opaque string.
+- `extractAllTypeNames` peels single-element parenthesis wrappers ahead
+  of the union case, so a parenthesized union inside a transparent
+  wrapper (e.g., `Result[(A | B), E]`) matches each branch against the
+  transition graph rather than the literal `"(A | B)"`.
+- `unwrapTransparent` bails out when an `nnkBracketExpr` has fewer than
+  two children, avoiding an out-of-bounds access on macro-generated or
+  malformed empty-arg wrappers.
+
 ### Behavior notes
 
 - Users with a project-local generic type named `Result` used as a
@@ -62,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recommended pragma order is `{.transition, async.}` (both orderings
   work for signature validation; transition-first is forward-compat
   with future body-level analysis).
+- Registered transparent wrappers must put the wrapped state type at
+  the first generic-argument position (`Wrapper[State, ...]`). This
+  matches the built-in seeds (`Result[T, E]`, `Option[T]`, `Future[T]`).
+  Wrappers that put the state elsewhere should NOT be registered.
 
 ### Known limitations
 
@@ -71,10 +93,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `unregisterTransparentWrapper("Result")` to opt out, or a different
   name that doesn't collide with the built-in seeds.
 
-### Deferred
+### Tooling
 
-- Version bump (deferred until paperplanes downstream verifies the
-  fixes against this branch).
+- Pre-commit hook configured for `nph` formatting; CI now runs a
+  dedicated lint job alongside the test matrix.
+- CI test matrix pinned to Nim `2.2.0` (minimum supported) and `2.2.8`
+  (boundary version with the Nim issue #25341 fix). Avoids silent
+  drift from `stable`.
+- Replaced the broken `asdf-vm/actions/setup` chain with
+  `jiro4989/setup-nim-action@v2`; added explicit installation of
+  `results` and `chronos` test dependencies.
+- `mkdocstrings-nim` updated to v0.2.1.
 
 ## [0.3.1] - 2025-12-12
 
@@ -223,7 +252,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/elijahr/nim-typestates/compare/v0.2.0...v0.2.1

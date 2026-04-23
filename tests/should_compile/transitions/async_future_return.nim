@@ -27,4 +27,4 @@ let d = Disconnected(Socket(fd: 1))
 let fut = d.connect()
 let c = waitFor fut
 doAssert c is Connecting
-echo "c2_async_future test passed"
+echo "async_future_return test passed"

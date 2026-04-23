@@ -26,4 +26,4 @@ let p = Proposed(Order(id: 1))
 let r = p.preCheck()
 doAssert r.isOk
 doAssert r.get is PreChecked
-echo "c1_result_return test passed"
+echo "wrapper_result_return test passed"

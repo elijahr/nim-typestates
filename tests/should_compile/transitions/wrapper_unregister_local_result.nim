@@ -37,7 +37,7 @@ proc finish(p: Pending): Result {.transition.} =
 let p = Pending(Flow(step: 1))
 let r = p.finish()
 doAssert r is Result
-echo "c1_local_result_optout test passed"
+echo "wrapper_unregister_local_result test passed"
 
 # Without `static: unregisterTransparentWrapper("Result")` at the top of
 # this file, `Result` would still be in the built-in transparent-wrapper

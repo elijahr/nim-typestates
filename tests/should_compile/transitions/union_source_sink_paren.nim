@@ -30,11 +30,11 @@ proc cancelParen(o: (Open | PartiallyFilled)): Cancelling {.transition.} =
   Cancelling(Order(o))
 
 let o1 = Open(Order(id: 1))
-let c1 = o1.cancelSink()
-doAssert c1 is Cancelling
+let cancelledSink = o1.cancelSink()
+doAssert cancelledSink is Cancelling
 
 let o2 = Open(Order(id: 2))
-let c2 = o2.cancelParen()
-doAssert c2 is Cancelling
+let cancelledParen = o2.cancelParen()
+doAssert cancelledParen is Cancelling
 
-echo "c3_union_sink_paren test passed"
+echo "union_source_sink_paren test passed"

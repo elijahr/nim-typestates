@@ -32,4 +32,4 @@ let p = PreChecked(Message(payload: "hi"))
 let r = waitFor p.send()
 doAssert r.isOk
 doAssert r.get is SentUnacked
-echo "c2_future_result test passed"
+echo "async_future_result_return test passed"

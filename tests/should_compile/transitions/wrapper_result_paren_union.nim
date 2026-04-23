@@ -39,4 +39,4 @@ proc preCheck(p: Proposed): Result[(PreChecked | Rejected), string] {.transition
 let p = Proposed(Order(id: 1))
 let r = p.preCheck()
 doAssert r.isErr
-echo "c1_result_paren_union test passed"
+echo "wrapper_result_paren_union test passed"

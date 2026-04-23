@@ -29,4 +29,4 @@ proc cancel(o: Open | PartiallyFilled): Cancelling {.transition.} =
 let o = Open(Order(id: 1))
 let c = o.cancel()
 doAssert c is Cancelling
-echo "c3_union_two_sources test passed"
+echo "union_source_two test passed"
