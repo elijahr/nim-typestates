@@ -14,70 +14,72 @@ type
   OAuthSession = object
     clientId: string
     redirectUri: string
-    codeVerifier: string     # PKCE
-    codeChallenge: string    # PKCE
+    codeVerifier: string # PKCE
+    codeChallenge: string # PKCE
     authCode: string
     accessToken: string
     refreshToken: string
     expiresAt: int64
 
   # OAuth states
-  Unauthenticated = distinct OAuthSession  ## No tokens yet
+  Unauthenticated = distinct OAuthSession ## No tokens yet
   AwaitingCallback = distinct OAuthSession ## Auth URL generated, waiting for callback
-  Authenticated = distinct OAuthSession    ## Have valid access token
-  TokenExpired = distinct OAuthSession     ## Access token expired, need refresh
-  RefreshFailed = distinct OAuthSession    ## Refresh failed, need re-auth
+  Authenticated = distinct OAuthSession ## Have valid access token
+  TokenExpired = distinct OAuthSession ## Access token expired, need refresh
+  RefreshFailed = distinct OAuthSession ## Refresh failed, need re-auth
 
 typestate OAuthSession:
   # OAuth tokens may be read multiple times and refreshed.
   consumeOnTransition = false
   states Unauthenticated, AwaitingCallback, Authenticated, TokenExpired, RefreshFailed
   transitions:
-    Unauthenticated -> AwaitingCallback    # Start auth flow
-    AwaitingCallback -> Authenticated      # Callback received, tokens exchanged
-    Authenticated -> TokenExpired          # Token expired
-    TokenExpired -> Authenticated          # Refresh succeeded
-    TokenExpired -> RefreshFailed          # Refresh failed
-    RefreshFailed -> AwaitingCallback      # Start over
-    * -> Unauthenticated                   # Logout
+    Unauthenticated -> AwaitingCallback # Start auth flow
+    AwaitingCallback -> Authenticated # Callback received, tokens exchanged
+    Authenticated -> TokenExpired # Token expired
+    TokenExpired -> Authenticated # Refresh succeeded
+    TokenExpired -> RefreshFailed # Refresh failed
+    RefreshFailed -> AwaitingCallback # Start over
+    * ->Unauthenticated # Logout
 
 # ============================================================================
 # Starting the flow
 # ============================================================================
 
-proc startAuth(session: Unauthenticated, clientId: string, redirectUri: string): AwaitingCallback {.transition.} =
+proc startAuth(
+    session: Unauthenticated, clientId: string, redirectUri: string
+): AwaitingCallback {.transition.} =
   ## Generate authorization URL and PKCE challenge.
   var s = session.OAuthSession
   s.clientId = clientId
   s.redirectUri = redirectUri
-  s.codeVerifier = "random_verifier_string_43_chars_min"  # In prod: secure random
-  s.codeChallenge = "hashed_challenge"  # In prod: SHA256(verifier)
+  s.codeVerifier = "random_verifier_string_43_chars_min" # In prod: secure random
+  s.codeChallenge = "hashed_challenge" # In prod: SHA256(verifier)
 
-  let authUrl = "https://auth.example.com/authorize?" &
-    "client_id=" & clientId &
-    "&redirect_uri=" & redirectUri &
-    "&code_challenge=" & s.codeChallenge &
-    "&code_challenge_method=S256"
+  let authUrl =
+    "https://auth.example.com/authorize?" & "client_id=" & clientId & "&redirect_uri=" &
+    redirectUri & "&code_challenge=" & s.codeChallenge & "&code_challenge_method=S256"
 
   echo "  [OAUTH] Authorization URL generated"
-  echo "  [OAUTH] Redirect user to: ", authUrl[0..50], "..."
+  echo "  [OAUTH] Redirect user to: ", authUrl[0 .. 50], "..."
   result = AwaitingCallback(s)
 
 # ============================================================================
 # Handling the callback
 # ============================================================================
 
-proc handleCallback(session: AwaitingCallback, authCode: string): Authenticated {.transition.} =
+proc handleCallback(
+    session: AwaitingCallback, authCode: string
+): Authenticated {.transition.} =
   ## Exchange authorization code for tokens.
   var s = session.OAuthSession
   s.authCode = authCode
 
   # In production: POST to token endpoint with code + code_verifier
   echo "  [OAUTH] Exchanging auth code for tokens..."
-  echo "  [OAUTH] Verifying PKCE: code_verifier=", s.codeVerifier[0..10], "..."
+  echo "  [OAUTH] Verifying PKCE: code_verifier=", s.codeVerifier[0 .. 10], "..."
 
-  s.accessToken = "eyJhbGc..." & authCode[0..5]
-  s.refreshToken = "refresh_" & authCode[0..5]
+  s.accessToken = "eyJhbGc..." & authCode[0 .. 5]
+  s.refreshToken = "refresh_" & authCode[0 .. 5]
   s.expiresAt = 1234567890 + 3600
 
   echo "  [OAUTH] Access token received (expires in 1h)"
@@ -90,7 +92,8 @@ proc handleCallback(session: AwaitingCallback, authCode: string): Authenticated 
 proc callApi(session: Authenticated, endpoint: string): string {.notATransition.} =
   ## Make an authenticated API call.
   echo "  [API] GET ", endpoint
-  echo "  [API] Authorization: Bearer ", session.OAuthSession.accessToken[0..10], "..."
+  echo "  [API] Authorization: Bearer ",
+    session.OAuthSession.accessToken[0 .. 10], "..."
   result = """{"user": "alice", "email": "alice@example.com"}"""
 
 proc getAccessToken(session: Authenticated): string =
@@ -111,7 +114,7 @@ proc refresh(session: TokenExpired): Authenticated {.transition.} =
   var s = session.OAuthSession
 
   # In production: POST to token endpoint with refresh_token
-  echo "  [OAUTH] Refreshing token using: ", s.refreshToken[0..10], "..."
+  echo "  [OAUTH] Refreshing token using: ", s.refreshToken[0 .. 10], "..."
 
   s.accessToken = "eyJhbGc...refreshed"
   s.expiresAt = 1234567890 + 7200
@@ -155,10 +158,8 @@ when isMainModule:
   let session = Unauthenticated(OAuthSession())
 
   echo "\n2. Starting OAuth flow (PKCE)..."
-  let awaiting = session.startAuth(
-    clientId = "my-app-client-id",
-    redirectUri = "myapp://callback"
-  )
+  let awaiting =
+    session.startAuth(clientId = "my-app-client-id", redirectUri = "myapp://callback")
 
   echo "\n3. User authorizes, handling callback..."
   let authed = awaiting.handleCallback(authCode = "abc123xyz")

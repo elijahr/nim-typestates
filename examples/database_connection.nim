@@ -20,10 +20,10 @@ type
     queryCount: int
 
   # Connection states
-  Pooled = distinct DbConnection       ## In the pool, available for checkout
-  CheckedOut = distinct DbConnection   ## Checked out, not in transaction
+  Pooled = distinct DbConnection ## In the pool, available for checkout
+  CheckedOut = distinct DbConnection ## Checked out, not in transaction
   InTransaction = distinct DbConnection ## Active transaction
-  Closed = distinct DbConnection        ## Permanently closed
+  Closed = distinct DbConnection ## Permanently closed
 
 typestate DbConnection:
   # Connections are pooled and reused, so we disable ownership enforcement.
@@ -31,10 +31,11 @@ typestate DbConnection:
   consumeOnTransition = false
   states Pooled, CheckedOut, InTransaction, Closed
   transitions:
-    Pooled -> (CheckedOut | Closed) as CheckoutResult       # Checkout or close idle connection
-    CheckedOut -> (Pooled | InTransaction | Closed) as CheckoutAction  # Return, begin tx, or close
-    InTransaction -> CheckedOut         # Commit/rollback ends transaction
-    * -> Closed                         # Can always force-close
+    Pooled -> (CheckedOut | Closed) as CheckoutResult # Checkout or close idle connection
+    CheckedOut -> (Pooled | InTransaction | Closed) as CheckoutAction
+      # Return, begin tx, or close
+    InTransaction -> CheckedOut # Commit/rollback ends transaction
+    * ->Closed # Can always force-close
 
 # ============================================================================
 # Connection Pool Operations
@@ -47,7 +48,8 @@ proc checkout(conn: Pooled): CheckedOut {.transition.} =
 
 proc release(conn: CheckedOut): Pooled {.transition.} =
   ## Return connection to the pool.
-  echo "  [POOL] Released connection #", conn.DbConnection.id, " (", conn.DbConnection.queryCount, " queries)"
+  echo "  [POOL] Released connection #",
+    conn.DbConnection.id, " (", conn.DbConnection.queryCount, " queries)"
   var c = conn.DbConnection
   c.queryCount = 0
   result = Pooled(c)
@@ -117,12 +119,8 @@ when isMainModule:
   echo "=== Database Connection Demo ===\n"
 
   # Simulate a connection pool
-  var pooledConn = Pooled(DbConnection(
-    id: 42,
-    host: "localhost",
-    port: 5432,
-    database: "myapp"
-  ))
+  var pooledConn =
+    Pooled(DbConnection(id: 42, host: "localhost", port: 5432, database: "myapp"))
 
   echo "1. Checkout connection from pool..."
   let conn = pooledConn.checkout()

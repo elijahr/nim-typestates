@@ -7,4 +7,5 @@ repos:
         language: system
         types: [file]
         files: \.nim$
+        exclude: ^tests/fixtures/
         pass_filenames: true

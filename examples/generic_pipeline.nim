@@ -13,22 +13,17 @@ import ../src/typestates
 # =============================================================================
 
 type
-  Pipeline*[T] = object
-    ## Base type holding the entity progressing through stages.
+  Pipeline*[T] = object ## Base type holding the entity progressing through stages.
     entity*: T
     startedAt*: string
 
-  Stage1*[T] = distinct Pipeline[T]
-    ## Initial stage - entity just entered the pipeline.
+  Stage1*[T] = distinct Pipeline[T] ## Initial stage - entity just entered the pipeline.
 
-  Stage2*[T] = distinct Pipeline[T]
-    ## Second stage - first transition complete.
+  Stage2*[T] = distinct Pipeline[T] ## Second stage - first transition complete.
 
-  Stage3*[T] = distinct Pipeline[T]
-    ## Third stage - nearing completion.
+  Stage3*[T] = distinct Pipeline[T] ## Third stage - nearing completion.
 
-  Stage4*[T] = distinct Pipeline[T]
-    ## Final stage - pipeline complete.
+  Stage4*[T] = distinct Pipeline[T] ## Final stage - pipeline complete.
 
 typestate Pipeline[T]:
   # Pipeline entities flow through stages and may be inspected at each stage.
@@ -55,10 +50,17 @@ proc advance34*[T](p: Stage3[T]): Stage4[T] {.transition.} =
   ## Advance from stage 3 to stage 4 (complete).
   Stage4[T](Pipeline[T](p))
 
-proc entity*[T](p: Stage1[T]): T {.notATransition.} = Pipeline[T](p).entity
-proc entity*[T](p: Stage2[T]): T {.notATransition.} = Pipeline[T](p).entity
-proc entity*[T](p: Stage3[T]): T {.notATransition.} = Pipeline[T](p).entity
-proc entity*[T](p: Stage4[T]): T {.notATransition.} = Pipeline[T](p).entity
+proc entity*[T](p: Stage1[T]): T {.notATransition.} =
+  Pipeline[T](p).entity
+
+proc entity*[T](p: Stage2[T]): T {.notATransition.} =
+  Pipeline[T](p).entity
+
+proc entity*[T](p: Stage3[T]): T {.notATransition.} =
+  Pipeline[T](p).entity
+
+proc entity*[T](p: Stage4[T]): T {.notATransition.} =
+  Pipeline[T](p).entity
 
 # =============================================================================
 # Example 1: Order Fulfillment
@@ -80,7 +82,9 @@ proc addItem(cart: OrderCart, item: string, price: int): OrderCart {.notATransit
   var order = cart.entity()
   order.items.add(item)
   order.total += price
-  Stage1[Order](Pipeline[Order](entity: order, startedAt: Pipeline[Order](cart).startedAt))
+  Stage1[Order](
+    Pipeline[Order](entity: order, startedAt: Pipeline[Order](cart).startedAt)
+  )
 
 proc pay(cart: OrderCart): OrderPaid =
   echo "  Payment received: $", cart.entity().total
@@ -132,7 +136,7 @@ type
   BuildDeployed = Stage4[Build]
 
 proc startBuild(repo, commit: string): BuildQueued =
-  echo "  Build queued for ", repo, "@", commit[0..6]
+  echo "  Build queued for ", repo, "@", commit[0 .. 6]
   start(Build(repo: repo, commit: commit), "now")
 
 proc compile(build: BuildQueued): BuildCompiling =
@@ -153,10 +157,8 @@ proc deploy(build: BuildTesting): BuildDeployed =
 block buildExample:
   echo "\n=== CI/CD Build Pipeline Example ==="
 
-  let deployed = startBuild("github.com/user/project", "abc123def456")
-    .compile()
-    .test()
-    .deploy()
+  let deployed =
+    startBuild("github.com/user/project", "abc123def456").compile().test().deploy()
 
   echo "  Build complete for ", deployed.entity().repo
 
@@ -186,20 +188,24 @@ proc createDraft(title: string): DocDraft =
 proc edit(doc: DocDraft, content: string): DocDraft {.notATransition.} =
   var d = doc.entity()
   d.content = content
-  Stage1[Document](Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt))
+  Stage1[Document](
+    Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt)
+  )
 
 proc submitForReview(doc: DocDraft, reviewer: string): DocInReview =
   var d = doc.entity()
   d.reviewer = reviewer
   echo "  Submitted to ", reviewer, " for review"
-  let pipeline = Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt)
+  let pipeline =
+    Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt)
   Stage2[Document](pipeline)
 
 proc approve(doc: DocInReview, approver: string): DocApproved =
   var d = doc.entity()
   d.approver = approver
   echo "  Approved by ", approver
-  let pipeline = Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt)
+  let pipeline =
+    Pipeline[Document](entity: d, startedAt: Pipeline[Document](doc).startedAt)
   Stage3[Document](pipeline)
 
 proc publish(doc: DocApproved): DocPublished =
@@ -266,8 +272,12 @@ block deployExample:
     .expandToPartial()
     .rolloutFull()
 
-  echo "  ", production.entity().service, " v", production.entity().version,
-       " is now in ", production.entity().environment
+  echo "  ",
+    production.entity().service,
+    " v",
+    production.entity().version,
+    " is now in ",
+    production.entity().environment
 
 # =============================================================================
 # Summary

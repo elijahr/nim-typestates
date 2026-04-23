@@ -20,22 +20,24 @@ type
     createdAt: string
 
   # Token states
-  Valid = distinct Token      ## Token is valid, can be used
-  Used = distinct Token       ## Token has been consumed
-  Expired = distinct Token    ## Token has expired
-  Revoked = distinct Token    ## Token was manually revoked
+  Valid = distinct Token ## Token is valid, can be used
+  Used = distinct Token ## Token has been consumed
+  Expired = distinct Token ## Token has expired
+  Revoked = distinct Token ## Token was manually revoked
 
 typestate Token:
   # DEFAULT: consumeOnTransition = true
   # This enforces ownership - tokens cannot be copied after creation.
   # Each token can only follow ONE path through the state machine.
   states Valid, Used, Expired, Revoked
-  initial: Valid
-  terminal: Used
+  initial:
+    Valid
+  terminal:
+    Used
   transitions:
-    Valid -> Used       # Consume the token
-    Valid -> Expired    # Token expires
-    Valid -> Revoked    # Token is revoked
+    Valid -> Used # Consume the token
+    Valid -> Expired # Token expires
+    Valid -> Revoked # Token is revoked
 
 # ============================================================================
 # Token Operations

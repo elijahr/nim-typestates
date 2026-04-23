@@ -20,11 +20,11 @@ type
     responseBody: string
 
   # Request states
-  Building = distinct HttpRequest      ## Accumulating headers
-  HeadersSent = distinct HttpRequest   ## Headers sent, can send body
-  RequestSent = distinct HttpRequest   ## Full request sent, awaiting response
-  ResponseReceived = distinct HttpRequest  ## Response received, can read
-  Closed = distinct HttpRequest        ## Connection closed
+  Building = distinct HttpRequest ## Accumulating headers
+  HeadersSent = distinct HttpRequest ## Headers sent, can send body
+  RequestSent = distinct HttpRequest ## Full request sent, awaiting response
+  ResponseReceived = distinct HttpRequest ## Response received, can read
+  Closed = distinct HttpRequest ## Connection closed
 
 typestate HttpRequest:
   # HTTP connections support keep-alive (reuse after response).
@@ -32,10 +32,11 @@ typestate HttpRequest:
   states Building, HeadersSent, RequestSent, ResponseReceived, Closed
   transitions:
     Building -> HeadersSent
-    HeadersSent -> RequestSent         # Send body/finalize request
-    RequestSent -> ResponseReceived    # Receive response
-    ResponseReceived -> (Closed | Building) as ResponseAction  # Close or reuse for keep-alive
-    * -> Closed                        # Can always abort
+    HeadersSent -> RequestSent # Send body/finalize request
+    RequestSent -> ResponseReceived # Receive response
+    ResponseReceived -> (Closed | Building) as ResponseAction
+      # Close or reuse for keep-alive
+    * ->Closed # Can always abort
 
 # ============================================================================
 # Building the request
@@ -112,7 +113,7 @@ proc close(resp: ResponseReceived): Closed {.transition.} =
 proc reuse(resp: ResponseReceived): Building {.transition.} =
   ## Reuse connection for another request (keep-alive).
   echo "  [HTTP] Reusing connection (keep-alive)"
-  var r = HttpRequest()  # Fresh request on same connection
+  var r = HttpRequest() # Fresh request on same connection
   result = Building(r)
 
 # ============================================================================
@@ -123,9 +124,9 @@ when isMainModule:
   echo "=== HTTP Request Demo ===\n"
 
   echo "1. Building GET request..."
-  let req1 = newRequest("GET", "/api/users")
-    .header("Accept", "application/json")
-    .header("Authorization", "Bearer token123")
+  let req1 = newRequest("GET", "/api/users").header("Accept", "application/json").header(
+      "Authorization", "Bearer token123"
+    )
 
   echo "\n2. Sending headers..."
   let headersSent = req1.sendHeaders()

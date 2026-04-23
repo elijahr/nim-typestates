@@ -7,6 +7,7 @@ import ../../src/typestates
 type
   Session = object
     userId: string
+
   Active = distinct Session
   Expired = distinct Session
 
@@ -19,6 +20,7 @@ typestate Session:
 type
   AuthFlow = object
     userId: string
+
   Pending = distinct AuthFlow
   Authenticated = distinct AuthFlow
   Failed = distinct AuthFlow

@@ -15,36 +15,37 @@ type
   Order = object
     id: string
     customerId: string
-    items: seq[(string, int, int)]  # (sku, qty, price)
+    items: seq[(string, int, int)] # (sku, qty, price)
     total: int
     paymentId: string
     trackingNumber: string
     cancelReason: string
 
   # Order states
-  Cart = distinct Order           ## Items being added, not yet placed
-  Placed = distinct Order         ## Order submitted, pending payment
-  Paid = distinct Order           ## Payment received
-  Picking = distinct Order        ## Warehouse picking items
-  Packed = distinct Order         ## Items packed, ready to ship
-  Shipped = distinct Order        ## Handed to carrier
-  Delivered = distinct Order      ## Customer received package
-  Cancelled = distinct Order      ## Order cancelled
-  Returned = distinct Order       ## Items returned by customer
+  Cart = distinct Order ## Items being added, not yet placed
+  Placed = distinct Order ## Order submitted, pending payment
+  Paid = distinct Order ## Payment received
+  Picking = distinct Order ## Warehouse picking items
+  Packed = distinct Order ## Items packed, ready to ship
+  Shipped = distinct Order ## Handed to carrier
+  Delivered = distinct Order ## Customer received package
+  Cancelled = distinct Order ## Order cancelled
+  Returned = distinct Order ## Items returned by customer
 
 typestate Order:
   # Orders need to be inspected at various stages (for status, totals, etc.).
   consumeOnTransition = false
   states Cart, Placed, Paid, Picking, Packed, Shipped, Delivered, Cancelled, Returned
   transitions:
-    Cart -> Placed                     # Submit order
-    Placed -> (Paid | Cancelled) as PaymentResult         # Pay or cancel
-    Paid -> (Picking | Cancelled) as FulfillmentAction        # Start fulfillment or cancel (refund)
-    Picking -> Packed                  # Finish picking
-    Packed -> Shipped                  # Hand to carrier
-    Shipped -> Delivered               # Delivery confirmed
-    Delivered -> Returned              # Customer returns
-    * -> Cancelled                     # Can always cancel (with appropriate handling)
+    Cart -> Placed # Submit order
+    Placed -> (Paid | Cancelled) as PaymentResult # Pay or cancel
+    Paid -> (Picking | Cancelled) as FulfillmentAction
+      # Start fulfillment or cancel (refund)
+    Picking -> Packed # Finish picking
+    Packed -> Shipped # Hand to carrier
+    Shipped -> Delivered # Delivery confirmed
+    Delivered -> Returned # Customer returns
+    * ->Cancelled # Can always cancel (with appropriate handling)
 
 # ============================================================================
 # Cart Operations
@@ -66,7 +67,7 @@ proc addItem(order: Cart, sku: string, qty: int, price: int): Cart {.notATransit
 proc placeOrder(order: Cart): Placed {.transition.} =
   ## Submit the order for processing.
   var o = order.Order
-  o.id = "ORD-" & $hash(o.customerId)  # Simplified ID generation
+  o.id = "ORD-" & $hash(o.customerId) # Simplified ID generation
   echo "  [ORDER] Order placed: ", o.id, " (total: $", o.total, ")"
   result = Placed(o)
 

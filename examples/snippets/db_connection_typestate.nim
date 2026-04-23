@@ -19,4 +19,4 @@ typestate DbConnection:
     Pooled -> (CheckedOut | Closed) as CheckoutResult
     CheckedOut -> (Pooled | InTransaction | Closed) as CheckoutAction
     InTransaction -> CheckedOut
-    * -> Closed
+    * ->Closed
