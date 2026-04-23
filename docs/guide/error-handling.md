@@ -163,3 +163,28 @@ proc load(f: Empty, path: string): LoadResult {.transition, raises: [].} =
   loaded.Document.content = content.get
   LoadResult -> loaded
 ```
+
+### Result as a Direct Return Type
+
+Transitions can return `Result[State, E]` directly — the library
+unwraps common wrappers (`Result`, `Option`, `Future`) and validates
+the underlying state:
+
+```nim
+import results
+
+# (assumes: Proposed -> PreChecked)
+proc preCheck(p: Proposed): Result[PreChecked, GateRejection] {.transition.} =
+  if rejected:
+    err(GateRejection.InvalidAmount)
+  else:
+    ok(PreChecked(Order(p)))
+```
+
+Use this pattern when there is exactly one success state and the
+error channel carries data. Use branch types (`... as LoadResult`) 
+when the "failure" is itself a distinct state in the machine.
+
+For async procs, return `Future[T]` or `Future[Result[T, E]]` with
+`{.async, transition.}` — the chain unwraps through both wrappers.
+See [Transparent Wrappers](transparent-wrappers.md).

@@ -60,6 +60,9 @@ Typestates solve this by encoding states in the type system:
 - **Zero runtime cost** — All validation happens during compilation, no runtime overhead
 - **Branching transitions** — `Closed -> (Open | Errored) as OpenResult` with user-named branch types
 - **Wildcard transitions** — `* -> Closed` (any state can transition to a specific state)
+- **Union source parameters** — `proc cancel(o: Open | PartiallyFilled): Cancelling` with per-source diagnostics
+- **Transparent wrappers** — `Result[State, E]`, `Option[State]`, `Future[State]` in transition returns validate the underlying state
+- **Async transitions** — `{.async, transition.}` with `Future[T]` / `Future[Result[T, E]]`
 - **Generic typestates** — `Container[T]` with states like `Empty[T]`, `Full[T]`
 - **Cross-typestate bridges** — Connect independent state machines with validated handoffs
 - **Generated helpers** — `FileState` enum, `FileStates` union type, branch constructors
@@ -104,6 +107,7 @@ requires "typestates >= 0.1.0"
 
 - [Getting Started](guide/getting-started.md) - Tutorial walkthrough
 - [DSL Reference](guide/dsl-reference.md) - Complete syntax documentation
+- [Transparent Wrappers](guide/transparent-wrappers.md) - Result / Option / Future returns
 - [Examples](guide/examples.md) - Real-world patterns
 - [API Reference](api.md) - Generated API docs
 

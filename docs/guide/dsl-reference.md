@@ -304,8 +304,10 @@ proc open(f: Closed): Open {.transition.} =
 
 **Validation rules:**
 
-- First parameter must be a registered state type
-- Return type must be a valid transition target
+- First parameter must be a registered state type (plain, a generic
+  instance, or a union — see below)
+- Return type must be a valid transition target (plain, a union, or a
+  registered transparent wrapper — see below)
 - Transition must be declared in the typestate block
 - Automatically gets `{.raises: [].}` added if not specified - errors should be states, not exceptions
 - If you explicitly write `{.raises: [SomeError].}`, compilation will fail
@@ -320,6 +322,48 @@ Error: Undeclared transition: Open -> Locked
   Valid transitions from 'Open': @["Closed"]
   Hint: Add 'Open -> Locked' to the transitions block.
 ```
+
+#### Union Source Parameters
+
+When multiple source states share a common transition target, a single
+proc can accept a union of source types. Every branch of the union is
+validated against the transition graph independently; if any is
+missing an edge to the declared destination, the diagnostic names the
+specific failing source.
+
+```nim
+typestate Order:
+  states Open, PartiallyFilled, Cancelling
+  transitions:
+    Open -> Cancelling
+    PartiallyFilled -> Cancelling
+
+# One proc covers both Open -> Cancelling and PartiallyFilled -> Cancelling.
+proc cancel(o: Open | PartiallyFilled): Cancelling {.transition.} =
+  Cancelling(Order(o))
+```
+
+Modifiers and parentheses are peeled before the union split, so
+`sink (A | B)`, `var (A | B)`, and `(A | B)` all work.
+
+#### Transparent-Wrapper Return Types
+
+Procs returning `Result[T, E]`, `Option[T]`, or `Future[T]` (and
+combinations) have the wrapper transparently unwrapped when the
+destination state is looked up:
+
+```nim
+import results
+
+proc preCheck(p: Proposed): Result[PreChecked, string] {.transition.} =
+  ok(PreChecked(Order(p)))
+```
+
+The pragma validates `Proposed -> PreChecked`, not a transition to
+the opaque `"Result"`. For async procs, `{.async, transition.}` with
+`Future[T]` and `Future[Result[T, E]]` returns is fully supported.
+You can also register custom wrappers. See
+[Transparent Wrappers](transparent-wrappers.md) for full details.
 
 ### `{.notATransition.}`
 

@@ -83,6 +83,7 @@ nav:
   - Guide:
     - Getting Started: guide/getting-started.md
     - DSL Reference: guide/dsl-reference.md
+    - Transparent Wrappers: guide/transparent-wrappers.md
     - Cross-Type Bridges: guide/bridges.md
     - Library Modularity: guide/library-modularity.md
     - Generic Typestates: guide/generics.md

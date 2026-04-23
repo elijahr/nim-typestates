@@ -62,6 +62,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of the union case, so a parenthesized union inside a transparent
   wrapper (e.g., `Result[(A | B), E]`) matches each branch against the
   transition graph rather than the literal `"(A | B)"`.
+- `extractAllTypeNames` also peels `ref` / `ptr` / `var` / `sink`
+  modifiers on return types, so `proc f(a: A): ref B` validates
+  `A -> B` instead of reporting "Undeclared transition: A -> ref B".
+- `extractTypeName` on an `nnkBracketExpr` no longer crashes on a
+  module-qualified head (`mymod.State[T]`). The head is delegated back
+  to `extractTypeName`, which routes `DotExpr` through `node.repr`
+  instead of a missing `.strVal`.
+- The source-type extractor uses `nnkIdentDefs[^2]` instead of `[1]`,
+  so transitions with grouped parameter idents (e.g.,
+  `proc m(a, b: State)`) correctly identify the type node rather than
+  reporting a confusing "<second-ident-name> is not part of any
+  registered typestate" error.
+- The single-source fallback in `extractAllSourceTypeNames` now uses
+  the stripped node, so a lone parenthesized source like `(A)`
+  resolves to `A` and matches the graph.
 - `unwrapTransparent` bails out when an `nnkBracketExpr` has fewer than
   two children, avoiding an out-of-bounds access on macro-generated or
   malformed empty-arg wrappers.
@@ -104,6 +119,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `jiro4989/setup-nim-action@v2`; added explicit installation of
   `results` and `chronos` test dependencies.
 - `mkdocstrings-nim` updated to v0.2.1.
+
+### Documentation
+
+- New guide page: [Transparent Wrappers](docs/guide/transparent-wrappers.md)
+  covers `Result` / `Option` / `Future` return-type unwrapping, custom
+  wrapper registration, the first-generic-argument contract, and the
+  opt-out path.
+- DSL reference documents union source parameters and links to the
+  transparent-wrappers page under `{.transition.}`.
+- Error-handling guide documents direct `Result[State, E]` and
+  `Future[Result[State, E]]` returns as alternatives to branch types.
+- README and landing page list the new features.
 
 ## [0.3.1] - 2025-12-12
 
