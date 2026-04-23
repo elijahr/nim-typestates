@@ -127,8 +127,12 @@ proc extractTypeName(node: NimNode): string =
   of nnkSym:
     result = node.strVal
   of nnkBracketExpr:
-    # Generic type like seq[T]
-    result = node[0].strVal
+    # Generic type like seq[T]. The head may be an Ident/Sym
+    # ("State[T]") OR a module-qualified DotExpr ("mymod.State[T]").
+    # Recursing delegates the head to the case that knows how to name
+    # it — critically, DotExpr falls through to `node.repr` in the
+    # `else` arm instead of crashing on `.strVal`.
+    result = extractTypeName(node[0])
   of nnkCommand:
     # Modifier like `sink T` - extract the actual type
     if node.len >= 2 and node[0].kind == nnkIdent:
