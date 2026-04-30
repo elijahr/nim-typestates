@@ -17,6 +17,7 @@ tests/test
 ## Nested test binaries
 tests/**/[a-z_]*/
 !tests/**/*.nim
+!tests/**/.gitkeep
 ## Debug binaries and symbols
 tests/debug_*
 **/*.dSYM/

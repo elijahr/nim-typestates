@@ -13,6 +13,7 @@
 
 import std/[macros, tables, strutils]
 import types
+import reachability
 
 proc extractBaseName(node: NimNode): string =
   ## Extract the base type name from any type expression.
@@ -758,3 +759,15 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   validateNoDuplicateBranchingSources(result, name)
   validateInitialTerminal(result, name)
   validateTransitionsRespectInitialTerminal(result, name)
+
+  # Reachability/liveness analysis (opt-in: only fires when the user has
+  # declared `initial:` or `terminal:`, so existing typestates produce no
+  # warnings). Use `--define:typestatesNoReachabilityWarn` to silence even
+  # when declared.
+  when not defined(typestatesNoReachabilityWarn):
+    if result.initialStates.len > 0 or result.terminalStates.len > 0:
+      let report = analyzeReachability(result)
+      for f in report.findings:
+        let msg =
+          formatFinding(f, report.initialStatesUsed, report.terminalStatesUsed)
+        warning(msg, name)
