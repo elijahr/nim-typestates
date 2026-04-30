@@ -38,6 +38,13 @@ var totalFailed = 0
 
 let tests = discoverTests("tests/should_warn")
 echo "=== Should Warn Tests ==="
+if tests.len == 0:
+  stdout.styledWrite(fgRed, "[FAIL]")
+  stdout.write(
+    " should_warn: discovery returned 0 fixtures (expected at least one). " &
+    "Did the directory move or get cleared? Refusing to report a vacuous PASS.\n"
+  )
+  quit(2)
 for path in tests:
   let cmd = "nim c --skipUserCfg --skipParentCfg --hints:off --warnings:on " & path
   let (output, exitCode) = execCmdEx(cmd)

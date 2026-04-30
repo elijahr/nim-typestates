@@ -20,6 +20,9 @@ suite "CLI verify warnings":
 
   test "no warnings when initial/terminal not declared":
     # tests/fixtures/cli_warning_no_init.nim has no initial: block, so
-    # the analyzer is skipped entirely.
+    # the analyzer is skipped entirely. The gate is "no warnings AT ALL,"
+    # not "no `Dead state` warning specifically" — a regression that
+    # removed the gate would let any reachability finding through, not
+    # only dead-state ones.
     let res = verify(@["tests/fixtures/cli_warning_no_init.nim"])
-    check (not res.warnings.anyIt("Dead state" in it))
+    check res.warnings.len == 0

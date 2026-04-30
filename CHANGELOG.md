@@ -26,7 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **State-aware error messages on transition misuse.** When a module calls
   `verifyTypestates()`, every non-generic, non-branching `{.transition.}` proc
   now also emits `{.error.}` decoy overloads for the other states in its
-  typestate. Calling a transition with the wrong source state surfaces a
+  typestate, with consistent extra parameters across overloads (an
+  `anySkipped`-style flag keeps the decoy and live signatures shaped
+  identically). Calling a transition with the wrong source state surfaces a
   tailored message naming the proc, the wrong state, and the expected source,
   instead of Nim's generic "type mismatch" diagnostic. Generic typestates and
   branching-return procs are skipped in v0.5 and tracked as a v0.6 follow-up.
