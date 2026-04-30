@@ -69,6 +69,8 @@ Once you've declared a typestate and marked your procs with `{.transition.}`, th
 
 What the compiler can't check is whether your declared state machine matches reality. If your spec says `Authorized -> Captured` is allowed but your business rules actually forbid it after 7 days, that's a separate problem.
 
+To enable state-aware error messages on transition misuse, end your module with `verifyTypestates()`. See [error handling](docs/guide/error-handling.md) for details.
+
 ## Usage
 
 ### Branching transitions

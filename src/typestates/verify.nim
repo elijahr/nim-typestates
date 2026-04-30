@@ -6,7 +6,7 @@
 ## - `verifyTypestates()` macro for in-module verification
 ## - CLI tool support for full-project verification
 
-import std/[macros, options, strformat, strutils, tables]
+import std/[macros, options, os, strformat, strutils, tables]
 import types, registry
 
 type
@@ -224,13 +224,16 @@ macro verifyTypestates*(): untyped =
       let expectedList = info.coveredSources.join("' or '")
       let errorMsg =
         "Cannot call '" & info.name & "' on a value in state '" & stateBase &
-        "'. Expected '" & expectedList & "'. (Defined at " & info.modulePath & ")"
+        "'. Expected '" & expectedList & "'. (Defined at " &
+        extractFilename(info.modulePath) & ")"
 
       let stateIdent = ident(stateBase)
       let procIdent = ident(info.name)
       # The decoy is exported (`*`) so it is visible at call sites in
       # downstream modules. Transitions are typically exported.
       let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
+      # Decoys carry only {.error.} — other pragmas like {.async.} aren't
+      # propagated because {.error.} short-circuits before they would matter.
       let errorPragma = nnkPragma.newTree(
         nnkExprColonExpr.newTree(ident("error"), newLit(errorMsg))
       )

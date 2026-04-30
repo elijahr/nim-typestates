@@ -190,6 +190,10 @@ macro typestate*(name: untyped, body: untyped): untyped =
   ##
   ## See also: `{.transition.}` pragma for implementing transitions
   ##
+  ## To opt into state-aware error messages on transition misuse, call
+  ## `verifyTypestates()` at the bottom of your module. See
+  ## `docs/guide/error-handling.md` for details.
+  ##
   ## :param name: The base type name (must match your type definition)
   ## :param body: The states and transitions declarations
   ## :returns: Generated helper types (enum, union, state procs)
