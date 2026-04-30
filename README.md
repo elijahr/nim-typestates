@@ -26,17 +26,20 @@ typestate Payment:
     Created -> Authorized
     Authorized -> Captured
 
-proc authorize(p: Created): Authorized {.transition.} =
-  Authorized(p.Payment)
+proc authorize(p: sink Created): Authorized {.transition.} =
+  Authorized(Payment(p))
 
-proc capture(p: Authorized): Captured {.transition.} =
-  Captured(p.Payment)
+proc capture(p: sink Authorized): Captured {.transition.} =
+  Captured(Payment(p))
 
-let payment = Created(Payment(id: "pay_123", amount: 9999))
-let authed = payment.authorize()
-let captured = authed.capture()
+proc main() =
+  let payment = Created(Payment(id: "pay_123", amount: 9999))
+  let authed = payment.authorize()
+  let captured = authed.capture()
 
-# payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
+  # payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
+
+main()
 ```
 
 ## Installation
