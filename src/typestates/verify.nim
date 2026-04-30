@@ -234,9 +234,8 @@ macro verifyTypestates*(): untyped =
       let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
       # Decoys carry only {.error.} — other pragmas like {.async.} aren't
       # propagated because {.error.} short-circuits before they would matter.
-      let errorPragma = nnkPragma.newTree(
-        nnkExprColonExpr.newTree(ident("error"), newLit(errorMsg))
-      )
+      let errorPragma =
+        nnkPragma.newTree(nnkExprColonExpr.newTree(ident("error"), newLit(errorMsg)))
       # Build formal params: `auto` return (never reached — `{.error.}`
       # short-circuits) + first param with the wrong-state type + the same
       # trailing parameters as the real overload so `proc close(a, reason)`
@@ -245,9 +244,7 @@ macro verifyTypestates*(): untyped =
       var formalParams = nnkFormalParams.newNimNode()
       formalParams.add ident("auto")
       formalParams.add nnkIdentDefs.newTree(
-        ident("p"),
-        replaceLeafState(info.firstParamType, stateIdent),
-        newEmptyNode(),
+        ident("p"), replaceLeafState(info.firstParamType, stateIdent), newEmptyNode()
       )
       for extra in info.extraParams:
         formalParams.add extra.copyNimTree

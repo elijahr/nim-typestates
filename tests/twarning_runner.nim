@@ -42,7 +42,7 @@ if tests.len == 0:
   stdout.styledWrite(fgRed, "[FAIL]")
   stdout.write(
     " should_warn: discovery returned 0 fixtures (expected at least one). " &
-    "Did the directory move or get cleared? Refusing to report a vacuous PASS.\n"
+      "Did the directory move or get cleared? Refusing to report a vacuous PASS.\n"
   )
   quit(2)
 for path in tests:

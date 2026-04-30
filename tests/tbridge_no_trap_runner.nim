@@ -34,10 +34,10 @@ if fileExists(binPath):
 
 if exitCode != 0:
   fail(
-    "fixture compiled with --warningAsError:User produced exit=" &
-    $exitCode & " (expected 0). A User warning was emitted, which means a " &
-    "macro `warning(...)` fired — most likely the bridge exemption in " &
-    "reachability analysis regressed.\n--- output ---\n" & output
+    "fixture compiled with --warningAsError:User produced exit=" & $exitCode &
+      " (expected 0). A User warning was emitted, which means a " &
+      "macro `warning(...)` fired — most likely the bridge exemption in " &
+      "reachability analysis regressed.\n--- output ---\n" & output
   )
 
 stdout.styledWrite(fgGreen, "[PASS]")

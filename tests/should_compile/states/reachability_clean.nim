@@ -20,6 +20,7 @@ typestate F:
 
 proc op(f: Closed): Open {.transition.} =
   Open(F(f))
+
 proc err(f: Open): Errored {.transition.} =
   Errored(F(f))
 

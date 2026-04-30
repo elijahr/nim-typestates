@@ -35,8 +35,7 @@ type
     terminalStatesUsed*: seq[string]
     implicitInitialFallback*: bool ## true when initialStates was empty
 
-  GraphEdge* = object
-    ## A directed edge in a typestate graph, normalized to base names.
+  GraphEdge* = object ## A directed edge in a typestate graph, normalized to base names.
     fromState*: string
     toStates*: seq[string]
     isWildcard*: bool
@@ -188,31 +187,26 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
           kind: rfTrap, stateName: s, typestateName: inp.typestateName
         )
 
-
 proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
   ## Compile-time convenience overload that projects a `TypestateGraph`
   ## (used by the macro-side parser) into the runtime-friendly
   ## `ReachabilityInput` and runs the analysis.
   analyzeReachability(fromGraph(graph))
 
-proc formatFinding*(
-    f: ReachabilityFinding, initials, terminals: seq[string]
-): string =
+proc formatFinding*(f: ReachabilityFinding, initials, terminals: seq[string]): string =
   ## Format a finding as a multi-line warning string.
   case f.kind
   of rfDead:
     result =
       "Dead state '" & f.stateName & "' in typestate '" & f.typestateName & "'\n" &
-      "  Unreachable from any initial state.\n" &
-      "  Initial states: " & initials.join(", ") & "\n" &
-      "  Hint: add a transition INTO '" & f.stateName &
+      "  Unreachable from any initial state.\n" & "  Initial states: " &
+      initials.join(", ") & "\n" & "  Hint: add a transition INTO '" & f.stateName &
       "', remove it from `states`, or declare it `initial:`."
   of rfTrap:
     result =
       "Trap state '" & f.stateName & "' in typestate '" & f.typestateName & "'\n" &
-      "  Reachable, but cannot reach any terminal state.\n" &
-      "  Terminal states: " & terminals.join(", ") & "\n" &
-      "  Hint: add a transition out of '" & f.stateName &
+      "  Reachable, but cannot reach any terminal state.\n" & "  Terminal states: " &
+      terminals.join(", ") & "\n" & "  Hint: add a transition out of '" & f.stateName &
       "' that reaches a terminal, or declare '" & f.stateName & "' itself terminal."
   of rfOrphan:
     result =

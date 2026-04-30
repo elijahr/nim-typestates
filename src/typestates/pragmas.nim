@@ -529,7 +529,8 @@ macro transition*(procDef: untyped): untyped =
     registerProc(
       RegisteredProc(
         name: procNameStr,
-        sourceState: (if firstParamTypes.len == 1: firstParamTypes[0] else: ""),
+        sourceState: (if firstParamTypes.len == 1: firstParamTypes[0]
+        else: ""),
         destStates: destTypeNames,
         kind: pkTransition,
         declaredAt: procDef.lineInfoObj,

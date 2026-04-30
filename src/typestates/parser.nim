@@ -768,6 +768,5 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     if result.initialStates.len > 0 or result.terminalStates.len > 0:
       let report = analyzeReachability(result)
       for f in report.findings:
-        let msg =
-          formatFinding(f, report.initialStatesUsed, report.terminalStatesUsed)
+        let msg = formatFinding(f, report.initialStatesUsed, report.terminalStatesUsed)
         warning(msg, name)

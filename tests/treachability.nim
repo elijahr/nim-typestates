@@ -33,13 +33,7 @@ proc mkGraph(
 
 static:
   block linear_chain_no_findings:
-    let g = mkGraph(
-      "F",
-      ["A", "B", "C"],
-      [("A", @["B"]), ("B", @["C"])],
-      ["A"],
-      ["C"],
-    )
+    let g = mkGraph("F", ["A", "B", "C"], [("A", @["B"]), ("B", @["C"])], ["A"], ["C"])
     let r = analyzeReachability(g)
     doAssert r.findings.len == 0,
       "linear chain expected no findings, got " & $r.findings.len
@@ -80,13 +74,7 @@ static:
     # State with no incoming edges and not declared `initial:` is reported
     # as orphan, NOT dead — the user's fix is different (declare initial vs
     # add upstream transition).
-    let g = mkGraph(
-      "F",
-      ["A", "B", "Z"],
-      [("A", @["B"])],
-      ["A"],
-      [],
-    )
+    let g = mkGraph("F", ["A", "B", "Z"], [("A", @["B"])], ["A"], [])
     let r = analyzeReachability(g)
     doAssert r.findings.anyIt(it.kind == rfOrphan and it.stateName == "Z"),
       "expected orphan Z, got " & $r.findings
@@ -94,13 +82,8 @@ static:
 
   block unreachable_with_incoming_is_dead:
     # State with an incoming edge from another unreachable state is dead.
-    let g = mkGraph(
-      "F",
-      ["A", "B", "X", "Y"],
-      [("A", @["B"]), ("X", @["Y"])],
-      ["A"],
-      [],
-    )
+    let g =
+      mkGraph("F", ["A", "B", "X", "Y"], [("A", @["B"]), ("X", @["Y"])], ["A"], [])
     let r = analyzeReachability(g)
     # X has no incoming -> orphan. Y has incoming from X -> dead.
     doAssert r.findings.anyIt(it.kind == rfOrphan and it.stateName == "X"),
@@ -109,26 +92,14 @@ static:
       "expected dead Y, got " & $r.findings
 
   block no_entry_point:
-    let g = mkGraph(
-      "F",
-      ["A", "B"],
-      [("A", @["B"]), ("B", @["A"])],
-      [],
-      [],
-    )
+    let g = mkGraph("F", ["A", "B"], [("A", @["B"]), ("B", @["A"])], [], [])
     let r = analyzeReachability(g)
     doAssert r.findings.anyIt(it.kind == rfNoEntryPoint)
 
   block single_state_initial_and_terminal:
     # One state, declared both initial and terminal, no transitions.
     # Should produce zero findings.
-    let g = mkGraph(
-      "F",
-      ["A"],
-      [],
-      ["A"],
-      ["A"],
-    )
+    let g = mkGraph("F", ["A"], [], ["A"], ["A"])
     let r = analyzeReachability(g)
     doAssert r.findings.len == 0,
       "single state initial+terminal expected no findings, got " & $r.findings
@@ -144,8 +115,7 @@ static:
       ["D"],
     )
     let r = analyzeReachability(g)
-    doAssert r.findings.len == 0,
-      "diamond expected no findings, got " & $r.findings
+    doAssert r.findings.len == 0, "diamond expected no findings, got " & $r.findings
 
   block bridge_source_not_trap:
     # Authenticated has no in-typestate transitions out, but bridges to
@@ -165,8 +135,9 @@ static:
     b.toState = "Active"
     g.bridges = @[b]
     let r = analyzeReachability(g)
-    doAssert (not r.findings.anyIt(it.kind == rfTrap and it.stateName == "Authenticated")),
-      "Authenticated bridges out, must not be flagged trap; got " & $r.findings
+    doAssert (
+      not r.findings.anyIt(it.kind == rfTrap and it.stateName == "Authenticated")
+    ), "Authenticated bridges out, must not be flagged trap; got " & $r.findings
 
   block bridge_source_via_input:
     # Same property, exercised through ReachabilityInput.bridgeSources
@@ -182,17 +153,12 @@ static:
     inp.terminalStates = @["Failed"]
     inp.bridgeSources = @["Authenticated"]
     let r = analyzeReachability(inp)
-    doAssert (not r.findings.anyIt(it.kind == rfTrap and it.stateName == "Authenticated")),
-      "bridgeSources entry must exempt state from trap; got " & $r.findings
+    doAssert (
+      not r.findings.anyIt(it.kind == rfTrap and it.stateName == "Authenticated")
+    ), "bridgeSources entry must exempt state from trap; got " & $r.findings
 
   block implicit_initial_fallback:
-    let g = mkGraph(
-      "F",
-      ["A", "B", "C"],
-      [("A", @["B"]), ("B", @["C"])],
-      [],
-      [],
-    )
+    let g = mkGraph("F", ["A", "B", "C"], [("A", @["B"]), ("B", @["C"])], [], [])
     let r = analyzeReachability(g)
     doAssert r.implicitInitialFallback
     doAssert r.initialStatesUsed == @["A"]

@@ -27,8 +27,10 @@ typestate X:
 
 proc go1(x: A): Loop1 {.transition.} =
   Loop1(X(x))
+
 proc go2(x: Loop1): Loop2 {.transition.} =
   Loop2(X(x))
+
 proc go3(x: Loop2): Loop1 {.transition.} =
   Loop1(X(x))
 

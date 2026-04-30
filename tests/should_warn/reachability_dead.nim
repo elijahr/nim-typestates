@@ -25,6 +25,7 @@ typestate F:
 
 proc op(f: Closed): Open {.transition.} =
   Open(F(f))
+
 proc freeze(f: Iso): Frozen {.transition.} =
   Frozen(F(f))
 

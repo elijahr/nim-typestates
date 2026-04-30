@@ -229,8 +229,7 @@ proc generateStateDollar*(graph: TypestateGraph): NimNode =
       newEmptyNode(),
       buildGenericParams(graph.typeParams),
       nnkFormalParams.newTree(
-        stringIdent,
-        nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode()),
+        stringIdent, nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
@@ -252,8 +251,7 @@ proc generateStateDollar*(graph: TypestateGraph): NimNode =
     newEmptyNode(),
     newEmptyNode(), # enum $ is not generic
     nnkFormalParams.newTree(
-      stringIdent,
-      nnkIdentDefs.newTree(ident("s"), enumName, newEmptyNode()),
+      stringIdent, nnkIdentDefs.newTree(ident("s"), enumName, newEmptyNode())
     ),
     newEmptyNode(),
     newEmptyNode(),
@@ -685,8 +683,7 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
       newEmptyNode(),
       buildGenericParams(graph.typeParams),
       nnkFormalParams.newTree(
-        stringIdent,
-        nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode()),
+        stringIdent, nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
@@ -733,8 +730,8 @@ proc buildMatchCase*(
         break
     if not found:
       error(
-        "unknown branch '" & stateName &
-          "' is not part of this union; valid branches: " & $validNames,
+        "unknown branch '" & stateName & "' is not part of this union; valid branches: " &
+          $validNames,
         stateIdent,
       )
     let kindField = ident(prefix & stateName)

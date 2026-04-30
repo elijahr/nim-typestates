@@ -14,9 +14,7 @@
 ## - `{.notATransition.}` pragma - Mark non-transition procs
 
 import std/macros
-import
-  typestates/
-    [types, parser, registry, pragmas, codegen, constraints, reachability]
+import typestates/[types, parser, registry, pragmas, codegen, constraints, reachability]
 
 export types, pragmas, constraints, reachability
 
