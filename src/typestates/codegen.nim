@@ -694,6 +694,154 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
     )
     result.add procDef
 
+proc buildMatchCase*(
+    value: NimNode, arms: NimNode, prefix: string, validNames: seq[string]
+): NimNode =
+  ## Helper used by every generated `match` macro to rewrite an arms block
+  ## into a `case value.kind` statement.
+  ##
+  ## - `value`: NimNode for the matched union value (passed to the macro).
+  ## - `arms`: NimNode for the StmtList of `Call(StateIdent, bindIdent, body)` arms.
+  ## - `prefix`: enum field prefix (e.g. "p" for "ProcessResult").
+  ## - `validNames`: bare base names of the union's branches (e.g. @["Approved", "Declined"]).
+  ##
+  ## Errors at the user's call site for malformed arms or unknown-branch names.
+  ## Exhaustiveness is enforced by Nim's case-statement checker once the
+  ## resulting AST is sema-checked.
+  result = newStmtList()
+  var caseStmt = nnkCaseStmt.newTree(newDotExpr(value, ident("kind")))
+  for clause in arms:
+    if clause.kind != nnkCall or clause.len < 3:
+      error(
+        "match expects `StateName(bindName): body` per arm, got: " & clause.repr, clause
+      )
+    let stateIdent = clause[0]
+    let bindIdent = clause[1]
+    let clauseBody = clause[2]
+    if stateIdent.kind != nnkIdent:
+      error("match arm head must be a single state identifier", stateIdent)
+    if bindIdent.kind != nnkIdent:
+      error("match arm bind must be a single identifier", bindIdent)
+    let stateName = stateIdent.strVal
+    var found = false
+    for n in validNames:
+      if n == stateName:
+        found = true
+        break
+    if not found:
+      error(
+        "unknown branch '" & stateName &
+          "' is not part of this union; valid branches: " & $validNames,
+        stateIdent,
+      )
+    let kindField = ident(prefix & stateName)
+    let varFieldName = stateName.toLowerAscii()
+    let extract =
+      newLetStmt(bindIdent, newCall("move", newDotExpr(value, ident(varFieldName))))
+    var rewritten = newStmtList(extract)
+    if clauseBody.kind == nnkStmtList:
+      for stmt in clauseBody:
+        rewritten.add stmt
+    else:
+      rewritten.add clauseBody
+    caseStmt.add nnkOfBranch.newTree(kindField, rewritten)
+  result.add caseStmt
+
+proc generateBranchMatch*(graph: TypestateGraph): NimNode =
+  ## Generate a `match` macro for each branching union type.
+  ##
+  ## For a transition `Created -> (Approved | Declined) as ProcessResult`,
+  ## emits a macro with this signature:
+  ##
+  ## ```nim
+  ## macro match*(value: ProcessResult; body: untyped): untyped =
+  ##   ## Pattern-match on a branching union; rewrites into a `case` over the
+  ##   ## kind discriminator.
+  ## ```
+  ##
+  ## Call-site syntax (the body is a list of `Call(StateIdent, bindIdent, body)`):
+  ##
+  ## ```nim
+  ## match r:
+  ##   Approved(a): doSomething(a)
+  ##   Declined(d): handleDecline(d)
+  ## ```
+  ##
+  ## Rewritten to:
+  ##
+  ## ```nim
+  ## case value.kind
+  ## of pApproved:
+  ##   let a = move(value.approved)
+  ##   doSomething(a)
+  ## of pDeclined:
+  ##   let d = move(value.declined)
+  ##   handleDecline(d)
+  ## ```
+  ##
+  ## Exhaustiveness is provided by Nim's `case` statement: missing branches
+  ## produce "not all cases are covered" at compile time. Branches naming a
+  ## state outside the union produce an explicit "unknown branch" error.
+  ##
+  ## Multiple branching unions in the same module each get their own `match`
+  ## macro; Nim disambiguates via the typed first parameter (verified by the
+  ## F4.A0 probe).
+  ##
+  ## :param graph: The typestate graph
+  ## :returns: AST for one `match` macro per branching union
+  result = newStmtList()
+
+  for t in getBranchingTransitions(graph):
+    if t.branchTypeName.len == 0:
+      continue
+    let prefix = branchEnumPrefix(extractBaseName(t.branchTypeName))
+    let prefixLit = newLit(prefix)
+    # Bake the list of valid base-state names so the generated macro can
+    # report unknown-branch errors at the user's call site.
+    var validNamesNode = nnkPrefix.newTree(ident("@"), nnkBracket.newTree())
+    for dest in t.toStates:
+      validNamesNode[1].add newLit(extractBaseName(dest))
+    # The union type. For generic typestates we use the AST node so the macro
+    # signature binds correctly under instantiation; for non-generic, the bare
+    # ident is sufficient.
+    let unionTypeNode =
+      if graph.typeParams.len > 0 and t.branchTypeNode != nil:
+        t.branchTypeNode.copyNimTree
+      else:
+        ident(extractBaseName(t.branchTypeName))
+
+    # The body of the generated `match` macro is a single call to the public
+    # helper `buildMatchCase`. This keeps all the NimNode-walking and
+    # macros-stdlib symbol resolution inside the typestates package, so the
+    # call site (which only imports `typestates`) does not need
+    # `import std/macros`. We still need `bindSym` for `buildMatchCase` so the
+    # generated macro can find it without the user having to re-import.
+    let helperSym = bindSym("buildMatchCase")
+    let macroBody = newStmtList(
+      nnkAsgn.newTree(
+        ident("result"),
+        nnkCall.newTree(
+          helperSym, ident("value"), ident("arms"), prefixLit, validNamesNode
+        ),
+      )
+    )
+
+    let matchMacro = nnkMacroDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident("match")),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        ident("untyped"),
+        nnkIdentDefs.newTree(ident("value"), unionTypeNode, newEmptyNode()),
+        nnkIdentDefs.newTree(ident("arms"), ident("untyped"), newEmptyNode()),
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      macroBody,
+    )
+
+    result.add matchMacro
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -724,3 +872,4 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateBranchConstructors(graph)
   result.add generateBranchOperators(graph)
   result.add generateBranchDollar(graph)
+  result.add generateBranchMatch(graph)
