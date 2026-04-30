@@ -128,6 +128,25 @@ of cConnectionFailed:
   retry(result.connectionfailed)
 ```
 
+Or use the auto-generated `match` macro for compile-time exhaustiveness:
+
+```nim
+var result = connect(disconnected, "localhost")
+match result:
+  Connected(c):
+    echo "Connected!"
+    use(c)
+  ConnectionFailed(f):
+    echo "Failed to connect"
+    retry(f)
+```
+
+The matched value must be a `var` binding (branch fields are extracted with
+`move()`), the syntax is `StateName(bind):` (not `of StateName as bind:`),
+and every branch must be covered — there is no `else:` escape hatch. See
+[Pattern matching with `match`](dsl-reference.md#branch-types) in the DSL
+reference for details.
+
 ### Wrap External Calls
 
 Create `{.raises: [].}` wrappers for exception-throwing APIs:

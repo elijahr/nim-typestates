@@ -697,6 +697,9 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
 proc buildMatchCase*(
     value: NimNode, arms: NimNode, prefix: string, validNames: seq[string]
 ): NimNode =
+  ## INTERNAL: this helper is exported for use by the generated `match` macro
+  ## via `bindSym`. User code should not call it directly.
+  ##
   ## Helper used by every generated `match` macro to rewrite an arms block
   ## into a `case value.kind` statement.
   ##
@@ -817,13 +820,21 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
     # `import std/macros`. We still need `bindSym` for `buildMatchCase` so the
     # generated macro can find it without the user having to re-import.
     let helperSym = bindSym("buildMatchCase")
+    let matchDoc = newCommentStmtNode(
+      "Pattern-match on a branching union; rewrites into a `case` over " &
+        "the kind discriminator.\n" &
+        "The value being matched must be a `var` binding. Branch fields " &
+        "are extracted with `move()`, which requires a mutable binding. " &
+        "Syntax is `StateName(bind):`, not `of StateName as bind:`."
+    )
     let macroBody = newStmtList(
+      matchDoc,
       nnkAsgn.newTree(
         ident("result"),
         nnkCall.newTree(
           helperSym, ident("value"), ident("arms"), prefixLit, validNamesNode
         ),
-      )
+      ),
     )
 
     let matchMacro = nnkMacroDef.newTree(

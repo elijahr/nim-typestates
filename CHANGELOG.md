@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Auto-generated `$` overload for typestate values.** Each leaf state type
+  and the generated state enum now have a `$` proc returning the bare state
+  name (no `fs` prefix). Under the default `consumeOnTransition = true`, calling
+  `$` on a value will consume it; the docs call out this interaction and the
+  workaround (`$state(value)`).
+- **Reachability and liveness warnings.** New `initial:` and `terminal:` DSL
+  blocks let the parser flag unreachable states and dead-end (non-terminal)
+  states at compile time. The `typestates verify` CLI surfaces the same
+  warnings on `.nim` files without rebuilding.
+- **Generated `match` macro per branching union.** Every `as TypeName` branch
+  type now emits a `match` macro that dispatches on the variant kind with
+  compile-time exhaustiveness checking. The matched value must be `var`
+  (branch fields are extracted with `move`), arms use `StateName(bind):`
+  syntax, and missing or unknown branches error at the call site.
+
+### Fixed
+
+- **README payment example compiles under default `consumeOnTransition`.**
+  Transition procs in the README now take `sink` parameters, the async
+  section was corrected, and a regression fixture covers the example.
+
 ## [0.4.1] - 2026-04-30
 
 ### Fixed

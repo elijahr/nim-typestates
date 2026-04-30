@@ -456,6 +456,29 @@ of pDeclined: echo "Declined"
 of pReview: echo "Needs review"
 ```
 
+**Pattern matching with `match`:**
+
+Each branching union gets an auto-generated `match` macro that dispatches on
+the variant kind with compile-time exhaustiveness checking.
+
+```nim
+var r = payment.capture()
+match r:
+  Settled(s): echo "settled: ", s.Payment.id
+  PartiallyRefunded(p): echo "partial: ", p.Payment.id
+  FullyRefunded(f): echo "refunded: ", f.Payment.id
+```
+
+Three constraints apply:
+
+1. **The matched value must be `var`.** Branch fields are extracted with
+   `move()`, which requires a mutable binding.
+2. **Use `StateName(bind):`, not `of StateName as bind:`.** The latter is a
+   parser-level error and is not emitted by the macro.
+3. **All branches must be covered.** The macro errors at compile time if a
+   branch is missing or names a state outside the union — there is no `else:`
+   escape hatch.
+
 **What gets generated:**
 
 The `->` operator is syntactic sugar around constructor procs. For each branching transition with `as TypeName`, the macro generates:
