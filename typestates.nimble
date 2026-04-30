@@ -16,7 +16,7 @@ requires "nim >= 2.2.0"
 # Tasks
 
 task buildCli, "Build the CLI tool":
-  exec "nim c -o:bin/typestates src/typestates_bin.nim"
+  exec "nim c -d:NimblePkgVersion=" & version & " -o:bin/typestates src/typestates_bin.nim"
 
 task verify, "Verify typestate rules in source files":
   exec "nim c -r src/typestates_bin.nim verify src/"

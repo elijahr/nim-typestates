@@ -4,6 +4,8 @@
 import std/[os, strutils]
 import typestates/cli
 
+const NimblePkgVersion {.strdefine.}: string = "unknown"
+
 proc showHelp() =
   echo "typestates - Compile-time typestate validation for Nim"
   echo ""
@@ -49,7 +51,7 @@ proc showHelp() =
   echo "  generates: state enum, union type, state procs, and branch types."
 
 proc showVersion() =
-  echo "typestates 0.3.0"
+  echo "typestates ", NimblePkgVersion
 
 when isMainModule:
   var args: seq[string] = @[]
