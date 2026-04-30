@@ -15,7 +15,7 @@ tests/test
 !tests/t*.nim
 !tests/test.nim
 ## Nested test binaries
-tests/**/[a-z_]*
+tests/**/[a-z_]*/
 !tests/**/*.nim
 ## Debug binaries and symbols
 tests/debug_*
