@@ -77,6 +77,30 @@ suite "AST Parser":
   # rather than raising exceptions, so we can't easily test this case in a unit test.
   # The CLI tool handles this by letting the error propagate to the user.
 
+  test "parse initial: and terminal: blocks":
+    # cli_warning_dead.nim declares `initial: A` (no terminal:); cli_warning_no_init.nim
+    # declares neither. Both fixtures exercise the new extractors.
+    let dead = parseFileWithAst("tests/fixtures/cli_warning_dead.nim")
+    check dead.typestates.len == 1
+    check dead.typestates[0].name == "X"
+    check dead.typestates[0].initialStates == @["A"]
+    check dead.typestates[0].terminalStates.len == 0
+
+    let noInit = parseFileWithAst("tests/fixtures/cli_warning_no_init.nim")
+    check noInit.typestates.len == 1
+    check noInit.typestates[0].name == "Y"
+    check noInit.typestates[0].initialStates.len == 0
+    check noInit.typestates[0].terminalStates.len == 0
+
+  test "parse multiline initial and terminal blocks":
+    let res = parseFileWithAst("tests/fixtures/initial_terminal_multi.nim")
+    check res.typestates.len == 1
+    let ts = res.typestates[0]
+    check ts.name == "M"
+    # `initial:` block contains A, B; `terminal:` contains D, E
+    check ts.initialStates == @["A", "B"]
+    check ts.terminalStates == @["D", "E"]
+
   test "parse multiple files":
     # Parse specific valid files to avoid syntax_error.nim
     let result = parseTypestatesAst(

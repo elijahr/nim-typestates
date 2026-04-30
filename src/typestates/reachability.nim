@@ -34,8 +34,43 @@ type
     terminalStatesUsed*: seq[string]
     implicitInitialFallback*: bool ## true when initialStates was empty
 
+  GraphEdge* = object
+    ## A directed edge in a typestate graph, normalized to base names.
+    fromState*: string
+    toStates*: seq[string]
+    isWildcard*: bool
+
+  ReachabilityInput* = object
+    ## Runtime-buildable view of a typestate graph for the analyzer.
+    ##
+    ## Avoids depending on `TypestateGraph` (which carries `NimNode` fields
+    ## that are only constructible at compile time). Both the macro-side and
+    ## CLI-side callers project their respective graph representations into
+    ## this shape.
+    typestateName*: string
+    states*: seq[string] ## base state names
+    edges*: seq[GraphEdge]
+    initialStates*: seq[string] ## raw user-written, normalized internally
+    terminalStates*: seq[string]
+
+proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
+  ## Project a compile-time `TypestateGraph` into a `ReachabilityInput`.
+  result.typestateName = graph.name
+  result.states = @[]
+  for s in graph.states.keys:
+    result.states.add s
+  result.edges = @[]
+  for t in graph.transitions:
+    var e: GraphEdge
+    e.fromState = t.fromState
+    e.toStates = t.toStates
+    e.isWildcard = t.isWildcard
+    result.edges.add e
+  result.initialStates = graph.initialStates
+  result.terminalStates = graph.terminalStates
+
 proc buildAdjacency(
-    graph: TypestateGraph
+    inp: ReachabilityInput
 ): tuple[forward, reverse: Table[string, seq[string]]] =
   ## Build adjacency tables keyed by base state names.
   ##
@@ -43,18 +78,18 @@ proc buildAdjacency(
   ## - Branching destinations expand to one edge per destination.
   result.forward = initTable[string, seq[string]]()
   result.reverse = initTable[string, seq[string]]()
-  for s in graph.states.keys:
+  for s in inp.states:
     result.forward[s] = @[]
     result.reverse[s] = @[]
 
-  let terminalBases = graph.terminalStates.mapIt(extractBaseName(it))
+  let terminalBases = inp.terminalStates.mapIt(extractBaseName(it))
 
-  for t in graph.transitions:
+  for t in inp.edges:
     let sources =
       if t.isWildcard:
-        toSeq(graph.states.keys).filterIt(it notin terminalBases)
+        inp.states.filterIt(it notin terminalBases)
       else:
-        @[t.fromState]
+        @[extractBaseName(t.fromState)]
     for src in sources:
       for dst in t.toStates:
         let srcBase = extractBaseName(src)
@@ -81,16 +116,16 @@ proc bfs(adj: Table[string, seq[string]], starts: seq[string]): HashSet[string] 
           result.incl nbr
           queue.add nbr
 
-proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
-  ## Run reachability/liveness analysis.
+proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
+  ## Run reachability/liveness analysis on a `ReachabilityInput`.
   ##
   ## See module documentation for the categories of finding produced.
   result.findings = @[]
-  let (fwd, rev) = buildAdjacency(graph)
+  let (fwd, rev) = buildAdjacency(inp)
 
-  # Normalize initial/terminal to base names (graph stores them as user-written).
-  let initialBases = graph.initialStates.mapIt(extractBaseName(it))
-  let terminalBases = graph.terminalStates.mapIt(extractBaseName(it))
+  # Normalize initial/terminal to base names (input stores them as user-written).
+  let initialBases = inp.initialStates.mapIt(extractBaseName(it))
+  let terminalBases = inp.terminalStates.mapIt(extractBaseName(it))
 
   # 1. Determine effective initial set: explicit if provided, else implicit
   #    (states with no incoming edges).
@@ -100,7 +135,7 @@ proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
     result.implicitInitialFallback = false
   else:
     initials = @[]
-    for s in graph.states.keys:
+    for s in inp.states:
       if rev.getOrDefault(s, @[]).len == 0:
         initials.add s
     result.implicitInitialFallback = true
@@ -110,16 +145,16 @@ proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
   # 2. No-entry-point case: every state has incoming, no implicit initials.
   if initials.len == 0:
     result.findings.add ReachabilityFinding(
-      kind: rfNoEntryPoint, stateName: "", typestateName: graph.name
+      kind: rfNoEntryPoint, stateName: "", typestateName: inp.typestateName
     )
     return
 
   # 3. Dead states: unreachable from any initial.
   let reachable = bfs(fwd, initials)
-  for s in graph.states.keys:
+  for s in inp.states:
     if s notin reachable:
       result.findings.add ReachabilityFinding(
-        kind: rfDead, stateName: s, typestateName: graph.name
+        kind: rfDead, stateName: s, typestateName: inp.typestateName
       )
 
   # 4. Trap states: reachable, but cannot reach any terminal. Only meaningful
@@ -129,20 +164,26 @@ proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
     for s in reachable:
       if s notin liveSet and s notin terminalBases:
         result.findings.add ReachabilityFinding(
-          kind: rfTrap, stateName: s, typestateName: graph.name
+          kind: rfTrap, stateName: s, typestateName: inp.typestateName
         )
 
   # 5. Orphan states: no incoming and not initial. Skip if also unreachable
   #    (already reported as dead).
-  for s in graph.states.keys:
+  for s in inp.states:
     if s in initials:
       continue
     if rev.getOrDefault(s, @[]).len == 0:
       if s notin reachable:
         continue
       result.findings.add ReachabilityFinding(
-        kind: rfOrphan, stateName: s, typestateName: graph.name
+        kind: rfOrphan, stateName: s, typestateName: inp.typestateName
       )
+
+proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
+  ## Compile-time convenience overload that projects a `TypestateGraph`
+  ## (used by the macro-side parser) into the runtime-friendly
+  ## `ReachabilityInput` and runs the analysis.
+  analyzeReachability(fromGraph(graph))
 
 proc formatFinding*(
     f: ReachabilityFinding, initials, terminals: seq[string]

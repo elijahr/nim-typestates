@@ -15,6 +15,8 @@
 
 import std/[os, strutils, tables, strformat]
 import ast_parser
+import types
+import reachability
 
 # Re-export types from ast_parser for API compatibility
 export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
@@ -544,12 +546,32 @@ proc verifyFile(
               else:
                 result.transitionsChecked += 1
 
+proc parsedToReachabilityInput(pt: ParsedTypestate): ReachabilityInput =
+  ## Project a CLI-parsed typestate into the runtime-friendly graph view
+  ## consumed by `analyzeReachability`. Only state base names and transition
+  ## edges are required; the analyzer does not consult `NimNode` fields.
+  result.typestateName = pt.name
+  result.states = @[]
+  for s in pt.states:
+    result.states.add extractBaseName(s)
+  result.edges = @[]
+  for t in pt.transitions:
+    var e: GraphEdge
+    e.fromState = t.fromState
+    e.toStates = t.toStates
+    e.isWildcard = t.isWildcard
+    result.edges.add e
+  result.initialStates = pt.initialStates
+  result.terminalStates = pt.terminalStates
+
 proc verify*(paths: seq[string]): VerifyResult =
   ## Verify all Nim files in the given paths.
   ##
   ## Uses Nim's AST parser to extract typestates, then checks that all
   ## procs operating on state types are properly marked with
-  ## `{.transition.}` or `{.notATransition.}`.
+  ## `{.transition.}` or `{.notATransition.}`. Also runs reachability
+  ## analysis when `initial:` / `terminal:` blocks are declared and
+  ## appends findings to `result.warnings`.
   ##
   ## **Note:** Files with syntax errors cause verification to fail
   ## immediately with a clear error message.
@@ -567,6 +589,18 @@ proc verify*(paths: seq[string]): VerifyResult =
   for ts in parseResult.typestates:
     typestateStates[ts.name] = ts.states
     typestateStrict[ts.name] = ts.strictTransitions
+
+  # Reachability/liveness pass: gated on initial:/terminal: declarations to
+  # mirror macro-side semantics (no warnings for typestates that haven't
+  # opted in).
+  for pt in parseResult.typestates:
+    if pt.initialStates.len > 0 or pt.terminalStates.len > 0:
+      let inp = parsedToReachabilityInput(pt)
+      let report = analyzeReachability(inp)
+      for f in report.findings:
+        result.warnings.add formatFinding(
+          f, report.initialStatesUsed, report.terminalStatesUsed
+        )
 
   # Second pass: verify procs
   for path in paths:
