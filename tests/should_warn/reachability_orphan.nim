@@ -1,9 +1,8 @@
 ## Reachability: orphan state warning — C has no incoming transitions and
-## is not declared `initial:`. Note: in this fixture C is also unreachable
-## (no path from A reaches it), so the analyzer reports it as DEAD rather
-## than orphan to avoid double reporting.
-# expects: "Dead state 'C'"
-# expects: "Unreachable from any initial state"
+## is not declared `initial:`. The analyzer reports it as ORPHAN (more
+## specific than DEAD: the fix is to wire C up, not remove it).
+# expects: "Orphan state 'C'"
+# expects: "No incoming transitions and not declared `initial:`"
 import ../../src/typestates
 
 type

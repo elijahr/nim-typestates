@@ -4,9 +4,10 @@
 ## - **Dead states**: unreachable from any initial state.
 ## - **Trap states**: reachable, but cannot reach any terminal state
 ##   (only when `terminal:` is declared).
-## - **Orphan states**: no incoming transitions and not declared `initial:`
-##   (only reported for states that are otherwise reachable, to avoid
-##   double-reporting dead states).
+## - **Orphan states**: unreachable, with no incoming transitions, and not
+##   declared `initial:`. Reported instead of `rfDead` for these states
+##   because the user-facing fix is different (declare initial, or wire an
+##   incoming transition) versus dead-via-other-dead.
 ## - **No-entry-point**: no `initial:` declared and every state has at
 ##   least one incoming transition (graph is one or more cycles).
 ##
@@ -52,6 +53,10 @@ type
     edges*: seq[GraphEdge]
     initialStates*: seq[string] ## raw user-written, normalized internally
     terminalStates*: seq[string]
+    bridgeSources*: seq[string]
+      ## Base names of states that are sources of a `bridges:` edge to
+      ## another typestate. Treated as liveness exits: a state that bridges
+      ## out is not a trap even if it has no in-typestate path to a terminal.
 
 proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
   ## Project a compile-time `TypestateGraph` into a `ReachabilityInput`.
@@ -68,6 +73,9 @@ proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
     result.edges.add e
   result.initialStates = graph.initialStates
   result.terminalStates = graph.terminalStates
+  result.bridgeSources = @[]
+  for b in graph.bridges:
+    result.bridgeSources.add extractBaseName(b.fromState)
 
 proc buildAdjacency(
     inp: ReachabilityInput
@@ -149,35 +157,37 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
     )
     return
 
-  # 3. Dead states: unreachable from any initial.
+  # 3. Dead states: unreachable from any initial. A state with no incoming
+  #    edges and not declared `initial:` is reported as an orphan instead
+  #    (more specific finding — orphans need a different fix from dead
+  #    states reachable only via other dead states).
   let reachable = bfs(fwd, initials)
   for s in inp.states:
     if s notin reachable:
-      result.findings.add ReachabilityFinding(
-        kind: rfDead, stateName: s, typestateName: inp.typestateName
-      )
+      let isOrphan = rev.getOrDefault(s, @[]).len == 0 and s notin initials
+      if isOrphan:
+        result.findings.add ReachabilityFinding(
+          kind: rfOrphan, stateName: s, typestateName: inp.typestateName
+        )
+      else:
+        result.findings.add ReachabilityFinding(
+          kind: rfDead, stateName: s, typestateName: inp.typestateName
+        )
 
   # 4. Trap states: reachable, but cannot reach any terminal. Only meaningful
   #    when `terminal:` is declared.
   if terminalBases.len > 0:
-    let liveSet = bfs(rev, terminalBases)
+    # A bridge to another typestate is a legitimate exit from this typestate,
+    # so seed the backward liveness BFS with bridge sources alongside terminals.
+    let bridgeBases = inp.bridgeSources.mapIt(extractBaseName(it))
+    let liveSeeds = terminalBases & bridgeBases
+    let liveSet = bfs(rev, liveSeeds)
     for s in reachable:
-      if s notin liveSet and s notin terminalBases:
+      if s notin liveSet and s notin terminalBases and s notin bridgeBases:
         result.findings.add ReachabilityFinding(
           kind: rfTrap, stateName: s, typestateName: inp.typestateName
         )
 
-  # 5. Orphan states: no incoming and not initial. Skip if also unreachable
-  #    (already reported as dead).
-  for s in inp.states:
-    if s in initials:
-      continue
-    if rev.getOrDefault(s, @[]).len == 0:
-      if s notin reachable:
-        continue
-      result.findings.add ReachabilityFinding(
-        kind: rfOrphan, stateName: s, typestateName: inp.typestateName
-      )
 
 proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =
   ## Compile-time convenience overload that projects a `TypestateGraph`

@@ -563,6 +563,9 @@ proc parsedToReachabilityInput(pt: ParsedTypestate): ReachabilityInput =
     result.edges.add e
   result.initialStates = pt.initialStates
   result.terminalStates = pt.terminalStates
+  result.bridgeSources = @[]
+  for b in pt.bridges:
+    result.bridgeSources.add extractBaseName(b.fromState)
 
 proc verify*(paths: seq[string]): VerifyResult =
   ## Verify all Nim files in the given paths.
