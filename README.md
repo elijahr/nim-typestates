@@ -6,11 +6,7 @@
 [![License](https://img.shields.io/github/license/elijahr/nim-typestates)](LICENSE)
 [![Nim](https://img.shields.io/badge/Nim-2.2%2B-yellow.svg)](https://nim-lang.org)
 
-Compile-time state machine validation for Nim.
-
-## Overview
-
-nim-typestates encodes state machines in Nim's type system. Invalid state transitions become compile-time errors instead of runtime bugs.
+Compile-time state machine verification for Nim. Encode a protocol — payment lifecycles, file handles, connection states — in the type system, and the compiler refuses to build code that calls operations in the wrong state.
 
 ```nim
 import typestates
@@ -19,6 +15,7 @@ type
   Payment = object
     id: string
     amount: int
+
   Created = distinct Payment
   Authorized = distinct Payment
   Captured = distinct Payment
@@ -30,40 +27,17 @@ typestate Payment:
     Authorized -> Captured
 
 proc authorize(p: Created): Authorized {.transition.} =
-  result = Authorized(p.Payment)
+  Authorized(p.Payment)
 
 proc capture(p: Authorized): Captured {.transition.} =
-  result = Captured(p.Payment)
+  Captured(p.Payment)
 
-# Valid usage
 let payment = Created(Payment(id: "pay_123", amount: 9999))
 let authed = payment.authorize()
 let captured = authed.capture()
 
-# Compile error: type mismatch, got 'Created' but expected 'Authorized'
-# let bad = payment.capture()
+# payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
 ```
-
-## Guarantees
-
-The `typestate` macro and `{.transition.}` pragma enforce state machine
-rules at compile time. A program that compiles has been verified by the
-compiler to contain no invalid state transitions.
-
-### Verified at compile time
-
-- **Protocol adherence**: Operations are only callable in valid states
-- **Transition validity**: All `{.transition.}` procs follow declared paths
-- **State exclusivity**: Each object occupies exactly one state
-
-### Not verified
-
-- **Functional correctness**: The implementation of each proc
-- **Specification accuracy**: Whether the declared state machine matches
-  the intended real-world protocol
-
-The compiler verifies that your code follows the declared protocol.
-It does not verify that the protocol itself is correct.
 
 ## Installation
 
@@ -71,99 +45,76 @@ It does not verify that the protocol itself is correct.
 nimble install typestates
 ```
 
-Or add to your `.nimble` file:
+Or pin it in your `.nimble` file:
 
 ```nim
-requires "typestates >= 0.1.0"
+requires "typestates >= 0.4.0"
 ```
 
-> **⚠️ Nim < 2.2.8 with Static Generics**
->
-> If you use `static` generic parameters (e.g., `Buffer[N: static int]`) with ARC/ORC/AtomicARC,
-> you may hit a [Nim codegen bug](https://github.com/nim-lang/Nim/issues/25341) fixed in Nim 2.2.8.
-> The library detects this and shows workarounds. Options:
->
-> 1. Use `--mm:refc` instead of ARC/ORC
-> 2. Make your base type inherit from `RootObj` and add `inheritsFromRootObj = true`
-> 3. Upgrade to Nim >= 2.2.8 (when released)
-> 4. Add `consumeOnTransition = false` to your typestate
->
-> Regular generics (`Container[T]`) are not affected.
+Requires Nim 2.2 or newer. If you're on Nim 2.2.x older than 2.2.8 and using ARC/ORC with `static` generic parameters, see the note below on a known codegen bug.
+
+## What you get from the compiler
+
+Once you've declared a typestate and marked your procs with `{.transition.}`, the compiler enforces three things:
+
+- Each transition proc moves between states the way you declared. A proc that claims to take an `Authorized` and return a `Captured` cannot quietly become a transition from `Created`.
+- Operations on a state are only callable when a value is in that state. `capture(p)` won't compile if `p` is `Created`.
+- A value occupies one state at a time. The distinct types make it impossible to hold a `Captured` and an `Authorized` view of the same object simultaneously.
+
+What the compiler can't check is whether your declared state machine matches reality. If your spec says `Authorized -> Captured` is allowed but your business rules actually forbid it after 7 days, that's a separate problem.
 
 ## Usage
 
-### Define states as distinct types
+### Branching transitions
+
+A capture might succeed and settle, partially refund, or fully refund. Declare the alternatives as a union:
 
 ```nim
-import typestates
-
-type
-  File = object
-    path: string
-    fd: int
-  Closed = distinct File
-  Open = distinct File
-```
-
-### Declare valid transitions
-
-```nim
-typestate File:
-  states Closed, Open
+typestate Payment:
+  states Captured, PartiallyRefunded, FullyRefunded, Settled
   transitions:
-    Closed -> Open
-    Open -> Closed
+    Captured -> (PartiallyRefunded | FullyRefunded | Settled) as CaptureResult
 ```
 
-### Implement transitions
+The `as CaptureResult` names the union type so transition procs can return it. Callers then pattern-match (or use the generated discriminators) to know which branch they got.
+
+### Async transitions
+
+Pair `{.async, transition.}` with `Future[T]` returns. Bridging through `Result` works too:
 
 ```nim
-proc open(f: Closed, path: string): Open {.transition.} =
-  var file = f.File
-  file.path = path
-  file.fd = 1
-  result = Open(file)
+proc authorize(p: Created): Future[Authorized] {.async, transition.} =
+  await callPaymentGateway(p)
+  return Authorized(p.Payment)
 
-proc close(f: Open): Closed {.transition.} =
-  result = Closed(f.File)
+proc capture(p: Authorized): Future[Result[Captured, GatewayError]] {.async, transition.} =
+  ...
 ```
 
-### Mark non-transitions
+Transparent wrappers (`Result[State, E]`, `Option[State]`, `Future[State]`) are recognized in return positions without losing the typestate guarantees.
+
+### Generic typestates
+
+States can carry type parameters, which is useful for typed buffers, containers, and similar:
 
 ```nim
-proc read(f: Open, n: int): string {.notATransition.} =
-  result = "data"
+type
+  Container[T] = object
+    items: seq[T]
+  Empty[T] = distinct Container[T]
+  Full[T] = distinct Container[T]
 
-proc write(f: Open, data: string) {.notATransition.} =
-  discard
+typestate Container[T]:
+  states Empty[T], Full[T]
+  transitions:
+    Empty[T] -> Full[T]
 ```
 
-## Key Features
+### Cross-type bridges
 
-| Feature | Description |
-|---------|-------------|
-| **Compile-time validation** | Invalid transitions are compilation errors |
-| **Zero runtime cost** | All validation happens at compile time |
-| **Branching transitions** | `Open -> (Closed \| Error) as Result` |
-| **Wildcard transitions** | `* -> Closed` (any state can transition) |
-| **Union source params** | `proc cancel(o: Open \| PartiallyFilled): Cancelling` |
-| **Transparent wrappers** | `Result[State, E]`, `Option[State]`, `Future[State]` in returns |
-| **Async transitions** | `Future[T]` / `Future[Result[T, E]]` with `{.async, transition.}` |
-| **Generic typestates** | `Container[T]` with states like `Empty[T]`, `Full[T]` |
-| **Cross-type bridges** | Transition between different typestates |
-| **Visualization** | Export to GraphViz DOT, PNG, SVG |
-| **CLI tool** | Project-wide verification |
-| **Strict mode** | Require explicit marking of all state operations |
-| **Sealed typestates** | Control external module access |
-
-### Cross-Type Bridges
-
-Model resource transformation and protocol handoff between typestates:
+If finishing one typestate hands control to another (auth flow into a session, for example), declare the bridge:
 
 ```nim
-import typestates
-import ./session
-
 typestate AuthFlow:
   states Pending, Authenticated, Failed
   transitions:
@@ -173,64 +124,75 @@ typestate AuthFlow:
     Authenticated -> Session.Active
     Failed -> Session.Guest
 
-# Bridge implementation
 converter toSession(auth: Authenticated): Active {.transition.} =
   Active(Session(userId: auth.AuthFlow.userId))
 ```
 
-Bridges are validated at compile time and shown in visualization.
+Bridges show up in the generated diagrams alongside ordinary transitions.
 
-## CLI Tool
+## Features
 
-Verify typestate rules across your project:
+- States as `distinct` types — no runtime tag, no runtime check, no runtime cost
+- Branching unions (`A -> (B | C) as Result`) and wildcard sources (`* -> Closed`)
+- Union source params: `proc cancel(o: Open | PartiallyFilled): Cancelling`
+- Transparent wrappers in return types: `Result[State, E]`, `Option[State]`, `Future[State]`
+- Async transitions via `{.async, transition.}`
+- Generic typestates including states with `static` parameters
+- Cross-type bridges between separate typestates
+- Strict mode that requires every proc on a state to be marked `{.transition.}` or `{.notATransition.}`
+- Sealed typestates that restrict transitions to the defining module
+- A `typestates` CLI that verifies a project tree and exports diagrams
+
+## CLI
+
+The `typestates` binary verifies a directory and produces GraphViz output:
 
 ```bash
 typestates verify src/
-```
 
-### Visualization
-
-Generate state machine diagrams from your code:
-
-```bash
-# Generate SVG
 typestates dot src/ | dot -Tsvg -o states.svg
-
-# Generate PNG
 typestates dot src/ | dot -Tpng -o states.png
-
-# Minimal output for custom styling
-typestates dot --no-style src/ > states.dot
+typestates dot --no-style src/ > states.dot   # unstyled, easier to theme
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/elijahr/nim-typestates/main/docs/assets/images/generated/multi.svg" alt="State Machine Visualization" width="600">
+  <img src="https://raw.githubusercontent.com/elijahr/nim-typestates/main/docs/assets/images/generated/multi.svg" alt="Generated typestate diagram showing multiple states and transitions" width="600">
 </p>
+
+## Known issue: Nim < 2.2.8 with `static` generics
+
+If you use a `static` generic parameter (`Buffer[N: static int]`) with ARC, ORC, or AtomicARC on Nim 2.2.x before 2.2.8, you may hit a [codegen bug](https://github.com/nim-lang/Nim/issues/25341). The library detects the affected pattern at compile time and prints workarounds. The options, in rough order of preference:
+
+1. Upgrade to Nim 2.2.8 or newer.
+2. Compile with `--mm:refc` instead of ARC/ORC.
+3. Add `consumeOnTransition = false` to the typestate (changes semantics — read the docs).
+4. Make the base type inherit from `RootObj` and set `inheritsFromRootObj = true`.
+
+Plain generics (`Container[T]`) are unaffected.
 
 ## Documentation
 
-- [Getting Started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
-- [DSL Reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
-- [Transparent Wrappers](https://elijahr.github.io/nim-typestates/latest/guide/transparent-wrappers/)
-- [Cross-Type Bridges](https://elijahr.github.io/nim-typestates/latest/guide/bridges/)
-- [Generic Typestates](https://elijahr.github.io/nim-typestates/latest/guide/generics/)
-- [Formal Guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
-- [Error Handling](https://elijahr.github.io/nim-typestates/latest/guide/error-handling/)
+The full guide and API reference live at <https://elijahr.github.io/nim-typestates/>. The pages most people start with:
+
+- [Getting started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
+- [DSL reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
+- [Formal guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
 - [Examples](https://elijahr.github.io/nim-typestates/latest/guide/examples/)
-- [Strict Mode](https://elijahr.github.io/nim-typestates/latest/guide/strict-mode/)
-- [Verification](https://elijahr.github.io/nim-typestates/latest/guide/verification/)
-- [CLI Reference](https://elijahr.github.io/nim-typestates/latest/guide/cli/)
-- [Visualization](https://elijahr.github.io/nim-typestates/latest/guide/visualization/)
-- [API Reference](https://elijahr.github.io/nim-typestates/latest/api/)
-- [Contributing](https://elijahr.github.io/nim-typestates/latest/contributing/)
+- [API reference](https://elijahr.github.io/nim-typestates/latest/api/)
 
-## References
+The [`examples/`](examples/) directory in this repo has runnable versions of the examples used in the docs (payments, OAuth, hardware registers, document workflows, and others).
 
-- [Typestate Pattern in Rust](https://cliffle.com/blog/rust-typestate/)
-- [typestate crate for Rust](https://github.com/rustype/typestate)
-- [Plaid Language](http://www.cs.cmu.edu/~aldrich/plaid/)
-- [Typestate: A Programming Language Concept (Strom & Yemini, 1986)](https://doi.org/10.1109/TSE.1986.6312929)
+## Contributing
+
+Fork, create a branch, run `nimble test` and `nimble compileExamples` before opening a PR. The full guide is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Prior art
+
+- [Typestate pattern in Rust](https://cliffle.com/blog/rust-typestate/) (Cliff Biffle)
+- [`typestate` crate for Rust](https://github.com/rustype/typestate)
+- [Plaid](http://www.cs.cmu.edu/~aldrich/plaid/), a research language with first-class typestate
+- Strom & Yemini, ["Typestate: A programming language concept for enhancing software reliability"](https://doi.org/10.1109/TSE.1986.6312929) (1986) — the original paper
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
