@@ -36,11 +36,14 @@ proc main() =
   let payment = Created(Payment(id: "pay_123", amount: 9999))
   let authed = payment.authorize()
   let captured = authed.capture()
+  echo captured.Payment.id
 
   # payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
 
 main()
 ```
+
+The wrapper `proc main()` is required because typestate values can't be lifted to module scope under the default `consumeOnTransition = true` — the `=dup` hook is disabled, and module-scope `let` bindings would fail to compile.
 
 ## Installation
 
@@ -86,11 +89,11 @@ The `as CaptureResult` names the union type so transition procs can return it. C
 Pair `{.async, transition.}` with `Future[T]` returns. Bridging through `Result` works too:
 
 ```nim
-proc authorize(p: Created): Future[Authorized] {.async, transition.} =
+proc authorize(p: sink Created): Future[Authorized] {.async, transition.} =
   await callPaymentGateway(p)
-  return Authorized(p.Payment)
+  return Authorized(Payment(p))
 
-proc capture(p: Authorized): Future[Result[Captured, GatewayError]] {.async, transition.} =
+proc capture(p: sink Authorized): Future[Result[Captured, GatewayError]] {.async, transition.} =
   ...
 ```
 

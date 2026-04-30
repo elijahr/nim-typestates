@@ -30,6 +30,7 @@ proc main() =
   let payment = Created(Payment(id: "pay_123", amount: 9999))
   let authed = payment.authorize()
   let captured = authed.capture()
+  echo captured.Payment.id
 
   # payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
 
