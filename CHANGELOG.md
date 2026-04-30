@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-30
+
+### Fixed
+
+- **CLI `--version` reported the wrong version.** `typestates --version`
+  printed `typestates 0.3.0` regardless of the installed package version
+  because the string was hardcoded in `showVersion()`. The CLI now derives
+  the version from `NimblePkgVersion` at build time, keeping the package
+  version (`typestates.nimble`) as the single source of truth. The
+  `buildCli` task forwards the version through `-d:NimblePkgVersion=` so
+  developer builds match `nimble install` output.
+
+### Documentation
+
+- README rewritten for clarity. Tightened prose, replaced the Key Features
+  table with a flat list, added a Cross-Type Bridges example, surfaced the
+  Nim < 2.2.8 codegen workaround inline, and trimmed the documentation
+  link list to point readers at the docs site for the long tail.
+
 ## [0.4.0] - 2026-04-23
 
 ### Added
