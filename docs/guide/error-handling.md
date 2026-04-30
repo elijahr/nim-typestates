@@ -207,3 +207,62 @@ when the "failure" is itself a distinct state in the machine.
 For async procs, return `Future[T]` or `Future[Result[T, E]]` with
 `{.async, transition.}` — the chain unwraps through both wrappers.
 See [Transparent Wrappers](transparent-wrappers.md).
+
+## State-Aware Error Messages
+
+Calling a transition on the wrong source state used to surface Nim's
+generic `Error: type mismatch` diagnostic. Starting in v0.5, every module
+that ends with `verifyTypestates()` automatically emits `{.error.}` decoy
+overloads alongside each non-generic, non-branching `{.transition.}` proc.
+The decoys cover the *other* states of the same typestate, so misuse fires
+a tailored message naming the proc, the wrong state, and the expected
+source state.
+
+```nim
+typestate Door:
+  states Closed, Open, Locked
+  transitions:
+    Closed -> Open
+    Open -> Locked
+
+proc unlock(d: sink Closed): Open {.transition.} =
+  Open(Door(d))
+
+proc lock(d: sink Open): Locked {.transition.} =
+  Locked(Door(d))
+
+verifyTypestates()  # required for state-aware errors
+
+let c = Closed(Door())
+discard c.lock()
+# Error: Cannot call 'lock' on a value in state 'Closed'.
+#   Expected 'Open'. (Defined at <module>)
+```
+
+The trailing parameters of the original transition are preserved on the
+decoy, so `proc close(a: sink Active, reason: string)` produces decoys
+shaped `proc close(p: sink Frozen, reason: string)`, ensuring overload
+resolution selects the decoy at the call site even when the user passed
+extra arguments.
+
+### When decoys are *not* emitted
+
+The v0.5 pass intentionally skips three categories. Misuse in these
+configurations still fails to compile, but with the standard `type
+mismatch` message rather than the tailored one. Lifting these
+restrictions is tracked as a v0.6 follow-up.
+
+- **Generic typestates** (`typestate Container[T]:`). The decoy codegen
+  needs to thread the typestate's generic parameters through each
+  decoy `nnkProcDef`, which v0.5 does not do.
+- **Branching-return transitions** (`Created -> (Approved | Declined)
+  as ProcessResult`). A decoy returning `auto` cannot represent the
+  branch shape unambiguously.
+- **Union-source transitions** (`proc f(s: Open | PartiallyFilled): ...`).
+  A union source already covers multiple states; deriving the
+  *uncovered* states from a union is deferred.
+
+If `verifyTypestates()` is omitted from a module, no decoys are emitted
+and you fall back to Nim's default error. Keep the call as the last
+statement of the module so all transitions and overloads have been
+registered before the decoy pass runs.

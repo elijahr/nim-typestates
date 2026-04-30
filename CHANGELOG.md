@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compile-time exhaustiveness checking. The matched value must be `var`
   (branch fields are extracted with `move`), arms use `StateName(bind):`
   syntax, and missing or unknown branches error at the call site.
+- **State-aware error messages on transition misuse.** When a module calls
+  `verifyTypestates()`, every non-generic, non-branching `{.transition.}` proc
+  now also emits `{.error.}` decoy overloads for the other states in its
+  typestate. Calling a transition with the wrong source state surfaces a
+  tailored message naming the proc, the wrong state, and the expected source,
+  instead of Nim's generic "type mismatch" diagnostic. Generic typestates and
+  branching-return procs are skipped in v0.5 and tracked as a v0.6 follow-up.
 
 ### Fixed
 
