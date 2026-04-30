@@ -188,6 +188,79 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
 
     result.add procDef
 
+proc generateStateDollar*(graph: TypestateGraph): NimNode =
+  ## Generate `$` overload for each leaf state type and the state enum.
+  ##
+  ## For each state, emits a proc returning the bare state name:
+  ##
+  ## ```nim
+  ## proc `$`*(s: Closed): string = "Closed"
+  ## proc `$`*[T](s: Empty[T]): string = "Empty"
+  ## ```
+  ##
+  ## Also emits a `$` over the generated state enum that strips the `fs` prefix:
+  ##
+  ## ```nim
+  ## proc `$`*(s: FileState): string =
+  ##   case s
+  ##   of fsClosed: "Closed"
+  ##   of fsOpen: "Open"
+  ## ```
+  ##
+  ## :param graph: The typestate graph
+  ## :returns: AST for `$` overloads (one per state + one over the enum)
+  result = newStmtList()
+
+  let dollarIdent = nnkAccQuoted.newTree(ident("$"))
+  let stringIdent = ident("string")
+  let enumName = ident(graph.name & "State")
+
+  # Per-state $ overload. Mirrors the signature of `generateStateProcs` so the
+  # last-read consume rules are identical.
+  for state in graph.states.values:
+    let stateType = state.typeName.copyNimTree
+    let nameLit = newLit(state.name)
+    let docComment = newCommentStmtNode(
+      "String representation for state '" & state.name & "'.\n" &
+        "Returns the bare state name (no fs prefix)."
+    )
+    let procDef = nnkProcDef.newTree(
+      nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        stringIdent,
+        nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode()),
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      nnkStmtList.newTree(docComment, nameLit),
+    )
+    result.add procDef
+
+  # Enum $ overload (strips fs prefix)
+  var caseStmt = nnkCaseStmt.newTree(ident("s"))
+  for state in graph.states.values:
+    let fieldName = ident("fs" & state.name)
+    caseStmt.add nnkOfBranch.newTree(fieldName, newLit(state.name))
+  let enumDocComment = newCommentStmtNode(
+    "String representation of " & graph.name & "State enum.\n" &
+      "Strips the fs prefix for human-friendly output."
+  )
+  let enumProcDef = nnkProcDef.newTree(
+    nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
+    newEmptyNode(),
+    newEmptyNode(), # enum $ is not generic
+    nnkFormalParams.newTree(
+      stringIdent,
+      nnkIdentDefs.newTree(ident("s"), enumName, newEmptyNode()),
+    ),
+    newEmptyNode(),
+    newEmptyNode(),
+    nnkStmtList.newTree(enumDocComment, caseStmt),
+  )
+  result.add enumProcDef
+
 proc hasGenericStates*(graph: TypestateGraph): bool =
   ## Check if any states use generic type parameters.
   for state in graph.states.values:
@@ -562,6 +635,65 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
 
       result.add templateDef
 
+proc generateBranchDollar*(graph: TypestateGraph): NimNode =
+  ## Generate `$` overload for each branching union type.
+  ##
+  ## For a branching transition `Created -> A | B | C as Result`, emits:
+  ##
+  ## ```nim
+  ## proc `$`*(r: Result): string =
+  ##   case r.kind
+  ##   of pA: "A"
+  ##   of pB: "B"
+  ##   of pC: "C"
+  ## ```
+  ##
+  ## For generic typestates the union type includes the typestate's type
+  ## parameters so the proc binds correctly under generic instantiation.
+  ##
+  ## :param graph: The typestate graph
+  ## :returns: AST for `$` overloads over branching union types (one per union)
+  result = newStmtList()
+
+  let dollarIdent = nnkAccQuoted.newTree(ident("$"))
+  let stringIdent = ident("string")
+
+  for t in getBranchingTransitions(graph):
+    if t.branchTypeName.len == 0:
+      continue # Only branching transitions with `as ResultName` produce a union type.
+    # For generic typestates we want the AST node (e.g. `Result[T]`) so the
+    # generated `$` proc binds correctly under generic instantiation. For
+    # non-generic typestates the bare ident is sufficient.
+    let unionTypeNode =
+      if graph.typeParams.len > 0 and t.branchTypeNode != nil:
+        t.branchTypeNode.copyNimTree
+      else:
+        ident(extractBaseName(t.branchTypeName))
+    let prefix = branchEnumPrefix(extractBaseName(t.branchTypeName))
+    let kindAccess = newDotExpr(ident("r"), ident("kind"))
+    var caseStmt = nnkCaseStmt.newTree(kindAccess)
+    for destBase in t.toStates:
+      let baseName = extractBaseName(destBase)
+      let kindField = ident(prefix & baseName)
+      caseStmt.add nnkOfBranch.newTree(kindField, newLit(baseName))
+    let docComment = newCommentStmtNode(
+      "String representation of branching union '" & t.branchTypeName &
+        "'.\nReturns the active branch's bare state name."
+    )
+    let procDef = nnkProcDef.newTree(
+      nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        stringIdent,
+        nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode()),
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      nnkStmtList.newTree(docComment, caseStmt),
+    )
+    result.add procDef
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -586,7 +718,9 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateStateEnum(graph)
   result.add generateUnionType(graph)
   result.add generateStateProcs(graph)
+  result.add generateStateDollar(graph)
   result.add generateCopyHooks(graph)
   result.add generateBranchTypes(graph)
   result.add generateBranchConstructors(graph)
   result.add generateBranchOperators(graph)
+  result.add generateBranchDollar(graph)
