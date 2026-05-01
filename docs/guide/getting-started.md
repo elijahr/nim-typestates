@@ -174,6 +174,30 @@ proc describe[S: FileStates](f: S): string =
   of fsOpen: "File is open"
 ```
 
+## Opting Into State-Aware Error Messages
+
+By default, calling a transition on the wrong source state produces a generic
+type-mismatch error. To get a tailored, state-aware error message that names
+the proc, the wrong state, and the expected source states, call
+`verifyTypestates()` at the bottom of your module:
+
+```nim
+import typestates
+
+typestate File:
+  states Closed, Open
+  transitions:
+    Closed -> Open
+    Open -> Closed
+
+proc open(f: sink Closed, path: string): Open {.transition.} = ...
+proc close(f: sink Open): Closed {.transition.} = ...
+
+verifyTypestates()  # Enables state-aware error decoys for the procs above
+```
+
+See [Error Handling](error-handling.md) for the full mechanism and examples.
+
 ## Next Steps
 
 - [DSL Reference](dsl-reference.md) - Learn about branching, wildcards, and more

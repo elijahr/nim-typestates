@@ -32,6 +32,8 @@ type
     bridges*: seq[ParsedBridge]
     isSealed*: bool
     strictTransitions*: bool
+    initialStates*: seq[string] ## States declared in `initial:` block
+    terminalStates*: seq[string] ## States declared in `terminal:` block
 
   ParseResult* = object ## Results from parsing source files.
     typestates*: seq[ParsedTypestate]
@@ -105,6 +107,73 @@ proc extractStates(node: PNode): seq[string] =
             result.add name
         else:
           discard
+
+proc collectStateIdents(node: PNode, out_states: var seq[string]) =
+  ## Walk a node tree and collect state names.
+  ##
+  ## Handles nkIdent, nkBracketExpr (generic states like `Pinned[T]`), nested
+  ## nkInfix("," , left, right) chains for comma-separated lists, and nkStmtList
+  ## for multi-line block bodies. Symmetric with how `extractStates` handles its
+  ## children for the `states` keyword.
+  if node == nil:
+    return
+  case node.kind
+  of nkIdent:
+    out_states.add node.ident.s
+  of nkBracketExpr:
+    out_states.add renderTree(node, {})
+  of nkInfix:
+    # Nested comma chain: e.g. `A, B, C` parses as nkInfix(",", nkInfix(",", A, B), C)
+    if node.len >= 3 and extractIdent(node[0]) == ",":
+      collectStateIdents(node[1], out_states)
+      collectStateIdents(node[2], out_states)
+  of nkStmtList:
+    for child in node:
+      collectStateIdents(child, out_states)
+  else:
+    discard
+
+proc extractInitialStates(node: PNode): seq[string] =
+  ## Extract state names from `initial: A` or `initial: A, B` or
+  ## `initial:` (with multi-line indented body).
+  ##
+  ## Reference shape from `extractStates` (lines ~70-107):
+  ##   if node.kind == nkCommand and node.len >= 2:
+  ##     let first = extractIdent(node[0])
+  ##     if first == "states":
+  ##       for i in 1 ..< node.len:
+  ##         case child.kind
+  ##         of nkIdent: result.add child.ident.s
+  ##         of nkBracketExpr: result.add renderTree(child, {})
+  ##         of nkInfix: # comma chain ...
+  ##
+  ## The `initial:` keyword shows up as nkCall when followed by a `:` block
+  ## (multi-line) and as nkCommand when used inline (`initial: A`). Both forms
+  ## are tolerated here.
+  result = @[]
+  if node.kind notin {nkCommand, nkCall}:
+    return
+  if node.len < 2:
+    return
+  let kw = extractIdent(node[0])
+  if kw != "initial":
+    return
+  for i in 1 ..< node.len:
+    collectStateIdents(node[i], result)
+
+proc extractTerminalStates(node: PNode): seq[string] =
+  ## Extract state names from `terminal: A` / `terminal: A, B` /
+  ## `terminal:` block. Symmetric with `extractInitialStates`.
+  result = @[]
+  if node.kind notin {nkCommand, nkCall}:
+    return
+  if node.len < 2:
+    return
+  let kw = extractIdent(node[0])
+  if kw != "terminal":
+    return
+  for i in 1 ..< node.len:
+    collectStateIdents(node[i], result)
 
 proc extractTransition(node: PNode): Option[ParsedTransition] =
   ## Extract a transition from an infix or prefix node.
@@ -374,6 +443,14 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       let bridges = extractBridges(child)
       if bridges.len > 0:
         ts.bridges.add bridges
+
+      # Check for initial: / terminal: blocks
+      let initials = extractInitialStates(child)
+      if initials.len > 0:
+        ts.initialStates.add initials
+      let terminals = extractTerminalStates(child)
+      if terminals.len > 0:
+        ts.terminalStates.add terminals
 
       # Check for flags
       let sealedFlag = extractFlag(child, "isSealed")

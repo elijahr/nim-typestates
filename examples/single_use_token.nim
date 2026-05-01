@@ -34,6 +34,8 @@ typestate Token:
     Valid
   terminal:
     Used
+    Expired
+    Revoked
   transitions:
     Valid -> Used # Consume the token
     Valid -> Expired # Token expires

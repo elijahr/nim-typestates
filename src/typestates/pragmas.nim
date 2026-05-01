@@ -502,6 +502,44 @@ macro transition*(procDef: untyped): untyped =
   if not hasRaises:
     result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
 
+  # F5: register the transition for state-aware error decoy emission.
+  #
+  # The decoys themselves are emitted later by `verifyTypestates()` based on
+  # the full registry of transitions in the module. Deferring lets us see
+  # ALL overloads of a given proc name (e.g., `proc reset(p: PathA)`,
+  # `proc reset(p: PathB)`) and only emit decoys for states NOT covered by
+  # any real overload — avoiding "redefinition" conflicts.
+  #
+  # v0.5 scope (recorded here so `verifyTypestates` can apply uniform skip
+  # rules even when a generic typestate, branching-return, or union-source
+  # proc is registered): skip emission entirely when any of those apply.
+  if allDiagnostics.len == 0 and commonGraphSet:
+    var procNameStr: string
+    if procDef[0].kind == nnkPostfix:
+      procNameStr = procDef[0][1].strVal
+    else:
+      procNameStr = procDef[0].strVal
+
+    # Encode the proc kind so verifyTypestates can distinguish transition
+    # procs from notATransition procs. F5 only cares about transitions.
+    var extraParams: seq[NimNode] = @[]
+    let allParams = procDef.params
+    for i in 2 ..< allParams.len:
+      extraParams.add allParams[i].copyNimTree
+    registerProc(
+      RegisteredProc(
+        name: procNameStr,
+        sourceState: (if firstParamTypes.len == 1: firstParamTypes[0]
+        else: ""),
+        destStates: destTypeNames,
+        kind: pkTransition,
+        declaredAt: procDef.lineInfoObj,
+        modulePath: procDef.lineInfoObj.filename,
+        firstParamType: allParams[1][^2].copyNimTree,
+        extraParams: extraParams,
+      )
+    )
+
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.
   ##

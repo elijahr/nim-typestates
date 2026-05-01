@@ -14,9 +14,9 @@
 ## - `{.notATransition.}` pragma - Mark non-transition procs
 
 import std/macros
-import typestates/[types, parser, registry, pragmas, codegen, constraints]
+import typestates/[types, parser, registry, pragmas, codegen, constraints, reachability]
 
-export types, pragmas, constraints
+export types, pragmas, constraints, reachability
 
 proc needsConstraintInference(
     name, body: NimNode
@@ -187,6 +187,10 @@ macro typestate*(name: untyped, body: untyped): untyped =
   ## - `* -> X` - Wildcard (any state can go to X)
   ##
   ## See also: `{.transition.}` pragma for implementing transitions
+  ##
+  ## To opt into state-aware error messages on transition misuse, call
+  ## `verifyTypestates()` at the bottom of your module. See
+  ## `docs/guide/error-handling.md` for details.
   ##
   ## :param name: The base type name (must match your type definition)
   ## :param body: The states and transitions declarations

@@ -200,6 +200,11 @@ State values must be consumed, not copied. Use these patterns:
 
 - **`expression is immutable, not 'var'`**: Using `move()` on a `let` binding. Change to `var`.
 
+- **`'=copy' is not available... requires a copy because it's not the last read`** when calling `$x` before a transition: The generated `$` proc reads the value by copy, so `echo $x` followed by `x.transition()` triggers a copy hook error on the second read. The same applies to `state(x)`. Use one of:
+  - Print after the final transition: `let final = x.transition(); echo $final`
+  - Print the state enum constant directly: `echo $fsClosed` (no value read)
+  - Set `consumeOnTransition = false` on the typestate if you need to inspect values without consuming them
+
 **When to use `consumeOnTransition = false`:**
 
 Set `consumeOnTransition = false` when:
@@ -450,6 +455,29 @@ of pApproved: echo "Approved: ", result.approved.Payment.amount
 of pDeclined: echo "Declined"
 of pReview: echo "Needs review"
 ```
+
+**Pattern matching with `match`:**
+
+Each branching union gets an auto-generated `match` macro that dispatches on
+the variant kind with compile-time exhaustiveness checking.
+
+```nim
+var r = payment.capture()
+match r:
+  Settled(s): echo "settled: ", s.Payment.id
+  PartiallyRefunded(p): echo "partial: ", p.Payment.id
+  FullyRefunded(f): echo "refunded: ", f.Payment.id
+```
+
+Three constraints apply:
+
+1. **The matched value must be `var`.** Branch fields are extracted with
+   `move()`, which requires a mutable binding.
+2. **Use `StateName(bind):`, not `of StateName as bind:`.** The latter is a
+   parser-level error and is not emitted by the macro.
+3. **All branches must be covered.** The macro errors at compile time if a
+   branch is missing or names a state outside the union — there is no `else:`
+   escape hatch.
 
 **What gets generated:**
 

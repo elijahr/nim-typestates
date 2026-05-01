@@ -26,18 +26,24 @@ typestate Payment:
     Created -> Authorized
     Authorized -> Captured
 
-proc authorize(p: Created): Authorized {.transition.} =
-  Authorized(p.Payment)
+proc authorize(p: sink Created): Authorized {.transition.} =
+  Authorized(Payment(p))
 
-proc capture(p: Authorized): Captured {.transition.} =
-  Captured(p.Payment)
+proc capture(p: sink Authorized): Captured {.transition.} =
+  Captured(Payment(p))
 
-let payment = Created(Payment(id: "pay_123", amount: 9999))
-let authed = payment.authorize()
-let captured = authed.capture()
+proc main() =
+  let payment = Created(Payment(id: "pay_123", amount: 9999))
+  let authed = payment.authorize()
+  let captured = authed.capture()
+  echo captured.Payment.id
 
-# payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
+  # payment.capture()  # type mismatch: got 'Created' but expected 'Authorized'
+
+main()
 ```
+
+The wrapper `proc main()` is required because typestate values can't be lifted to module scope under the default `consumeOnTransition = true` — the `=dup` hook is disabled, and module-scope `let` bindings would fail to compile.
 
 ## Installation
 
@@ -63,6 +69,8 @@ Once you've declared a typestate and marked your procs with `{.transition.}`, th
 
 What the compiler can't check is whether your declared state machine matches reality. If your spec says `Authorized -> Captured` is allowed but your business rules actually forbid it after 7 days, that's a separate problem.
 
+To enable state-aware error messages on transition misuse, end your module with `verifyTypestates()`. See [error handling](docs/guide/error-handling.md) for details.
+
 ## Usage
 
 ### Branching transitions
@@ -83,11 +91,11 @@ The `as CaptureResult` names the union type so transition procs can return it. C
 Pair `{.async, transition.}` with `Future[T]` returns. Bridging through `Result` works too:
 
 ```nim
-proc authorize(p: Created): Future[Authorized] {.async, transition.} =
+proc authorize(p: sink Created): Future[Authorized] {.async, transition.} =
   await callPaymentGateway(p)
-  return Authorized(p.Payment)
+  return Authorized(Payment(p))
 
-proc capture(p: Authorized): Future[Result[Captured, GatewayError]] {.async, transition.} =
+proc capture(p: sink Authorized): Future[Result[Captured, GatewayError]] {.async, transition.} =
   ...
 ```
 
