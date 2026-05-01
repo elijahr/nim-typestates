@@ -11,21 +11,21 @@
 ##    opaque-flagged typestate with no initial states declared.
 ## 2. If the table is empty, return immediately (fast path).
 ## 3. For each path, parse the source file via the compiler API and walk the
-##    AST tracking an `inTransition` depth counter. Routine defs carrying
-##    `{.transition.}` push the counter; lambdas/templates/macros inherit
-##    without pushing.
+##    AST tracking an `inTransition` flag. Routine definitions are separate
+##    scopes: a routine carrying `{.transition.}` lints its body with
+##    `inTransition = 1`; any other routine def (including nested unmarked
+##    procs, templates, and macros) lints its body with `inTransition = 0`.
+##    `nkLambda` / `nkDo` are anonymous scopes that inherit the surrounding
+##    flag.
 ## 4. Calls (`nkCall`/`nkCommand`) where the callee is an `nkIdent` or
 ##    `nkDotExpr` referencing a non-initial opaque state, with
 ##    `inTransition == 0`, emit a warning.
 
 import std/[os, strformat, strutils, tables]
 
-import
-  compiler/[
-    ast, parser, llstream, idents, options as compiler_options, pathutils,
-  ]
+import compiler/ast
 
-import ./ast_parser  # re-uses ParseResult, ParseError
+import ./ast_parser  # re-uses ParseResult, ParseError, parsePNode
 
 type
   OpaqueInfo = object
@@ -95,43 +95,28 @@ proc inspectCall(n: PNode, ctx: var LintCtx) =
 proc walk(n: PNode, ctx: var LintCtx) =
   if n == nil:
     return
-  var pushed = false
-  if n.kind in RoutineDefKinds:
-    if hasTransitionPragma(n):
-      inc ctx.inTransition
-      pushed = true
+
+  # Routine definitions are SEPARATE scopes from their enclosing routine.
+  # A nested `proc inner()` declared inside a `{.transition.}` body does
+  # not inherit the outer's transition status — its body must be linted
+  # afresh. Templates and macros likewise carry their own scope.
+  #
+  # nkLambda/nkDo are anonymous scopes that DO inherit (they're part of
+  # the surrounding expression, not a separate definition site).
+  if n.kind in RoutineDefKinds + {nkTemplateDef, nkMacroDef}:
+    let savedInTransition = ctx.inTransition
+    ctx.inTransition =
+      if n.kind in RoutineDefKinds and hasTransitionPragma(n): 1
+      else: 0
+    for child in n:
+      walk(child, ctx)
+    ctx.inTransition = savedInTransition
+    return
+
   if n.kind in {nkCall, nkCommand}:
     inspectCall(n, ctx)
   for child in n:
     walk(child, ctx)
-  if pushed:
-    dec ctx.inTransition
-
-proc parseSource(path: string): PNode =
-  ## Parse a source file into a raw PNode using the compiler API. Mirrors
-  ## the setup in `ast_parser.parseFileWithAst`. Raises `ParseError` on
-  ## failure.
-  if not fileExists(path):
-    raise newException(ParseError,
-      "lint_opaque_states: file not found: " & path)
-  let content = readFile(path)
-  let absPath = AbsoluteFile(path.absolutePath)
-  let cache = newIdentCache()
-  let config = newConfigRef()
-  config.notes = {}
-  config.foreignPackageNotes = {}
-  var p: Parser
-  let stream = llStreamOpen(content)
-  if stream == nil:
-    raise newException(ParseError,
-      "lint_opaque_states: failed to open stream for: " & path)
-  try:
-    openParser(p, absPath, stream, cache, config)
-    result = parseAll(p)
-    closeParser(p)
-  except CatchableError as e:
-    raise newException(ParseError,
-      "lint_opaque_states: parse error in " & path & ": " & e.msg)
 
 proc lintOpaqueStates*(parseResult: ParseResult,
                        paths: seq[string]): seq[string] =
@@ -162,14 +147,14 @@ proc lintOpaqueStates*(parseResult: ParseResult,
     if path.endsWith(".nim"):
       ctx.path = path
       ctx.inTransition = 0
-      let ast = parseSource(path)
+      let ast = parsePNode(path)
       walk(ast, ctx)
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
           ctx.path = file
           ctx.inTransition = 0
-          let ast = parseSource(file)
+          let ast = parsePNode(file)
           walk(ast, ctx)
 
   result.add ctx.warnings

@@ -500,13 +500,12 @@ proc walkAst(node: PNode, typestates: var seq[ParsedTypestate]) =
   for child in node:
     walkAst(child, typestates)
 
-proc parseFileWithAst*(path: string): ParseResult =
-  ## Parse a Nim file using the compiler's AST parser.
+proc parsePNode*(path: string): PNode =
+  ## Parse a Nim source file into a raw `PNode` using the compiler API.
   ##
-  ## Raises ParseError if the file cannot be parsed.
-  result = ParseResult()
-  result.filesChecked = 1
-
+  ## Encapsulates the compiler-API setup (file read, parser open, parseAll,
+  ## parser close, error wrapping). Raises `ParseError` on failure. Used by
+  ## `parseFileWithAst` and the opaque-states lint walker.
   if not fileExists(path):
     raise newParseError("File not found: " & path)
 
@@ -528,13 +527,20 @@ proc parseFileWithAst*(path: string): ParseResult =
 
   try:
     openParser(p, absPath, stream, cache, config)
-    let ast = parseAll(p)
+    result = parseAll(p)
     closeParser(p)
-
-    # Walk AST looking for typestates
-    walkAst(ast, result.typestates)
   except Exception as e:
     raise newParseError("Parse error in " & path & ": " & e.msg)
+
+proc parseFileWithAst*(path: string): ParseResult =
+  ## Parse a Nim file using the compiler's AST parser.
+  ##
+  ## Raises ParseError if the file cannot be parsed.
+  result = ParseResult()
+  result.filesChecked = 1
+
+  let ast = parsePNode(path)
+  walkAst(ast, result.typestates)
 
 proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   ## Parse all Nim files in the given paths for typestates.

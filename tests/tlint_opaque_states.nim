@@ -499,3 +499,48 @@ let bad = Captured(Payment(id: "x"))
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
+
+  test "23. nested unmarked proc inside transition: bypass detected":
+    # A nested `proc inner` (no `{.transition.}` pragma) declared inside
+    # an outer `{.transition.}` body is a SEPARATE scope. Its body must
+    # be linted as if outside any transition, i.e. raw `Captured(...)`
+    # construction in `inner` is a bypass and must be flagged.
+    #
+    # Regression: previously the walker incremented `inTransition` on
+    # entry to the outer routine and never reset on entry to the nested
+    # routine, silently swallowing this bypass.
+    let body = opaquePaymentHeader & """
+
+proc cap(a: Authorized): Captured {.transition.} =
+  proc inner(): Captured =
+    Captured(Payment(id: "leak"))
+  Captured(a)
+"""
+    let path = writeTemp("tlint_opaque_23.nim", body)
+    let warnings = lintOf(path)
+    check warnings.len == 1
+    check "bypass of opaque state 'Captured'" in warnings[0]
+    # Line of the inner-proc bypass: header lines + 4 lines into the body
+    # (blank, `proc cap...`, `  proc inner()...`, `    Captured(...)`).
+    let headerLines = opaquePaymentHeader.count('\n')
+    let leakLine = headerLines + 4
+    check (":" & $leakLine & " ") in warnings[0]
+    removeFile(path)
+
+  test "24. nested transition proc inside transition: dest state allowed in inner body":
+    # Documents the reset-to-1 semantics: when a nested routine carries
+    # `{.transition.}` (verified to be macro-accepted on Nim 2.2.6), the
+    # walker enters its body with `inTransition = 1` regardless of the
+    # outer scope. Constructing a non-initial opaque state inside the
+    # inner body is therefore allowed.
+    let body = opaquePaymentHeader & """
+
+proc outer(c: Created): Authorized {.transition.} =
+  proc inner(a: Authorized): Captured {.transition.} =
+    Captured(a)
+  Authorized(c)
+"""
+    let path = writeTemp("tlint_opaque_24.nim", body)
+    let warnings = lintOf(path)
+    check warnings.len == 0
+    removeFile(path)
