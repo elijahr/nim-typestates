@@ -18,9 +18,14 @@ import ast_parser
 import types
 import reachability
 import lint_opaque_states
+import findings
 
 # Re-export types from ast_parser for API compatibility
 export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
+
+# Re-export structured-finding API so `import typestates/cli` callers reach
+# `Finding`, `Severity`, `formatHuman`, etc. without a second import.
+export findings
 
 type
   SplineMode* = enum
@@ -36,17 +41,10 @@ type
     isWildcard: bool
     headPort: string # Compass point for arrow head (only used with non-ortho splines)
 
-  VerifyResult* = object
-    ## Results from verifying source files.
-    ##
-    ## :var errors: List of error messages
-    ## :var warnings: List of warning messages
-    ## :var transitionsChecked: Count of transitions validated
-    ## :var filesChecked: Count of files processed
-    errors*: seq[string]
-    warnings*: seq[string]
-    transitionsChecked*: int
-    filesChecked*: int
+# `VerifyResult` is defined in `findings.nim` and re-exported above. It now
+# carries `findings: seq[Finding]` instead of the v0.6 `errors: seq[string]` /
+# `warnings: seq[string]`. Use the `errors()` / `warnings()` accessors or
+# `anyErrors`/`anyWarnings` to query.
 
 proc dotQuote(s: string): string =
   ## Quote a string for DOT if it contains special characters.
@@ -512,12 +510,14 @@ proc verifyFile(
   ## :param path: Path to the Nim source file
   ## :param typestateStates: Map of typestate name to state names
   ## :param typestateStrict: Map of typestate name to strictTransitions flag
-  ## :returns: Verification results with errors and warnings
+  ## :returns: Verification results with structured findings.
   result = VerifyResult()
   result.filesChecked = 1
 
   if not fileExists(path):
-    result.errors.add "File not found: " & path
+    result.findings.add mkError(
+      fcFileNotFound, path, 0, "File not found: " & path
+    )
     return
 
   let content = readFile(path)
@@ -541,9 +541,15 @@ proc verifyFile(
             if firstParamType in states:
               if not hasTransition and not hasNotATransition:
                 if typestateStrict.getOrDefault(tsName, true):
-                  result.errors.add fmt"{path}:{i+1} - Unmarked proc on state '{firstParamType}' (strictTransitions enabled)"
+                  result.findings.add mkError(
+                    fcUnmarkedProcStrict, path, i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}' (strictTransitions enabled)"
+                  )
                 else:
-                  result.warnings.add fmt"{path}:{i+1} - Unmarked proc on state '{firstParamType}'"
+                  result.findings.add mkWarning(
+                    fcUnmarkedProc, path, i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}'"
+                  )
               else:
                 result.transitionsChecked += 1
 
@@ -572,19 +578,27 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## Uses Nim's AST parser to extract typestates, then checks that all
   ## procs operating on state types are properly marked with
   ## `{.transition.}` or `{.notATransition.}`. Also runs reachability
-  ## analysis when `initial:` / `terminal:` blocks are declared and
-  ## appends findings to `result.warnings`.
+  ## analysis when `initial:` / `terminal:` blocks are declared and the
+  ## opaque-states cast-bypass lint, appending all results to
+  ## `result.findings`.
   ##
-  ## **Note:** Files with syntax errors cause verification to fail
-  ## immediately with a clear error message.
+  ## Files with syntax errors no longer abort the pipeline: they surface as
+  ## `fcParseError` findings routed through the normal output formatters.
   ##
   ## :param paths: List of file or directory paths to verify
-  ## :returns: Verification results with errors, warnings, and counts
-  ## :raises ParseError: on syntax errors
+  ## :returns: Verification results with structured findings and counts
   result = VerifyResult()
 
-  # First pass: collect all typestates using AST parser
-  let parseResult = parseTypestates(paths)
+  # First pass: collect all typestates using AST parser. ParseError is
+  # converted to a Finding so `--format=github`/`--format=json` consumers
+  # still receive structured output for malformed inputs.
+  var parseResult: ParseResult
+  try:
+    parseResult = parseTypestates(paths)
+  except ParseError as e:
+    result.findings.add mkError(fcParseError, "", 0, e.msg)
+    return # downstream passes need parseResult; bail.
+
   var typestateStates: Table[string, seq[string]]
   var typestateStrict: Table[string, bool]
 
@@ -600,7 +614,7 @@ proc verify*(paths: seq[string]): VerifyResult =
       let inp = parsedToReachabilityInput(pt)
       let report = analyzeReachability(inp)
       for f in report.findings:
-        result.warnings.add formatFinding(
+        result.findings.add toFinding(
           f, report.initialStatesUsed, report.terminalStatesUsed
         )
 
@@ -608,18 +622,16 @@ proc verify*(paths: seq[string]): VerifyResult =
   for path in paths:
     if path.endsWith(".nim"):
       let fileResult = verifyFile(path, typestateStates, typestateStrict)
-      result.errors.add fileResult.errors
-      result.warnings.add fileResult.warnings
+      result.findings.add fileResult.findings
       result.transitionsChecked += fileResult.transitionsChecked
       result.filesChecked += fileResult.filesChecked
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
           let fileResult = verifyFile(file, typestateStates, typestateStrict)
-          result.errors.add fileResult.errors
-          result.warnings.add fileResult.warnings
+          result.findings.add fileResult.findings
           result.transitionsChecked += fileResult.transitionsChecked
           result.filesChecked += fileResult.filesChecked
 
   # Pass 3: opaqueStates lint (CLI-side cast-bypass detection).
-  result.warnings.add(lintOpaqueStates(parseResult, paths))
+  result.findings.add lintOpaqueStates(parseResult, paths)

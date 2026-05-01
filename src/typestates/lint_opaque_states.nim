@@ -26,6 +26,7 @@ import std/[os, sets, strformat, strutils, tables]
 import compiler/[ast, idents, options as compiler_options]
 
 import ./ast_parser # re-uses ParseResult, ParseError, parsePNode
+import ./findings
 
 type
   OpaqueInfo = object
@@ -34,7 +35,7 @@ type
   LintCtx = object
     opaqueNonInitial: Table[string, OpaqueInfo]
     inTransition: int
-    warnings: seq[string]
+    findings: seq[Finding]
     path: string
 
 const RoutineDefKinds =
@@ -100,7 +101,10 @@ proc inspectCall(n: PNode, ctx: var LintCtx) =
   if name notin ctx.opaqueNonInitial:
     return
   let info = ctx.opaqueNonInitial[name]
-  ctx.warnings.add fmt"{ctx.path}:{int(n.info.line)} - bypass of opaque state '{name}' (typestate '{info.typestate}') outside {{.transition.}} proc"
+  ctx.findings.add mkWarning(
+    fcOpaqueStateBypass, ctx.path, int(n.info.line),
+    fmt"bypass of opaque state '{name}' (typestate '{info.typestate}') outside {{.transition.}} proc"
+  )
 
 proc walk(n: PNode, ctx: var LintCtx) =
   if n == nil:
@@ -127,10 +131,11 @@ proc walk(n: PNode, ctx: var LintCtx) =
   for child in n:
     walk(child, ctx)
 
-proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string] =
-  ## Returns warning strings in `{path}:{line} - <message>` format. Empty
-  ## seq when no typestate has opted in. Configuration warnings are
-  ## prepended (no path/line prefix).
+proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Finding] =
+  ## Returns structured `Finding` records. Empty seq when no typestate has
+  ## opted in. Configuration warnings (no path/line) are prepended; per-file
+  ## `ParseError` is converted into a `fcParseError` Finding so a malformed
+  ## file does not abort the lint pipeline.
   result = @[]
   var ctx = LintCtx()
 
@@ -140,7 +145,10 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
     if not pt.opaqueStates:
       continue
     if pt.initialStates.len == 0:
-      result.add fmt"opaqueStates = true on typestate '{pt.name}' but no initial states declared; lint disabled for this typestate"
+      result.add mkWarning(
+        fcOpaqueStatesNoInitials, "", 0,
+        fmt"opaqueStates = true on typestate '{pt.name}' but no initial states declared; lint disabled for this typestate"
+      )
       continue
     for state in pt.states:
       if state notin pt.initialStates:
@@ -174,8 +182,12 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
         continue
       ctx.path = path
       ctx.inTransition = 0
-      let ast = parsePNode(path, cache, config)
-      walk(ast, ctx)
+      try:
+        let ast = parsePNode(path, cache, config)
+        walk(ast, ctx)
+      except ParseError as e:
+        result.add mkError(fcParseError, path, 0, e.msg)
+        continue
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
@@ -183,7 +195,11 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
             continue
           ctx.path = file
           ctx.inTransition = 0
-          let ast = parsePNode(file, cache, config)
-          walk(ast, ctx)
+          try:
+            let ast = parsePNode(file, cache, config)
+            walk(ast, ctx)
+          except ParseError as e:
+            result.add mkError(fcParseError, file, 0, e.msg)
+            continue
 
-  result.add ctx.warnings
+  result.add ctx.findings
