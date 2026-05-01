@@ -1,0 +1,25 @@
+# Pre-commit hook manifest for nim-typestates.
+#
+# Consumers reference this file in their own `.pre-commit-config.yaml` via:
+#   repos:
+#     - repo: https://github.com/elijahr/nim-typestates
+#       rev: v0.7.0
+#       hooks:
+#         - id: typestates-verify
+#
+# Notes on the hook configuration:
+#   - `language: system` assumes `typestates` is on PATH (install via
+#     `nimble install typestates`). Pre-commit does not manage Nim toolchains.
+#   - `pass_filenames: false` + `always_run: true`: the cast-protection lint
+#     needs the typestate definition to be in the verified path tree to fire.
+#     If pre-commit only forwards changed consumer files, the lint silently
+#     no-ops because the typestate definition is excluded. Always running over
+#     project root sidesteps that. With `always_run: true`, a `files` regex
+#     is no longer load-bearing and is intentionally omitted.
+- id: typestates-verify
+  name: typestates verify
+  entry: typestates verify
+  language: system
+  pass_filenames: false
+  always_run: true
+  description: Run typestates verify on the project.
