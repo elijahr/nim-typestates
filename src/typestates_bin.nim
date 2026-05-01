@@ -2,7 +2,7 @@
 ## Installed as `typestates` command.
 
 import std/[os, strutils]
-import typestates/cli
+import typestates/[cli, findings]
 
 const NimblePkgVersion {.strdefine.}: string = "unknown"
 
@@ -78,27 +78,74 @@ when isMainModule:
     showVersion()
     quit(0)
   of "verify":
-    try:
-      let result = verify(paths)
+    # Flag parsing: walk paths (which is everything after `verify`) and split
+    # into flags and positional path args. Mirror the dot subcommand pattern
+    # below. Unknown flags exit with a clear message.
+    var warningsAsErrors = false
+    var format = "default" # "default" | "github" | "json"
+    var pathArgs: seq[string] = @[]
 
+    for arg in paths:
+      if arg == "--warnings-as-errors":
+        warningsAsErrors = true
+      elif arg.startsWith("--format="):
+        let val = arg.split("=", maxsplit = 1)[1].toLowerAscii()
+        case val
+        of "default", "github", "json":
+          format = val
+        else:
+          stderr.writeLine "Unknown --format value: ", val
+          stderr.writeLine "Valid values: default, github, json"
+          quit(2)
+      elif arg.startsWith("-"):
+        stderr.writeLine "Unknown flag for verify: ", arg
+        stderr.writeLine "Run 'typestates --help' for usage."
+        quit(2)
+      else:
+        pathArgs.add arg
+
+    if pathArgs.len == 0:
+      pathArgs = @["."]
+
+    let result = verify(pathArgs) # ParseError handled INSIDE verify
+
+    # Output routing: format dictates stdout shape and stderr summary.
+    case format
+    of "default":
       echo "Checked ",
         result.filesChecked, " files, ", result.transitionsChecked, " transitions"
-
-      for warning in result.warnings:
-        echo "WARNING: ", warning
-
-      for error in result.errors:
-        echo "ERROR: ", error
-
-      if result.errors.len > 0:
+      for f in result.findings:
+        let prefix = if f.severity == sevError: "ERROR: " else: "WARNING: "
+        echo prefix, formatHuman(f)
+      if result.anyErrors:
         echo "\n", result.errors.len, " error(s) found"
-        quit(1)
       else:
         echo "\nAll checks passed!"
-        quit(0)
-    except ParseError as e:
-      echo "ERROR: ", e.msg
+    of "github":
+      # Annotations on stdout; human summary on stderr (still useful in logs).
+      for f in result.findings:
+        echo formatGitHub(f)
+      stderr.writeLine "Checked ",
+        result.filesChecked, " files, ", result.transitionsChecked, " transitions"
+    of "json":
+      # Single JSON document on stdout. No human summary at all (would
+      # pollute the JSON stream; users redirect 2>/dev/null if they want
+      # silence). Stderr stays available for the count line.
+      stdout.write formatJson(
+        result.findings, result.filesChecked, result.transitionsChecked
+      )
+      stdout.write "\n"
+      stderr.writeLine "Checked ",
+        result.filesChecked, " files, ", result.transitionsChecked, " transitions"
+
+    # Exit code computation. Exit 2 reserved for usage errors above; exit 1
+    # for verification failure; exit 0 for success.
+    if result.anyErrors:
       quit(1)
+    elif warningsAsErrors and result.anyWarnings:
+      quit(1)
+    else:
+      quit(0)
   of "dot":
     try:
       # Parse flags and paths from args
