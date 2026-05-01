@@ -7,13 +7,13 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/library-modularity/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/cast-protection/">
       
       
-        <link rel="prev" href="../bridges/">
+        <link rel="prev" href="../strict-mode/">
       
       
-        <link rel="next" href="../generics/">
+        <link rel="next" href="../verification/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Library Modularity - nim-typestates</title>
+        <title>Cast Protection - nim-typestates</title>
       
     
     
@@ -91,7 +91,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#library-modularity" class="md-skip">
+        <a href="#cast-protection" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Library Modularity
+              Cast Protection
             
           </span>
         </div>
@@ -467,37 +467,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Library Modularity
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../library-modularity/" class="md-nav__link">
         
   
   
@@ -513,81 +486,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#the-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Pattern
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-debra-memory-reclamation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: DEBRA Memory Reclamation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#composing-with-your-typestates" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Composing with Your Typestates
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#module-qualified-bridge-syntax" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Module-Qualified Bridge Syntax
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#benefits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benefits
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -737,10 +635,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../cast-protection/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cast Protection
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -756,6 +681,164 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#the-bypass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The bypass
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opting-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opting in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gets-caught" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What gets caught
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-known-false-positive-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations and known false-positive sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Limitations and known false-positive sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-file-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-file resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identifier-collisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifier collisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragma-aliases-and-push-transition-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragma aliases and {.push transition.} blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generic states
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#castt-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cast[T](...) form
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#templates-and-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Templates and macros
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-warnings-not-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why warnings, not errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration warning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -933,10 +1016,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#the-pattern" class="md-nav__link">
+  <a href="#the-bypass" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Pattern
+        The bypass
       
     </span>
   </a>
@@ -944,10 +1027,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-debra-memory-reclamation" class="md-nav__link">
+  <a href="#opting-in" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: DEBRA Memory Reclamation
+        Opting in
       
     </span>
   </a>
@@ -955,10 +1038,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#composing-with-your-typestates" class="md-nav__link">
+  <a href="#what-gets-caught" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Composing with Your Typestates
+        What gets caught
       
     </span>
   </a>
@@ -966,10 +1049,93 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-qualified-bridge-syntax" class="md-nav__link">
+  <a href="#limitations-and-known-false-positive-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module-Qualified Bridge Syntax
+        Limitations and known false-positive sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Limitations and known false-positive sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-file-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-file resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identifier-collisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifier collisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragma-aliases-and-push-transition-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragma aliases and {.push transition.} blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generic states
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#castt-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cast[T](...) form
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#templates-and-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Templates and macros
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-warnings-not-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why warnings, not errors
       
     </span>
   </a>
@@ -977,10 +1143,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#benefits" class="md-nav__link">
+  <a href="#configuration-warning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Benefits
+        Configuration warning
       
     </span>
   </a>
@@ -1007,71 +1173,154 @@
   
 
 
-<h1 id="library-modularity">Library Modularity<a class="headerlink" href="#library-modularity" title="Permanent link">¶</a></h1>
-<p>Typestates enable a powerful pattern: libraries can export typestate-enforced protocols that consumers plug into.</p>
-<h2 id="the-pattern">The Pattern<a class="headerlink" href="#the-pattern" title="Permanent link">¶</a></h2>
-<ol>
-<li><strong>Library defines typestates</strong> for its protocol (states, transitions)</li>
-<li><strong>Consumer imports library</strong> and uses those typestates directly</li>
-<li><strong>Compiler enforces</strong> correct protocol usage at the consumer's call sites</li>
-<li><strong>Consumer's typestates</strong> can bridge to/from library typestates</li>
-</ol>
-<h2 id="example-debra-memory-reclamation">Example: DEBRA Memory Reclamation<a class="headerlink" href="#example-debra-memory-reclamation" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/elijahr/nim-debra">nim-debra</a> implements the DEBRA+ algorithm using typestates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># In debra library:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">typestate</span><span class="w"> </span><span class="n">EpochGuardContext</span><span class="o">[</span><span class="n">MaxThreads</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="p">:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Unpinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Pinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Neutralized</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span>
+<h1 id="cast-protection">Cast Protection<a class="headerlink" href="#cast-protection" title="Permanent link">¶</a></h1>
+<p>Typestates in nim-typestates are <code>distinct</code> types over a base value. That gives
+zero-cost compile-time enforcement on transition signatures, but it leaves one
+back door wide open: a <code>distinct</code> type's name is also a syntactic cast.</p>
+<h2 id="the-bypass">The bypass<a class="headerlink" href="#the-bypass" title="Permanent link">¶</a></h2>
+<p>Given a typestate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Payment</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Created</span><span class="p">,</span><span class="w"> </span><span class="n">Authorized</span><span class="p">,</span><span class="w"> </span><span class="n">Captured</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">initial</span><span class="w"> </span><span class="n">Created</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Unpinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Pinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">Pinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Unpinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Neutralized</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">UnpinResult</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">Neutralized</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Unpinned</span><span class="o">[</span><span class="n">MaxThreads</span><span class="o">]</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authorized</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Captured</span>
 </code></pre></div>
-<p>When you <code>import debra</code>, these typestates become available. Your code using <code>pin()</code> and <code>unpin()</code> is compile-time verified.</p>
-<h2 id="composing-with-your-typestates">Composing with Your Typestates<a class="headerlink" href="#composing-with-your-typestates" title="Permanent link">¶</a></h2>
-<p>Your application can define its own typestates and compose with library typestates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="n">debra</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">item_processing</span><span class="w">  </span><span class="c"># Your item lifecycle typestate</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">typestate</span><span class="w"> </span><span class="n">MyDataStructure</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">PopResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="c"># Bridge to your processing pipeline</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">item_processing</span><span class="p">.</span><span class="n">Item</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">.</span><span class="n">Unprocessed</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<p>The macro generates <code>Created</code>, <code>Authorized</code>, and <code>Captured</code> as <code>distinct
+Payment</code> types. Nim allows any distinct type to be constructed by calling its
+name on the base value. So this compiles:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c"># Nowhere did Created ever go through authorize() or capture().</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c"># This is a forged Captured value.</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">let</span><span class="w"> </span><span class="n">stolen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Captured</span><span class="p">(</span><span class="n">Payment</span><span class="p">(</span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="s">"x"</span><span class="p">,</span><span class="w"> </span><span class="n">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">settle</span><span class="p">(</span><span class="n">stolen</span><span class="p">)</span><span class="w">  </span><span class="c"># accepted by the type system</span>
 </code></pre></div>
-<p>Inside your operations, you use DEBRA's typestates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">pop</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">ds</span><span class="p">:</span><span class="w"> </span><span class="n">NonEmpty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="p">(</span><span class="n">PopResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Unprocessed</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c"># DEBRA typestates enforced here</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">pinned</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">debra</span><span class="p">.</span><span class="n">unpinned</span><span class="p">(</span><span class="n">handle</span><span class="p">).</span><span class="n">pin</span><span class="p">()</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="c"># ... do work ...</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">unpinResult</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pinned</span><span class="p">.</span><span class="n">unpin</span><span class="p">()</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="c"># Must handle neutralization - compiler enforces this</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">unpinResult</span><span class="p">.</span><span class="n">kind</span><span class="p">:</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">uUnpinned</span><span class="o">:</span><span class="w"> </span><span class="k">discard</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">uNeutralized</span><span class="o">:</span><span class="w"> </span><span class="k">discard</span><span class="w"> </span><span class="n">unpinResult</span><span class="p">.</span><span class="n">neutralized</span><span class="p">.</span><span class="n">acknowledge</span><span class="p">()</span>
+<p>The transition graph is bypassed entirely. The base <code>Payment</code> was never an
+<code>Authorized</code>, but the cast manufactures a <code>Captured</code> from raw fields.</p>
+<p>This is not a bug in the macro; it is how <code>distinct</code> works. The macro side
+cannot close this hole without breaking legitimate construction (initial-state
+values have to be built somewhere). What the macro can do is help the CLI find
+the bypass.</p>
+<h2 id="opting-in">Opting in<a class="headerlink" href="#opting-in" title="Permanent link">¶</a></h2>
+<p>Add <code>opaqueStates = true</code> to a typestate declaration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Payment</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">opaqueStates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Created</span><span class="p">,</span><span class="w"> </span><span class="n">Authorized</span><span class="p">,</span><span class="w"> </span><span class="n">Captured</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">initial</span><span class="w"> </span><span class="n">Created</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="n">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authorized</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="n">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Captured</span>
 </code></pre></div>
-<h2 id="module-qualified-bridge-syntax">Module-Qualified Bridge Syntax<a class="headerlink" href="#module-qualified-bridge-syntax" title="Permanent link">¶</a></h2>
-<p>Use dotted notation to reference typestates from other modules:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="c"># Same module</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">StateA</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">OtherTypestate</span><span class="p">.</span><span class="n">TargetState</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c"># Different module</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">StateB</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">othermodule</span><span class="p">.</span><span class="n">Typestate</span><span class="p">.</span><span class="n">State</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="c"># With generics</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="n">StateC</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">processing</span><span class="p">.</span><span class="n">Item</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">.</span><span class="n">Unprocessed</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<p>Default is <code>false</code>. Existing code is unaffected unless you set the flag.</p>
+<p>The lint runs as part of <code>typestates verify</code>. There is no separate command and
+no separate output stream; warnings appear in the standard verify report.</p>
+<h2 id="what-gets-caught">What gets caught<a class="headerlink" href="#what-gets-caught" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Construct</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Captured(payment)</code> outside any <code>{.transition.}</code> proc</td>
+<td>WARNED</td>
+</tr>
+<tr>
+<td><code>payments.Captured(p)</code> (qualified call)</td>
+<td>WARNED</td>
+</tr>
+<tr>
+<td><code>Captured(payment)</code> inside a <code>{.transition.}</code> proc body</td>
+<td>allowed</td>
+</tr>
+<tr>
+<td><code>Created(Payment(...))</code> anywhere (initial state)</td>
+<td>allowed</td>
+</tr>
+<tr>
+<td>Construction inside <code>nkLambda</code> / <code>nkDo</code> blocks within a transition body</td>
+<td>inherits transition status (allowed)</td>
+</tr>
+<tr>
+<td>Construction inside a nested unmarked proc within a transition body</td>
+<td>WARNED (separate scope)</td>
+</tr>
+</tbody>
+</table>
+<p>The rule is simple: non-initial state casts are only legal inside the body of a
+proc literally marked <code>{.transition.}</code>. Everything else is a forged value.</p>
+<h2 id="limitations-and-known-false-positive-sources">Limitations and known false-positive sources<a class="headerlink" href="#limitations-and-known-false-positive-sources" title="Permanent link">¶</a></h2>
+<p>The lint is opt-in for a reason. Several classes of input are not yet handled
+in v0.6.</p>
+<h3 id="cross-file-resolution">Cross-file resolution<a class="headerlink" href="#cross-file-resolution" title="Permanent link">¶</a></h3>
+<p>If you run <code>typestates verify &lt;subset&gt;</code> over a path that excludes the typestate
+definition, the lint silently has no rules to apply for that typestate. There
+is no error; the file simply produces no opaque-state findings.</p>
+<p>Run verify over the project root, or over any path tree that includes the
+typestate definitions. A subset run that excludes the definition module gives
+you a clean report that proves nothing.</p>
+<h3 id="identifier-collisions">Identifier collisions<a class="headerlink" href="#identifier-collisions" title="Permanent link">¶</a></h3>
+<p>A user-defined proc named the same as a state type will be flagged:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">Captured</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">let</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Captured</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="w">  </span><span class="c"># WARNED, but this is not a state cast</span>
 </code></pre></div>
-<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
+<p>Workarounds:</p>
 <ul>
-<li><strong>Type-safe composition</strong>: Your states + library states, all verified</li>
-<li><strong>No runtime overhead</strong>: Compile-time only</li>
-<li><strong>Clear contracts</strong>: Library protocol is explicit in types</li>
-<li><strong>Nested enforcement</strong>: Library typestates work inside your operations</li>
+<li>Rename the colliding identifier.</li>
+<li>Drop <code>opaqueStates = true</code> for that typestate.</li>
 </ul>
+<p>A per-call suppression syntax is a v0.7 candidate.</p>
+<h3 id="pragma-aliases-and-push-transition-blocks">Pragma aliases and <code>{.push transition.}</code> blocks<a class="headerlink" href="#pragma-aliases-and-push-transition-blocks" title="Permanent link">¶</a></h3>
+<p>The lint detects <code>{.transition.}</code> literally on each routine definition. Two
+syntactically valid forms are not recognized in v0.6:</p>
+<ul>
+<li><code>{.pragma: tx = transition.}</code> followed by <code>proc f(...) {.tx.} = ...</code></li>
+<li><code>{.push transition.}</code> ... <code>{.pop.}</code> blocks</li>
+</ul>
+<p>Calls inside such procs will be flagged. Use the literal <code>{.transition.}</code>
+pragma form on each routine to avoid false positives.</p>
+<h3 id="generic-states">Generic states<a class="headerlink" href="#generic-states" title="Permanent link">¶</a></h3>
+<p><code>Empty[int](items: ...)</code> (with an <code>nkBracketExpr</code> callee) is not flagged in
+v0.6. Generic typestate construction goes through a different AST shape that
+the lint does not yet inspect.</p>
+<h3 id="castt-form"><code>cast[T](...)</code> form<a class="headerlink" href="#castt-form" title="Permanent link">¶</a></h3>
+<p>The Nim <code>cast</code> operator (<code>cast[Captured](payment)</code>) is not flagged in v0.6.
+The lint only inspects call-syntax casts (<code>Captured(payment)</code>).</p>
+<h3 id="templates-and-macros">Templates and macros<a class="headerlink" href="#templates-and-macros" title="Permanent link">¶</a></h3>
+<p>The lint reads source AST, not expansions.</p>
+<ul>
+<li>Calls inside template or macro bodies that construct opaque states ARE
+  flagged at the body's source location.</li>
+<li>Calls passed as arguments to a macro (<code>logged(Captured(p))</code>) ARE flagged at
+  the source argument site, before macro expansion.</li>
+<li>The expansion site itself is invisible to the lint.</li>
+</ul>
+<p>If your template legitimately constructs opaque states, mark the call site or
+move the construction into a <code>{.transition.}</code> proc.</p>
+<h2 id="why-warnings-not-errors">Why warnings, not errors<a class="headerlink" href="#why-warnings-not-errors" title="Permanent link">¶</a></h2>
+<p>This is opt-in lint, not the type system. The macro-side typestate machinery
+still gives you compile-time guarantees on transition signatures: a proc that
+takes <code>Created</code> cannot be called with <code>Captured</code>, period. Cast bypass is a
+separate channel that cannot be closed without breaking legitimate
+initial-state construction.</p>
+<p>The right place to enforce no-cast-bypass is CI. Promote the warnings to errors
+there if you want hard enforcement. Do not break local builds for code that
+compiles correctly under the type system.</p>
+<h2 id="configuration-warning">Configuration warning<a class="headerlink" href="#configuration-warning" title="Permanent link">¶</a></h2>
+<p>If you set <code>opaqueStates = true</code> on a typestate without any <code>initial:</code> block,
+and the macro infers no initials, the lint emits a one-time configuration
+warning and skips that typestate. Without an initial state set, every cast
+would be flagged, including the legitimate construction path.</p>
+<p>To use the lint, declare your initial state(s) explicitly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Payment</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">opaqueStates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Created</span><span class="p">,</span><span class="w"> </span><span class="n">Authorized</span><span class="p">,</span><span class="w"> </span><span class="n">Captured</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">initial</span><span class="w"> </span><span class="n">Created</span><span class="w">       </span><span class="c"># required when opaqueStates = true</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="n">Created</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Authorized</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="n">Authorized</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Captured</span>
+</code></pre></div>
 
 
 
@@ -1094,7 +1343,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 12, 2025 07:37:44 UTC"><span class="timeago" datetime="2025-12-12T07:37:44+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 12, 2025 07:37:44 UTC">2025-12-12</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 1, 2026 10:47:48 UTC"><span class="timeago" datetime="2026-05-01T10:47:48+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 1, 2026 10:47:48 UTC">2026-05-01</span>
   </span>
 
     
@@ -1104,7 +1353,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 12, 2025 07:37:44 UTC"><span class="timeago" datetime="2025-12-12T07:37:44+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 12, 2025 07:37:44 UTC">2025-12-12</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 1, 2026 10:47:48 UTC"><span class="timeago" datetime="2026-05-01T10:47:48+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 1, 2026 10:47:48 UTC">2026-05-01</span>
   </span>
 
     

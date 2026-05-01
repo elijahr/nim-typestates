@@ -638,6 +638,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../guide/cast-protection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cast Protection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../guide/verification/" class="md-nav__link">
         
   
@@ -3516,6 +3544,14 @@ and stored in the compile-time registry for later validation.</p>
           </li>
           
           <li class="doc-field">
+            <code class="doc-field-name">opaqueStates</code>
+            <code class="doc-field-type">bool</code>
+            
+            
+            <span class="doc-field-description"> – Opt-in cast-bypass lint (CLI-side only)</span>
+          </li>
+          
+          <li class="doc-field">
             <code class="doc-field-name">initialStates</code>
             <code class="doc-field-type">seq[string]</code>
             
@@ -3632,8 +3668,8 @@ is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L186" target="_blank" rel="noopener">
-            src/typestates/types.nim:186
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L187" target="_blank" rel="noopener">
+            src/typestates/types.nim:187
           </a>
         
       </div>
@@ -3706,8 +3742,8 @@ The declaration location is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L199" target="_blank" rel="noopener">
-            src/typestates/types.nim:199
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L200" target="_blank" rel="noopener">
+            src/typestates/types.nim:200
           </a>
         
       </div>
@@ -3795,8 +3831,8 @@ A transition is valid if there's an explicit transition
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L212" target="_blank" rel="noopener">
-            src/typestates/types.nim:212
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L213" target="_blank" rel="noopener">
+            src/typestates/types.nim:213
           </a>
         
       </div>
@@ -3875,8 +3911,8 @@ Returns base names for clearer error messages.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L246" target="_blank" rel="noopener">
-            src/typestates/types.nim:246
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L247" target="_blank" rel="noopener">
+            src/typestates/types.nim:247
           </a>
         
       </div>
@@ -3974,8 +4010,8 @@ Module matching: both empty = match, both non-empty and equal = match.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L276" target="_blank" rel="noopener">
-            src/typestates/types.nim:276
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L277" target="_blank" rel="noopener">
+            src/typestates/types.nim:277
           </a>
         
       </div>
@@ -4067,8 +4103,8 @@ for validation where we only know the destination typestate and state.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L325" target="_blank" rel="noopener">
-            src/typestates/types.nim:325
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L326" target="_blank" rel="noopener">
+            src/typestates/types.nim:326
           </a>
         
       </div>
@@ -4144,8 +4180,8 @@ for validation where we only know the destination typestate and state.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L358" target="_blank" rel="noopener">
-            src/typestates/types.nim:358
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L359" target="_blank" rel="noopener">
+            src/typestates/types.nim:359
           </a>
         
       </div>
@@ -4222,8 +4258,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L386" target="_blank" rel="noopener">
-            src/typestates/types.nim:386
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L387" target="_blank" rel="noopener">
+            src/typestates/types.nim:387
           </a>
         
       </div>
@@ -4300,8 +4336,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L409" target="_blank" rel="noopener">
-            src/typestates/types.nim:409
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L410" target="_blank" rel="noopener">
+            src/typestates/types.nim:410
           </a>
         
       </div>
@@ -4605,8 +4641,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L386" target="_blank" rel="noopener">
-            src/typestates/parser.nim:386
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L388" target="_blank" rel="noopener">
+            src/typestates/parser.nim:388
           </a>
         
       </div>
@@ -4681,8 +4717,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L497" target="_blank" rel="noopener">
-            src/typestates/parser.nim:497
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L499" target="_blank" rel="noopener">
+            src/typestates/parser.nim:499
           </a>
         
       </div>
@@ -4757,8 +4793,8 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L518" target="_blank" rel="noopener">
-            src/typestates/parser.nim:518
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L520" target="_blank" rel="noopener">
+            src/typestates/parser.nim:520
           </a>
         
       </div>
@@ -4846,8 +4882,8 @@ body of a <code>typestate</code> macro invocation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L685" target="_blank" rel="noopener">
-            src/typestates/parser.nim:685
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L687" target="_blank" rel="noopener">
+            src/typestates/parser.nim:687
           </a>
         
       </div>
@@ -7543,8 +7579,8 @@ to fail loudly with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L25" target="_blank" rel="noopener">
-            src/typestates/cli.nim:25
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L26" target="_blank" rel="noopener">
+            src/typestates/cli.nim:26
           </a>
         
       </div>
@@ -7627,8 +7663,8 @@ to fail loudly with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L38" target="_blank" rel="noopener">
-            src/typestates/cli.nim:38
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L39" target="_blank" rel="noopener">
+            src/typestates/cli.nim:39
           </a>
         
       </div>
@@ -7694,8 +7730,8 @@ files with syntax errors.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L58" target="_blank" rel="noopener">
-            src/typestates/cli.nim:58
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L59" target="_blank" rel="noopener">
+            src/typestates/cli.nim:59
           </a>
         
       </div>
@@ -7773,8 +7809,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L156" target="_blank" rel="noopener">
-            src/typestates/cli.nim:156
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L157" target="_blank" rel="noopener">
+            src/typestates/cli.nim:157
           </a>
         
       </div>
@@ -7851,8 +7887,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L206" target="_blank" rel="noopener">
-            src/typestates/cli.nim:206
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L207" target="_blank" rel="noopener">
+            src/typestates/cli.nim:207
           </a>
         
       </div>
@@ -7929,8 +7965,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L313" target="_blank" rel="noopener">
-            src/typestates/cli.nim:313
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L314" target="_blank" rel="noopener">
+            src/typestates/cli.nim:314
           </a>
         
       </div>
@@ -8000,8 +8036,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L392" target="_blank" rel="noopener">
-            src/typestates/cli.nim:392
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L393" target="_blank" rel="noopener">
+            src/typestates/cli.nim:393
           </a>
         
       </div>
@@ -8065,8 +8101,8 @@ with <code>dot</code>, <code>neato</code>, or other GraphViz tools.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L494" target="_blank" rel="noopener">
-            src/typestates/cli.nim:494
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L495" target="_blank" rel="noopener">
+            src/typestates/cli.nim:495
           </a>
         
       </div>
@@ -8137,8 +8173,8 @@ immediately with a clear error message.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L568" target="_blank" rel="noopener">
-            src/typestates/cli.nim:568
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/cli.nim#L569" target="_blank" rel="noopener">
+            src/typestates/cli.nim:569
           </a>
         
       </div>
