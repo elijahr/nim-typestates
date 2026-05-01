@@ -91,6 +91,7 @@ nav:
     - Error Handling: guide/error-handling.md
     - Examples: guide/examples.md
     - Strict Mode: guide/strict-mode.md
+    - Cast Protection: guide/cast-protection.md
     - Verification: guide/verification.md
     - CLI Reference: guide/cli.md
     - Visualization: guide/visualization.md

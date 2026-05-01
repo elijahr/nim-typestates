@@ -182,3 +182,39 @@ macro testFlagParsing(): untyped =
 
 testFlagParsing()
 echo "flag parsing tests passed"
+
+# Test opaqueStates flag parsing
+macro testOpaqueStatesFlag(): untyped =
+  # Test explicit true
+  let body1 = quote:
+    opaqueStates = true
+    states Closed, Open
+    transitions:
+      Closed -> Open
+
+  var graph1 = parseTypestateBody(ident("File"), body1)
+  doAssert graph1.opaqueStates == true, "opaqueStates should be true"
+
+  # Test explicit false
+  let body2 = quote:
+    opaqueStates = false
+    states Closed, Open
+    transitions:
+      Closed -> Open
+
+  var graph2 = parseTypestateBody(ident("File"), body2)
+  doAssert graph2.opaqueStates == false, "opaqueStates should be false"
+
+  # Test default (no flag specified)
+  let body3 = quote:
+    states Closed, Open
+    transitions:
+      Closed -> Open
+
+  var graph3 = parseTypestateBody(ident("File"), body3)
+  doAssert graph3.opaqueStates == false, "opaqueStates should default to false"
+
+  result = newStmtList()
+
+testOpaqueStatesFlag()
+echo "opaqueStates flag parsing tests passed"

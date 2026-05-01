@@ -32,6 +32,7 @@ type
     bridges*: seq[ParsedBridge]
     isSealed*: bool
     strictTransitions*: bool
+    opaqueStates*: bool ## Opt-in CLI lint for raw distinct casts to non-initial states
     initialStates*: seq[string] ## States declared in `initial:` block
     terminalStates*: seq[string] ## States declared in `terminal:` block
 
@@ -461,6 +462,10 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       if strictFlag.isSome:
         ts.strictTransitions = strictFlag.get
 
+      let opaqueFlag = extractFlag(child, "opaqueStates")
+      if opaqueFlag.isSome:
+        ts.opaqueStates = opaqueFlag.get
+
       # Recurse into nested statement lists
       if child.kind == nkStmtList:
         parseBody(child, ts)
@@ -495,20 +500,38 @@ proc walkAst(node: PNode, typestates: var seq[ParsedTypestate]) =
   for child in node:
     walkAst(child, typestates)
 
-proc parseFileWithAst*(path: string): ParseResult =
-  ## Parse a Nim file using the compiler's AST parser.
+proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
+  ## Parse a Nim source file into a raw `PNode` using a shared compiler
+  ## `IdentCache` and `ConfigRef`.
   ##
-  ## Raises ParseError if the file cannot be parsed.
-  result = ParseResult()
-  result.filesChecked = 1
-
+  ## Callers that process multiple files (e.g. `lintOpaqueStates`,
+  ## `parseTypestatesAst`) should construct one cache/config pair and reuse
+  ## them across every parse to avoid the per-file allocation cost of fresh
+  ## compiler infrastructure. Raises `ParseError` on failure.
   if not fileExists(path):
     raise newParseError("File not found: " & path)
 
   let content = readFile(path)
   let absPath = AbsoluteFile(path.absolutePath)
 
-  # Create parser infrastructure
+  var p: Parser
+  let stream = llStreamOpen(content)
+  if stream == nil:
+    raise newParseError("Failed to open stream for: " & path)
+
+  openParser(p, absPath, stream, cache, config)
+  try:
+    result = parseAll(p)
+  except Exception as e:
+    raise newParseError("Parse error in " & path & ": " & e.msg)
+  finally:
+    closeParser(p)
+
+proc parsePNode*(path: string): PNode =
+  ## Parse a Nim source file into a raw `PNode` using the compiler API.
+  ##
+  ## Convenience overload that creates a fresh `IdentCache` and `ConfigRef`
+  ## per call. Prefer the 3-arg form when parsing multiple files in a loop.
   let cache = newIdentCache()
   let config = newConfigRef()
 
@@ -516,35 +539,54 @@ proc parseFileWithAst*(path: string): ParseResult =
   config.notes = {}
   config.foreignPackageNotes = {}
 
-  var p: Parser
-  let stream = llStreamOpen(content)
-  if stream == nil:
-    raise newParseError("Failed to open stream for: " & path)
+  parsePNode(path, cache, config)
 
-  try:
-    openParser(p, absPath, stream, cache, config)
-    let ast = parseAll(p)
-    closeParser(p)
+proc parseFileWithAst*(
+    path: string, cache: IdentCache, config: ConfigRef
+): ParseResult =
+  ## Parse a Nim file using the compiler's AST parser, reusing a shared
+  ## `IdentCache` and `ConfigRef`. Raises `ParseError` if the file cannot be
+  ## parsed.
+  result = ParseResult()
+  result.filesChecked = 1
 
-    # Walk AST looking for typestates
-    walkAst(ast, result.typestates)
-  except Exception as e:
-    raise newParseError("Parse error in " & path & ": " & e.msg)
+  let ast = parsePNode(path, cache, config)
+  walkAst(ast, result.typestates)
+
+proc parseFileWithAst*(path: string): ParseResult =
+  ## Parse a Nim file using the compiler's AST parser.
+  ##
+  ## Convenience overload that creates fresh compiler infrastructure per
+  ## call. Prefer the 3-arg form when parsing multiple files in a loop.
+  ##
+  ## Raises ParseError if the file cannot be parsed.
+  result = ParseResult()
+  result.filesChecked = 1
+
+  let ast = parsePNode(path)
+  walkAst(ast, result.typestates)
 
 proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   ## Parse all Nim files in the given paths for typestates.
   ##
+  ## Creates one `IdentCache` and one `ConfigRef` and reuses them across
+  ## every file, avoiding per-file compiler-infrastructure allocation.
   ## Fails loudly on any parse error.
   result = ParseResult()
 
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+
   for path in paths:
     if path.endsWith(".nim"):
-      let fileResult = parseFileWithAst(path)
+      let fileResult = parseFileWithAst(path, cache, config)
       result.typestates.add fileResult.typestates
       result.filesChecked += fileResult.filesChecked
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
-          let fileResult = parseFileWithAst(file)
+          let fileResult = parseFileWithAst(file, cache, config)
           result.typestates.add fileResult.typestates
           result.filesChecked += fileResult.filesChecked

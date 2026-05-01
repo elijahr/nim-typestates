@@ -304,10 +304,12 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
     graph.consumeOnTransition = value
   of "inheritsFromRootObj":
     graph.inheritsFromRootObj = value
+  of "opaqueStates":
+    graph.opaqueStates = value
   else:
     error(
       "Unknown flag: " & flagName &
-        ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj",
+        ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj, opaqueStates",
       node,
     )
 
