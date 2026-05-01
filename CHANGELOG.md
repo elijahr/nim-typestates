@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- New `--warnings-as-errors` flag on `typestates verify`: promotes any warning to a non-zero exit, gating CI on lint warnings.
+- New `--format=<default|github|json>` flag on `typestates verify`:
+  - `github`: emits GitHub Actions annotation format (`::warning file=PATH,line=N::MESSAGE`) for inline PR review comments.
+  - `json`: emits a documented stable schema with `schemaVersion: 1` envelope. See [CI Integration](docs/guide/ci-integration.md) for the schema spec.
+- New `.pre-commit-hooks.yaml` hook manifest at repo root. Other repos can consume it by referencing `repo: https://github.com/elijahr/nim-typestates` in their `.pre-commit-config.yaml`.
+- New documentation: [CI Integration](docs/guide/ci-integration.md) covers pre-commit, GitHub Actions, GitLab CI, treating warnings as errors, inline annotations, and the JSON schema.
+- New stable code taxonomy for findings: `file-not-found`, `parse-error`, `unmarked-proc-strict`, `unmarked-proc`, `unreachable-state`, `non-terminal-state`, `orphan-state`, `no-entry-point`, `opaque-state-bypass`, `opaque-states-no-initials`. Codes are stable within a major version; documented stability policy in [CI Integration](docs/guide/ci-integration.md).
+
+### Changed
+
+- **BREAKING:** `VerifyResult.errors` and `VerifyResult.warnings` are now `seq[Finding]` instead of `seq[string]`. The new `Finding` record carries `path`, `line`, `severity`, `code`, `message`, and `hint` fields. Tests asserting on warning/error substrings should match against `it.message` (or `it.hint` for diagnostic hints from reachability findings). See [CI Integration](docs/guide/ci-integration.md) for the full schema.
+- Reachability warnings (rfDead, rfTrap, rfOrphan, rfNoEntryPoint) now split message and hint into separate fields. The default human-readable output is unchanged from v0.6.
+- ParseError on input files now routes through the Finding pipeline as a `parse-error` code. Under `--format=github` and `--format=json`, parse failures produce annotation/JSON output rather than plain stderr text.
+
+### Internal
+
+- New module `src/typestates/findings.nim` containing `Finding`, `Severity`, `FindingCode`, helpers (`mkError`, `mkWarning`), and formatters (`formatHuman`, `formatGitHub`, `formatJson`).
+- All warning/error emission sites in `cli.nim`, `reachability.nim`, and `lint_opaque_states.nim` migrated to construct `Finding` records.
+- `.gitignore` whitelists `tests/fixtures/**` and common non-Nim file types under `src/typestates/`. Preventive against future fixture additions being silently ignored.
+- New tests: `tcli_verify_formats.nim`, `tcli_warnings_as_errors.nim`, `tcli_parse_error.nim`, `tcli_gitignore.nim`. Existing tests `tcli.nim`, `tcli_verify_warnings.nim`, `tcli_opaque_states.nim`, `tlint_opaque_states.nim` migrated to the Finding API.
+
 ## [0.6.0] - 2026-04-30
 
 ### Added
