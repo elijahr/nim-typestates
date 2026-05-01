@@ -2,14 +2,16 @@
 ##
 ## Each test uses a tempfile pattern (mirrors `tests/tcli.nim`), parsing the
 ## fixture via `parseTypestatesAst` and then running `lintOpaqueStates` over
-## the same path. Assertions are on the returned `seq[string]`.
+## the same path. Assertions are on the returned `seq[Finding]`.
 ##
-## Warning string contract (LOCKED — change here means change in the impl):
-##   {path}:{line} - bypass of opaque state '{stateName}' (typestate '{tsName}') outside {.transition.} proc
-##   opaqueStates = true on typestate '{name}' but no initial states declared; lint disabled for this typestate
+## Warning message contract (LOCKED — change here means change in the impl):
+##   message = "bypass of opaque state '{stateName}' (typestate '{tsName}') outside {.transition.} proc"
+##   message = "opaqueStates = true on typestate '{name}' but no initial states declared; lint disabled for this typestate"
+## Path and line are carried as structured `Finding.path` / `Finding.line` fields.
 
 import std/[unittest, os, strutils, sequtils]
 import ../src/typestates/ast_parser
+import ../src/typestates/findings
 import ../src/typestates/lint_opaque_states
 
 proc writeTemp(name, body: string): string =
@@ -17,7 +19,7 @@ proc writeTemp(name, body: string): string =
   result = getTempDir() / name
   writeFile(result, body)
 
-proc lintOf(path: string): seq[string] =
+proc lintOf(path: string): seq[Finding] =
   let pr = parseTypestatesAst(@[path])
   lintOpaqueStates(pr, @[path])
 
@@ -64,9 +66,9 @@ suite "Opaque states lint":
     )
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
-    check "(typestate 'Payment')" in warnings[0]
-    check "outside {.transition.} proc" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
+    check "(typestate 'Payment')" in warnings[0].message
+    check "outside {.transition.} proc" in warnings[0].message
     removeFile(path)
 
   test "2. no warning inside {.transition.}":
@@ -131,10 +133,10 @@ let z = C(Doc(s: "z"))
     let path = writeTemp("tlint_opaque_05.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'C'" in warnings[0]
+    check "bypass of opaque state 'C'" in warnings[0].message
     # Negative: A and B must not be reported
-    check not warnings[0].contains("'A'")
-    check not warnings[0].contains("'B'")
+    check not warnings[0].message.contains("'A'")
+    check not warnings[0].message.contains("'B'")
     removeFile(path)
 
   test "6. opaqueStates with no initial states emits config warning":
@@ -160,11 +162,11 @@ let x = B(Doc())
     let warnings = lintOf(path)
     # Exactly one warning; it is the config warning, not a bypass warning.
     check warnings.len == 1
-    check "opaqueStates = true on typestate 'Doc'" in warnings[0]
-    check "no initial states declared" in warnings[0]
-    check "lint disabled for this typestate" in warnings[0]
+    check "opaqueStates = true on typestate 'Doc'" in warnings[0].message
+    check "no initial states declared" in warnings[0].message
+    check "lint disabled for this typestate" in warnings[0].message
     # Negative: no bypass warning for B.
-    check not warnings.anyIt("bypass of opaque state" in it)
+    check not warnings.anyIt("bypass of opaque state" in it.message)
     removeFile(path)
 
   test "7. empty fast-path: no opaque-flagged typestates":
@@ -198,8 +200,8 @@ let bad = payments.Captured(Payment(id: "x"))
     # `Captured(p)` is silenced. The qualified `payments.Captured(...)`
     # at top level IS a bypass (nkDotExpr callee) and must be flagged.
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
-    check "(typestate 'Payment')" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
+    check "(typestate 'Payment')" in warnings[0].message
     removeFile(path)
 
   test "9. generic-typed initial state construction — allowed (initial-skip)":
@@ -250,25 +252,23 @@ let c = Captured(Payment(id: "3"))
     check warnings.len == 3
     # Each bypass mentions Captured / Payment / outside scope
     for w in warnings:
-      check "bypass of opaque state 'Captured'" in w
-      check "(typestate 'Payment')" in w
-      check "outside {.transition.} proc" in w
+      check "bypass of opaque state 'Captured'" in w.message
+      check "(typestate 'Payment')" in w.message
+      check "outside {.transition.} proc" in w.message
     # Line-info correctness: the three bypasses live at known offsets.
     # opaquePaymentHeader is exactly 17 lines (16 lines + trailing newline ->
     # line 17 is empty). The appended body adds: line 18 blank, line 19 a-bypass,
     # 20 dummy, 21 dummy, 22 b-bypass, 23 dummy, 24 dummy, 25 c-bypass.
     # We compute lines empirically rather than hard-code, by counting newlines
-    # in the header.
+    # in the header. Structured assertion on Finding.line is stronger than
+    # substring matching against formatHuman output.
     let headerLines = opaquePaymentHeader.count('\n')
     let aLine = headerLines + 2 # blank + a
     let bLine = headerLines + 5
     let cLine = headerLines + 8
-    let lineMarkerA = ":" & $aLine & " "
-    let lineMarkerB = ":" & $bLine & " "
-    let lineMarkerC = ":" & $cLine & " "
-    check warnings.anyIt(lineMarkerA in it)
-    check warnings.anyIt(lineMarkerB in it)
-    check warnings.anyIt(lineMarkerC in it)
+    check warnings.anyIt(it.line == aLine)
+    check warnings.anyIt(it.line == bLine)
+    check warnings.anyIt(it.line == cLine)
     removeFile(path)
 
   test "11. nkCommand form 'Captured payment' (no parens)":
@@ -282,7 +282,7 @@ discard Captured payment
     let path = writeTemp("tlint_opaque_11.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
     removeFile(path)
 
   test "12. async transition — Future[Captured] body construction":
@@ -341,8 +341,8 @@ let z = C(Doc())
     let path = writeTemp("tlint_opaque_14.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "opaqueStates = true on typestate 'Doc'" in warnings[0]
-    check not warnings.anyIt("bypass of opaque state" in it)
+    check "opaqueStates = true on typestate 'Doc'" in warnings[0].message
+    check not warnings.anyIt("bypass of opaque state" in it.message)
     removeFile(path)
 
   test "15. mixed opaque + non-opaque typestates":
@@ -381,9 +381,9 @@ let boxBypass = BB(Box(n: 1))
     let path = writeTemp("tlint_opaque_15.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'DB'" in warnings[0]
-    check "(typestate 'Doc')" in warnings[0]
-    check not warnings.anyIt("'BB'" in it)
+    check "bypass of opaque state 'DB'" in warnings[0].message
+    check "(typestate 'Doc')" in warnings[0].message
+    check not warnings.anyIt("'BB'" in it.message)
     removeFile(path)
 
   test "16. cast[Captured](p) form — deferred (nkCast not nkCall)":
@@ -434,7 +434,7 @@ let z = Captured("hello")
     # The only call site outside transition is `Captured("hello")` and
     # the lint cannot tell user-proc from state-ctor — fires.
     check warnings.len >= 1
-    check warnings.anyIt("bypass of opaque state 'Captured'" in it)
+    check warnings.anyIt("bypass of opaque state 'Captured'" in it.message)
     removeFile(path)
 
   test "19. macro-arg call site logged(Captured(p))":
@@ -451,7 +451,7 @@ let bad = logged(Captured(Payment(id: "x")))
     let warnings = lintOf(path)
     # Only the `Captured(Payment(...))` argument is the bypass.
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
     removeFile(path)
 
   test "20. nkDo block inside {.transition.} body":
@@ -488,7 +488,7 @@ let z = makeC(Payment(id: "x"))
     let path = writeTemp("tlint_opaque_21.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
     removeFile(path)
 
   test "22. non-literal flag rhs — flag stays default false":
@@ -538,12 +538,14 @@ proc cap(a: Authorized): Captured {.transition.} =
     let path = writeTemp("tlint_opaque_23.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
     # Line of the inner-proc bypass: header lines + 4 lines into the body
     # (blank, `proc cap...`, `  proc inner()...`, `    Captured(...)`).
+    # Structured assertion on Finding.line is stronger than substring matching
+    # against formatHuman output.
     let headerLines = opaquePaymentHeader.count('\n')
     let leakLine = headerLines + 4
-    check (":" & $leakLine & " ") in warnings[0]
+    check warnings[0].line == leakLine
     removeFile(path)
 
   test "24. nested transition proc inside transition: dest state allowed in inner body":
@@ -580,6 +582,6 @@ proc outer(c: Created): Authorized {.transition.} =
     let warnings = lintOpaqueStates(pr, @[tmpDir, filePath])
     # Exactly one bypass warning, not two.
     check warnings.len == 1
-    check "bypass of opaque state 'Captured'" in warnings[0]
+    check "bypass of opaque state 'Captured'" in warnings[0].message
     removeFile(filePath)
     removeDir(tmpDir)
