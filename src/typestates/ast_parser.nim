@@ -519,12 +519,13 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   if stream == nil:
     raise newParseError("Failed to open stream for: " & path)
 
+  openParser(p, absPath, stream, cache, config)
   try:
-    openParser(p, absPath, stream, cache, config)
     result = parseAll(p)
-    closeParser(p)
   except Exception as e:
     raise newParseError("Parse error in " & path & ": " & e.msg)
+  finally:
+    closeParser(p)
 
 proc parsePNode*(path: string): PNode =
   ## Parse a Nim source file into a raw `PNode` using the compiler API.

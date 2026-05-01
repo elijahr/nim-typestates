@@ -21,7 +21,7 @@
 ##    `nkDotExpr` referencing a non-initial opaque state, with
 ##    `inTransition == 0`, emit a warning.
 
-import std/[os, strformat, strutils, tables]
+import std/[os, sets, strformat, strutils, tables]
 
 import compiler/[ast, idents, options as compiler_options]
 
@@ -82,9 +82,17 @@ proc inspectCall(n: PNode, ctx: var LintCtx) =
   case callee.kind
   of nkIdent:
     name = callee.ident.s
+  of nkSym:
+    name = callee.sym.name.s
   of nkDotExpr:
-    if callee.len >= 2 and callee[1].kind == nkIdent:
-      name = callee[1].ident.s
+    if callee.len >= 2:
+      case callee[1].kind
+      of nkIdent:
+        name = callee[1].ident.s
+      of nkSym:
+        name = callee[1].sym.name.s
+      else:
+        discard
   else:
     discard
   if name.len == 0:
@@ -150,8 +158,20 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
   config.notes = {}
   config.foreignPackageNotes = {}
 
+  # Track visited absolute paths so overlapping inputs (e.g. `["src",
+  # "src/main.nim"]`) don't double-process and double-warn.
+  var visited = initHashSet[string]()
+  proc shouldProcess(file: string): bool =
+    let abs = absolutePath(file)
+    if abs in visited:
+      return false
+    visited.incl(abs)
+    return true
+
   for path in paths:
     if path.endsWith(".nim"):
+      if not shouldProcess(path):
+        continue
       ctx.path = path
       ctx.inTransition = 0
       let ast = parsePNode(path, cache, config)
@@ -159,6 +179,8 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
+          if not shouldProcess(file):
+            continue
           ctx.path = file
           ctx.inTransition = 0
           let ast = parsePNode(file, cache, config)

@@ -564,3 +564,22 @@ proc outer(c: Created): Authorized {.transition.} =
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
+
+  test "25. overlapping paths dedupe: file + containing dir warned once":
+    # Regression: passing both a directory and a file inside that directory
+    # used to trigger the lint to walk the file twice, producing duplicate
+    # warnings for the same line. lintOpaqueStates dedupes by absolute path.
+    let tmpDir = getTempDir() / "tlint_opaque_25_dir"
+    createDir(tmpDir)
+    let filePath = tmpDir / "src.nim"
+    writeFile(
+      filePath, opaquePaymentHeader & "\nlet bad = Captured(Payment(id: \"x\"))\n"
+    )
+    # Pass overlapping paths: the directory AND the file inside it.
+    let pr = parseTypestatesAst(@[filePath])
+    let warnings = lintOpaqueStates(pr, @[tmpDir, filePath])
+    # Exactly one bypass warning, not two.
+    check warnings.len == 1
+    check "bypass of opaque state 'Captured'" in warnings[0]
+    removeFile(filePath)
+    removeDir(tmpDir)
