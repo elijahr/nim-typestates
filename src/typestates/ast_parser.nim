@@ -32,6 +32,7 @@ type
     bridges*: seq[ParsedBridge]
     isSealed*: bool
     strictTransitions*: bool
+    opaqueStates*: bool ## Opt-in CLI lint for raw distinct casts to non-initial states
     initialStates*: seq[string] ## States declared in `initial:` block
     terminalStates*: seq[string] ## States declared in `terminal:` block
 
@@ -460,6 +461,10 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       let strictFlag = extractFlag(child, "strictTransitions")
       if strictFlag.isSome:
         ts.strictTransitions = strictFlag.get
+
+      let opaqueFlag = extractFlag(child, "opaqueStates")
+      if opaqueFlag.isSome:
+        ts.opaqueStates = opaqueFlag.get
 
       # Recurse into nested statement lists
       if child.kind == nkStmtList:

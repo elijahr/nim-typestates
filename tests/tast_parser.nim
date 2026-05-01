@@ -69,6 +69,21 @@ suite "AST Parser":
     check ts.name == "Task"
     check ts.strictTransitions == false
 
+  test "parse opaqueStates flag":
+    let res = parseFileWithAst("tests/fixtures/opaque_states_basic.nim")
+    check res.typestates.len == 1
+    check res.typestates[0].opaqueStates == true
+
+  test "opaqueStates defaults to false":
+    let res = parseFileWithAst("tests/fixtures/basic_typestate.nim")
+    check res.typestates.len == 1
+    check res.typestates[0].opaqueStates == false
+
+  test "opaqueStates explicit false":
+    let res = parseFileWithAst("tests/fixtures/with_flags.nim")
+    check res.typestates.len == 1
+    check res.typestates[0].opaqueStates == false
+
   test "file not found raises ParseError":
     expect ParseError:
       discard parseFileWithAst("tests/fixtures/nonexistent.nim")
