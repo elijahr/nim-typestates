@@ -180,7 +180,7 @@ Plain generics (`Container[T]`) are unaffected.
 
 ## Documentation
 
-The full guide and API reference live at <https://elijahr.github.io/nim-typestates/>. The pages most people start with:
+The full guide and API reference live at <https://elijahr.github.io/nim-typestates/>.
 
 - [Getting started](https://elijahr.github.io/nim-typestates/latest/guide/getting-started/)
 - [DSL reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
