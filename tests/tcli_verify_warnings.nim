@@ -7,8 +7,8 @@ import ../src/typestates/cli
 suite "CLI verify warnings":
   test "dead state produces warning":
     let res = verify(@["tests/fixtures/cli_warning_dead.nim"])
-    check res.warnings.anyIt("Dead state 'Frozen'" in it)
-    check res.warnings.anyIt("Unreachable from any initial state" in it)
+    check res.warnings.anyIt("Dead state 'Frozen'" in it.message)
+    check res.warnings.anyIt("Unreachable from any initial state" in it.hint)
 
   test "AST parser extracts initial states":
     let pr = parseTypestates(@["tests/fixtures/cli_warning_dead.nim"])

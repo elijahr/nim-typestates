@@ -1,6 +1,6 @@
 ## Tests for CLI parsing and DOT generation
 
-import std/[strutils, os]
+import std/[strutils, os, sequtils]
 import ../src/typestates/cli
 
 # Test parseTypestates with a fixture file
@@ -155,7 +155,8 @@ proc unmarkedProc(f: Closed): string =
   let result = verify(@[testFile])
 
   doAssert result.errors.len > 0, "Expected errors for unmarked proc"
-  doAssert "unmarkedProc" in result.errors[0] or "Unmarked" in result.errors[0],
+  doAssert result.errors.anyIt(
+      "unmarkedProc" in it.message or "Unmarked" in it.message),
     "Expected error about unmarked proc"
 
   removeFile(testFile)

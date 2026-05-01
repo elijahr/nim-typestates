@@ -31,10 +31,10 @@ let bad = Captured(Payment(id: "x"))
     )
     let r = verify(@[testFile])
     # Tolerate other unrelated warnings; >= 1 bypass warning required.
-    let bypassWarnings = r.warnings.filterIt("bypass of opaque state 'Captured'" in it)
+    let bypassWarnings = r.warnings.filterIt("bypass of opaque state 'Captured'" in it.message)
     check bypassWarnings.len >= 1
-    check r.warnings.anyIt("(typestate 'Payment')" in it)
-    check r.warnings.anyIt("outside {.transition.} proc" in it)
+    check r.warnings.anyIt("(typestate 'Payment')" in it.message)
+    check r.warnings.anyIt("outside {.transition.} proc" in it.message)
     check r.errors.len == 0
     removeFile(testFile)
 
@@ -62,7 +62,7 @@ let bad = Captured(Payment(id: "x"))
 """,
     )
     let r = verify(@[testFile])
-    let bypassWarnings = r.warnings.filterIt("bypass of opaque state" in it)
+    let bypassWarnings = r.warnings.filterIt("bypass of opaque state" in it.message)
     check bypassWarnings.len == 0
     check r.errors.len == 0
     removeFile(testFile)
@@ -89,6 +89,6 @@ typestate Payment:
 """,
     )
     let r = verify(@[testFile])
-    check r.warnings.anyIt("but no initial states declared" in it)
-    check r.warnings.anyIt("opaqueStates = true on typestate 'Payment'" in it)
+    check r.warnings.anyIt("but no initial states declared" in it.message)
+    check r.warnings.anyIt("opaqueStates = true on typestate 'Payment'" in it.message)
     removeFile(testFile)
