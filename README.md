@@ -148,6 +148,7 @@ Bridges show up in the generated diagrams alongside ordinary transitions.
 - Generic typestates including states with `static` parameters
 - Cross-type bridges between separate typestates
 - Strict mode that requires every proc on a state to be marked `{.transition.}` or `{.notATransition.}`
+- Opt-in cast-bypass lint via `opaqueStates = true` (CLI-only, warnings only)
 - Sealed typestates that restrict transitions to the defining module
 - A `typestates` CLI that verifies a project tree and exports diagrams
 

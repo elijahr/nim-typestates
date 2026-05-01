@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `opaqueStates = true` opt-in flag for typestate declarations. Enables a CLI-side lint that emits warnings when raw distinct casts construct non-initial states outside `{.transition.}` procs. See [Cast Protection guide](docs/guide/cast-protection.md) for caught/missed surface and known limitations. Warnings only; no compile-time enforcement.
+
+### Internal
+
+- New module `src/typestates/lint_opaque_states.nim`.
+- New public proc `parsePNode` in `ast_parser` (extracted from `parseFileWithAst` to share parser-init code with the lint).
+
 ## [0.5.0] - 2026-05-01
 
 ### Added
