@@ -57,11 +57,11 @@ typestate Payment:
 """
 
 suite "Opaque states lint":
-
   test "1. bypass detected outside transition":
-    let path = writeTemp("tlint_opaque_01.nim",
-      opaquePaymentHeader &
-      "\nlet bad = Captured(Payment(id: \"x\"))\n")
+    let path = writeTemp(
+      "tlint_opaque_01.nim",
+      opaquePaymentHeader & "\nlet bad = Captured(Payment(id: \"x\"))\n",
+    )
     let warnings = lintOf(path)
     check warnings.len == 1
     check "bypass of opaque state 'Captured'" in warnings[0]
@@ -70,29 +70,34 @@ suite "Opaque states lint":
     removeFile(path)
 
   test "2. no warning inside {.transition.}":
-    let path = writeTemp("tlint_opaque_02.nim",
+    let path = writeTemp(
+      "tlint_opaque_02.nim",
       opaquePaymentHeader & """
 proc cap(a: Authorized): Captured {.transition.} =
   Captured(a)
-""")
+""",
+    )
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
 
   test "3. result = inside {.transition.}":
-    let path = writeTemp("tlint_opaque_03.nim",
+    let path = writeTemp(
+      "tlint_opaque_03.nim",
       opaquePaymentHeader & """
 proc cap(a: Authorized): Captured {.transition.} =
   result = Captured(a)
-""")
+""",
+    )
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
 
   test "4. initial state never warned":
-    let path = writeTemp("tlint_opaque_04.nim",
-      opaquePaymentHeader &
-      "\nlet p = Created(Payment(id: \"x\"))\n")
+    let path = writeTemp(
+      "tlint_opaque_04.nim",
+      opaquePaymentHeader & "\nlet p = Created(Payment(id: \"x\"))\n",
+    )
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
@@ -163,9 +168,10 @@ let x = B(Doc())
     removeFile(path)
 
   test "7. empty fast-path: no opaque-flagged typestates":
-    let path = writeTemp("tlint_opaque_07.nim",
-      nonOpaquePaymentHeader &
-      "\nlet bad = Captured(Payment(id: \"x\"))\n")
+    let path = writeTemp(
+      "tlint_opaque_07.nim",
+      nonOpaquePaymentHeader & "\nlet bad = Captured(Payment(id: \"x\"))\n",
+    )
     let warnings = lintOf(path)
     check warnings.len == 0
     removeFile(path)
@@ -175,7 +181,8 @@ let x = B(Doc())
     # the callee. We construct a fixture where the bypass site is a
     # qualified call so this test specifically exercises the nkDotExpr
     # branch of inspectCall.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 # Define a stub holder with a Captured field, then call via dotted access.
 # The callee node is nkDotExpr(payments, Captured), which the lint must
@@ -227,7 +234,8 @@ let e = Empty(Box(items: @[1, 2, 3]))
     # Construct a fixture with bypasses on KNOWN lines so we can assert
     # exact `:N` substrings. The header is 16 lines (lines 1-16); line 17
     # is blank; we put bypasses on lines 18, 22, 26.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 let a = Captured(Payment(id: "1"))
 let dummy1 = 0
@@ -252,7 +260,7 @@ let c = Captured(Payment(id: "3"))
     # We compute lines empirically rather than hard-code, by counting newlines
     # in the header.
     let headerLines = opaquePaymentHeader.count('\n')
-    let aLine = headerLines + 2  # blank + a
+    let aLine = headerLines + 2 # blank + a
     let bLine = headerLines + 5
     let cLine = headerLines + 8
     let lineMarkerA = ":" & $aLine & " "
@@ -265,7 +273,8 @@ let c = Captured(Payment(id: "3"))
 
   test "11. nkCommand form 'Captured payment' (no parens)":
     # `Captured payment` parses as nkCommand. The lint must catch it.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 let payment = Payment(id: "x")
 discard Captured payment
@@ -280,7 +289,8 @@ discard Captured payment
     # This test uses {.transition, async.} pragma combo. We do NOT actually
     # need std/asyncdispatch; the lint reads source AST only. The walker
     # detects `transition` in the pragma list regardless of order.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 # Simulated async transition; no runtime needed. {.transition.} is detected
 # by the walker from the pragma list, so the body is in-scope.
@@ -293,7 +303,8 @@ proc cap(a: Authorized): Captured {.transition, gcsafe.} =
     removeFile(path)
 
   test "13. lambda inside {.transition.} body — zero warnings":
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc cap(a: Authorized): Captured {.transition.} =
   let f = proc(x: Authorized): Captured = Captured(x)
@@ -376,7 +387,8 @@ let boxBypass = BB(Box(n: 1))
     removeFile(path)
 
   test "16. cast[Captured](p) form — deferred (nkCast not nkCall)":
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 let p = Payment(id: "x")
 let bad = cast[Captured](p)
@@ -391,11 +403,14 @@ let bad = cast[Captured](p)
     # parseTypestatesAst, the opaque table is empty -> fast-path returns
     # @[] without warning. Documented limitation.
     let typestatePath = writeTemp("tlint_opaque_17_lib.nim", opaquePaymentHeader)
-    let consumerPath = writeTemp("tlint_opaque_17_app.nim", """
+    let consumerPath = writeTemp(
+      "tlint_opaque_17_app.nim",
+      """
 import "./tlint_opaque_17_lib"
 
 let bad = Captured(Payment(id: "x"))
-""")
+""",
+    )
     # Only pass the consumer path. The typestate is unknown -> empty table
     # -> zero warnings.
     let pr = parseTypestatesAst(@[consumerPath])
@@ -408,7 +423,8 @@ let bad = Captured(Payment(id: "x"))
     # Documented limitation: lint identifies by ident name only, so a
     # user-defined `proc Captured` collides with the state name and every
     # call is warned.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc Captured(s: string): string = "captured " & s
 let z = Captured("hello")
@@ -425,7 +441,8 @@ let z = Captured("hello")
     # `Captured(p)` is a literal nkCall as an argument of `logged`. The
     # walker recurses into all children of nkCall, so it reaches the
     # nested call.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc logged(c: Captured): Captured = c
 let bad = logged(Captured(Payment(id: "x")))
@@ -441,7 +458,8 @@ let bad = logged(Captured(Payment(id: "x")))
     # `someProc.callback do (x): Captured(x)` inside a transition routine.
     # nkDo is a child of the routine call; the walker enters it with
     # inTransition still > 0.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc invoke(handler: proc(x: Authorized): Captured): Captured =
   discard
@@ -459,7 +477,8 @@ proc cap(a: Authorized): Captured {.transition.} =
     # Documented deliberate behavior: lint walks source AST, never expands.
     # A template that constructs a state outside a transition is reported
     # at the template definition site.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 template makeC(p: Payment): untyped =
   Captured(p)
@@ -508,7 +527,8 @@ let bad = Captured(Payment(id: "x"))
     # Regression: previously the walker incremented `inTransition` on
     # entry to the outer routine and never reset on entry to the nested
     # routine, silently swallowing this bypass.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc cap(a: Authorized): Captured {.transition.} =
   proc inner(): Captured =
@@ -532,7 +552,8 @@ proc cap(a: Authorized): Captured {.transition.} =
     # walker enters its body with `inTransition = 1` regardless of the
     # outer scope. Constructing a non-initial opaque state inside the
     # inner body is therefore allowed.
-    let body = opaquePaymentHeader & """
+    let body =
+      opaquePaymentHeader & """
 
 proc outer(c: Created): Authorized {.transition.} =
   proc inner(a: Authorized): Captured {.transition.} =

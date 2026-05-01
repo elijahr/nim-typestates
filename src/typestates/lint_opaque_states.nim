@@ -25,7 +25,7 @@ import std/[os, strformat, strutils, tables]
 
 import compiler/ast
 
-import ./ast_parser  # re-uses ParseResult, ParseError, parsePNode
+import ./ast_parser # re-uses ParseResult, ParseError, parsePNode
 
 type
   OpaqueInfo = object
@@ -37,9 +37,8 @@ type
     warnings: seq[string]
     path: string
 
-const RoutineDefKinds = {
-  nkProcDef, nkFuncDef, nkMethodDef, nkConverterDef, nkIteratorDef
-}
+const RoutineDefKinds =
+  {nkProcDef, nkFuncDef, nkMethodDef, nkConverterDef, nkIteratorDef}
 
 proc hasTransitionPragma(routine: PNode): bool =
   ## Detect `{.transition.}`, `{.async, transition.}`, or
@@ -59,9 +58,12 @@ proc hasTransitionPragma(routine: PNode): bool =
     of nkExprColonExpr, nkCall:
       if child.len >= 1:
         case child[0].kind
-        of nkIdent: name = child[0].ident.s
-        of nkSym: name = child[0].sym.name.s
-        else: discard
+        of nkIdent:
+          name = child[0].ident.s
+        of nkSym:
+          name = child[0].sym.name.s
+        else:
+          discard
     else:
       discard
     if name == "transition":
@@ -106,8 +108,7 @@ proc walk(n: PNode, ctx: var LintCtx) =
   if n.kind in RoutineDefKinds + {nkTemplateDef, nkMacroDef}:
     let savedInTransition = ctx.inTransition
     ctx.inTransition =
-      if n.kind in RoutineDefKinds and hasTransitionPragma(n): 1
-      else: 0
+      if n.kind in RoutineDefKinds and hasTransitionPragma(n): 1 else: 0
     for child in n:
       walk(child, ctx)
     ctx.inTransition = savedInTransition
@@ -118,8 +119,7 @@ proc walk(n: PNode, ctx: var LintCtx) =
   for child in n:
     walk(child, ctx)
 
-proc lintOpaqueStates*(parseResult: ParseResult,
-                       paths: seq[string]): seq[string] =
+proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string] =
   ## Returns warning strings in `{path}:{line} - <message>` format. Empty
   ## seq when no typestate has opted in. Configuration warnings are
   ## prepended (no path/line prefix).
