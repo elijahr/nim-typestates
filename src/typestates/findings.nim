@@ -47,15 +47,24 @@ type
     transitionsChecked*: int
     filesChecked*: int
 
-proc mkError*(code: FindingCode; path: string; line: int;
-              message: string; hint: string = ""): Finding =
-  Finding(path: path, line: line, severity: sevError,
-          code: code, message: message, hint: hint)
+proc mkError*(
+    code: FindingCode, path: string, line: int, message: string, hint: string = ""
+): Finding =
+  Finding(
+    path: path, line: line, severity: sevError, code: code, message: message, hint: hint
+  )
 
-proc mkWarning*(code: FindingCode; path: string; line: int;
-                message: string; hint: string = ""): Finding =
-  Finding(path: path, line: line, severity: sevWarning,
-          code: code, message: message, hint: hint)
+proc mkWarning*(
+    code: FindingCode, path: string, line: int, message: string, hint: string = ""
+): Finding =
+  Finding(
+    path: path,
+    line: line,
+    severity: sevWarning,
+    code: code,
+    message: message,
+    hint: hint,
+  )
 
 proc errors*(r: VerifyResult): seq[Finding] =
   r.findings.filterIt(it.severity == sevError)
@@ -101,10 +110,14 @@ proc urlEncodeMessage(s: string): string =
   result = newStringOfCap(s.len)
   for c in s:
     case c
-    of '%': result.add "%25"
-    of '\r': result.add "%0D"
-    of '\n': result.add "%0A"
-    else: result.add c
+    of '%':
+      result.add "%25"
+    of '\r':
+      result.add "%0D"
+    of '\n':
+      result.add "%0A"
+    else:
+      result.add c
 
 proc urlEncodeParam(s: string): string =
   ## Encodes characters that GitHub Actions workflow commands treat specially
@@ -112,17 +125,23 @@ proc urlEncodeParam(s: string): string =
   result = newStringOfCap(s.len)
   for c in s:
     case c
-    of '%': result.add "%25"
-    of '\r': result.add "%0D"
-    of '\n': result.add "%0A"
-    of ',': result.add "%2C"
-    of ':': result.add "%3A"
-    else: result.add c
+    of '%':
+      result.add "%25"
+    of '\r':
+      result.add "%0D"
+    of '\n':
+      result.add "%0A"
+    of ',':
+      result.add "%2C"
+    of ':':
+      result.add "%3A"
+    else:
+      result.add c
 
 proc formatGitHub*(f: Finding): string =
   ## GitHub Actions workflow-command annotation. Spec:
   ## https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions
-  let kw = $f.severity  # "error" or "warning"
+  let kw = $f.severity # "error" or "warning"
   var params = ""
   if f.path.len > 0:
     params = " file=" & urlEncodeParam(f.path)
@@ -143,11 +162,12 @@ proc toJsonNode(f: Finding): JsonNode =
     "line": f.line,
     "code": $f.code,
     "message": f.message,
-    "hint": f.hint
+    "hint": f.hint,
   }
 
-proc formatJson*(findings: seq[Finding];
-                 filesChecked, transitionsChecked: int): string =
+proc formatJson*(
+    findings: seq[Finding], filesChecked, transitionsChecked: int
+): string =
   ## Single-line JSON envelope with `schemaVersion`. Errors and warnings split
   ## into separate arrays; severity is implicit per-array.
   let errs = findings.filterIt(it.severity == sevError).map(toJsonNode)
@@ -158,7 +178,7 @@ proc formatJson*(findings: seq[Finding];
       "filesChecked": filesChecked,
       "transitionsChecked": transitionsChecked,
       "errors": errs,
-      "warnings": warns
-    }
+      "warnings": warns,
+    },
   }
   result = $envelope

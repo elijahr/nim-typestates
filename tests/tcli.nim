@@ -155,8 +155,7 @@ proc unmarkedProc(f: Closed): string =
   let result = verify(@[testFile])
 
   doAssert result.errors.len > 0, "Expected errors for unmarked proc"
-  doAssert result.errors.anyIt(
-      "unmarkedProc" in it.message or "Unmarked" in it.message),
+  doAssert result.errors.anyIt("unmarkedProc" in it.message or "Unmarked" in it.message),
     "Expected error about unmarked proc"
 
   removeFile(testFile)

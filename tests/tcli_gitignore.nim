@@ -51,9 +51,9 @@ suite ".gitignore whitelist regression":
     let prereqMet = not gitChecksIgnoreFile(SampleData)
     if not prereqMet:
       echo "  NOTE: Task 7.1 (.gitignore whitelist for tests/fixtures/**) " &
-           "has not landed yet — skipping. Re-enable by either (a) " &
-           "applying the .gitignore patch, or (b) re-running these tests " &
-           "after that patch lands."
+        "has not landed yet — skipping. Re-enable by either (a) " &
+        "applying the .gitignore patch, or (b) re-running these tests " &
+        "after that patch lands."
 
   test "sample.json fixture exists in working tree":
     if gitChecksIgnoreFile(SampleData):

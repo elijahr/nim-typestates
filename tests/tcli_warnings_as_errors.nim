@@ -41,15 +41,13 @@ suite "verify --warnings-as-errors":
     check code == 0
 
   test "flag, with warnings -> exit 1":
-    let (code, _) = runVerify(
-      ["--warnings-as-errors", "tests/fixtures/cli_warning_dead.nim"]
-    )
+    let (code, _) =
+      runVerify(["--warnings-as-errors", "tests/fixtures/cli_warning_dead.nim"])
     check code == 1
 
   test "flag, with errors and warnings -> exit 1":
-    let (code, _) = runVerify(
-      ["--warnings-as-errors", "tests/fixtures/cli_unmarked.nim"]
-    )
+    let (code, _) =
+      runVerify(["--warnings-as-errors", "tests/fixtures/cli_unmarked.nim"])
     check code == 1
 
   test "no flag, with errors -> exit 1":

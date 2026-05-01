@@ -220,8 +220,9 @@ proc formatFinding*(f: ReachabilityFinding, initials, terminals: seq[string]): s
       "  Every state has at least one incoming transition (graph is one or more cycles).\n" &
       "  Hint: declare an `initial:` block."
 
-proc toFinding*(f: ReachabilityFinding; initials, terminals: seq[string];
-                path: string = ""): Finding =
+proc toFinding*(
+    f: ReachabilityFinding, initials, terminals: seq[string], path: string = ""
+): Finding =
   ## Convert a `ReachabilityFinding` into a structured `Finding`.
   ##
   ## The first line of the v0.6 multi-line message becomes `message`; all
@@ -231,30 +232,31 @@ proc toFinding*(f: ReachabilityFinding; initials, terminals: seq[string];
   ## property tested in `tcli_verify_warnings.nim`.
   case f.kind
   of rfDead:
-    let message = "Dead state '" & f.stateName &
-                  "' in typestate '" & f.typestateName & "'"
-    let hint = "Unreachable from any initial state.\n" &
-               "Initial states: " & initials.join(", ") & "\n" &
-               "Hint: add a transition INTO '" & f.stateName &
-               "', remove it from `states`, or declare it `initial:`."
+    let message =
+      "Dead state '" & f.stateName & "' in typestate '" & f.typestateName & "'"
+    let hint =
+      "Unreachable from any initial state.\n" & "Initial states: " & initials.join(", ") &
+      "\n" & "Hint: add a transition INTO '" & f.stateName &
+      "', remove it from `states`, or declare it `initial:`."
     result = mkWarning(fcUnreachableState, path, 0, message, hint)
   of rfTrap:
-    let message = "Trap state '" & f.stateName &
-                  "' in typestate '" & f.typestateName & "'"
-    let hint = "Reachable, but cannot reach any terminal state.\n" &
-               "Terminal states: " & terminals.join(", ") & "\n" &
-               "Hint: add a transition out of '" & f.stateName &
-               "' that reaches a terminal, or declare '" & f.stateName &
-               "' itself terminal."
+    let message =
+      "Trap state '" & f.stateName & "' in typestate '" & f.typestateName & "'"
+    let hint =
+      "Reachable, but cannot reach any terminal state.\n" & "Terminal states: " &
+      terminals.join(", ") & "\n" & "Hint: add a transition out of '" & f.stateName &
+      "' that reaches a terminal, or declare '" & f.stateName & "' itself terminal."
     result = mkWarning(fcNonTerminalState, path, 0, message, hint)
   of rfOrphan:
-    let message = "Orphan state '" & f.stateName &
-                  "' in typestate '" & f.typestateName & "'"
-    let hint = "No incoming transitions and not declared `initial:`.\n" &
-               "Hint: declare it `initial:` or add a transition INTO it."
+    let message =
+      "Orphan state '" & f.stateName & "' in typestate '" & f.typestateName & "'"
+    let hint =
+      "No incoming transitions and not declared `initial:`.\n" &
+      "Hint: declare it `initial:` or add a transition INTO it."
     result = mkWarning(fcOrphanState, path, 0, message, hint)
   of rfNoEntryPoint:
     let message = "Typestate '" & f.typestateName & "' has no entry point."
-    let hint = "Every state has at least one incoming transition (graph is one or more cycles).\n" &
-               "Hint: declare an `initial:` block."
+    let hint =
+      "Every state has at least one incoming transition (graph is one or more cycles).\n" &
+      "Hint: declare an `initial:` block."
     result = mkWarning(fcNoEntryPoint, path, 0, message, hint)

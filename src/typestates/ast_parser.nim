@@ -10,8 +10,16 @@ import std/[os, strutils, options]
 # Compiler imports - requires Nim compiler source
 import
   compiler/[
-    ast, parser, llstream, idents, options as compiler_options, pathutils, renderer,
-    lineinfos, lexer, msgs
+    ast,
+    parser,
+    llstream,
+    idents,
+    options as compiler_options,
+    pathutils,
+    renderer,
+    lineinfos,
+    lexer,
+    msgs,
   ]
 
 type
@@ -64,8 +72,7 @@ proc raisingErrorHandler(
       conf.toFullPath(info.fileIndex)
     except CatchableError:
       "<unknown>"
-  let formatted =
-    path & "(" & $info.line & ", " & $(info.col + 1) & ") Error: " & arg
+  let formatted = path & "(" & $info.line & ", " & $(info.col + 1) & ") Error: " & arg
   raise newException(ParseError, formatted)
 
 proc extractIdent(node: PNode): string =

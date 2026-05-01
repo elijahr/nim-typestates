@@ -22,8 +22,7 @@ import std/[unittest, osproc, strutils, os]
 const Bin = "./bin/typestates"
 const BadFile = "tests/fixtures/syntax_error.nim"
 
-proc runVerify(extraArgs: openArray[string]):
-    tuple[exitCode: int, output: string] =
+proc runVerify(extraArgs: openArray[string]): tuple[exitCode: int, output: string] =
   let cmd = Bin & " verify " & extraArgs.join(" ") & " " & BadFile & " 2>&1"
   let (output, code) = execCmdEx(cmd)
   result = (code, output)

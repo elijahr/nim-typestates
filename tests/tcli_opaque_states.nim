@@ -31,7 +31,8 @@ let bad = Captured(Payment(id: "x"))
     )
     let r = verify(@[testFile])
     # Tolerate other unrelated warnings; >= 1 bypass warning required.
-    let bypassWarnings = r.warnings.filterIt("bypass of opaque state 'Captured'" in it.message)
+    let bypassWarnings =
+      r.warnings.filterIt("bypass of opaque state 'Captured'" in it.message)
     check bypassWarnings.len >= 1
     check r.warnings.anyIt("(typestate 'Payment')" in it.message)
     check r.warnings.anyIt("outside {.transition.} proc" in it.message)

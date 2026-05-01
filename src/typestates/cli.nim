@@ -515,9 +515,7 @@ proc verifyFile(
   result.filesChecked = 1
 
   if not fileExists(path):
-    result.findings.add mkError(
-      fcFileNotFound, path, 0, "File not found: " & path
-    )
+    result.findings.add mkError(fcFileNotFound, path, 0, "File not found: " & path)
     return
 
   let content = readFile(path)
@@ -542,13 +540,17 @@ proc verifyFile(
               if not hasTransition and not hasNotATransition:
                 if typestateStrict.getOrDefault(tsName, true):
                   result.findings.add mkError(
-                    fcUnmarkedProcStrict, path, i + 1,
-                    fmt"Unmarked proc on state '{firstParamType}' (strictTransitions enabled)"
+                    fcUnmarkedProcStrict,
+                    path,
+                    i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}' (strictTransitions enabled)",
                   )
                 else:
                   result.findings.add mkWarning(
-                    fcUnmarkedProc, path, i + 1,
-                    fmt"Unmarked proc on state '{firstParamType}'"
+                    fcUnmarkedProc,
+                    path,
+                    i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}'",
                   )
               else:
                 result.transitionsChecked += 1

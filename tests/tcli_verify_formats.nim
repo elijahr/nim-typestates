@@ -14,27 +14,30 @@ import ../src/typestates/reachability
 
 suite "verify --format output":
   test "github format basic":
-    let f = mkError(fcUnmarkedProcStrict, "src/foo.nim", 42,
-                    "Unmarked proc on state 'Closed'")
+    let f = mkError(
+      fcUnmarkedProcStrict, "src/foo.nim", 42, "Unmarked proc on state 'Closed'"
+    )
     check formatGitHub(f) ==
       "::error file=src/foo.nim,line=42::Unmarked proc on state 'Closed'"
 
   test "github format with hint encodes %0A":
-    let f = mkWarning(fcUnreachableState, "", 0,
-                      "Dead state 'X'",
-                      "Unreachable from any initial state.\nInitial states: A")
+    let f = mkWarning(
+      fcUnreachableState, "", 0, "Dead state 'X'",
+      "Unreachable from any initial state.\nInitial states: A",
+    )
     let outStr = formatGitHub(f)
     check outStr ==
       "::warning::Dead state 'X'%0AUnreachable from any initial state.%0AInitial states: A"
 
   test "github format omits file= when path empty":
-    let f = mkWarning(fcOpaqueStatesNoInitials, "", 0, "opaqueStates = true requires initial:")
+    let f = mkWarning(
+      fcOpaqueStatesNoInitials, "", 0, "opaqueStates = true requires initial:"
+    )
     check formatGitHub(f) == "::warning::opaqueStates = true requires initial:"
 
   test "github format encodes comma in path":
     let f = mkError(fcUnmarkedProcStrict, "src/with,comma.nim", 5, "x")
-    check formatGitHub(f) ==
-      "::error file=src/with%2Ccomma.nim,line=5::x"
+    check formatGitHub(f) == "::error file=src/with%2Ccomma.nim,line=5::x"
 
   test "github format file with line zero omits ,line=":
     # If a finding has a path but no line, the GitHub annotation should
@@ -43,9 +46,7 @@ suite "verify --format output":
     check formatGitHub(f) == "::warning file=src/foo.nim::msg"
 
   test "json format produces valid envelope with one error":
-    let s = formatJson(@[
-      mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg")
-    ], 1, 0)
+    let s = formatJson(@[mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg")], 1, 0)
     let j = parseJson(s)
     check j["schemaVersion"].getInt == 1
     check j["verifyResult"]["filesChecked"].getInt == 1
@@ -59,9 +60,9 @@ suite "verify --format output":
     check j["verifyResult"]["warnings"].len == 0
 
   test "json format produces valid envelope with one warning":
-    let s = formatJson(@[
-      mkWarning(fcOpaqueStateBypass, "src/bar.nim", 7, "msg", "hint")
-    ], 2, 5)
+    let s = formatJson(
+      @[mkWarning(fcOpaqueStateBypass, "src/bar.nim", 7, "msg", "hint")], 2, 5
+    )
     let j = parseJson(s)
     check j["schemaVersion"].getInt == 1
     check j["verifyResult"]["filesChecked"].getInt == 2
@@ -91,9 +92,9 @@ suite "verify --format output":
     # Asserts std/json's OrderedTable insertion-order guarantee for JObject.
     # Per-finding object key order MUST be: path, line, code, message, hint.
     # If a future Nim version drops that guarantee this test surfaces it.
-    let s = formatJson(@[
-      mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg", "hint")
-    ], 1, 0)
+    let s = formatJson(
+      @[mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg", "hint")], 1, 0
+    )
     let firstObjStart = s.find("{\"path\"")
     check firstObjStart >= 0
     let pathIdx = s.find("\"path\"", firstObjStart)
@@ -126,58 +127,47 @@ suite "reachability round-trip vs v0.6 formatFinding":
     case f.kind
     of rfDead:
       "Dead state '" & f.stateName & "' in typestate '" & f.typestateName & "'\n" &
-      "  Unreachable from any initial state.\n" &
-      "  Initial states: " & initials.join(", ") & "\n" &
-      "  Hint: add a transition INTO '" & f.stateName &
-      "', remove it from `states`, or declare it `initial:`."
+        "  Unreachable from any initial state.\n" & "  Initial states: " &
+        initials.join(", ") & "\n" & "  Hint: add a transition INTO '" & f.stateName &
+        "', remove it from `states`, or declare it `initial:`."
     of rfTrap:
       "Trap state '" & f.stateName & "' in typestate '" & f.typestateName & "'\n" &
-      "  Reachable, but cannot reach any terminal state.\n" &
-      "  Terminal states: " & terminals.join(", ") & "\n" &
-      "  Hint: add a transition out of '" & f.stateName &
-      "' that reaches a terminal, or declare '" & f.stateName & "' itself terminal."
+        "  Reachable, but cannot reach any terminal state.\n" & "  Terminal states: " &
+        terminals.join(", ") & "\n" & "  Hint: add a transition out of '" & f.stateName &
+        "' that reaches a terminal, or declare '" & f.stateName & "' itself terminal."
     of rfOrphan:
       "Orphan state '" & f.stateName & "' in typestate '" & f.typestateName & "'\n" &
-      "  No incoming transitions and not declared `initial:`.\n" &
-      "  Hint: declare it `initial:` or add a transition INTO it."
+        "  No incoming transitions and not declared `initial:`.\n" &
+        "  Hint: declare it `initial:` or add a transition INTO it."
     of rfNoEntryPoint:
       "Typestate '" & f.typestateName & "' has no entry point.\n" &
-      "  Every state has at least one incoming transition (graph is one or more cycles).\n" &
-      "  Hint: declare an `initial:` block."
+        "  Every state has at least one incoming transition (graph is one or more cycles).\n" &
+        "  Hint: declare an `initial:` block."
 
   test "rfDead round-trip":
-    let rf = ReachabilityFinding(
-      kind: rfDead, stateName: "Frozen", typestateName: "Door"
-    )
-    check formatHuman(toFinding(rf, initials, terminals)) ==
-          v06Reference(rf)
+    let rf =
+      ReachabilityFinding(kind: rfDead, stateName: "Frozen", typestateName: "Door")
+    check formatHuman(toFinding(rf, initials, terminals)) == v06Reference(rf)
 
   test "rfTrap round-trip":
-    let rf = ReachabilityFinding(
-      kind: rfTrap, stateName: "Stuck", typestateName: "Door"
-    )
-    check formatHuman(toFinding(rf, initials, terminals)) ==
-          v06Reference(rf)
+    let rf =
+      ReachabilityFinding(kind: rfTrap, stateName: "Stuck", typestateName: "Door")
+    check formatHuman(toFinding(rf, initials, terminals)) == v06Reference(rf)
 
   test "rfOrphan round-trip":
-    let rf = ReachabilityFinding(
-      kind: rfOrphan, stateName: "Iso", typestateName: "Door"
-    )
-    check formatHuman(toFinding(rf, initials, terminals)) ==
-          v06Reference(rf)
+    let rf =
+      ReachabilityFinding(kind: rfOrphan, stateName: "Iso", typestateName: "Door")
+    check formatHuman(toFinding(rf, initials, terminals)) == v06Reference(rf)
 
   test "rfNoEntryPoint round-trip":
-    let rf = ReachabilityFinding(
-      kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle"
-    )
-    check formatHuman(toFinding(rf, initials, terminals)) ==
-          v06Reference(rf)
+    let rf =
+      ReachabilityFinding(kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle")
+    check formatHuman(toFinding(rf, initials, terminals)) == v06Reference(rf)
 
   test "v0.6 shim formatFinding still matches reference":
     # If the shim was refactored away and the test relies on toFinding alone,
     # this test is just a paranoia double-check. If the shim still exists
     # (current code), this guards against shim drift.
-    let rf = ReachabilityFinding(
-      kind: rfDead, stateName: "Frozen", typestateName: "Door"
-    )
+    let rf =
+      ReachabilityFinding(kind: rfDead, stateName: "Frozen", typestateName: "Door")
     check formatFinding(rf, initials, terminals) == v06Reference(rf)

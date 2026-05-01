@@ -102,8 +102,10 @@ proc inspectCall(n: PNode, ctx: var LintCtx) =
     return
   let info = ctx.opaqueNonInitial[name]
   ctx.findings.add mkWarning(
-    fcOpaqueStateBypass, ctx.path, int(n.info.line),
-    fmt"bypass of opaque state '{name}' (typestate '{info.typestate}') outside {{.transition.}} proc"
+    fcOpaqueStateBypass,
+    ctx.path,
+    int(n.info.line),
+    fmt"bypass of opaque state '{name}' (typestate '{info.typestate}') outside {{.transition.}} proc",
   )
 
 proc walk(n: PNode, ctx: var LintCtx) =
@@ -146,8 +148,10 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Findin
       continue
     if pt.initialStates.len == 0:
       result.add mkWarning(
-        fcOpaqueStatesNoInitials, "", 0,
-        fmt"opaqueStates = true on typestate '{pt.name}' but no initial states declared; lint disabled for this typestate"
+        fcOpaqueStatesNoInitials,
+        "",
+        0,
+        fmt"opaqueStates = true on typestate '{pt.name}' but no initial states declared; lint disabled for this typestate",
       )
       continue
     for state in pt.states:
