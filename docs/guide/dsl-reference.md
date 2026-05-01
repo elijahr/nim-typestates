@@ -224,6 +224,24 @@ Set `consumeOnTransition = false` when:
 
 **Cross-module bridging**: When state values are passed between typestates in different modules, use `consumeOnTransition = false` on both typestates. See [Bridges: Cross-Module Considerations](bridges.md#cross-module-considerations).
 
+### `opaqueStates`
+
+When `true`, enables a CLI-side lint that warns on raw distinct casts that construct non-initial states outside of `{.transition.}` proc bodies. Default is `false`. The flag is opt-in and has zero behavioral impact at compile time when off.
+
+```nim
+typestate Payment:
+  opaqueStates = true
+  states Created, Authorized, Captured
+  initial Created
+  transitions:
+    Created -> Authorized
+    Authorized -> Captured
+```
+
+The lint runs as part of `typestates verify` and emits warnings, not errors. Promote the warnings to errors in CI if you want hard enforcement. An `initial:` declaration is required when `opaqueStates = true`; otherwise the lint emits a configuration warning and skips the typestate.
+
+See [Cast Protection](cast-protection.md) for the full caught/missed table, known false-positive sources, and limitations.
+
 ### `inheritsFromRootObj`
 
 Set to `true` if your base type inherits from `RootObj`. This suppresses a compile-time error for static generic typestates on Nim < 2.2.8.

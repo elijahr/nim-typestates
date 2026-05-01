@@ -71,6 +71,8 @@ What the compiler can't check is whether your declared state machine matches rea
 
 To enable state-aware error messages on transition misuse, end your module with `verifyTypestates()`. See [error handling](docs/guide/error-handling.md) for details.
 
+There is one channel the type system cannot close: distinct types in Nim are syntactic, so `Captured(Payment(...))` will compile and forge a state value out of raw fields. v0.6 introduces `opaqueStates = true` as an opt-in CLI lint that flags these casts at `typestates verify` time, with caveats around cross-file resolution, generics, and `cast[T](...)` form. See [Cast Protection](docs/guide/cast-protection.md) for the full caught/missed table.
+
 ## Usage
 
 ### Branching transitions
