@@ -59,19 +59,22 @@ type
 
 proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
   ## Project a compile-time `TypestateGraph` into a `ReachabilityInput`.
+  ##
+  ## Normalizes states and edge endpoints to base names so the analyzer can
+  ## treat generic and non-generic typestates uniformly.
   result.typestateName = graph.name
   result.states = @[]
   for s in graph.states.keys:
-    result.states.add s
+    result.states.add extractBaseName(s)
   result.edges = @[]
   for t in graph.transitions:
     var e: GraphEdge
-    e.fromState = t.fromState
-    e.toStates = t.toStates
+    e.fromState = extractBaseName(t.fromState)
+    e.toStates = t.toStates.mapIt(extractBaseName(it))
     e.isWildcard = t.isWildcard
     result.edges.add e
-  result.initialStates = graph.initialStates
-  result.terminalStates = graph.terminalStates
+  result.initialStates = graph.initialStates.mapIt(extractBaseName(it))
+  result.terminalStates = graph.terminalStates.mapIt(extractBaseName(it))
   result.bridgeSources = @[]
   for b in graph.bridges:
     result.bridgeSources.add extractBaseName(b.fromState)
@@ -96,15 +99,13 @@ proc buildAdjacency(
       if t.isWildcard:
         inp.states.filterIt(it notin terminalBases)
       else:
-        @[extractBaseName(t.fromState)]
+        @[t.fromState]
     for src in sources:
       for dst in t.toStates:
-        let srcBase = extractBaseName(src)
-        let dstBase = extractBaseName(dst)
-        if srcBase in result.forward:
-          result.forward[srcBase].add dstBase
-        if dstBase in result.reverse:
-          result.reverse[dstBase].add srcBase
+        if src in result.forward:
+          result.forward[src].add dst
+        if dst in result.reverse:
+          result.reverse[dst].add src
 
 proc bfs(adj: Table[string, seq[string]], starts: seq[string]): HashSet[string] =
   ## Standard BFS reachability over a directed adjacency table.

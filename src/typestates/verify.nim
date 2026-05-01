@@ -6,7 +6,7 @@
 ## - `verifyTypestates()` macro for in-module verification
 ## - CLI tool support for full-project verification
 
-import std/[macros, options, os, strformat, strutils, tables]
+import std/[macros, options, os, sets, strformat, strutils, tables]
 import types, registry
 
 type
@@ -132,14 +132,17 @@ macro verifyTypestates*(): untyped =
       anySkipped: bool # any overload of this name was generic / branching / union
 
   var groups: Table[TransitionKey, TransitionInfo]
+  # Track union-source proc names so the second pass can flag matching
+  # groups in O(N+M) instead of O(N*M).
+  var unionProcNames: HashSet[string]
 
   for procInfo in registeredProcs:
     if procInfo.kind != pkTransition:
       continue
     if procInfo.sourceState.len == 0:
-      # Union-source proc: skip the entire group (v0.5 deferral). We still
-      # want to mark this group as "skipped" so we don't emit half-decoys
-      # for a name whose union overload covers multiple states.
+      # Union-source proc: defer the entire group (v0.5). Track the name so
+      # the second pass below can flag any same-named non-union overloads.
+      unionProcNames.incl procInfo.name
       continue
     let graphOpt = findTypestateForState(procInfo.sourceState)
     if graphOpt.isNone:
@@ -160,8 +163,7 @@ macro verifyTypestates*(): untyped =
         anySkipped: false,
       )
     # NOTE: Nim's `tables.[]` has a `var T` overload, so writes through
-    # `groups[key].field = ...` mutate the entry in place. Using `mpairs`
-    # below for the second pass is the idiomatic alternative.
+    # `groups[key].field = ...` mutate the entry in place.
     if procInfo.sourceState notin groups[key].coveredSources:
       groups[key].coveredSources.add procInfo.sourceState
     # If overloads disagree on extra params or destination, the decoy can't
@@ -172,21 +174,11 @@ macro verifyTypestates*(): untyped =
     if procInfo.destStates.len != 1:
       groups[key].anySkipped = true
 
-  # Re-scan registeredProcs to flag groups with a union-source overload as
-  # skipped. We can't tell from `(name, typestateName)` alone in the first
-  # pass, because a union-source proc has `sourceState == ""` and we never
-  # added it to `coveredSources` — but we still need to detect that some
-  # overload of this name takes a union.
-  for procInfo in registeredProcs:
-    if procInfo.kind != pkTransition:
-      continue
-    if procInfo.sourceState.len != 0:
-      continue
-    # Union proc: find which typestate(s) it might belong to. We don't have
-    # that info reliably, so treat all groups with the same name as skipped.
-    for key, info in groups.mpairs:
-      if key.name == procInfo.name:
-        info.anySkipped = true
+  # Flag groups with a union-source overload as skipped. O(N+M) via the
+  # name-set collected above.
+  for key, info in groups.mpairs:
+    if key.name in unionProcNames:
+      info.anySkipped = true
 
   # Helper: produce a new first-param type AST that preserves the original
   # modifier shape (sink T, var T, ref T, ptr T, plain T) but swaps the

@@ -13,7 +13,7 @@
 ## **Note:** Files must be valid Nim syntax. Parse errors cause verification
 ## to fail loudly with a clear error message.
 
-import std/[os, strutils, tables, strformat]
+import std/[os, sequtils, strutils, tables, strformat]
 import ast_parser
 import types
 import reachability
@@ -551,18 +551,16 @@ proc parsedToReachabilityInput(pt: ParsedTypestate): ReachabilityInput =
   ## consumed by `analyzeReachability`. Only state base names and transition
   ## edges are required; the analyzer does not consult `NimNode` fields.
   result.typestateName = pt.name
-  result.states = @[]
-  for s in pt.states:
-    result.states.add extractBaseName(s)
+  result.states = pt.states.mapIt(extractBaseName(it))
   result.edges = @[]
   for t in pt.transitions:
     var e: GraphEdge
-    e.fromState = t.fromState
-    e.toStates = t.toStates
+    e.fromState = extractBaseName(t.fromState)
+    e.toStates = t.toStates.mapIt(extractBaseName(it))
     e.isWildcard = t.isWildcard
     result.edges.add e
-  result.initialStates = pt.initialStates
-  result.terminalStates = pt.terminalStates
+  result.initialStates = pt.initialStates.mapIt(extractBaseName(it))
+  result.terminalStates = pt.terminalStates.mapIt(extractBaseName(it))
   result.bridgeSources = @[]
   for b in pt.bridges:
     result.bridgeSources.add extractBaseName(b.fromState)
