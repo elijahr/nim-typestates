@@ -14,7 +14,7 @@
 ## Used by both the macro-side parser (compile-time `warning(...)`
 ## emission) and the CLI verifier (populates `VerifyResult.warnings`).
 
-import std/[tables, sets, sequtils, strutils]
+import std/[tables, sets, sequtils, strutils, deques]
 import types
 
 type
@@ -109,19 +109,18 @@ proc buildAdjacency(
 proc bfs(adj: Table[string, seq[string]], starts: seq[string]): HashSet[string] =
   ## Standard BFS reachability over a directed adjacency table.
   result = initHashSet[string]()
-  var queue: seq[string] = @[]
+  var queue = initDeque[string]()
   for s in starts:
     if s notin result:
       result.incl s
-      queue.add s
+      queue.addLast s
   while queue.len > 0:
-    let n = queue[0]
-    queue.delete(0)
+    let n = queue.popFirst()
     if n in adj:
       for nbr in adj[n]:
         if nbr notin result:
           result.incl nbr
-          queue.add nbr
+          queue.addLast nbr
 
 proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
   ## Run reachability/liveness analysis on a `ReachabilityInput`.

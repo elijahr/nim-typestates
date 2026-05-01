@@ -159,6 +159,9 @@ macro verifyTypestates*(): untyped =
         extraParams: procInfo.extraParams,
         anySkipped: false,
       )
+    # NOTE: Nim's `tables.[]` has a `var T` overload, so writes through
+    # `groups[key].field = ...` mutate the entry in place. Using `mpairs`
+    # below for the second pass is the idiomatic alternative.
     if procInfo.sourceState notin groups[key].coveredSources:
       groups[key].coveredSources.add procInfo.sourceState
     # If overloads disagree on extra params or destination, the decoy can't
@@ -181,9 +184,9 @@ macro verifyTypestates*(): untyped =
       continue
     # Union proc: find which typestate(s) it might belong to. We don't have
     # that info reliably, so treat all groups with the same name as skipped.
-    for key in groups.keys:
+    for key, info in groups.mpairs:
       if key.name == procInfo.name:
-        groups[key].anySkipped = true
+        info.anySkipped = true
 
   # Helper: produce a new first-param type AST that preserves the original
   # modifier shape (sink T, var T, ref T, ptr T, plain T) but swaps the
