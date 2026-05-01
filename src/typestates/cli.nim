@@ -17,6 +17,7 @@ import std/[os, sequtils, strutils, tables, strformat]
 import ast_parser
 import types
 import reachability
+import lint_opaque_states
 
 # Re-export types from ast_parser for API compatibility
 export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
@@ -619,3 +620,6 @@ proc verify*(paths: seq[string]): VerifyResult =
           result.warnings.add fileResult.warnings
           result.transitionsChecked += fileResult.transitionsChecked
           result.filesChecked += fileResult.filesChecked
+
+  # Pass 3: opaqueStates lint (CLI-side cast-bypass detection).
+  result.warnings.add(lintOpaqueStates(parseResult, paths))
