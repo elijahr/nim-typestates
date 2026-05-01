@@ -23,7 +23,7 @@
 
 import std/[os, strformat, strutils, tables]
 
-import compiler/ast
+import compiler/[ast, idents, options as compiler_options]
 
 import ./ast_parser # re-uses ParseResult, ParseError, parsePNode
 
@@ -143,18 +143,25 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[string
     return result
 
   # Step 1: walk every .nim source file under the verified paths.
+  # Share one IdentCache and ConfigRef across every parsePNode call so we
+  # don't pay the per-file compiler-infrastructure allocation cost.
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+
   for path in paths:
     if path.endsWith(".nim"):
       ctx.path = path
       ctx.inTransition = 0
-      let ast = parsePNode(path)
+      let ast = parsePNode(path, cache, config)
       walk(ast, ctx)
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
           ctx.path = file
           ctx.inTransition = 0
-          let ast = parsePNode(file)
+          let ast = parsePNode(file, cache, config)
           walk(ast, ctx)
 
   result.add ctx.warnings
