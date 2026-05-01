@@ -80,7 +80,9 @@ suite "AST Parser":
     check res.typestates[0].opaqueStates == false
 
   test "opaqueStates explicit false":
-    let res = parseFileWithAst("tests/fixtures/with_flags.nim")
+    # Fixture has `opaqueStates = false` literally so extractFlag's
+    # `some(false)` path is exercised on the AST side.
+    let res = parseFileWithAst("tests/fixtures/opaque_states_explicit_false.nim")
     check res.typestates.len == 1
     check res.typestates[0].opaqueStates == false
 

@@ -195,9 +195,11 @@ let bad = payments.Captured(Payment(id: "x"))
     check "(typestate 'Payment')" in warnings[0]
     removeFile(path)
 
-  test "9. generic state via nkBracketExpr callee — deferred":
-    # Empty[int](items: ...) is a nkBracketExpr callee; the lint deliberately
-    # ignores these (deferred to v0.7).
+  test "9. generic-typed initial state construction — allowed (initial-skip)":
+    # The fixture constructs the initial state `Empty` with a concrete payload.
+    # Initial-state construction is always allowed, regardless of opaqueness.
+    # Note: genuine nkBracketExpr generic instantiation (e.g. `Full[int](...)`)
+    # handling is deferred to v0.7 and is NOT exercised by this test.
     let body = """
 type
   Box = object
@@ -213,12 +215,9 @@ typestate Box:
   transitions:
     Empty -> Full
 
-# nkBracketExpr callee form — silently ignored by the v0.6 lint.
+# Initial state Empty[T] constructed with concrete payload — allowed because state is initial.
 let e = Empty(Box(items: @[1, 2, 3]))
 """
-    # The bare `Empty(...)` on the last line is an INITIAL state, so it
-    # should not be warned. The test asserts the deferred behavior: no
-    # warnings for either form.
     let path = writeTemp("tlint_opaque_09.nim", body)
     let warnings = lintOf(path)
     check warnings.len == 0
