@@ -9,8 +9,10 @@ import std/[os, strutils, options]
 
 # Compiler imports - requires Nim compiler source
 import
-  compiler/
-    [ast, parser, llstream, idents, options as compiler_options, pathutils, renderer]
+  compiler/[
+    ast, parser, llstream, idents, options as compiler_options, pathutils, renderer,
+    lineinfos, lexer, msgs
+  ]
 
 type
   ParsedBridge* = object ## A bridge parsed from source code.
@@ -44,6 +46,27 @@ type
 
 proc newParseError(msg: string): ref ParseError =
   result = newException(ParseError, msg)
+
+proc raisingErrorHandler(
+    conf: ConfigRef, info: TLineInfo, msg: TMsgKind, arg: string
+) {.gcsafe.} =
+  ## Lexer/parser error hook that converts Nim's compiler-internal
+  ## "print + quit(1)" diagnostic path into a catchable `ParseError`.
+  ##
+  ## Without this hook the default `msgs.message` writes to stderr and calls
+  ## `quit(1)` from `handleError` (see compiler/msgs.nim) before any
+  ## `try/except ParseError` in `parsePNode` can fire, killing the host
+  ## process. With this hook installed, `verify()` can convert the failure
+  ## into an `fcParseError` Finding and route it through the JSON / GitHub
+  ## formatters.
+  let path =
+    try:
+      conf.toFullPath(info.fileIndex)
+    except CatchableError:
+      "<unknown>"
+  let formatted =
+    path & "(" & $info.line & ", " & $(info.col + 1) & ") Error: " & arg
+  raise newException(ParseError, formatted)
 
 proc extractIdent(node: PNode): string =
   ## Extract identifier string from a node.
@@ -520,8 +543,15 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
     raise newParseError("Failed to open stream for: " & path)
 
   openParser(p, absPath, stream, cache, config)
+  # Install a raising error handler on the underlying lexer so syntax errors
+  # surface as a catchable `ParseError` instead of going through the Nim
+  # compiler's default `quit(1)` path inside `msgs.handleError`. Must be set
+  # AFTER `openParser` (which fetches the first token) and BEFORE `parseAll`.
+  p.lex.errorHandler = raisingErrorHandler
   try:
     result = parseAll(p)
+  except ParseError:
+    raise
   except Exception as e:
     raise newParseError("Parse error in " & path & ": " & e.msg)
   finally:

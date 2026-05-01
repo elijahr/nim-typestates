@@ -7,25 +7,15 @@
 ## version the fixture stops triggering ParseError, that is itself a
 ## regression worth surfacing — escalate rather than swapping payloads.
 ##
-## ## Known v0.7-impl drift
+## ## Implementation note
 ##
-## In v0.7 the underlying Nim compiler's `parseAll` calls `quit(1)` from its
-## `msgs` infrastructure when it hits a syntax error, BEFORE the `try/except
-## ParseError` in `cli.verify()` can catch it. That kills the host process
-## (and any in-process test). To work around this in CI, the suite shells
-## out to the compiled binary so the abort is isolated to a child.
-##
-## The "structured-finding" tests below assert the design intent (parse
-## errors route through JSON / GitHub formatters). They are EXPECTED to
-## RED until the ConfigRef is hardened (errorHandler hook + errorMax) so
-## the parser's `quit(1)` is replaced with a raise that `verify()` can
-## catch. The strict-design intent assertions are guarded by an
-## environment opt-in (`TYPESTATES_PARSE_ERROR_STRICT=1`) so the suite as
-## a whole stays green on `nimble test` while still surfacing the gap to
-## anyone who looks.
-##
-## Once Section 4 ParseError handling is fixed, flip the default to strict
-## by removing the env-var guard.
+## Nim's compiler `parseAll` calls `quit(1)` from `msgs.handleError` on
+## syntax errors by default, which would kill the host process before any
+## `try/except ParseError` in `cli.verify()` could fire. `parsePNode` in
+## `ast_parser.nim` installs a raising `errorHandler` on the underlying
+## `Lexer` after `openParser`; that hook converts the parser's diagnostic
+## path into a catchable `ParseError`, which `verify()` turns into an
+## `fcParseError` Finding routed through every formatter.
 
 import std/[unittest, osproc, strutils, os]
 
@@ -63,26 +53,17 @@ suite "verify ParseError routing":
     check ("parse" in lower) or ("error" in lower) or ("syntax" in lower)
 
   test "json format: malformed file emits parse-error finding":
-    # DESIGN INTENT (Section 4 / design §8 ParseError Routing):
-    #   Stdout MUST contain a JSON envelope with a `parse-error` entry in
-    #   `errors[]`. Currently fails because the Nim parser `quit(1)`s
-    #   before `verify()` can convert ParseError into a Finding.
-    # Opt in via TYPESTATES_PARSE_ERROR_STRICT=1 to enforce.
-    if getEnv("TYPESTATES_PARSE_ERROR_STRICT") == "1":
-      let (code, output) = runVerify(["--format=json"])
-      check code == 1
-      check "\"code\":\"parse-error\"" in output
-      check "\"schemaVersion\":1" in output
-    else:
-      skip()
+    # ParseError is converted to an `fcParseError` Finding inside
+    # `verify()` (see `ast_parser.raisingErrorHandler`) and serialized into
+    # the JSON envelope's `errors[]`.
+    let (code, output) = runVerify(["--format=json"])
+    check code == 1
+    check "\"code\":\"parse-error\"" in output
+    check "\"schemaVersion\":1" in output
 
   test "github format: malformed file emits ::error annotation":
-    # DESIGN INTENT (Section 4 / design §8 ParseError Routing):
-    #   Stdout MUST contain a `::error` workflow-command line. Same gap as
-    #   the json test — opt in via TYPESTATES_PARSE_ERROR_STRICT=1.
-    if getEnv("TYPESTATES_PARSE_ERROR_STRICT") == "1":
-      let (code, output) = runVerify(["--format=github"])
-      check code == 1
-      check "::error" in output
-    else:
-      skip()
+    # Same routing as the JSON test; the GitHub formatter renders the
+    # `fcParseError` Finding as a `::error` workflow command.
+    let (code, output) = runVerify(["--format=github"])
+    check code == 1
+    check "::error" in output
