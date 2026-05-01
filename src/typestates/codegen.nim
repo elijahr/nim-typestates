@@ -711,7 +711,7 @@ proc buildMatchCase*(
   result = newStmtList()
   var caseStmt = nnkCaseStmt.newTree(newDotExpr(value, ident("kind")))
   for clause in arms:
-    if clause.kind != nnkCall or clause.len < 3:
+    if clause.kind != nnkCall or clause.len != 3:
       error(
         "match expects `StateName(bindName): body` per arm, got: " & clause.repr, clause
       )
