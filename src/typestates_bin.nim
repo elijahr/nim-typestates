@@ -86,7 +86,7 @@ when isMainModule:
     var pathArgs: seq[string] = @[]
 
     for arg in paths:
-      if arg == "--warnings-as-errors":
+      if arg == "--warnings-as-errors" or arg == "-W":
         warningsAsErrors = true
       elif arg.startsWith("--format="):
         let val = arg.split("=", maxsplit = 1)[1].toLowerAscii()

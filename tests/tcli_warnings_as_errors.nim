@@ -60,3 +60,11 @@ suite "verify --warnings-as-errors":
   test "no flag, with errors -> exit 1":
     let (code, _) = runVerify(["tests/fixtures/cli_unmarked.nim"])
     check code == 1
+
+  test "-W short alias is equivalent to --warnings-as-errors":
+    # docs/guide/ci-integration.md documents `-W` as the short form. Verify
+    # the alias is wired through to the same exit-code semantics.
+    let (codeWith, _) = runVerify(["-W", "tests/fixtures/cli_warning_dead.nim"])
+    check codeWith == 1
+    let (codeWithout, _) = runVerify(["-W", "tests/fixtures/cli_clean.nim"])
+    check codeWithout == 0
