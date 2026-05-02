@@ -106,14 +106,17 @@ proc raisingErrorHandler(
   ##
   ## The raised `ParseError` carries structured `path`/`line`/`column`
   ## fields so callers can build `Finding` records directly without parsing
-  ## the formatted message string.
+  ## the formatted message string. `msg` is just the bare diagnostic — the
+  ## structured location fields carry path/line/column, so embedding them
+  ## in `msg` would cause `formatHuman` to render `path:line - path(line,
+  ## col) Error: <arg>` (path/line repeated). Round-3 review fix: drop the
+  ## location prefix from `msg`.
   let path =
     try:
       conf.toFullPath(info.fileIndex)
     except CatchableError:
       "<unknown>"
-  let formatted = path & "(" & $info.line & ", " & $(info.col + 1) & ") Error: " & arg
-  let e = newException(ParseError, formatted)
+  let e = newException(ParseError, arg)
   e.path = path
   e.line = int(info.line)
   e.column = int(info.col + 1)

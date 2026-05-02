@@ -70,6 +70,15 @@ suite "verify ParseError routing":
     check BadFile in output
     check "1 error(s) found" in output
     check "All checks passed!" notin output
+    # Round-3 review: `raisingErrorHandler` previously embedded
+    # `path(line, col) Error: ` in the exception message, which
+    # `formatHuman` then prepended with its own `path:line - ` prefix,
+    # yielding redundant `path:line - path(line, col) Error: msg`. The
+    # location now lives only in the structured fields. Pin the absence
+    # of the redundant prefix shape: `Error: ` would survive the join,
+    # so we look for the closing `) Error: ` token specific to the old
+    # format.
+    check ") Error: " notin output
 
   test "json format: malformed file emits parse-error finding":
     # ParseError is converted to an `fcParseError` Finding inside
