@@ -181,7 +181,6 @@ suite "reachability round-trip vs v0.6 formatFinding":
     let rfOrphanF =
       ReachabilityFinding(kind: rfOrphan, stateName: "Iso", typestateName: "Door")
     check formatFinding(rfOrphanF, initials, terminals) == v06Reference(rfOrphanF)
-    let rfNoEntryF = ReachabilityFinding(
-      kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle"
-    )
+    let rfNoEntryF =
+      ReachabilityFinding(kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle")
     check formatFinding(rfNoEntryF, initials, terminals) == v06Reference(rfNoEntryF)

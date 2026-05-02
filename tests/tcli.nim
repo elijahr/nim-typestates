@@ -84,8 +84,7 @@ block testGenerateDot:
   # or compass-point placement will surface as an exact-string mismatch
   # rather than slipping past a substring check that happens to overlap
   # both old and new outputs.
-  const expected =
-    """digraph Connection {
+  const expected = """digraph Connection {
   rankdir=TB;
   splines=spline;
   nodesep=1.0;
