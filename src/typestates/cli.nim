@@ -13,14 +13,19 @@
 ## **Note:** Files must be valid Nim syntax. Parse errors cause verification
 ## to fail loudly with a clear error message.
 
-import std/[os, sequtils, strutils, tables, strformat]
+import std/[os, sequtils, sets, strutils, tables, strformat]
 import ast_parser
 import types
 import reachability
 import lint_opaque_states
+import findings
 
 # Re-export types from ast_parser for API compatibility
 export ParsedBridge, ParsedTransition, ParsedTypestate, ParseResult, ParseError
+
+# Re-export structured-finding API so `import typestates/cli` callers reach
+# `Finding`, `Severity`, `formatHuman`, etc. without a second import.
+export findings
 
 type
   SplineMode* = enum
@@ -36,17 +41,10 @@ type
     isWildcard: bool
     headPort: string # Compass point for arrow head (only used with non-ortho splines)
 
-  VerifyResult* = object
-    ## Results from verifying source files.
-    ##
-    ## :var errors: List of error messages
-    ## :var warnings: List of warning messages
-    ## :var transitionsChecked: Count of transitions validated
-    ## :var filesChecked: Count of files processed
-    errors*: seq[string]
-    warnings*: seq[string]
-    transitionsChecked*: int
-    filesChecked*: int
+# `VerifyResult` is defined in `findings.nim` and re-exported above. It now
+# carries `findings: seq[Finding]` instead of the v0.6 `errors: seq[string]` /
+# `warnings: seq[string]`. Use the `errors()` / `warnings()` accessors or
+# `anyErrors`/`anyWarnings` to query.
 
 proc dotQuote(s: string): string =
   ## Quote a string for DOT if it contains special characters.
@@ -512,12 +510,12 @@ proc verifyFile(
   ## :param path: Path to the Nim source file
   ## :param typestateStates: Map of typestate name to state names
   ## :param typestateStrict: Map of typestate name to strictTransitions flag
-  ## :returns: Verification results with errors and warnings
+  ## :returns: Verification results with structured findings.
   result = VerifyResult()
   result.filesChecked = 1
 
   if not fileExists(path):
-    result.errors.add "File not found: " & path
+    result.findings.add mkError(fcFileNotFound, path, 0, "File not found: " & path)
     return
 
   let content = readFile(path)
@@ -541,9 +539,19 @@ proc verifyFile(
             if firstParamType in states:
               if not hasTransition and not hasNotATransition:
                 if typestateStrict.getOrDefault(tsName, true):
-                  result.errors.add fmt"{path}:{i+1} - Unmarked proc on state '{firstParamType}' (strictTransitions enabled)"
+                  result.findings.add mkError(
+                    fcUnmarkedProcStrict,
+                    path,
+                    i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}' (strictTransitions enabled)",
+                  )
                 else:
-                  result.warnings.add fmt"{path}:{i+1} - Unmarked proc on state '{firstParamType}'"
+                  result.findings.add mkWarning(
+                    fcUnmarkedProc,
+                    path,
+                    i + 1,
+                    fmt"Unmarked proc on state '{firstParamType}'",
+                  )
               else:
                 result.transitionsChecked += 1
 
@@ -572,19 +580,37 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## Uses Nim's AST parser to extract typestates, then checks that all
   ## procs operating on state types are properly marked with
   ## `{.transition.}` or `{.notATransition.}`. Also runs reachability
-  ## analysis when `initial:` / `terminal:` blocks are declared and
-  ## appends findings to `result.warnings`.
+  ## analysis when `initial:` / `terminal:` blocks are declared and the
+  ## opaque-states cast-bypass lint, appending all results to
+  ## `result.findings`.
   ##
-  ## **Note:** Files with syntax errors cause verification to fail
-  ## immediately with a clear error message.
+  ## Files with syntax errors no longer abort the pipeline: they surface as
+  ## `fcParseError` findings routed through the normal output formatters.
+  ## A parse error in one file does NOT abort verification of other files —
+  ## `typestates verify --format=github src/` produces annotations for
+  ## every problem the user has, not just the first.
   ##
   ## :param paths: List of file or directory paths to verify
-  ## :returns: Verification results with errors, warnings, and counts
-  ## :raises ParseError: on syntax errors
+  ## :returns: Verification results with structured findings and counts
   result = VerifyResult()
 
-  # First pass: collect all typestates using AST parser
+  # First pass: collect all typestates using AST parser. Per-file parse
+  # errors are accumulated by `parseTypestatesAst` into
+  # `parseResult.failures` rather than raised; convert each one to an
+  # `fcParseError` Finding here so `--format=github`/`--format=json`
+  # consumers still receive structured output for every malformed input.
   let parseResult = parseTypestates(paths)
+  var failedPaths = initHashSet[string]()
+  for f in parseResult.failures:
+    result.findings.add mkError(
+      fcParseError, f.path, f.line, f.message, column = f.column
+    )
+    # Track absolute path so pass 2 / pass 3 can skip the same file
+    # without emitting duplicate parse-error findings or noise from
+    # text-scanning a malformed source.
+    if f.path.len > 0:
+      failedPaths.incl(absolutePath(f.path))
+
   var typestateStates: Table[string, seq[string]]
   var typestateStrict: Table[string, bool]
 
@@ -600,26 +626,35 @@ proc verify*(paths: seq[string]): VerifyResult =
       let inp = parsedToReachabilityInput(pt)
       let report = analyzeReachability(inp)
       for f in report.findings:
-        result.warnings.add formatFinding(
+        result.findings.add toFinding(
           f, report.initialStatesUsed, report.terminalStatesUsed
         )
 
-  # Second pass: verify procs
+  # Second pass: verify procs. Skip files that already failed pass 1 —
+  # text-scanning a syntactically broken file would produce noise and a
+  # parse-error Finding has already been emitted for it.
+  proc shouldSkipFailed(path: string): bool =
+    failedPaths.contains(absolutePath(path))
+
   for path in paths:
     if path.endsWith(".nim"):
+      if shouldSkipFailed(path):
+        continue
       let fileResult = verifyFile(path, typestateStates, typestateStrict)
-      result.errors.add fileResult.errors
-      result.warnings.add fileResult.warnings
+      result.findings.add fileResult.findings
       result.transitionsChecked += fileResult.transitionsChecked
       result.filesChecked += fileResult.filesChecked
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
+          if shouldSkipFailed(file):
+            continue
           let fileResult = verifyFile(file, typestateStates, typestateStrict)
-          result.errors.add fileResult.errors
-          result.warnings.add fileResult.warnings
+          result.findings.add fileResult.findings
           result.transitionsChecked += fileResult.transitionsChecked
           result.filesChecked += fileResult.filesChecked
 
-  # Pass 3: opaqueStates lint (CLI-side cast-bypass detection).
-  result.warnings.add(lintOpaqueStates(parseResult, paths))
+  # Pass 3: opaqueStates lint (CLI-side cast-bypass detection). Pass the
+  # set of pass-1 failed paths so the lint can skip them without
+  # double-reporting parse-error findings already emitted above.
+  result.findings.add lintOpaqueStates(parseResult, paths, failedPaths)

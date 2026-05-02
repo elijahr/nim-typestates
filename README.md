@@ -166,6 +166,13 @@ typestates dot src/ | dot -Tpng -o states.png
 typestates dot --no-style src/ > states.dot   # unstyled, easier to theme
 ```
 
+### CI integration
+
+Run `typestates verify` in pre-commit hooks, GitHub Actions, or GitLab CI. The
+v0.7 CLI exposes `--warnings-as-errors` for gating builds and `--format=github`
+for inline PR annotations. See [CI Integration](https://elijahr.github.io/nim-typestates/latest/guide/ci-integration/)
+for setup recipes and the documented JSON schema.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/elijahr/nim-typestates/main/docs/assets/images/generated/multi.svg" alt="Generated typestate diagram showing multiple states and transitions" width="600">
 </p>
@@ -189,6 +196,7 @@ The full guide and API reference live at <https://elijahr.github.io/nim-typestat
 - [DSL reference](https://elijahr.github.io/nim-typestates/latest/guide/dsl-reference/)
 - [Formal guarantees](https://elijahr.github.io/nim-typestates/latest/guide/formal-guarantees/)
 - [Examples](https://elijahr.github.io/nim-typestates/latest/guide/examples/)
+- [CI Integration](https://elijahr.github.io/nim-typestates/latest/guide/ci-integration/)
 - [API reference](https://elijahr.github.io/nim-typestates/latest/api/)
 
 The [`examples/`](examples/) directory in this repo has runnable versions of the examples used in the docs (payments, OAuth, hardware registers, document workflows, and others).

@@ -1,6 +1,6 @@
 ## Tests for CLI parsing and DOT generation
 
-import std/[strutils, os]
+import std/[strutils, os, sequtils]
 import ../src/typestates/cli
 
 # Test parseTypestates with a fixture file
@@ -78,18 +78,35 @@ block testGenerateDot:
 
   let dot = generateDot(ts)
 
-  doAssert "digraph Connection" in dot, "Expected digraph header"
-  doAssert "rankdir=TB" in dot, "Expected TB direction"
-  doAssert "Disconnected;" in dot, "Expected Disconnected node"
-  doAssert "Connected;" in dot, "Expected Connected node"
-  doAssert "Errored;" in dot, "Expected Errored node"
-  doAssert "Disconnected -> Connected" in dot, "Expected Disconnected -> Connected edge"
-  doAssert "Disconnected -> Errored" in dot, "Expected Disconnected -> Errored edge"
-  doAssert "Connected -> Disconnected" in dot, "Expected Connected -> Disconnected edge"
-  # Wildcard should expand
-  doAssert "Errored -> Disconnected" in dot,
-    "Expected Errored -> Disconnected (from wildcard)"
-  doAssert "style=dotted" in dot, "Expected dotted style for wildcard edges"
+  # Exact-equality assertion: the DOT output is fully deterministic given
+  # the inputs (state order, edge ordering, styling block). A drift in
+  # node ordering, edge expansion (e.g. wildcard fan-out), styling block,
+  # or compass-point placement will surface as an exact-string mismatch
+  # rather than slipping past a substring check that happens to overlap
+  # both old and new outputs.
+  const expected = """digraph Connection {
+  rankdir=TB;
+  splines=spline;
+  nodesep=1.0;
+  ranksep=1.0;
+  bgcolor="transparent";
+  pad=0.3;
+
+  node [shape=box, style="rounded,filled", fillcolor="#2d2d2d", color="#b39ddb", fontcolor="#e0e0e0", fontname="sans-serif", fontsize=14, margin="0.4,0.3"];
+  edge [fontname="sans-serif", fontsize=11, color="#b0b0b0"];
+
+  Disconnected;
+  Connected;
+  Errored;
+
+  Disconnected -> Connected;
+  Disconnected -> Errored;
+  Connected -> Disconnected:e;
+  Disconnected -> Disconnected:e [style=dotted, color="#757575"];
+  Errored -> Disconnected:w [style=dotted, color="#757575"];
+}"""
+  doAssert dot == expected,
+    "DOT output drifted from expected. Got:\n" & dot & "\n\nExpected:\n" & expected
 
   echo "generateDot test passed"
 
@@ -155,7 +172,7 @@ proc unmarkedProc(f: Closed): string =
   let result = verify(@[testFile])
 
   doAssert result.errors.len > 0, "Expected errors for unmarked proc"
-  doAssert "unmarkedProc" in result.errors[0] or "Unmarked" in result.errors[0],
+  doAssert result.errors.anyIt("unmarkedProc" in it.message or "Unmarked" in it.message),
     "Expected error about unmarked proc"
 
   removeFile(testFile)

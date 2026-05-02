@@ -9,8 +9,18 @@ import std/[os, strutils, options]
 
 # Compiler imports - requires Nim compiler source
 import
-  compiler/
-    [ast, parser, llstream, idents, options as compiler_options, pathutils, renderer]
+  compiler/[
+    ast,
+    parser,
+    llstream,
+    idents,
+    options as compiler_options,
+    pathutils,
+    renderer,
+    lineinfos,
+    lexer,
+    msgs,
+  ]
 
 type
   ParsedBridge* = object ## A bridge parsed from source code.
@@ -36,14 +46,85 @@ type
     initialStates*: seq[string] ## States declared in `initial:` block
     terminalStates*: seq[string] ## States declared in `terminal:` block
 
-  ParseResult* = object ## Results from parsing source files.
+  ParseFailure* = object
+    ## A single per-file parse failure, carrying enough structured data
+    ## to materialize an `fcParseError` Finding without re-parsing the
+    ## formatted message string. `path` is the absolute or
+    ## as-supplied-by-the-caller path; `line` and `column` are 1-indexed
+    ## (`0` if not applicable). `message` is the bare diagnostic (no
+    ## embedded path/line prefix — that data lives in `path`/`line`/
+    ## `column`). Round-3 review fix: added `column` so col data flows
+    ## through to `Finding` without re-parsing `message`.
+    path*: string
+    line*: int
+    column*: int
+    message*: string
+
+  ParseResult* = object
+    ## Results from parsing source files.
+    ##
+    ## `typestates` and `filesChecked` cover only the files that parsed
+    ## successfully. Files that failed to parse are reported via
+    ## `failures` (one entry per failed file). v0.7+ callers that want to
+    ## report parse errors as structured findings instead of aborting the
+    ## pipeline should iterate `failures` and emit one
+    ## `fcParseError` per entry.
     typestates*: seq[ParsedTypestate]
     filesChecked*: int
+    failures*: seq[ParseFailure]
 
-  ParseError* = object of CatchableError ## Error during parsing.
+  ParseError* = object of CatchableError
+    ## Error during parsing.
+    ##
+    ## Carries structured location data so consumers (e.g. `verify()`,
+    ## `lintOpaqueStates`) can build `Finding` records without re-parsing the
+    ## formatted message. `path` is the absolute path of the offending file
+    ## (or `""` when unknown, e.g. file-not-found pre-parse). `line` is
+    ## 1-indexed; `column` is 1-indexed. `0` for either means "not
+    ## applicable / unknown". The `msg` field still carries the human
+    ## formatted diagnostic for backwards compatibility.
+    path*: string
+    line*: int
+    column*: int
 
-proc newParseError(msg: string): ref ParseError =
+proc newParseError(
+    msg: string, path: string = "", line: int = 0, column: int = 0
+): ref ParseError =
   result = newException(ParseError, msg)
+  result.path = path
+  result.line = line
+  result.column = column
+
+proc raisingErrorHandler(
+    conf: ConfigRef, info: TLineInfo, msg: TMsgKind, arg: string
+) {.gcsafe.} =
+  ## Lexer/parser error hook that converts Nim's compiler-internal
+  ## "print + quit(1)" diagnostic path into a catchable `ParseError`.
+  ##
+  ## Without this hook the default `msgs.message` writes to stderr and calls
+  ## `quit(1)` from `handleError` (see compiler/msgs.nim) before any
+  ## `try/except ParseError` in `parsePNode` can fire, killing the host
+  ## process. With this hook installed, `verify()` can convert the failure
+  ## into an `fcParseError` Finding and route it through the JSON / GitHub
+  ## formatters.
+  ##
+  ## The raised `ParseError` carries structured `path`/`line`/`column`
+  ## fields so callers can build `Finding` records directly without parsing
+  ## the formatted message string. `msg` is just the bare diagnostic — the
+  ## structured location fields carry path/line/column, so embedding them
+  ## in `msg` would cause `formatHuman` to render `path:line - path(line,
+  ## col) Error: <arg>` (path/line repeated). Round-3 review fix: drop the
+  ## location prefix from `msg`.
+  let path =
+    try:
+      conf.toFullPath(info.fileIndex)
+    except CatchableError:
+      "<unknown>"
+  let e = newException(ParseError, arg)
+  e.path = path
+  e.line = int(info.line)
+  e.column = int(info.col + 1)
+  raise e
 
 proc extractIdent(node: PNode): string =
   ## Extract identifier string from a node.
@@ -509,7 +590,7 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   ## them across every parse to avoid the per-file allocation cost of fresh
   ## compiler infrastructure. Raises `ParseError` on failure.
   if not fileExists(path):
-    raise newParseError("File not found: " & path)
+    raise newParseError("File not found: " & path, path = path)
 
   let content = readFile(path)
   let absPath = AbsoluteFile(path.absolutePath)
@@ -517,13 +598,29 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   var p: Parser
   let stream = llStreamOpen(content)
   if stream == nil:
-    raise newParseError("Failed to open stream for: " & path)
+    raise newParseError("Failed to open stream for: " & path, path = path)
 
+  # Install a raising error handler on the underlying lexer so syntax errors
+  # surface as a catchable `ParseError` instead of going through the Nim
+  # compiler's default `quit(1)` path inside `msgs.handleError`.
+  #
+  # Must be set BEFORE `openParser`: that proc calls `openLexer` (which does
+  # NOT touch `errorHandler`, so the handler we set here survives) and then
+  # `getTok(p)` to read the first token. If the very first token is
+  # malformed, that read goes through `dispMessage` which would invoke the
+  # default `quit(1)` path before any later assignment could take effect.
+  # Setting the handler now ensures even a first-byte syntax error becomes
+  # a catchable `ParseError`. (Mirrors the pattern in
+  # `compiler/parser.parseString`, which assigns `p.lex.errorHandler`
+  # before `openParser` for the same reason.)
+  p.lex.errorHandler = raisingErrorHandler
   openParser(p, absPath, stream, cache, config)
   try:
     result = parseAll(p)
+  except ParseError:
+    raise
   except Exception as e:
-    raise newParseError("Parse error in " & path & ": " & e.msg)
+    raise newParseError("Parse error in " & path & ": " & e.msg, path = path)
   finally:
     closeParser(p)
 
@@ -571,7 +668,14 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   ##
   ## Creates one `IdentCache` and one `ConfigRef` and reuses them across
   ## every file, avoiding per-file compiler-infrastructure allocation.
-  ## Fails loudly on any parse error.
+  ##
+  ## Per-file `ParseError`s are accumulated into `result.failures` rather
+  ## than aborting the entire batch — `typestates verify --format=github
+  ## src/` should produce annotations for every problem the user has, not
+  ## just the first parse error. Successfully parsed files contribute
+  ## their typestates to `result.typestates` and `filesChecked`. Callers
+  ## (e.g. `verify()` and `lintOpaqueStates`) inspect `failures` to emit
+  ## one `fcParseError` Finding per failed path.
   result = ParseResult()
 
   let cache = newIdentCache()
@@ -579,14 +683,26 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   config.notes = {}
   config.foreignPackageNotes = {}
 
+  proc recordFailure(result: var ParseResult, fallbackPath: string, e: ref ParseError) =
+    let p = if e.path.len > 0: e.path else: fallbackPath
+    result.failures.add ParseFailure(
+      path: p, line: e.line, column: e.column, message: e.msg
+    )
+
   for path in paths:
     if path.endsWith(".nim"):
-      let fileResult = parseFileWithAst(path, cache, config)
-      result.typestates.add fileResult.typestates
-      result.filesChecked += fileResult.filesChecked
+      try:
+        let fileResult = parseFileWithAst(path, cache, config)
+        result.typestates.add fileResult.typestates
+        result.filesChecked += fileResult.filesChecked
+      except ParseError as e:
+        recordFailure(result, path, e)
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
-          let fileResult = parseFileWithAst(file, cache, config)
-          result.typestates.add fileResult.typestates
-          result.filesChecked += fileResult.filesChecked
+          try:
+            let fileResult = parseFileWithAst(file, cache, config)
+            result.typestates.add fileResult.typestates
+            result.filesChecked += fileResult.filesChecked
+          except ParseError as e:
+            recordFailure(result, file, e)

@@ -93,6 +93,7 @@ nav:
     - Strict Mode: guide/strict-mode.md
     - Cast Protection: guide/cast-protection.md
     - Verification: guide/verification.md
+    - CI Integration: guide/ci-integration.md
     - CLI Reference: guide/cli.md
     - Visualization: guide/visualization.md
   - API Reference: api.md

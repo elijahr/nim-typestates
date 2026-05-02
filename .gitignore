@@ -31,6 +31,19 @@ examples/[a-z_]*
 examples/**/[a-z_]*
 !examples/**/*.nim
 
+## Allow committed fixture/data files (preventive whitelist for v0.7+)
+## NOTE: the bare `!tests/fixtures/` line re-includes the directory itself,
+## which is required: git's gitignore rules forbid re-including a file if a
+## parent directory was excluded by a prior pattern. Without this line the
+## `!tests/fixtures/**` content rule would have no effect.
+!tests/fixtures/
+!tests/fixtures/**
+!src/typestates/**/*.md
+!src/typestates/**/*.yaml
+!src/typestates/**/*.yml
+!src/typestates/**/*.toml
+!src/typestates/**/*.json
+
 # Generated docs
 htmldocs/
 docs/api/
