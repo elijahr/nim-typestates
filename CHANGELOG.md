@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Documentation
+
+- `docs/guide/cli.md` now documents the v0.7 verify flags (`--warnings-as-errors` / `-W`, `--format=<default|github|json>`), describes the parse-error fail-soft behavior, and points to `ci-integration.md` for full coverage instead of duplicating CI examples.
+- `docs/guide/verification.md` mentions the v0.7 flags with cross-links to `cli.md` and `ci-integration.md`.
+- `docs/guide/ci-integration.md` adds a note on the parse-error fail-soft behavior (one bad file no longer aborts the rest of the batch).
+
 ## [0.7.0] - 2026-05-02
 
 ### Added
