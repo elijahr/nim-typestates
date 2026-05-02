@@ -117,6 +117,34 @@ suite "verify ParseError routing":
     check "syntax_error.nim" in output
     check ("expected" in output) or ("Error" in output)
 
+  test "parse error column propagates path -> ParseError -> Finding -> JSON":
+    # Round-3 review addition: column data flows end-to-end from
+    # `raisingErrorHandler` (lexer/parser hook) through `ParseFailure`
+    # and `mkError` into the JSON envelope. A non-zero column on the
+    # `parse-error` finding proves the wiring works without re-parsing
+    # the message string. We don't pin the exact column number (depends
+    # on the malformed fixture's specific tokenization in the running
+    # Nim version) — only that it is non-zero, which a value of 0 would
+    # falsify if any link in the chain dropped the column.
+    let (code, output) = runVerify(["--format=json"])
+    check code == 1
+    check "\"code\":\"parse-error\"" in output
+    check "\"column\":" in output
+    # The fixture has the syntax error mid-file, so column must be > 0.
+    check "\"column\":0" notin output
+
+  test "parse error column propagates to GitHub annotation as col=":
+    # Symmetric end-to-end check for the GitHub formatter: `col=N` MUST
+    # appear after `line=N` for the parse-error annotation. A regression
+    # in any of (raisingErrorHandler, ParseFailure, mkError, formatGitHub)
+    # would either drop `col=` entirely or render `col=0`.
+    let (code, output) = runVerify(["--format=github"])
+    check code == 1
+    check "::error" in output
+    check "syntax_error.nim" in output
+    check ",col=" in output
+    check ",col=0" notin output
+
   test "parse error in one file does NOT abort verification of other files":
     # Regression guard for gemini-code-assist finding #6: `verify` over a
     # mix of broken + healthy files should produce findings for BOTH the

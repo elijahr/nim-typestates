@@ -602,7 +602,9 @@ proc verify*(paths: seq[string]): VerifyResult =
   let parseResult = parseTypestates(paths)
   var failedPaths = initHashSet[string]()
   for f in parseResult.failures:
-    result.findings.add mkError(fcParseError, f.path, f.line, f.message)
+    result.findings.add mkError(
+      fcParseError, f.path, f.line, f.message, column = f.column
+    )
     # Track absolute path so pass 2 / pass 3 can skip the same file
     # without emitting duplicate parse-error findings or noise from
     # text-scanning a malformed source.

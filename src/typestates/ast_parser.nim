@@ -50,10 +50,14 @@ type
     ## A single per-file parse failure, carrying enough structured data
     ## to materialize an `fcParseError` Finding without re-parsing the
     ## formatted message string. `path` is the absolute or
-    ## as-supplied-by-the-caller path; `line` is 1-indexed (`0` if not
-    ## applicable). `message` is the formatted human diagnostic.
+    ## as-supplied-by-the-caller path; `line` and `column` are 1-indexed
+    ## (`0` if not applicable). `message` is the bare diagnostic (no
+    ## embedded path/line prefix — that data lives in `path`/`line`/
+    ## `column`). Round-3 review fix: added `column` so col data flows
+    ## through to `Finding` without re-parsing `message`.
     path*: string
     line*: int
+    column*: int
     message*: string
 
   ParseResult* = object
@@ -681,7 +685,9 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
 
   proc recordFailure(result: var ParseResult, fallbackPath: string, e: ref ParseError) =
     let p = if e.path.len > 0: e.path else: fallbackPath
-    result.failures.add ParseFailure(path: p, line: e.line, message: e.msg)
+    result.failures.add ParseFailure(
+      path: p, line: e.line, column: e.column, message: e.msg
+    )
 
   for path in paths:
     if path.endsWith(".nim"):

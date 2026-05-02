@@ -31,12 +31,14 @@ type
     ##
     ## :var path: Source file (`""` if not file-scoped).
     ## :var line: 1-indexed line number; `0` if not applicable.
+    ## :var column: 1-indexed column number; `0` if not applicable.
     ## :var severity: Determines exit-code gating.
     ## :var code: Stable wire identifier (see ci-integration.md).
     ## :var message: Single-line summary. No leading whitespace, no newlines.
     ## :var hint: Optional multi-line elaboration. `""` if absent.
     path*: string
     line*: int
+    column*: int
     severity*: Severity
     code*: FindingCode
     message*: string
@@ -48,18 +50,35 @@ type
     filesChecked*: int
 
 proc mkError*(
-    code: FindingCode, path: string, line: int, message: string, hint: string = ""
-): Finding =
-  Finding(
-    path: path, line: line, severity: sevError, code: code, message: message, hint: hint
-  )
-
-proc mkWarning*(
-    code: FindingCode, path: string, line: int, message: string, hint: string = ""
+    code: FindingCode,
+    path: string,
+    line: int,
+    message: string,
+    hint: string = "",
+    column: int = 0,
 ): Finding =
   Finding(
     path: path,
     line: line,
+    column: column,
+    severity: sevError,
+    code: code,
+    message: message,
+    hint: hint,
+  )
+
+proc mkWarning*(
+    code: FindingCode,
+    path: string,
+    line: int,
+    message: string,
+    hint: string = "",
+    column: int = 0,
+): Finding =
+  Finding(
+    path: path,
+    line: line,
+    column: column,
     severity: sevWarning,
     code: code,
     message: message,
@@ -147,12 +166,19 @@ proc urlEncodeParam(s: string): string =
 proc formatGitHub*(f: Finding): string =
   ## GitHub Actions workflow-command annotation. Spec:
   ## https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions
+  ##
+  ## `col=` is emitted only when `f.column != 0`, mirroring the `line=`
+  ## omission policy: a missing column field would otherwise render as
+  ## `col=0`, which the runner would interpret as column 0 rather than
+  ## "unspecified".
   let kw = $f.severity # "error" or "warning"
   var params = ""
   if f.path.len > 0:
     params = " file=" & urlEncodeParam(f.path)
     if f.line > 0:
       params.add ",line=" & $f.line
+    if f.column > 0:
+      params.add ",col=" & $f.column
   let body =
     if f.hint.len == 0:
       urlEncodeMessage(f.message)
@@ -162,10 +188,11 @@ proc formatGitHub*(f: Finding): string =
 
 proc toJsonNode(f: Finding): JsonNode =
   ## Per-finding JSON shape; severity is implicit in the array name.
-  ## Field order: path, line, code, message, hint.
+  ## Field order: path, line, column, code, message, hint.
   result = %*{
     "path": f.path,
     "line": f.line,
+    "column": f.column,
     "code": $f.code,
     "message": f.message,
     "hint": f.hint,

@@ -54,6 +54,42 @@ suite "verify --format output":
     let f = mkWarning(fcOpaqueStateBypass, "src/foo.nim", 0, "msg")
     check formatGitHub(f) == "::warning file=src/foo.nim::msg"
 
+  test "github format emits col= when column is non-zero":
+    # Round-3 review addition: structured column data flows path
+    # → ParseError → ParseFailure → Finding → annotation. When a Finding
+    # carries `column != 0`, the GitHub annotation MUST emit `,col=N`
+    # after `,line=N` so the runner can pin the annotation to the exact
+    # caret position on the source diff.
+    let f = mkError(fcParseError, "src/foo.nim", 42, "boom", column = 9)
+    check formatGitHub(f) == "::error file=src/foo.nim,line=42,col=9::boom"
+
+  test "github format omits col= when column is zero":
+    # Symmetric with the `,line=0` omission policy: a missing column
+    # field renders as `column = 0` and MUST NOT emit `,col=0`, since
+    # the runner would otherwise treat it as column 0 rather than
+    # "unspecified".
+    let f = mkError(fcParseError, "src/foo.nim", 42, "boom")
+    check formatGitHub(f) == "::error file=src/foo.nim,line=42::boom"
+
+  test "json format emits column field when non-zero":
+    # Round-3 review addition: the JSON envelope carries the structured
+    # column number alongside `line` so machine consumers can pin to the
+    # exact caret without re-parsing `message`.
+    let s =
+      formatJson(@[mkError(fcParseError, "src/foo.nim", 42, "boom", column = 9)], 1, 0)
+    let j = parseJson(s)
+    check j["verifyResult"]["errors"][0]["column"].getInt == 9
+
+  test "json format emits column = 0 when column omitted":
+    # Even when no caller supplied a column, the field is present in the
+    # JSON envelope (value `0`) so the schema shape is stable across all
+    # findings, mirroring the always-present `line` field. A consumer
+    # reading `column == 0` interprets it as "no column info available."
+    let s = formatJson(@[mkError(fcParseError, "src/foo.nim", 42, "boom")], 1, 0)
+    let j = parseJson(s)
+    check j["verifyResult"]["errors"][0].hasKey("column")
+    check j["verifyResult"]["errors"][0]["column"].getInt == 0
+
   test "json format produces valid envelope with one error":
     let s = formatJson(@[mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg")], 1, 0)
     let j = parseJson(s)
@@ -64,6 +100,8 @@ suite "verify --format output":
     check j["verifyResult"]["errors"][0]["code"].getStr == "unmarked-proc-strict"
     check j["verifyResult"]["errors"][0]["path"].getStr == "src/foo.nim"
     check j["verifyResult"]["errors"][0]["line"].getInt == 10
+    # Default column is 0 (unspecified) when caller doesn't pass one.
+    check j["verifyResult"]["errors"][0]["column"].getInt == 0
     check j["verifyResult"]["errors"][0]["message"].getStr == "msg"
     check j["verifyResult"]["errors"][0]["hint"].getStr == ""
     check j["verifyResult"]["warnings"].len == 0
@@ -80,6 +118,7 @@ suite "verify --format output":
     check j["verifyResult"]["warnings"].len == 1
     check j["verifyResult"]["warnings"][0]["path"].getStr == "src/bar.nim"
     check j["verifyResult"]["warnings"][0]["line"].getInt == 7
+    check j["verifyResult"]["warnings"][0]["column"].getInt == 0
     check j["verifyResult"]["warnings"][0]["code"].getStr == "opaque-state-bypass"
     check j["verifyResult"]["warnings"][0]["message"].getStr == "msg"
     check j["verifyResult"]["warnings"][0]["hint"].getStr == "hint"
@@ -102,8 +141,9 @@ suite "verify --format output":
 
   test "json format finding field order":
     # Asserts std/json's OrderedTable insertion-order guarantee for JObject.
-    # Per-finding object key order MUST be: path, line, code, message, hint.
-    # If a future Nim version drops that guarantee this test surfaces it.
+    # Per-finding object key order MUST be: path, line, column, code,
+    # message, hint. If a future Nim version drops that guarantee this
+    # test surfaces it.
     let s = formatJson(
       @[mkError(fcUnmarkedProcStrict, "src/foo.nim", 10, "msg", "hint")], 1, 0
     )
@@ -111,11 +151,13 @@ suite "verify --format output":
     check firstObjStart >= 0
     let pathIdx = s.find("\"path\"", firstObjStart)
     let lineIdx = s.find("\"line\"", firstObjStart)
+    let colIdx = s.find("\"column\"", firstObjStart)
     let codeIdx = s.find("\"code\"", firstObjStart)
     let msgIdx = s.find("\"message\"", firstObjStart)
     let hintIdx = s.find("\"hint\"", firstObjStart)
     check pathIdx < lineIdx
-    check lineIdx < codeIdx
+    check lineIdx < colIdx
+    check colIdx < codeIdx
     check codeIdx < msgIdx
     check msgIdx < hintIdx
 

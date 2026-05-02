@@ -126,13 +126,16 @@ Actions' annotation format:
 ```
 ::warning file=src/payment.nim,line=42::Captured(payment) outside transition
 ::error file=src/order.nim,line=17::Undeclared transition: Open -> Closed
+::error file=src/parse_me.nim,line=8,col=14::expected closing ')'
 ```
 
 When run inside a GitHub Actions job, the runner parses these lines
 and posts file-and-line annotations directly on the PR diff view.
-Hints (the secondary explanatory text on reachability findings) are
-joined to the message with `%0A`-encoded newlines, which GitHub
-renders as line breaks in the annotation body.
+`col=N` is appended after `line=N` when a column is available
+(currently parse errors only); it pins the annotation to the exact
+caret position on the diff. Hints (the secondary explanatory text on
+reachability findings) are joined to the message with `%0A`-encoded
+newlines, which GitHub renders as line breaks in the annotation body.
 
 Stdout under `--format=github` contains only annotation lines. The
 "Checked N files" summary routes to stderr so it does not pollute the
@@ -165,6 +168,7 @@ Each finding inside `errors[]` or `warnings[]` has the shape:
 {
   "path": "src/payment.nim",
   "line": 42,
+  "column": 17,
   "code": "opaque-state-bypass",
   "message": "Captured(payment) outside any {.transition.} proc",
   "hint": ""
@@ -182,6 +186,7 @@ Each finding inside `errors[]` or `warnings[]` has the shape:
 | `verifyResult.warnings` | array | Findings with severity `warning`. Empty array if none. |
 | `path` | string | Filesystem path to the source file, as provided to `verify`. |
 | `line` | integer | 1-based line number. `0` if the finding is file-scoped (e.g., a parse error with no usable line info). |
+| `column` | integer | 1-based column number. `0` if not available (most lints are line-scoped). Currently populated for `parse-error` findings via the Nim parser's caret position; other codes emit `0`. |
 | `code` | string | Stable identifier for the check. See [Code taxonomy](#code-taxonomy). |
 | `message` | string | Human-readable primary message. Single line. |
 | `hint` | string | Secondary diagnostic text (suggestions, supplementary context). Empty string if absent. |
@@ -231,7 +236,7 @@ schema violation, not as an empty result.
 
 Field order in the JSON output is stable: top-level keys appear in the
 order shown above (`schemaVersion`, then `verifyResult`), and finding
-keys appear in `path, line, code, message, hint` order. This is achieved
+keys appear in `path, line, column, code, message, hint` order. This is achieved
 via Nim's `std/json` `OrderedTable`-backed `JsonNode`. Consumers that
 parse with insertion-order-preserving libraries (Python's `json`,
 `jq -S` opt-out, etc.) get deterministic output. Consumers using
