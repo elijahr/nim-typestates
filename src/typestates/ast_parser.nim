@@ -574,12 +574,21 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   if stream == nil:
     raise newParseError("Failed to open stream for: " & path, path = path)
 
-  openParser(p, absPath, stream, cache, config)
   # Install a raising error handler on the underlying lexer so syntax errors
   # surface as a catchable `ParseError` instead of going through the Nim
-  # compiler's default `quit(1)` path inside `msgs.handleError`. Must be set
-  # AFTER `openParser` (which fetches the first token) and BEFORE `parseAll`.
+  # compiler's default `quit(1)` path inside `msgs.handleError`.
+  #
+  # Must be set BEFORE `openParser`: that proc calls `openLexer` (which does
+  # NOT touch `errorHandler`, so the handler we set here survives) and then
+  # `getTok(p)` to read the first token. If the very first token is
+  # malformed, that read goes through `dispMessage` which would invoke the
+  # default `quit(1)` path before any later assignment could take effect.
+  # Setting the handler now ensures even a first-byte syntax error becomes
+  # a catchable `ParseError`. (Mirrors the pattern in
+  # `compiler/parser.parseString`, which assigns `p.lex.errorHandler`
+  # before `openParser` for the same reason.)
   p.lex.errorHandler = raisingErrorHandler
+  openParser(p, absPath, stream, cache, config)
   try:
     result = parseAll(p)
   except ParseError:

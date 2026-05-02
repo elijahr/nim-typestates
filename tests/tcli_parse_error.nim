@@ -21,6 +21,13 @@ import std/[unittest, osproc, strutils, os]
 
 const Bin = "./bin/typestates"
 const BadFile = "tests/fixtures/syntax_error.nim"
+# Regression fixture for first-token errors (gemini-code-assist #2 / #8).
+# `openParser` reads the first token synchronously inside its body, so the
+# error handler MUST be installed on `p.lex.errorHandler` BEFORE calling
+# `openParser`. If a future refactor moves the assignment back after
+# `openParser`, this fixture will crash the host process via the default
+# `msgs.handleError -> quit(1)` path instead of producing a Finding.
+const FirstTokBadFile = "tests/fixtures/syntax_error_first_token.nim"
 
 proc runVerify(extraArgs: openArray[string]): tuple[exitCode: int, output: string] =
   let cmd = Bin & " verify " & extraArgs.join(" ") & " " & BadFile & " 2>&1"
@@ -72,6 +79,21 @@ suite "verify ParseError routing":
     check code == 1
     check "\"code\":\"parse-error\"" in output
     check "\"schemaVersion\":1" in output
+
+  test "first-token syntax error: handler installed before openParser":
+    # Regression guard for gemini-code-assist findings #2 / #8: a syntax
+    # error in the very FIRST token must surface as a structured Finding,
+    # not crash the host process via the compiler's default `quit(1)`
+    # path. Distinct from the mid-file `BadFile` test because
+    # `openParser` reads the first token *inside* its body, so any
+    # handler installed after `openParser` would never see this error.
+    check fileExists(FirstTokBadFile)
+    let cmd = Bin & " verify " & FirstTokBadFile & " 2>&1"
+    let (output, code) = execCmdEx(cmd)
+    check code == 1
+    check "ERROR: " in output
+    check "1 error(s) found" in output
+    check FirstTokBadFile in output
 
   test "github format: malformed file emits ::error annotation":
     # Same routing as the JSON test; the GitHub formatter renders the
