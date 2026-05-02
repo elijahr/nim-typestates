@@ -119,10 +119,10 @@ The CLI uses Nim's AST parser for accurate extraction. Files must be valid Nim s
 
 ```bash
 $ typestates verify src/
-ERROR: Parse error in src/broken.nim: invalid indentation
+ERROR: src/broken.nim:2 - invalid indentation
 ```
 
-A parse failure is reported as a `parse-error` finding for that path and does not abort the run. Each input file is parsed independently, so a single malformed file (for example, an unfinished change pushed by a contributor) produces one finding while verification continues across the rest of the batch. Earlier versions of `typestates verify` aborted on the first parse failure.
+A parse failure is reported as a structured `parse-error` finding for that path (rendered through the same `path:line - message` formatter as other findings) and does not abort the run. Each input file is parsed independently, so a single malformed file (for example, an unfinished change pushed by a contributor) produces one finding while verification continues across the rest of the batch. Earlier versions of `typestates verify` aborted on the first parse failure.
 
 ## Dot Command
 
