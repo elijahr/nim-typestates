@@ -190,7 +190,12 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Findin
         let ast = parsePNode(path, cache, config)
         walk(ast, ctx)
       except ParseError as e:
-        result.add mkError(fcParseError, path, 0, e.msg)
+        # Prefer the structured fields populated by `raisingErrorHandler`
+        # (path/line); fall back to the loop's `path` and line `0` only
+        # when the raise site couldn't supply them (e.g. file-not-found
+        # before any token was read).
+        let p = if e.path.len > 0: e.path else: path
+        result.add mkError(fcParseError, p, e.line, e.msg)
         continue
     elif dirExists(path):
       for file in walkDirRec(path):
@@ -203,7 +208,8 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Findin
             let ast = parsePNode(file, cache, config)
             walk(ast, ctx)
           except ParseError as e:
-            result.add mkError(fcParseError, file, 0, e.msg)
+            let p = if e.path.len > 0: e.path else: file
+            result.add mkError(fcParseError, p, e.line, e.msg)
             continue
 
   result.add ctx.findings

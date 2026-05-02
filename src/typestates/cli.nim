@@ -598,7 +598,7 @@ proc verify*(paths: seq[string]): VerifyResult =
   try:
     parseResult = parseTypestates(paths)
   except ParseError as e:
-    result.findings.add mkError(fcParseError, "", 0, e.msg)
+    result.findings.add mkError(fcParseError, e.path, e.line, e.msg)
     return # downstream passes need parseResult; bail.
 
   var typestateStates: Table[string, seq[string]]

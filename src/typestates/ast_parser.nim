@@ -50,10 +50,27 @@ type
     typestates*: seq[ParsedTypestate]
     filesChecked*: int
 
-  ParseError* = object of CatchableError ## Error during parsing.
+  ParseError* = object of CatchableError
+    ## Error during parsing.
+    ##
+    ## Carries structured location data so consumers (e.g. `verify()`,
+    ## `lintOpaqueStates`) can build `Finding` records without re-parsing the
+    ## formatted message. `path` is the absolute path of the offending file
+    ## (or `""` when unknown, e.g. file-not-found pre-parse). `line` is
+    ## 1-indexed; `column` is 1-indexed. `0` for either means "not
+    ## applicable / unknown". The `msg` field still carries the human
+    ## formatted diagnostic for backwards compatibility.
+    path*: string
+    line*: int
+    column*: int
 
-proc newParseError(msg: string): ref ParseError =
+proc newParseError(
+    msg: string, path: string = "", line: int = 0, column: int = 0
+): ref ParseError =
   result = newException(ParseError, msg)
+  result.path = path
+  result.line = line
+  result.column = column
 
 proc raisingErrorHandler(
     conf: ConfigRef, info: TLineInfo, msg: TMsgKind, arg: string
@@ -67,13 +84,21 @@ proc raisingErrorHandler(
   ## process. With this hook installed, `verify()` can convert the failure
   ## into an `fcParseError` Finding and route it through the JSON / GitHub
   ## formatters.
+  ##
+  ## The raised `ParseError` carries structured `path`/`line`/`column`
+  ## fields so callers can build `Finding` records directly without parsing
+  ## the formatted message string.
   let path =
     try:
       conf.toFullPath(info.fileIndex)
     except CatchableError:
       "<unknown>"
   let formatted = path & "(" & $info.line & ", " & $(info.col + 1) & ") Error: " & arg
-  raise newException(ParseError, formatted)
+  let e = newException(ParseError, formatted)
+  e.path = path
+  e.line = int(info.line)
+  e.column = int(info.col + 1)
+  raise e
 
 proc extractIdent(node: PNode): string =
   ## Extract identifier string from a node.
@@ -539,7 +564,7 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   ## them across every parse to avoid the per-file allocation cost of fresh
   ## compiler infrastructure. Raises `ParseError` on failure.
   if not fileExists(path):
-    raise newParseError("File not found: " & path)
+    raise newParseError("File not found: " & path, path = path)
 
   let content = readFile(path)
   let absPath = AbsoluteFile(path.absolutePath)
@@ -547,7 +572,7 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   var p: Parser
   let stream = llStreamOpen(content)
   if stream == nil:
-    raise newParseError("Failed to open stream for: " & path)
+    raise newParseError("Failed to open stream for: " & path, path = path)
 
   openParser(p, absPath, stream, cache, config)
   # Install a raising error handler on the underlying lexer so syntax errors
@@ -560,7 +585,7 @@ proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   except ParseError:
     raise
   except Exception as e:
-    raise newParseError("Parse error in " & path & ": " & e.msg)
+    raise newParseError("Parse error in " & path & ": " & e.msg, path = path)
   finally:
     closeParser(p)
 
