@@ -176,8 +176,19 @@ proc formatJson*(
 ): string =
   ## Single-line JSON envelope with `schemaVersion`. Errors and warnings split
   ## into separate arrays; severity is implicit per-array.
-  let errs = findings.filterIt(it.severity == sevError).map(toJsonNode)
-  let warns = findings.filterIt(it.severity == sevWarning).map(toJsonNode)
+  ##
+  ## Single-pass partition: walks `findings` once and dispatches each
+  ## finding to either the errors or warnings bucket (vs the previous
+  ## two-pass `filterIt` + `map` shape, which traversed the input twice
+  ## and allocated an intermediate filtered seq each time).
+  var errs: seq[JsonNode] = @[]
+  var warns: seq[JsonNode] = @[]
+  for f in findings:
+    case f.severity
+    of sevError:
+      errs.add f.toJsonNode()
+    of sevWarning:
+      warns.add f.toJsonNode()
   let envelope = %*{
     "schemaVersion": SchemaVersion,
     "verifyResult": {
