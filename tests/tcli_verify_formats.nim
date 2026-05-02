@@ -69,7 +69,10 @@ suite "verify --format output":
     check j["verifyResult"]["transitionsChecked"].getInt == 5
     check j["verifyResult"]["errors"].len == 0
     check j["verifyResult"]["warnings"].len == 1
+    check j["verifyResult"]["warnings"][0]["path"].getStr == "src/bar.nim"
+    check j["verifyResult"]["warnings"][0]["line"].getInt == 7
     check j["verifyResult"]["warnings"][0]["code"].getStr == "opaque-state-bypass"
+    check j["verifyResult"]["warnings"][0]["message"].getStr == "msg"
     check j["verifyResult"]["warnings"][0]["hint"].getStr == "hint"
 
   test "json format empty findings":
@@ -164,10 +167,21 @@ suite "reachability round-trip vs v0.6 formatFinding":
       ReachabilityFinding(kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle")
     check formatHuman(toFinding(rf, initials, terminals)) == v06Reference(rf)
 
-  test "v0.6 shim formatFinding still matches reference":
+  test "v0.6 shim formatFinding still matches reference (all kinds)":
     # If the shim was refactored away and the test relies on toFinding alone,
     # this test is just a paranoia double-check. If the shim still exists
-    # (current code), this guards against shim drift.
-    let rf =
+    # (current code), this guards against shim drift across every
+    # ReachabilityFindingKind, not just rfDead.
+    let rfDeadF =
       ReachabilityFinding(kind: rfDead, stateName: "Frozen", typestateName: "Door")
-    check formatFinding(rf, initials, terminals) == v06Reference(rf)
+    check formatFinding(rfDeadF, initials, terminals) == v06Reference(rfDeadF)
+    let rfTrapF =
+      ReachabilityFinding(kind: rfTrap, stateName: "Stuck", typestateName: "Door")
+    check formatFinding(rfTrapF, initials, terminals) == v06Reference(rfTrapF)
+    let rfOrphanF =
+      ReachabilityFinding(kind: rfOrphan, stateName: "Iso", typestateName: "Door")
+    check formatFinding(rfOrphanF, initials, terminals) == v06Reference(rfOrphanF)
+    let rfNoEntryF = ReachabilityFinding(
+      kind: rfNoEntryPoint, stateName: "", typestateName: "Cycle"
+    )
+    check formatFinding(rfNoEntryF, initials, terminals) == v06Reference(rfNoEntryF)

@@ -76,6 +76,12 @@ suite "verify ParseError routing":
   test "github format: malformed file emits ::error annotation":
     # Same routing as the JSON test; the GitHub formatter renders the
     # `fcParseError` Finding as a `::error` workflow command.
+    # Stronger than `"::error" in output`: a generic file-not-found or
+    # other-error code would still satisfy that. Pin (a) the workflow-command
+    # prefix, (b) the fixture file path inside `file=` (parser diagnostic
+    # carries it), and (c) at least one parser-shaped diagnostic token.
     let (code, output) = runVerify(["--format=github"])
     check code == 1
     check "::error" in output
+    check "syntax_error.nim" in output
+    check ("expected" in output) or ("Error" in output)

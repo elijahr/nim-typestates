@@ -46,9 +46,16 @@ suite "verify --warnings-as-errors":
     check code == 1
 
   test "flag, with errors and warnings -> exit 1":
-    let (code, _) =
+    # Stronger than just exit code: the unmarked fixture's StrictDoor produces
+    # both an unmarked-proc ERROR and an orphan-state WARNING. Assert both
+    # surface in the output so a regression that drops one severity tier
+    # (e.g. warning suppression collapses to errors-only) surfaces here.
+    let (code, output) =
       runVerify(["--warnings-as-errors", "tests/fixtures/cli_unmarked.nim"])
     check code == 1
+    check "ERROR:" in output
+    check "Unmarked" in output
+    check "WARNING:" in output
 
   test "no flag, with errors -> exit 1":
     let (code, _) = runVerify(["tests/fixtures/cli_unmarked.nim"])

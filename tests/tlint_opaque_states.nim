@@ -433,7 +433,9 @@ let z = Captured("hello")
     let warnings = lintOf(path)
     # The only call site outside transition is `Captured("hello")` and
     # the lint cannot tell user-proc from state-ctor — fires.
-    check warnings.len >= 1
+    # Exact 1 (not >= 1): a future dedupe regression that double-reports
+    # the same call site would slip past `>= 1` but surfaces here.
+    check warnings.len == 1
     check warnings.anyIt("bypass of opaque state 'Captured'" in it.message)
     removeFile(path)
 
