@@ -35,4 +35,6 @@ typestates verify src/     # Check all procs are properly marked
 typestates dot src/        # Generate GraphViz diagrams
 ```
 
-See [CLI Reference](cli.md) for complete usage and [Visualization](visualization.md) for diagram generation.
+For non-interactive use, `verify` accepts `--warnings-as-errors` (alias `-W`) to promote warning-severity findings to a non-zero exit code, and `--format=github` or `--format=json` for machine-readable output. The `github` format emits inline PR annotations on GitHub Actions; the `json` format follows a stable, versioned schema for downstream tooling.
+
+See [CLI Reference](cli.md) for complete usage, [CI Integration](ci-integration.md) for the format schemas and CI recipes, and [Visualization](visualization.md) for diagram generation.

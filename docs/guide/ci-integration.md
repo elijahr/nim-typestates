@@ -24,6 +24,17 @@ The exit code is `0` if no errors fired and `1` if any error was emitted.
 Warnings do not affect exit by default; use `--warnings-as-errors` to gate
 on them.
 
+## Behavior on parse errors
+
+Each input file is parsed independently. If one file fails to parse (for
+example, because a contributor pushed an unfinished change), it produces a
+single `parse-error` finding for that path and verification continues with
+the rest of the batch. A run can therefore surface multiple `parse-error`
+findings alongside lint findings from successfully-parsed files. Earlier
+versions of `typestates verify` aborted the entire run on the first parse
+failure; that behavior changed in v0.7 so a single broken file no longer
+masks the rest of the project's results in CI.
+
 ## Pre-commit hook
 
 The repo ships a `.pre-commit-hooks.yaml` manifest at its root. Consumers
