@@ -26,7 +26,7 @@ Options:
 
 ## Verify Command
 
-The `verify` command checks that all procs operating on state types are properly marked with `{.transition.}` or `{.notATransition.}`.
+The `verify` command checks that all procs operating on state types are properly marked with `{.transition.}` or `{.notATransition.}`. It also surfaces reachability problems, opaque-state cast bypasses, and configuration warnings.
 
 ### Basic Usage
 
@@ -34,6 +34,28 @@ The `verify` command checks that all procs operating on state types are properly
 typestates verify src/
 typestates verify src/ tests/
 typestates verify .
+```
+
+### Flags
+
+The `verify` command accepts two flags that shape exit-code policy and output format. See [CI Integration](ci-integration.md) for the full schema, severity model, and CI-specific recipes.
+
+#### `--warnings-as-errors` (alias `-W`)
+
+Promotes any warning-severity finding to a non-zero exit code. Findings keep their `warning` label in human and JSON output; only the exit-code policy changes (matching the convention of `gcc -Werror`).
+
+```bash
+typestates verify --warnings-as-errors src/
+typestates verify -W src/
+```
+
+#### `--format=<default|github|json>`
+
+Selects the output format. `default` is the human-readable rendering used for interactive runs. `github` emits one annotation line per finding in GitHub Actions' `::error`/`::warning` workflow-command syntax, suitable for inline PR-diff annotations. `json` emits a stable, versioned schema (`schemaVersion: 1`) suitable for downstream tooling.
+
+```bash
+typestates verify --format=github src/
+typestates verify --format=json src/ | jq '.verifyResult.errors'
 ```
 
 ### Example
@@ -89,16 +111,18 @@ ERROR: src/file_state.nim:15 - Unmarked proc on state 'Closed' (strictTransition
 1 error(s) found
 ```
 
+Each line above corresponds to a structured `Finding` record (path, line, column, code, message, hint). The default format renders these for human consumption; pass `--format=github` for inline PR annotations or `--format=json` for the documented schema. See [CI Integration](ci-integration.md) for the full code taxonomy and field semantics.
+
 ### Syntax Error Handling
 
 The CLI uses Nim's AST parser for accurate extraction. Files must be valid Nim syntax:
 
 ```bash
 $ typestates verify src/
-ERROR: Parse error in src/broken.nim: invalid indentation
+ERROR: src/broken.nim:2 - invalid indentation
 ```
 
-This is intentional - a verification tool should not silently skip files it cannot parse.
+A parse failure is reported as a structured `parse-error` finding for that path (rendered through the same `path:line - message` formatter as other findings) and does not abort the run. Each input file is parsed independently, so a single malformed file (for example, an unfinished change pushed by a contributor) produces one finding while verification continues across the rest of the batch. Earlier versions of `typestates verify` aborted on the first parse failure.
 
 ## Dot Command
 
@@ -135,25 +159,7 @@ typestates dot --no-style src/
 
 ## CI Integration
 
-### GitHub Actions
-
-```yaml
-- name: Install typestates
-  run: nimble install typestates -y
-
-- name: Verify typestates
-  run: typestates verify src/
-```
-
-### CircleCI
-
-```yaml
-- run:
-    name: Verify typestates
-    command: |
-      nimble install typestates -y
-      typestates verify src/
-```
+See [CI Integration](ci-integration.md) for the full guide: pre-commit hook, GitHub Actions and GitLab CI recipes, the `--format=github` annotation workflow, the `--format=json` schema, severity model, and the stable code taxonomy.
 
 ## Nimble Task
 
