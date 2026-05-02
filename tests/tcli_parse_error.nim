@@ -107,3 +107,24 @@ suite "verify ParseError routing":
     check "::error" in output
     check "syntax_error.nim" in output
     check ("expected" in output) or ("Error" in output)
+
+  test "parse error in one file does NOT abort verification of other files":
+    # Regression guard for gemini-code-assist finding #6: `verify` over a
+    # mix of broken + healthy files should produce findings for BOTH the
+    # parse error AND any reachability/liveness warning in the healthy
+    # file. Pre-fix, the first ParseError aborted the pipeline and the
+    # dead-state warning would never surface — `typestates verify
+    # --format=github src/` would only annotate the first file's parse
+    # error, hiding every other problem the CI run could have caught.
+    let cmd =
+      Bin & " verify --format=json " & BadFile & " " &
+      "tests/fixtures/cli_warning_dead.nim 2>&1"
+    let (output, code) = execCmdEx(cmd)
+    check code == 1
+    # Parse error from the malformed file is still reported.
+    check "\"code\":\"parse-error\"" in output
+    check "syntax_error.nim" in output
+    # AND the dead-state warning from the healthy file ALSO surfaces —
+    # this is the specific regression: pre-fix this would be missing.
+    check "\"code\":\"unreachable-state\"" in output
+    check "Frozen" in output

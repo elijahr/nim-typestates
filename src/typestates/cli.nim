@@ -13,7 +13,7 @@
 ## **Note:** Files must be valid Nim syntax. Parse errors cause verification
 ## to fail loudly with a clear error message.
 
-import std/[os, sequtils, strutils, tables, strformat]
+import std/[os, sequtils, sets, strutils, tables, strformat]
 import ast_parser
 import types
 import reachability
@@ -586,20 +586,28 @@ proc verify*(paths: seq[string]): VerifyResult =
   ##
   ## Files with syntax errors no longer abort the pipeline: they surface as
   ## `fcParseError` findings routed through the normal output formatters.
+  ## A parse error in one file does NOT abort verification of other files —
+  ## `typestates verify --format=github src/` produces annotations for
+  ## every problem the user has, not just the first.
   ##
   ## :param paths: List of file or directory paths to verify
   ## :returns: Verification results with structured findings and counts
   result = VerifyResult()
 
-  # First pass: collect all typestates using AST parser. ParseError is
-  # converted to a Finding so `--format=github`/`--format=json` consumers
-  # still receive structured output for malformed inputs.
-  var parseResult: ParseResult
-  try:
-    parseResult = parseTypestates(paths)
-  except ParseError as e:
-    result.findings.add mkError(fcParseError, e.path, e.line, e.msg)
-    return # downstream passes need parseResult; bail.
+  # First pass: collect all typestates using AST parser. Per-file parse
+  # errors are accumulated by `parseTypestatesAst` into
+  # `parseResult.failures` rather than raised; convert each one to an
+  # `fcParseError` Finding here so `--format=github`/`--format=json`
+  # consumers still receive structured output for every malformed input.
+  let parseResult = parseTypestates(paths)
+  var failedPaths = initHashSet[string]()
+  for f in parseResult.failures:
+    result.findings.add mkError(fcParseError, f.path, f.line, f.message)
+    # Track absolute path so pass 2 / pass 3 can skip the same file
+    # without emitting duplicate parse-error findings or noise from
+    # text-scanning a malformed source.
+    if f.path.len > 0:
+      failedPaths.incl(absolutePath(f.path))
 
   var typestateStates: Table[string, seq[string]]
   var typestateStrict: Table[string, bool]
@@ -620,9 +628,16 @@ proc verify*(paths: seq[string]): VerifyResult =
           f, report.initialStatesUsed, report.terminalStatesUsed
         )
 
-  # Second pass: verify procs
+  # Second pass: verify procs. Skip files that already failed pass 1 —
+  # text-scanning a syntactically broken file would produce noise and a
+  # parse-error Finding has already been emitted for it.
+  proc shouldSkipFailed(path: string): bool =
+    failedPaths.contains(absolutePath(path))
+
   for path in paths:
     if path.endsWith(".nim"):
+      if shouldSkipFailed(path):
+        continue
       let fileResult = verifyFile(path, typestateStates, typestateStrict)
       result.findings.add fileResult.findings
       result.transitionsChecked += fileResult.transitionsChecked
@@ -630,10 +645,14 @@ proc verify*(paths: seq[string]): VerifyResult =
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
+          if shouldSkipFailed(file):
+            continue
           let fileResult = verifyFile(file, typestateStates, typestateStrict)
           result.findings.add fileResult.findings
           result.transitionsChecked += fileResult.transitionsChecked
           result.filesChecked += fileResult.filesChecked
 
-  # Pass 3: opaqueStates lint (CLI-side cast-bypass detection).
-  result.findings.add lintOpaqueStates(parseResult, paths)
+  # Pass 3: opaqueStates lint (CLI-side cast-bypass detection). Pass the
+  # set of pass-1 failed paths so the lint can skip them without
+  # double-reporting parse-error findings already emitted above.
+  result.findings.add lintOpaqueStates(parseResult, paths, failedPaths)

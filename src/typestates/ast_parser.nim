@@ -46,9 +46,28 @@ type
     initialStates*: seq[string] ## States declared in `initial:` block
     terminalStates*: seq[string] ## States declared in `terminal:` block
 
-  ParseResult* = object ## Results from parsing source files.
+  ParseFailure* = object
+    ## A single per-file parse failure, carrying enough structured data
+    ## to materialize an `fcParseError` Finding without re-parsing the
+    ## formatted message string. `path` is the absolute or
+    ## as-supplied-by-the-caller path; `line` is 1-indexed (`0` if not
+    ## applicable). `message` is the formatted human diagnostic.
+    path*: string
+    line*: int
+    message*: string
+
+  ParseResult* = object
+    ## Results from parsing source files.
+    ##
+    ## `typestates` and `filesChecked` cover only the files that parsed
+    ## successfully. Files that failed to parse are reported via
+    ## `failures` (one entry per failed file). v0.7+ callers that want to
+    ## report parse errors as structured findings instead of aborting the
+    ## pipeline should iterate `failures` and emit one
+    ## `fcParseError` per entry.
     typestates*: seq[ParsedTypestate]
     filesChecked*: int
+    failures*: seq[ParseFailure]
 
   ParseError* = object of CatchableError
     ## Error during parsing.
@@ -642,7 +661,14 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   ##
   ## Creates one `IdentCache` and one `ConfigRef` and reuses them across
   ## every file, avoiding per-file compiler-infrastructure allocation.
-  ## Fails loudly on any parse error.
+  ##
+  ## Per-file `ParseError`s are accumulated into `result.failures` rather
+  ## than aborting the entire batch — `typestates verify --format=github
+  ## src/` should produce annotations for every problem the user has, not
+  ## just the first parse error. Successfully parsed files contribute
+  ## their typestates to `result.typestates` and `filesChecked`. Callers
+  ## (e.g. `verify()` and `lintOpaqueStates`) inspect `failures` to emit
+  ## one `fcParseError` Finding per failed path.
   result = ParseResult()
 
   let cache = newIdentCache()
@@ -650,14 +676,24 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   config.notes = {}
   config.foreignPackageNotes = {}
 
+  proc recordFailure(result: var ParseResult, fallbackPath: string, e: ref ParseError) =
+    let p = if e.path.len > 0: e.path else: fallbackPath
+    result.failures.add ParseFailure(path: p, line: e.line, message: e.msg)
+
   for path in paths:
     if path.endsWith(".nim"):
-      let fileResult = parseFileWithAst(path, cache, config)
-      result.typestates.add fileResult.typestates
-      result.filesChecked += fileResult.filesChecked
+      try:
+        let fileResult = parseFileWithAst(path, cache, config)
+        result.typestates.add fileResult.typestates
+        result.filesChecked += fileResult.filesChecked
+      except ParseError as e:
+        recordFailure(result, path, e)
     elif dirExists(path):
       for file in walkDirRec(path):
         if file.endsWith(".nim"):
-          let fileResult = parseFileWithAst(file, cache, config)
-          result.typestates.add fileResult.typestates
-          result.filesChecked += fileResult.filesChecked
+          try:
+            let fileResult = parseFileWithAst(file, cache, config)
+            result.typestates.add fileResult.typestates
+            result.filesChecked += fileResult.filesChecked
+          except ParseError as e:
+            recordFailure(result, file, e)

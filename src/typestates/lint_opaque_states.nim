@@ -133,11 +133,19 @@ proc walk(n: PNode, ctx: var LintCtx) =
   for child in n:
     walk(child, ctx)
 
-proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Finding] =
+proc lintOpaqueStates*(
+    parseResult: ParseResult,
+    paths: seq[string],
+    skipPaths: HashSet[string] = initHashSet[string](),
+): seq[Finding] =
   ## Returns structured `Finding` records. Empty seq when no typestate has
   ## opted in. Configuration warnings (no path/line) are prepended; per-file
   ## `ParseError` is converted into a `fcParseError` Finding so a malformed
   ## file does not abort the lint pipeline.
+  ##
+  ## ``skipPaths`` is an optional set of absolute paths to skip — used by
+  ## ``verify()`` to avoid re-reporting `fcParseError` for files that
+  ## already failed during pass 1 (the AST parse pass).
   result = @[]
   var ctx = LintCtx()
 
@@ -175,6 +183,10 @@ proc lintOpaqueStates*(parseResult: ParseResult, paths: seq[string]): seq[Findin
   var visited = initHashSet[string]()
   proc shouldProcess(file: string): bool =
     let abs = absolutePath(file)
+    if abs in skipPaths:
+      # Caller (typically `verify()`) already emitted a parse-error
+      # Finding for this file in pass 1; do not re-walk it here.
+      return false
     if abs in visited:
       return false
     visited.incl(abs)
