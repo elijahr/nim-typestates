@@ -827,6 +827,45 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-warnings-as-errors-alias-w" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --warnings-as-errors (alias -W)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-formatdefaultgithubjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --format=&lt;default|github|json&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#example" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -911,34 +950,6 @@
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="CI Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#github-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GitHub Actions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#circleci" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CircleCI
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1123,6 +1134,45 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-warnings-as-errors-alias-w" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --warnings-as-errors (alias -W)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-formatdefaultgithubjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --format=&lt;default|github|json&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#example" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1208,34 +1258,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CI Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#github-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GitHub Actions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#circleci" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CircleCI
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1287,65 +1309,78 @@
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  -v, --version   Show version
 </code></pre></div>
 <h2 id="verify-command">Verify Command<a class="headerlink" href="#verify-command" title="Permanent link">¶</a></h2>
-<p>The <code>verify</code> command checks that all procs operating on state types are properly marked with <code>{.transition.}</code> or <code>{.notATransition.}</code>.</p>
+<p>The <code>verify</code> command checks that all procs operating on state types are properly marked with <code>{.transition.}</code> or <code>{.notATransition.}</code>. It also surfaces reachability problems, opaque-state cast bypasses, and configuration warnings.</p>
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w"> </span>tests/
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>typestates<span class="w"> </span>verify<span class="w"> </span>.
 </code></pre></div>
+<h3 id="flags">Flags<a class="headerlink" href="#flags" title="Permanent link">¶</a></h3>
+<p>The <code>verify</code> command accepts two flags that shape exit-code policy and output format. See <a href="../ci-integration/">CI Integration</a> for the full schema, severity model, and CI-specific recipes.</p>
+<h4 id="-warnings-as-errors-alias-w"><code>--warnings-as-errors</code> (alias <code>-W</code>)<a class="headerlink" href="#-warnings-as-errors-alias-w" title="Permanent link">¶</a></h4>
+<p>Promotes any warning-severity finding to a non-zero exit code. Findings keep their <code>warning</code> label in human and JSON output; only the exit-code policy changes (matching the convention of <code>gcc -Werror</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>--warnings-as-errors<span class="w"> </span>src/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>typestates<span class="w"> </span>verify<span class="w"> </span>-W<span class="w"> </span>src/
+</code></pre></div>
+<h4 id="-formatdefaultgithubjson"><code>--format=&lt;default|github|json&gt;</code><a class="headerlink" href="#-formatdefaultgithubjson" title="Permanent link">¶</a></h4>
+<p>Selects the output format. <code>default</code> is the human-readable rendering used for interactive runs. <code>github</code> emits one annotation line per finding in GitHub Actions' <code>::error</code>/<code>::warning</code> workflow-command syntax, suitable for inline PR-diff annotations. <code>json</code> emits a stable, versioned schema (<code>schemaVersion: 1</code>) suitable for downstream tooling.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>--format<span class="o">=</span>github<span class="w"> </span>src/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>typestates<span class="w"> </span>verify<span class="w"> </span>--format<span class="o">=</span>json<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.verifyResult.errors'</span>
+</code></pre></div>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">¶</a></h3>
 <p>Given this file <code>src/file_state.nim</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">type</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">type</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">File</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">File</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </code></pre></div>
 <p>Running verification:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">2</span><span class="w"> </span>transitions
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>All<span class="w"> </span>checks<span class="w"> </span>passed!
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">2</span><span class="w"> </span>transitions
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>All<span class="w"> </span>checks<span class="w"> </span>passed!
 </code></pre></div>
 <h3 id="error-output">Error Output<a class="headerlink" href="#error-output" title="Permanent link">¶</a></h3>
 <p>If a proc is missing the required pragma:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Missing {.transition.} pragma!</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># Missing {.transition.} pragma!</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">1</span><span class="w"> </span>transitions
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ERROR:<span class="w"> </span>src/file_state.nim:15<span class="w"> </span>-<span class="w"> </span>Unmarked<span class="w"> </span>proc<span class="w"> </span>on<span class="w"> </span>state<span class="w"> </span><span class="s1">'Closed'</span><span class="w"> </span><span class="o">(</span>strictTransitions<span class="w"> </span>enabled<span class="o">)</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="m">1</span><span class="w"> </span>error<span class="o">(</span>s<span class="o">)</span><span class="w"> </span>found
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Checked<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span><span class="m">1</span><span class="w"> </span>transitions
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>ERROR:<span class="w"> </span>src/file_state.nim:15<span class="w"> </span>-<span class="w"> </span>Unmarked<span class="w"> </span>proc<span class="w"> </span>on<span class="w"> </span>state<span class="w"> </span><span class="s1">'Closed'</span><span class="w"> </span><span class="o">(</span>strictTransitions<span class="w"> </span>enabled<span class="o">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="m">1</span><span class="w"> </span>error<span class="o">(</span>s<span class="o">)</span><span class="w"> </span>found
 </code></pre></div>
+<p>Each line above corresponds to a structured <code>Finding</code> record (path, line, column, code, message, hint). The default format renders these for human consumption; pass <code>--format=github</code> for inline PR annotations or <code>--format=json</code> for the documented schema. See <a href="../ci-integration/">CI Integration</a> for the full code taxonomy and field semantics.</p>
 <h3 id="syntax-error-handling">Syntax Error Handling<a class="headerlink" href="#syntax-error-handling" title="Permanent link">¶</a></h3>
 <p>The CLI uses Nim's AST parser for accurate extraction. Files must be valid Nim syntax:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>ERROR:<span class="w"> </span>Parse<span class="w"> </span>error<span class="w"> </span><span class="k">in</span><span class="w"> </span>src/broken.nim:<span class="w"> </span>invalid<span class="w"> </span>indentation
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>$<span class="w"> </span>typestates<span class="w"> </span>verify<span class="w"> </span>src/
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>ERROR:<span class="w"> </span>src/broken.nim:2<span class="w"> </span>-<span class="w"> </span>invalid<span class="w"> </span>indentation
 </code></pre></div>
-<p>This is intentional - a verification tool should not silently skip files it cannot parse.</p>
+<p>A parse failure is reported as a structured <code>parse-error</code> finding for that path (rendered through the same <code>path:line - message</code> formatter as other findings) and does not abort the run. Each input file is parsed independently, so a single malformed file (for example, an unfinished change pushed by a contributor) produces one finding while verification continues across the rest of the batch. Earlier versions of <code>typestates verify</code> aborted on the first parse failure.</p>
 <h2 id="dot-command">Dot Command<a class="headerlink" href="#dot-command" title="Permanent link">¶</a></h2>
 <p>The <code>dot</code> command generates GraphViz DOT output for visualizing state machines.</p>
 <p>See <a href="../visualization/">Visualization</a> for detailed usage and examples.</p>
 <h3 id="basic-usage_1">Basic Usage<a class="headerlink" href="#basic-usage_1" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>states.dot
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>states.png
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span>&gt;<span class="w"> </span>states.dot
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w"> </span><span class="p">|</span><span class="w"> </span>dot<span class="w"> </span>-Tpng<span class="w"> </span>-o<span class="w"> </span>states.png
 </code></pre></div>
 <h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h3>
 <table>
@@ -1370,30 +1405,17 @@
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Curved edges (default)</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Right-angle edges</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--splines<span class="o">=</span>ortho<span class="w"> </span>src/
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Minimal output for custom styling</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--no-style<span class="w"> </span>src/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Curved edges (default)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Right-angle edges</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--splines<span class="o">=</span>ortho<span class="w"> </span>src/
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># Minimal output for custom styling</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>typestates<span class="w"> </span>dot<span class="w"> </span>--no-style<span class="w"> </span>src/
 </code></pre></div>
 <h2 id="ci-integration">CI Integration<a class="headerlink" href="#ci-integration" title="Permanent link">¶</a></h2>
-<h3 id="github-actions">GitHub Actions<a class="headerlink" href="#github-actions" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install typestates</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nimble install typestates -y</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">typestates verify src/</span>
-</code></pre></div>
-<h3 id="circleci">CircleCI<a class="headerlink" href="#circleci" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verify typestates</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">      </span><span class="no">nimble install typestates -y</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">      </span><span class="no">typestates verify src/</span>
-</code></pre></div>
+<p>See <a href="../ci-integration/">CI Integration</a> for the full guide: pre-commit hook, GitHub Actions and GitLab CI recipes, the <code>--format=github</code> annotation workflow, the <code>--format=json</code> schema, severity model, and the stable code taxonomy.</p>
 <h2 id="nimble-task">Nimble Task<a class="headerlink" href="#nimble-task" title="Permanent link">¶</a></h2>
 <p>Add a verification task to your <code>.nimble</code> file:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">task</span><span class="w"> </span><span class="n">verify</span><span class="p">,</span><span class="w"> </span><span class="s">"Verify typestate rules"</span><span class="p">:</span>
@@ -1424,7 +1446,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="December 6, 2025 06:42:59 UTC"><span class="timeago" datetime="2025-12-06T06:42:59+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="December 6, 2025 06:42:59 UTC">2025-12-06</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 2, 2026 11:13:50 UTC"><span class="timeago" datetime="2026-05-02T11:13:50+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 2, 2026 11:13:50 UTC">2026-05-02</span>
   </span>
 
     

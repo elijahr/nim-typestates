@@ -765,6 +765,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#behavior-on-parse-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior on parse errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pre-commit-hook" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1088,6 +1099,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#behavior-on-parse-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior on parse errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pre-commit-hook" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1289,6 +1311,15 @@ typestate declarations and <code>{.transition.}</code> procs, and emits findings
 <p>The exit code is <code>0</code> if no errors fired and <code>1</code> if any error was emitted.
 Warnings do not affect exit by default; use <code>--warnings-as-errors</code> to gate
 on them.</p>
+<h2 id="behavior-on-parse-errors">Behavior on parse errors<a class="headerlink" href="#behavior-on-parse-errors" title="Permanent link">¶</a></h2>
+<p>Each input file is parsed independently. If one file fails to parse (for
+example, because a contributor pushed an unfinished change), it produces a
+single <code>parse-error</code> finding for that path and verification continues with
+the rest of the batch. A run can therefore surface multiple <code>parse-error</code>
+findings alongside lint findings from successfully-parsed files. Earlier
+versions of <code>typestates verify</code> aborted the entire run on the first parse
+failure; that behavior changed in v0.7 so a single broken file no longer
+masks the rest of the project's results in CI.</p>
 <h2 id="pre-commit-hook">Pre-commit hook<a class="headerlink" href="#pre-commit-hook" title="Permanent link">¶</a></h2>
 <p>The repo ships a <code>.pre-commit-hooks.yaml</code> manifest at its root. Consumers
 add an entry to their own <code>.pre-commit-config.yaml</code>:</p>
@@ -1620,7 +1651,7 @@ quickfix lists.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 2, 2026 10:42:31 UTC"><span class="timeago" datetime="2026-05-02T10:42:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 2, 2026 10:42:31 UTC">2026-05-02</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 2, 2026 11:13:50 UTC"><span class="timeago" datetime="2026-05-02T11:13:50+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 2, 2026 11:13:50 UTC">2026-05-02</span>
   </span>
 
     
