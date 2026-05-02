@@ -45,11 +45,24 @@ suite "verify ParseError routing":
     let (code, _) = runVerify([])
     check code != 0
 
-  test "default format: malformed file exits non-zero with error message":
+  test "default format: malformed file routes ParseError through finding pipeline":
+    # Stronger than a generic "contains the word error" — pin the structural
+    # contract emitted by `typestates_bin.nim` for the default formatter:
+    #   1. an `ERROR: ` line (per-finding, severity-gated prefix)
+    #   2. the trailing `N error(s) found` summary (post-loop accounting)
+    #   3. the malformed fixture path inside the ERROR line (Nim's parser
+    #      diagnostic embeds it; if the routing regressed to a generic
+    #      file-not-found code the path would still appear, but the
+    #      `(line, col)` shape is parser-specific)
+    # A regression that drops the ParseError -> Finding conversion would
+    # either crash before the loop (no `error(s) found` summary) or report
+    # `All checks passed!` (wrong summary).
     let (code, output) = runVerify([])
     check code == 1
-    let lower = output.toLowerAscii
-    check ("parse" in lower) or ("error" in lower) or ("syntax" in lower)
+    check "ERROR: " in output
+    check BadFile in output
+    check "1 error(s) found" in output
+    check "All checks passed!" notin output
 
   test "json format: malformed file emits parse-error finding":
     # ParseError is converted to an `fcParseError` Finding inside
