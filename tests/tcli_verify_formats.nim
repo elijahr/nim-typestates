@@ -39,6 +39,15 @@ suite "verify --format output":
     let f = mkError(fcUnmarkedProcStrict, "src/with,comma.nim", 5, "x")
     check formatGitHub(f) == "::error file=src/with%2Ccomma.nim,line=5::x"
 
+  test "github format encodes space in path":
+    # Regression: GitHub Actions workflow commands separate parameters with
+    # `, ` (comma + space). An unencoded space inside `file=...` would
+    # split the parameter list at that space and either drop `,line=N` or
+    # interpret part of the path as a new parameter, corrupting the
+    # annotation. Encode space as %20.
+    let f = mkError(fcUnmarkedProcStrict, "src/with space.nim", 7, "x")
+    check formatGitHub(f) == "::error file=src/with%20space.nim,line=7::x"
+
   test "github format file with line zero omits ,line=":
     # If a finding has a path but no line, the GitHub annotation should
     # still emit `file=` but skip `,line=0`.

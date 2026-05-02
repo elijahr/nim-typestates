@@ -120,8 +120,12 @@ proc urlEncodeMessage(s: string): string =
       result.add c
 
 proc urlEncodeParam(s: string): string =
-  ## Encodes characters that GitHub Actions workflow commands treat specially
-  ## inside the `file=...` parameter list. Comma and colon are added.
+  ## Encodes characters that GitHub Actions workflow commands treat
+  ## specially inside the `file=...` parameter list. Comma and colon are
+  ## the documented parameter separators; space must also be encoded
+  ## because workflow commands separate parameters with `, ` (a comma
+  ## followed by a space) — an unencoded space inside a path would split
+  ## the parameter list and corrupt the annotation.
   result = newStringOfCap(s.len)
   for c in s:
     case c
@@ -135,6 +139,8 @@ proc urlEncodeParam(s: string): string =
       result.add "%2C"
     of ':':
       result.add "%3A"
+    of ' ':
+      result.add "%20"
     else:
       result.add c
 
