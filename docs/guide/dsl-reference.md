@@ -497,6 +497,10 @@ Three constraints apply:
    branch is missing or names a state outside the union — there is no `else:`
    escape hatch.
 
+`match` works at module top level and inside the body of generic procs and
+generic templates; arm-head identifiers may be resolved to symbols or
+sym-choices by sema and the macro accepts all of those forms.
+
 **What gets generated:**
 
 The `->` operator is syntactic sugar around constructor procs. For each branching transition with `as TypeName`, the macro generates:

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-05-02
+
+### Fixed
+
+- `match` macro now works in generic call sites (`proc[T]` / `template[T]` bodies). Previously, sema converted the arm-head identifier to `nnkSym` or `nnkOpenSymChoice` before the macro expanded, and `buildMatchCase` rejected those node kinds with "match arm head must be a single state identifier". The check now accepts `nnkIdent`, `nnkSym`, `nnkOpenSymChoice`, and `nnkClosedSymChoice` arm heads.
+
 ### Documentation
 
 - `docs/guide/cli.md` now documents the v0.7 verify flags (`--warnings-as-errors` / `-W`, `--format=<default|github|json>`), describes the parse-error fail-soft behavior, and points to `ci-integration.md` for full coverage instead of duplicating CI examples.

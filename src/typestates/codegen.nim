@@ -718,11 +718,25 @@ proc buildMatchCase*(
     let stateIdent = clause[0]
     let bindIdent = clause[1]
     let clauseBody = clause[2]
-    if stateIdent.kind != nnkIdent:
-      error("match arm head must be a single state identifier", stateIdent)
+    # Accept the node kinds Nim's sema produces for the arm head:
+    #   - nnkIdent: untyped context (module-top-level call site).
+    #   - nnkSym: sema has resolved the arm head to a concrete symbol, which
+    #     happens when `match` is invoked from inside the body of a generic
+    #     proc/template (sema runs on the body before the macro expands).
+    #   - nnkOpenSymChoice / nnkClosedSymChoice: the arm head identifier is
+    #     overloaded across imports; sema produces a symchoice node. All
+    #     children of a symchoice share the same identifier name, so taking
+    #     the first child's strVal is unambiguous.
+    let stateName =
+      case stateIdent.kind
+      of nnkIdent, nnkSym:
+        stateIdent.strVal
+      of nnkOpenSymChoice, nnkClosedSymChoice:
+        stateIdent[0].strVal
+      else:
+        error("match arm head must be a single state identifier", stateIdent)
     if bindIdent.kind != nnkIdent:
       error("match arm bind must be a single identifier", bindIdent)
-    let stateName = stateIdent.strVal
     var found = false
     for n in validNames:
       if n == stateName:
