@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-05-04
+
+### Fixed
+
+- `match` macro now expands correctly when invoked from a generic proc body whose call site does not directly import the kind enum module. The generated macro previously emitted bare `ident(prefix & stateName)` nodes for the `case` arms (e.g. `oOk`, `pApproved`); those idents had to resolve at the consumer's call site, which failed with `Error: undeclared identifier: '<field>'` when the consumer reached the typestate only through a facade that did not re-export the kind enum. The macro now pre-resolves each kind-enum field via `bindSym` at typestate-decl time (where the enum is in scope) and threads the resolved syms into `buildMatchCase`, so consumer-site visibility is no longer required.
+
+### Internal
+
+- `buildMatchCase` signature changed from `(value, arms, prefix: string, validNames: seq[string])` to `(value, arms, validNames: seq[string], kindSyms: seq[NimNode])`. The proc is documented internal-only and called solely from generated `match` macros, so no public API contract is broken.
+- New regression test `tests/should_compile/transitions/match_external_consumer.nim` plus fixtures `tests/fixtures/match_consumer_lib.nim` and `tests/fixtures/match_consumer_wrapper.nim` exercise the three-module facade pattern: typestate-defining module, wrapper that imports but does not re-export it, and consumer that only sees the wrapper.
+
 ## [0.7.1] - 2026-05-02
 
 ### Fixed
@@ -381,7 +392,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/elijahr/nim-typestates/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/elijahr/nim-typestates/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/elijahr/nim-typestates/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/elijahr/nim-typestates/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/elijahr/nim-typestates/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/elijahr/nim-typestates/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/elijahr/nim-typestates/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/elijahr/nim-typestates/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/elijahr/nim-typestates/compare/v0.2.1...v0.3.0

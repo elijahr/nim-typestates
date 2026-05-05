@@ -692,7 +692,7 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
     result.add procDef
 
 proc buildMatchCase*(
-    value: NimNode, arms: NimNode, prefix: string, validNames: seq[string]
+    value: NimNode, arms: NimNode, validNames: seq[string], kindSyms: seq[NimNode]
 ): NimNode =
   ## INTERNAL: this helper is exported for use by the generated `match` macro
   ## via `bindSym`. User code should not call it directly.
@@ -702,12 +702,17 @@ proc buildMatchCase*(
   ##
   ## - `value`: NimNode for the matched union value (passed to the macro).
   ## - `arms`: NimNode for the StmtList of `Call(StateIdent, bindIdent, body)` arms.
-  ## - `prefix`: enum field prefix (e.g. "p" for "ProcessResult").
   ## - `validNames`: bare base names of the union's branches (e.g. @["Approved", "Declined"]).
+  ## - `kindSyms`: pre-resolved sym nodes for each branch's kind-enum field, in the
+  ##   same order as `validNames`. Resolved at the typestate-decl call site (where
+  ##   the kind enum is in scope) so consumer modules that do not import the kind
+  ##   enum directly can still expand `match` correctly.
   ##
   ## Errors at the user's call site for malformed arms or unknown-branch names.
   ## Exhaustiveness is enforced by Nim's case-statement checker once the
   ## resulting AST is sema-checked.
+  doAssert validNames.len == kindSyms.len,
+    "buildMatchCase: validNames and kindSyms must have the same length"
   result = newStmtList()
   var caseStmt = nnkCaseStmt.newTree(newDotExpr(value, ident("kind")))
   for clause in arms:
@@ -737,18 +742,23 @@ proc buildMatchCase*(
         error("match arm head must be a single state identifier", stateIdent)
     if bindIdent.kind != nnkIdent:
       error("match arm bind must be a single identifier", bindIdent)
-    var found = false
-    for n in validNames:
+    var matchedIdx = -1
+    for i, n in validNames:
       if n == stateName:
-        found = true
+        matchedIdx = i
         break
-    if not found:
+    if matchedIdx < 0:
       error(
         "unknown branch '" & stateName & "' is not part of this union; valid branches: " &
           $validNames,
         stateIdent,
       )
-    let kindField = ident(prefix & stateName)
+    # Use the pre-resolved kind-enum sym (bound at the typestate-decl site).
+    # This sidesteps the bug where a bare `ident(prefix & stateName)` would fail
+    # to resolve at the consumer's call site when the kind enum is not directly
+    # imported there (e.g. `match` invoked from a generic proc body in a module
+    # whose facade does not re-export the enum).
+    let kindField = kindSyms[matchedIdx]
     let varFieldName = stateName.toLowerAscii()
     let extract =
       newLetStmt(bindIdent, newCall("move", newDotExpr(value, ident(varFieldName))))
@@ -809,7 +819,6 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
     if t.branchTypeName.len == 0:
       continue
     let prefix = branchEnumPrefix(extractBaseName(t.branchTypeName))
-    let prefixLit = newLit(prefix)
     # Bake the list of valid base-state names so the generated macro can
     # report unknown-branch errors at the user's call site.
     var validNamesNode = nnkPrefix.newTree(ident("@"), nnkBracket.newTree())
@@ -831,6 +840,23 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
     # `import std/macros`. We still need `bindSym` for `buildMatchCase` so the
     # generated macro can find it without the user having to re-import.
     let helperSym = bindSym("buildMatchCase")
+    # Resolve `bindSym` itself as a typestates-scope sym so the generated macro
+    # body can call it without the user importing std/macros. The generated
+    # macro is compiled in the user's module, so any plain `bindSym(...)` call
+    # in its body would be unresolved unless the user also imports std/macros.
+    let bindSymRef = bindSym("bindSym")
+    # Build the parallel kindSyms seq node. Each element is a `bindSym("mFoo")`
+    # call. `bindSym` resolves identifiers in the SCOPE OF THE MACRO BEING
+    # COMPILED — i.e. the user's module where the kind enum was just declared
+    # by the same `typestate` macro. This decouples expansion from the
+    # consumer's call-site scope, fixing the regression where consumer modules
+    # that did not directly import the kind enum failed with
+    # "undeclared identifier: 'mXxx'" when expanding `match` inside a generic
+    # proc body.
+    var kindSymsNode = nnkPrefix.newTree(ident("@"), nnkBracket.newTree())
+    for dest in t.toStates:
+      let fieldName = prefix & extractBaseName(dest)
+      kindSymsNode[1].add nnkCall.newTree(bindSymRef, newLit(fieldName))
     let matchDoc = newCommentStmtNode(
       "Pattern-match on a branching union; rewrites into a `case` over " &
         "the kind discriminator.\n" &
@@ -843,7 +869,7 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
       nnkAsgn.newTree(
         ident("result"),
         nnkCall.newTree(
-          helperSym, ident("value"), ident("arms"), prefixLit, validNamesNode
+          helperSym, ident("value"), ident("arms"), validNamesNode, kindSymsNode
         ),
       ),
     )
