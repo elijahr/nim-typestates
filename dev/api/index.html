@@ -7243,7 +7243,7 @@ parameters so the proc binds correctly under generic instantiation.</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildMatchCase</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">prefix</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">;</span><span class="w"> </span><span class="n">validNames</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildMatchCase</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">validNames</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="n">kindSyms</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
 </code></pre>
     </div>
   
@@ -7258,8 +7258,11 @@ into a <code>case value.kind</code> statement.</p>
 <ul>
 <li><code>value</code>: NimNode for the matched union value (passed to the macro).</li>
 <li><code>arms</code>: NimNode for the StmtList of <code>Call(StateIdent, bindIdent, body)</code> arms.</li>
-<li><code>prefix</code>: enum field prefix (e.g. "p" for "ProcessResult").</li>
 <li><code>validNames</code>: bare base names of the union's branches (e.g. @["Approved", "Declined"]).</li>
+<li><code>kindSyms</code>: pre-resolved sym nodes for each branch's kind-enum field, in the
+  same order as <code>validNames</code>. Resolved at the typestate-decl call site (where
+  the kind enum is in scope) so consumer modules that do not import the kind
+  enum directly can still expand <code>match</code> correctly.</li>
 </ul>
 <p>Errors at the user's call site for malformed arms or unknown-branch names.
 Exhaustiveness is enforced by Nim's case-statement checker once the
@@ -7285,14 +7288,14 @@ resulting AST is sema-checked.</p>
             </li>
           
             <li>
-              <code>prefix</code>
-              (<code>string</code>)
+              <code>validNames</code>
+              (<code>seq[string]</code>)
               
             </li>
           
             <li>
-              <code>validNames</code>
-              (<code>seq[string]</code>)
+              <code>kindSyms</code>
+              (<code>seq[NimNode]</code>)
               
             </li>
           
@@ -7404,8 +7407,8 @@ F4.A0 probe).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L764" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:764
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L774" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:774
           </a>
         
       </div>
@@ -7482,8 +7485,8 @@ and procs include proper type parameters.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L867" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:867
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L893" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:893
           </a>
         
       </div>
