@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-07
+
+### Added
+
+- **Generated `match` macro per single-target state.** Every state in a
+  typestate graph now emits a `match` macro overload alongside the
+  existing per-branching-union overloads (introduced in v0.5.0). Callers
+  can use identical `StateName(bind):` syntax whether the matched value
+  is a branching union (e.g. `ProcessResult`) or a bare single-target
+  state (e.g. `Approved` returned by `proc approve(c: sink Created): Approved {.transition.}`).
+  The single-target `match` rewrites `match v: State(b): body` into
+  `block: var valTmp = v; let b = move(valTmp); body` (call-expression
+  value sources) or `block: let b = move(v); body` (l-value identifier
+  sources), so the source expression is evaluated exactly once. The
+  generated macros are disambiguated by Nim on the typed first
+  parameter, so single-target and branching `match` coexist for the
+  same state name when that state is reachable both as a branching arm
+  (e.g. via `as Decision`) and as a bare return.
+
+### Changed
+
+- **BREAKING (DSL-level only):** Branch wrapper type names declared via
+  `as TypeName` may no longer collide with any state name in the same
+  typestate. Previously such a collision was syntactically accepted but
+  would produce duplicate `type` definitions; with the new single-target
+  `match` codegen it would also produce two `match*(value: <Name>; ...)`
+  overloads with the same first-param type. The parser now errors
+  before codegen with a message naming the offending wrapper and
+  suggesting a distinct name (e.g., `ApprovedResult`). No existing
+  in-tree typestate tripped this validation; downstream users with a
+  collision must rename the wrapper.
+
+### Internal
+
+- New helper `buildSingleTargetMatchCase*(value, arms, validStateName)`
+  in `src/typestates/codegen.nim`, paralleling `buildMatchCase`. Wraps
+  the rewritten arm in a `block:` so adjacent matches that bind the
+  same name do not collide, and uses a gensym'd `var valTmp` temporary
+  for call-expression sources to satisfy `system.move`'s `var T`
+  requirement while ensuring exactly-once evaluation.
+- New generator `generateSingleTargetMatch*(graph)` emits one `match`
+  macro per state in `graph.states`. Wired into `generateAll` after
+  `generateBranchMatch`.
+- New post-parse validator `validateNoBranchTypeStateCollision` in
+  `src/typestates/parser.nim`, called from `parseTypestateBody`
+  alongside the existing post-parse validators.
+- Ten new test files under `tests/should_compile/transitions/` (six)
+  and `tests/should_fail/transitions/` (four) cover: basic match,
+  generic-context match, empty-object state, call-expr value source
+  with side-effect-count assertion, two adjacent matches binding the
+  same name, a state used in both branching and single-target paths,
+  wrong-state arm, multi-arm, zero-arm, and the wrapper/state
+  collision parser error.
+
 ## [0.7.2] - 2026-05-04
 
 ### Fixed
@@ -392,7 +446,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/elijahr/nim-typestates/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/elijahr/nim-typestates/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/elijahr/nim-typestates/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/elijahr/nim-typestates/compare/v0.6.0...v0.7.0

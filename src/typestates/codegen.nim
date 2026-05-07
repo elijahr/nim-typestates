@@ -771,6 +771,137 @@ proc buildMatchCase*(
     caseStmt.add nnkOfBranch.newTree(kindField, rewritten)
   result.add caseStmt
 
+proc buildSingleTargetMatchCase*(
+    value: NimNode, arms: NimNode, validStateName: string
+): NimNode =
+  ## INTERNAL: this helper is exported for use by the generated single-target
+  ## `match` macro via `bindSym`. User code should not call it directly.
+  ##
+  ## Helper used by every generated single-target `match` macro to rewrite an
+  ## arms block of the shape `StateName(bindName): body` into a hygienic
+  ## `block:` statement that moves the matched value into the bound name and
+  ## then runs the body.
+  ##
+  ## - `value`: NimNode for the matched state value (passed to the macro).
+  ## - `arms`: NimNode for the StmtList of `Call(StateIdent, bindIdent, body)` arms.
+  ## - `validStateName`: bare base name of the only valid state (e.g. "Approved").
+  ##
+  ## Two-path AST emit driven by `value.kind`:
+  ##
+  ## - L-value source (`nnkIdent`/`nnkSym`/`nnkDotExpr`/`nnkBracketExpr`):
+  ##   ```nim
+  ##   block:
+  ##     let bind = move(value)
+  ##     body
+  ##   ```
+  ##   `move()` accepts the l-value directly; no copy hook is invoked. The
+  ##   l-value MUST be a `var` binding (e.g. `var a = ...; match a:`) because
+  ##   `system.move` requires a `var T` parameter. A `let`-bound source emits
+  ##   the standard "expression is immutable, not 'var'" error at the user's
+  ##   call site.
+  ##
+  ## - R-value source (call expressions, etc.):
+  ##   ```nim
+  ##   block:
+  ##     var valTmp`gensym = value
+  ##     let bind = move(valTmp`gensym)
+  ##     body
+  ##   ```
+  ##   Materializing the rvalue into a `var` goes through `=sink`
+  ##   (sink-on-construction), not `=copy`, so the `{.error.}` copy hook on
+  ##   distinct state types is never reached. The temp is required because
+  ##   `move()` demands a `var` binding.
+  ##
+  ## The `block:` wrapper provides hygiene so adjacent matches with the same
+  ## bind name don't collide.
+  ##
+  ## Errors at the user's call site for malformed arms or a state-name
+  ## mismatch.
+  if arms.kind != nnkStmtList:
+    error("single-target match expects a StmtList of arms", arms)
+
+  # Filter empty nodes (nnkEmpty separators) and comment statements
+  # (so users can document arms inline without tripping the multi-arm check).
+  var armNodes: seq[NimNode] = @[]
+  for n in arms:
+    if n.kind notin {nnkEmpty, nnkCommentStmt}:
+      armNodes.add n
+
+  if armNodes.len == 0:
+    error(
+      "single-target match expects `" & validStateName & "(bindName): body`, got: " &
+        arms.repr,
+      arms,
+    )
+  if armNodes.len > 1:
+    error(
+      "single-target match accepts exactly one arm; got " & $armNodes.len, armNodes[1]
+    )
+
+  let clause = armNodes[0]
+  if clause.kind != nnkCall or clause.len != 3:
+    error(
+      "single-target match expects `" & validStateName & "(bindName): body`, got: " &
+        clause.repr,
+      clause,
+    )
+
+  let stateIdent = clause[0]
+  let bindIdent = clause[1]
+  let clauseBody = clause[2]
+
+  # Same node-kind acceptance set as buildMatchCase (codegen.nim:735-742):
+  # nnkIdent (untyped), nnkSym (sema-resolved in generic body), and
+  # nnkOpenSymChoice / nnkClosedSymChoice (overloaded).
+  let stateName =
+    case stateIdent.kind
+    of nnkIdent, nnkSym:
+      stateIdent.strVal
+    of nnkOpenSymChoice, nnkClosedSymChoice:
+      stateIdent[0].strVal
+    else:
+      error("match arm head must be a single state identifier", stateIdent)
+      "" # unreachable; satisfies type checker
+
+  if stateName != validStateName:
+    error(
+      "unknown state '" & stateName & "' for single-target match; expected '" &
+        validStateName & "'",
+      stateIdent,
+    )
+
+  if bindIdent.kind != nnkIdent:
+    error("match arm bind must be a single identifier", bindIdent)
+
+  # Two-path emit based on whether `value` is an l-value or r-value.
+  # L-value sources can be moved directly (assuming the user bound them with
+  # `var`); r-value sources need a `var` temp for sink-on-construction.
+  # nnkPar covers `match (myVar):` — a parenthesized l-value should still
+  # take the direct-move path, not the var-temp r-value path.
+  const lvalueKinds = {nnkIdent, nnkSym, nnkDotExpr, nnkBracketExpr, nnkPar}
+  var rewritten = newStmtList()
+  if value.kind in lvalueKinds:
+    # Path 1: l-value source — move directly, no temp.
+    let extract = newLetStmt(bindIdent, newCall("move", value))
+    rewritten.add extract
+  else:
+    # Path 2: r-value source (call expr etc.) — materialize into a `var`
+    # temp so `move()` has a mutable binding, then move. `var tmp = value`
+    # goes through `=sink`, not `=copy`, so the distinct copy-error hook
+    # is never hit.
+    let valTmp = genSym(nskVar, "matchValTmp")
+    let tmpDef =
+      nnkVarSection.newTree(nnkIdentDefs.newTree(valTmp, newEmptyNode(), value))
+    let extract = newLetStmt(bindIdent, newCall("move", valTmp))
+    rewritten.add tmpDef
+    rewritten.add extract
+  if clauseBody.kind == nnkStmtList:
+    for stmt in clauseBody:
+      rewritten.add stmt
+  else:
+    rewritten.add clauseBody
+  result = nnkBlockStmt.newTree(newEmptyNode(), rewritten)
+
 proc generateBranchMatch*(graph: TypestateGraph): NimNode =
   ## Generate a `match` macro for each branching union type.
   ##
@@ -890,6 +1021,87 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
 
     result.add matchMacro
 
+proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
+  ## Generate a `match` macro for each state, supporting single-target match.
+  ##
+  ## For every state in the graph, emits a macro with this signature:
+  ##
+  ## ```nim
+  ## macro match*(value: <StateType>; arms: untyped): untyped =
+  ##   ## Single-target pattern match; rewrites to `block: let bind = move(value); body`.
+  ## ```
+  ##
+  ## Call-site syntax (exactly one arm naming the state):
+  ##
+  ## ```nim
+  ## match a:
+  ##   Approved(x):
+  ##     useApproved(x)
+  ## ```
+  ##
+  ## Rewritten to:
+  ##
+  ## ```nim
+  ## block:
+  ##   let x = move(a)
+  ##   useApproved(x)
+  ## ```
+  ##
+  ## R-value sources (e.g. call expressions) are first materialized into a
+  ## gensym'd `let` so `move()` has an l-value. Sink-on-construction avoids
+  ## the `=copy` error hook on distinct state types.
+  ##
+  ## The per-state `match` overloads coexist with the per-branching-union
+  ## `match` overloads emitted by `generateBranchMatch`; Nim disambiguates
+  ## by the typed first parameter. The parser-side collision validator
+  ## prevents same-name overload duplication between a state and a branch
+  ## wrapper type.
+  ##
+  ## :param graph: The typestate graph
+  ## :returns: AST for one `match` macro per state
+  result = newStmtList()
+
+  for state in graph.states.values:
+    if state.typeName == nil or state.name.len == 0:
+      continue
+
+    let stateType = state.typeName.copyNimTree
+    let stateNameLit = newLit(state.name)
+
+    # The body of the generated `match` macro is a single call to the public
+    # helper `buildSingleTargetMatchCase`, mirroring `generateBranchMatch`.
+    # Using `bindSym` keeps the helper resolution inside the typestates
+    # package so user modules don't need `import std/macros`.
+    let helperSym = bindSym("buildSingleTargetMatchCase")
+    let matchDoc = newCommentStmtNode(
+      "Single-target pattern match on state '" & state.name &
+        "'; rewrites to `block: let bind = move(value); body`.\n" & "Syntax is `" &
+        state.name & "(bind):`, with exactly one arm."
+    )
+    let macroBody = newStmtList(
+      matchDoc,
+      nnkAsgn.newTree(
+        ident("result"),
+        nnkCall.newTree(helperSym, ident("value"), ident("arms"), stateNameLit),
+      ),
+    )
+
+    let matchMacro = nnkMacroDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident("match")),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        ident("untyped"),
+        nnkIdentDefs.newTree(ident("value"), stateType, newEmptyNode()),
+        nnkIdentDefs.newTree(ident("arms"), ident("untyped"), newEmptyNode()),
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      macroBody,
+    )
+
+    result.add matchMacro
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -903,6 +1115,9 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 5. Branch types for branching transitions (user-named via `as TypeName`)
   ## 6. Branch constructors (`toTypeName`)
   ## 7. Branch operators (`->`)
+  ## 8. Branch `$` overloads
+  ## 9. Per-branching-union `match` macros
+  ## 10. Per-state single-target `match` macros
   ##
   ## For generic typestates like `Container[T]`, all generated types
   ## and procs include proper type parameters.
@@ -921,3 +1136,4 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateBranchOperators(graph)
   result.add generateBranchDollar(graph)
   result.add generateBranchMatch(graph)
+  result.add generateSingleTargetMatch(graph)
