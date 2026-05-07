@@ -16,10 +16,11 @@ typestate Marker:
 proc finish(s: sink Started): Done {.transition.} =
   Done(Marker())
 
-let d = Started(Marker()).finish()
+var d = Started(Marker()).finish()
 var seen = false
 match d:
-  Done(_x):
+  Done(x):
+    discard x
     seen = true
 doAssert seen
 echo "match_single_target_no_fields test passed"

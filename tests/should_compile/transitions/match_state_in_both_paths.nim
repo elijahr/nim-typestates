@@ -31,16 +31,17 @@ proc rehab(d: sink Declined): Approved {.transition.} =
 
 # Path 1: branching match dispatches Decision via kind discriminator.
 var label1 = ""
-let dec = Created(Doc(body: "x")).decide()
+var dec = Created(Doc(body: "x")).decide()
 match dec:
   Approved(a):
     label1 = "approved-via-decision:" & Doc(a).body
-  Declined(_d):
+  Declined(d):
+    discard d
     label1 = "declined"
 doAssert label1 == "approved-via-decision:x"
 
 # Path 2: single-target match on a bare Approved value (from rehab).
-let bareApproved = Declined(Doc(body: "z")).rehab()
+var bareApproved = Declined(Doc(body: "z")).rehab()
 var label2 = ""
 match bareApproved:
   Approved(a):

@@ -18,7 +18,7 @@ typestate Doc:
 proc approve(c: sink Created): Approved {.transition.} =
   Approved(Doc(c))
 
-let a = Created(Doc(body: "ok")).approve()
+var a = Created(Doc(body: "ok")).approve()
 var label = ""
 match a:
   Approved(x):

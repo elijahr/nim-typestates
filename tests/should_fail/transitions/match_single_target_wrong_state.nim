@@ -19,7 +19,7 @@ typestate Doc:
 proc approve(c: sink Created): Approved {.transition.} =
   Approved(Doc(c))
 
-let a = Created(Doc()).approve()
+var a = Created(Doc()).approve()
 match a:
-  Declined(_x):    # ERROR: Declined arm on Approved value
-    discard
+  Declined(x):    # ERROR: Declined arm on Approved value
+    discard x

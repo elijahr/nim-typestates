@@ -17,8 +17,8 @@ typestate Tag:
 proc cook(r: sink Raw): Cooked {.transition.} =
   Cooked(Tag(r))
 
-let c1 = Raw(Tag(s: "a")).cook()
-let c2 = Raw(Tag(s: "b")).cook()
+var c1 = Raw(Tag(s: "a")).cook()
+var c2 = Raw(Tag(s: "b")).cook()
 
 var labels: seq[string] = @[]
 match c1:

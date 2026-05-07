@@ -794,19 +794,23 @@ proc buildSingleTargetMatchCase*(
   ##     let bind = move(value)
   ##     body
   ##   ```
-  ##   `move()` accepts the l-value directly; no copy hook is invoked.
+  ##   `move()` accepts the l-value directly; no copy hook is invoked. The
+  ##   l-value MUST be a `var` binding (e.g. `var a = ...; match a:`) because
+  ##   `system.move` requires a `var T` parameter. A `let`-bound source emits
+  ##   the standard "expression is immutable, not 'var'" error at the user's
+  ##   call site.
   ##
   ## - R-value source (call expressions, etc.):
   ##   ```nim
   ##   block:
-  ##     let valTmp`gensym = value
+  ##     var valTmp`gensym = value
   ##     let bind = move(valTmp`gensym)
   ##     body
   ##   ```
-  ##   Materializing the rvalue into a `let` goes through `=sink`
+  ##   Materializing the rvalue into a `var` goes through `=sink`
   ##   (sink-on-construction), not `=copy`, so the `{.error.}` copy hook on
   ##   distinct state types is never reached. The temp is required because
-  ##   `move()` demands an l-value.
+  ##   `move()` demands a `var` binding.
   ##
   ## The `block:` wrapper provides hygiene so adjacent matches with the same
   ## bind name don't collide.
@@ -870,8 +874,8 @@ proc buildSingleTargetMatchCase*(
     error("match arm bind must be a single identifier", bindIdent)
 
   # Two-path emit based on whether `value` is an l-value or r-value.
-  # L-value sources can be moved directly; r-value sources need a temp
-  # (sink-on-construction, not copy).
+  # L-value sources can be moved directly (assuming the user bound them with
+  # `var`); r-value sources need a `var` temp for sink-on-construction.
   const lvalueKinds = {nnkIdent, nnkSym, nnkDotExpr, nnkBracketExpr}
   var rewritten = newStmtList()
   if value.kind in lvalueKinds:
@@ -879,9 +883,14 @@ proc buildSingleTargetMatchCase*(
     let extract = newLetStmt(bindIdent, newCall("move", value))
     rewritten.add extract
   else:
-    # Path 2: r-value source (call expr etc.) — materialize via sink, then move.
-    let valTmp = genSym(nskLet, "matchValTmp")
-    let tmpDef = newLetStmt(valTmp, value)
+    # Path 2: r-value source (call expr etc.) — materialize into a `var`
+    # temp so `move()` has a mutable binding, then move. `var tmp = value`
+    # goes through `=sink`, not `=copy`, so the distinct copy-error hook
+    # is never hit.
+    let valTmp = genSym(nskVar, "matchValTmp")
+    let tmpDef = nnkVarSection.newTree(
+      nnkIdentDefs.newTree(valTmp, newEmptyNode(), value)
+    )
     let extract = newLetStmt(bindIdent, newCall("move", valTmp))
     rewritten.add tmpDef
     rewritten.add extract
@@ -1011,6 +1020,87 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
 
     result.add matchMacro
 
+proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
+  ## Generate a `match` macro for each state, supporting single-target match.
+  ##
+  ## For every state in the graph, emits a macro with this signature:
+  ##
+  ## ```nim
+  ## macro match*(value: <StateType>; arms: untyped): untyped =
+  ##   ## Single-target pattern match; rewrites to `block: let bind = move(value); body`.
+  ## ```
+  ##
+  ## Call-site syntax (exactly one arm naming the state):
+  ##
+  ## ```nim
+  ## match a:
+  ##   Approved(x):
+  ##     useApproved(x)
+  ## ```
+  ##
+  ## Rewritten to:
+  ##
+  ## ```nim
+  ## block:
+  ##   let x = move(a)
+  ##   useApproved(x)
+  ## ```
+  ##
+  ## R-value sources (e.g. call expressions) are first materialized into a
+  ## gensym'd `let` so `move()` has an l-value. Sink-on-construction avoids
+  ## the `=copy` error hook on distinct state types.
+  ##
+  ## The per-state `match` overloads coexist with the per-branching-union
+  ## `match` overloads emitted by `generateBranchMatch`; Nim disambiguates
+  ## by the typed first parameter. The parser-side collision validator
+  ## prevents same-name overload duplication between a state and a branch
+  ## wrapper type.
+  ##
+  ## :param graph: The typestate graph
+  ## :returns: AST for one `match` macro per state
+  result = newStmtList()
+
+  for state in graph.states.values:
+    if state.typeName == nil or state.name.len == 0:
+      continue
+
+    let stateType = state.typeName.copyNimTree
+    let stateNameLit = newLit(state.name)
+
+    # The body of the generated `match` macro is a single call to the public
+    # helper `buildSingleTargetMatchCase`, mirroring `generateBranchMatch`.
+    # Using `bindSym` keeps the helper resolution inside the typestates
+    # package so user modules don't need `import std/macros`.
+    let helperSym = bindSym("buildSingleTargetMatchCase")
+    let matchDoc = newCommentStmtNode(
+      "Single-target pattern match on state '" & state.name &
+        "'; rewrites to `block: let bind = move(value); body`.\n" &
+        "Syntax is `" & state.name & "(bind):`, with exactly one arm."
+    )
+    let macroBody = newStmtList(
+      matchDoc,
+      nnkAsgn.newTree(
+        ident("result"),
+        nnkCall.newTree(helperSym, ident("value"), ident("arms"), stateNameLit),
+      ),
+    )
+
+    let matchMacro = nnkMacroDef.newTree(
+      nnkPostfix.newTree(ident("*"), ident("match")),
+      newEmptyNode(),
+      buildGenericParams(graph.typeParams),
+      nnkFormalParams.newTree(
+        ident("untyped"),
+        nnkIdentDefs.newTree(ident("value"), stateType, newEmptyNode()),
+        nnkIdentDefs.newTree(ident("arms"), ident("untyped"), newEmptyNode()),
+      ),
+      newEmptyNode(),
+      newEmptyNode(),
+      macroBody,
+    )
+
+    result.add matchMacro
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -1024,6 +1114,9 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   ## 5. Branch types for branching transitions (user-named via `as TypeName`)
   ## 6. Branch constructors (`toTypeName`)
   ## 7. Branch operators (`->`)
+  ## 8. Branch `$` overloads
+  ## 9. Per-branching-union `match` macros
+  ## 10. Per-state single-target `match` macros
   ##
   ## For generic typestates like `Container[T]`, all generated types
   ## and procs include proper type parameters.
@@ -1042,3 +1135,4 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateBranchOperators(graph)
   result.add generateBranchDollar(graph)
   result.add generateBranchMatch(graph)
+  result.add generateSingleTargetMatch(graph)

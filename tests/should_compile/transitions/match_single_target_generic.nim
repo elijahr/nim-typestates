@@ -19,7 +19,7 @@ proc fill(e: sink Empty, s: string): Full {.transition.} =
   Full(Box(v: s))
 
 proc useFull[T](e: sink Empty, payload: T): T =
-  let f = e.fill($payload)
+  var f = e.fill($payload)
   var outVal: T
   match f:
     Full(x):
