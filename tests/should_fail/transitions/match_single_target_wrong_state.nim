@@ -21,5 +21,7 @@ proc approve(c: sink Created): Approved {.transition.} =
 
 var a = Created(Doc()).approve()
 match a:
-  Declined(x):    # ERROR: Declined arm on Approved value
+  Declined( # ERROR: Declined arm on Approved value
+    x
+  ):
     discard x

@@ -15,4 +15,5 @@ type
 typestate Doc:
   states Created, Approved, Declined
   transitions:
-    Created -> (Approved | Declined) as Approved   # ERROR: `as Approved` collides with state Approved
+    Created -> (Approved | Declined) as Approved
+      # ERROR: `as Approved` collides with state Approved

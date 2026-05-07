@@ -6,6 +6,7 @@ import ../../../src/typestates
 type
   Tag = object
     s: string
+
   Raw = distinct Tag
   Cooked = distinct Tag
 
@@ -25,7 +26,9 @@ match c1:
   Cooked(x):
     labels.add Tag(x).s
 match c2:
-  Cooked(x):     # same bind name as previous match — must not collide
+  Cooked( # same bind name as previous match — must not collide
+    x
+  ):
     labels.add Tag(x).s
 
 doAssert labels == @["a", "b"]

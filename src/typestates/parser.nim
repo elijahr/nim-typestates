@@ -657,7 +657,8 @@ proc validateNoBranchTypeStateCollision(graph: TypestateGraph, declNode: NimNode
   ## :raises: Compile-time error if a branch wrapper name collides with a state
   var stateBaseNames = initHashSet[string]()
   for state in graph.states.values:
-    stateBaseNames.incl(extractBaseName(state.name))
+    # state.name is already a base name (set by parseStates via extractBaseName).
+    stateBaseNames.incl(state.name)
 
   for t in graph.transitions:
     if t.branchTypeName.len == 0:
@@ -665,9 +666,8 @@ proc validateNoBranchTypeStateCollision(graph: TypestateGraph, declNode: NimNode
     let wrapperBase = extractBaseName(t.branchTypeName)
     if wrapperBase in stateBaseNames:
       error(
-        "Branch wrapper type name '" & wrapperBase &
-          "' collides with state name '" & wrapperBase &
-          "'. Use a distinct name (e.g., '" & wrapperBase & "Result'). " &
+        "Branch wrapper type name '" & wrapperBase & "' collides with state name '" &
+          wrapperBase & "'. Use a distinct name (e.g., '" & wrapperBase & "Result'). " &
           "Transition declared at " & $t.declaredAt,
         declNode,
       )

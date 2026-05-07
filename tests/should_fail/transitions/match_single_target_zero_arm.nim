@@ -21,5 +21,5 @@ proc approve(c: sink Created): Approved {.transition.} =
   Approved(Doc(c))
 
 let a = Created(Doc()).approve()
-match a:           # ERROR: arm is `discard`, not `Approved(b): body`
+match a: # ERROR: arm is `discard`, not `Approved(b): body`
   discard

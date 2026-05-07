@@ -820,29 +820,29 @@ proc buildSingleTargetMatchCase*(
   if arms.kind != nnkStmtList:
     error("single-target match expects a StmtList of arms", arms)
 
-  # Filter empty nodes (Nim sometimes emits nnkEmpty separators).
+  # Filter empty nodes (nnkEmpty separators) and comment statements
+  # (so users can document arms inline without tripping the multi-arm check).
   var armNodes: seq[NimNode] = @[]
   for n in arms:
-    if n.kind != nnkEmpty:
+    if n.kind notin {nnkEmpty, nnkCommentStmt}:
       armNodes.add n
 
   if armNodes.len == 0:
     error(
-      "single-target match expects `" & validStateName &
-        "(bindName): body`, got: " & arms.repr,
+      "single-target match expects `" & validStateName & "(bindName): body`, got: " &
+        arms.repr,
       arms,
     )
   if armNodes.len > 1:
     error(
-      "single-target match accepts exactly one arm; got " & $armNodes.len,
-      armNodes[1],
+      "single-target match accepts exactly one arm; got " & $armNodes.len, armNodes[1]
     )
 
   let clause = armNodes[0]
   if clause.kind != nnkCall or clause.len != 3:
     error(
-      "single-target match expects `" & validStateName &
-        "(bindName): body`, got: " & clause.repr,
+      "single-target match expects `" & validStateName & "(bindName): body`, got: " &
+        clause.repr,
       clause,
     )
 
@@ -861,7 +861,7 @@ proc buildSingleTargetMatchCase*(
       stateIdent[0].strVal
     else:
       error("match arm head must be a single state identifier", stateIdent)
-      ""  # unreachable; satisfies type checker
+      "" # unreachable; satisfies type checker
 
   if stateName != validStateName:
     error(
@@ -876,7 +876,9 @@ proc buildSingleTargetMatchCase*(
   # Two-path emit based on whether `value` is an l-value or r-value.
   # L-value sources can be moved directly (assuming the user bound them with
   # `var`); r-value sources need a `var` temp for sink-on-construction.
-  const lvalueKinds = {nnkIdent, nnkSym, nnkDotExpr, nnkBracketExpr}
+  # nnkPar covers `match (myVar):` — a parenthesized l-value should still
+  # take the direct-move path, not the var-temp r-value path.
+  const lvalueKinds = {nnkIdent, nnkSym, nnkDotExpr, nnkBracketExpr, nnkPar}
   var rewritten = newStmtList()
   if value.kind in lvalueKinds:
     # Path 1: l-value source — move directly, no temp.
@@ -888,9 +890,8 @@ proc buildSingleTargetMatchCase*(
     # goes through `=sink`, not `=copy`, so the distinct copy-error hook
     # is never hit.
     let valTmp = genSym(nskVar, "matchValTmp")
-    let tmpDef = nnkVarSection.newTree(
-      nnkIdentDefs.newTree(valTmp, newEmptyNode(), value)
-    )
+    let tmpDef =
+      nnkVarSection.newTree(nnkIdentDefs.newTree(valTmp, newEmptyNode(), value))
     let extract = newLetStmt(bindIdent, newCall("move", valTmp))
     rewritten.add tmpDef
     rewritten.add extract
@@ -1074,8 +1075,8 @@ proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
     let helperSym = bindSym("buildSingleTargetMatchCase")
     let matchDoc = newCommentStmtNode(
       "Single-target pattern match on state '" & state.name &
-        "'; rewrites to `block: let bind = move(value); body`.\n" &
-        "Syntax is `" & state.name & "(bind):`, with exactly one arm."
+        "'; rewrites to `block: let bind = move(value); body`.\n" & "Syntax is `" &
+        state.name & "(bind):`, with exactly one arm."
     )
     let macroBody = newStmtList(
       matchDoc,

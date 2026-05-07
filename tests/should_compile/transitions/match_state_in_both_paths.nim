@@ -8,6 +8,7 @@ import ../../../src/typestates
 type
   Doc = object
     body: string
+
   Created = distinct Doc
   Approved = distinct Doc
   Declined = distinct Doc
@@ -17,8 +18,8 @@ typestate Doc:
   states Created, Approved, Declined, Confirmed
   transitions:
     Created -> (Approved | Declined) as Decision
-    Approved -> Confirmed                       # single-target return
-    Declined -> Approved                        # rehab path: single-target return of Approved
+    Approved -> Confirmed # single-target return
+    Declined -> Approved # rehab path: single-target return of Approved
 
 proc decide(d: sink Created): Decision {.transition.} =
   # dApproved: prefix 'd' from branchEnumPrefix(Decision) + state name 'Approved'.

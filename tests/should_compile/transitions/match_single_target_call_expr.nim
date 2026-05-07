@@ -7,6 +7,7 @@ import ../../../src/typestates
 type
   Item = object
     n: int
+
   Pending = distinct Item
   Resolved = distinct Item
 

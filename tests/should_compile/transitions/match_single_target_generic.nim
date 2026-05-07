@@ -7,6 +7,7 @@ import ../../../src/typestates
 type
   Box = object
     v: string
+
   Empty = distinct Box
   Full = distinct Box
 

@@ -21,5 +21,7 @@ let a = Created(Doc()).approve()
 match a:
   Approved(x):
     discard x
-  Approved(y):       # ERROR: second arm
+  Approved( # ERROR: second arm
+    y
+  ):
     discard y
