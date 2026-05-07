@@ -11,7 +11,7 @@
 ##
 ## **Internal module** - most users won't interact with this directly.
 
-import std/[macros, tables, strutils]
+import std/[macros, tables, strutils, sets]
 import types
 import reachability
 
@@ -633,6 +633,45 @@ proc validateNoDuplicateBranchingSources(graph: TypestateGraph, declNode: NimNod
         )
       branchingSources.add(source)
 
+proc validateNoBranchTypeStateCollision(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that no branching transition's wrapper type name collides with
+  ## a declared state name.
+  ##
+  ## Branching transitions like `Created -> (Approved | Declined) as ApprovedResult`
+  ## generate a wrapper type whose name (`ApprovedResult`) is used as the first
+  ## parameter of a `match*` overload. v0.8.0 also generates per-state `match*`
+  ## overloads keyed on each state name. If the wrapper name and a state name
+  ## collide, two `match*` overloads with the same first-parameter type are
+  ## emitted and Nim cannot disambiguate them.
+  ##
+  ## Example that would fail:
+  ##
+  ## ```nim
+  ## states Created, Approved, Declined
+  ## transitions:
+  ##   Created -> (Approved | Declined) as Approved   # ERROR: collides with state Approved
+  ## ```
+  ##
+  ## :param graph: The typestate graph to validate
+  ## :param declNode: AST node for error reporting fallback location
+  ## :raises: Compile-time error if a branch wrapper name collides with a state
+  var stateBaseNames = initHashSet[string]()
+  for state in graph.states.values:
+    stateBaseNames.incl(extractBaseName(state.name))
+
+  for t in graph.transitions:
+    if t.branchTypeName.len == 0:
+      continue
+    let wrapperBase = extractBaseName(t.branchTypeName)
+    if wrapperBase in stateBaseNames:
+      error(
+        "Branch wrapper type name '" & wrapperBase &
+          "' collides with state name '" & wrapperBase &
+          "'. Use a distinct name (e.g., '" & wrapperBase & "Result'). " &
+          "Transition declared at " & $t.declaredAt,
+        declNode,
+      )
+
 proc validateInitialTerminal(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that initial and terminal states are declared in states list.
   ##
@@ -759,6 +798,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   # Validate after all parsing is complete
   validateUniqueBaseNames(result, name)
   validateNoDuplicateBranchingSources(result, name)
+  validateNoBranchTypeStateCollision(result, name)
   validateInitialTerminal(result, name)
   validateTransitionsRespectInitialTerminal(result, name)
 
