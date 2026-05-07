@@ -771,6 +771,127 @@ proc buildMatchCase*(
     caseStmt.add nnkOfBranch.newTree(kindField, rewritten)
   result.add caseStmt
 
+proc buildSingleTargetMatchCase*(
+    value: NimNode, arms: NimNode, validStateName: string
+): NimNode =
+  ## INTERNAL: this helper is exported for use by the generated single-target
+  ## `match` macro via `bindSym`. User code should not call it directly.
+  ##
+  ## Helper used by every generated single-target `match` macro to rewrite an
+  ## arms block of the shape `StateName(bindName): body` into a hygienic
+  ## `block:` statement that moves the matched value into the bound name and
+  ## then runs the body.
+  ##
+  ## - `value`: NimNode for the matched state value (passed to the macro).
+  ## - `arms`: NimNode for the StmtList of `Call(StateIdent, bindIdent, body)` arms.
+  ## - `validStateName`: bare base name of the only valid state (e.g. "Approved").
+  ##
+  ## Two-path AST emit driven by `value.kind`:
+  ##
+  ## - L-value source (`nnkIdent`/`nnkSym`/`nnkDotExpr`/`nnkBracketExpr`):
+  ##   ```nim
+  ##   block:
+  ##     let bind = move(value)
+  ##     body
+  ##   ```
+  ##   `move()` accepts the l-value directly; no copy hook is invoked.
+  ##
+  ## - R-value source (call expressions, etc.):
+  ##   ```nim
+  ##   block:
+  ##     let valTmp`gensym = value
+  ##     let bind = move(valTmp`gensym)
+  ##     body
+  ##   ```
+  ##   Materializing the rvalue into a `let` goes through `=sink`
+  ##   (sink-on-construction), not `=copy`, so the `{.error.}` copy hook on
+  ##   distinct state types is never reached. The temp is required because
+  ##   `move()` demands an l-value.
+  ##
+  ## The `block:` wrapper provides hygiene so adjacent matches with the same
+  ## bind name don't collide.
+  ##
+  ## Errors at the user's call site for malformed arms or a state-name
+  ## mismatch.
+  if arms.kind != nnkStmtList:
+    error("single-target match expects a StmtList of arms", arms)
+
+  # Filter empty nodes (Nim sometimes emits nnkEmpty separators).
+  var armNodes: seq[NimNode] = @[]
+  for n in arms:
+    if n.kind != nnkEmpty:
+      armNodes.add n
+
+  if armNodes.len == 0:
+    error(
+      "single-target match expects `" & validStateName &
+        "(bindName): body`, got: " & arms.repr,
+      arms,
+    )
+  if armNodes.len > 1:
+    error(
+      "single-target match accepts exactly one arm; got " & $armNodes.len,
+      armNodes[1],
+    )
+
+  let clause = armNodes[0]
+  if clause.kind != nnkCall or clause.len != 3:
+    error(
+      "single-target match expects `" & validStateName &
+        "(bindName): body`, got: " & clause.repr,
+      clause,
+    )
+
+  let stateIdent = clause[0]
+  let bindIdent = clause[1]
+  let clauseBody = clause[2]
+
+  # Same node-kind acceptance set as buildMatchCase (codegen.nim:735-742):
+  # nnkIdent (untyped), nnkSym (sema-resolved in generic body), and
+  # nnkOpenSymChoice / nnkClosedSymChoice (overloaded).
+  let stateName =
+    case stateIdent.kind
+    of nnkIdent, nnkSym:
+      stateIdent.strVal
+    of nnkOpenSymChoice, nnkClosedSymChoice:
+      stateIdent[0].strVal
+    else:
+      error("match arm head must be a single state identifier", stateIdent)
+      ""  # unreachable; satisfies type checker
+
+  if stateName != validStateName:
+    error(
+      "unknown state '" & stateName & "' for single-target match; expected '" &
+        validStateName & "'",
+      stateIdent,
+    )
+
+  if bindIdent.kind != nnkIdent:
+    error("match arm bind must be a single identifier", bindIdent)
+
+  # Two-path emit based on whether `value` is an l-value or r-value.
+  # L-value sources can be moved directly; r-value sources need a temp
+  # (sink-on-construction, not copy).
+  const lvalueKinds = {nnkIdent, nnkSym, nnkDotExpr, nnkBracketExpr}
+  var rewritten = newStmtList()
+  if value.kind in lvalueKinds:
+    # Path 1: l-value source — move directly, no temp.
+    let extract = newLetStmt(bindIdent, newCall("move", value))
+    rewritten.add extract
+  else:
+    # Path 2: r-value source (call expr etc.) — materialize via sink, then move.
+    let valTmp = genSym(nskLet, "matchValTmp")
+    let tmpDef = newLetStmt(valTmp, value)
+    let extract = newLetStmt(bindIdent, newCall("move", valTmp))
+    rewritten.add tmpDef
+    rewritten.add extract
+  if clauseBody.kind == nnkStmtList:
+    for stmt in clauseBody:
+      rewritten.add stmt
+  else:
+    rewritten.add clauseBody
+  result = nnkBlockStmt.newTree(newEmptyNode(), rewritten)
+
 proc generateBranchMatch*(graph: TypestateGraph): NimNode =
   ## Generate a `match` macro for each branching union type.
   ##
