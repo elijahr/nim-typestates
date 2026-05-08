@@ -852,7 +852,9 @@ proc buildSingleTargetMatchCase*(
 
   # Same node-kind acceptance set as buildMatchCase (codegen.nim:735-742):
   # nnkIdent (untyped), nnkSym (sema-resolved in generic body), and
-  # nnkOpenSymChoice / nnkClosedSymChoice (overloaded).
+  # nnkOpenSymChoice / nnkClosedSymChoice (overloaded). `error` from
+  # std/macros aborts compilation, so the case type-checks as `string`
+  # from the three matching branches without a sentinel.
   let stateName =
     case stateIdent.kind
     of nnkIdent, nnkSym:
@@ -861,7 +863,6 @@ proc buildSingleTargetMatchCase*(
       stateIdent[0].strVal
     else:
       error("match arm head must be a single state identifier", stateIdent)
-      "" # unreachable; satisfies type checker
 
   if stateName != validStateName:
     error(

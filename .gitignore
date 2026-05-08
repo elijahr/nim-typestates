@@ -14,9 +14,22 @@ tests/t[a-z_]*
 tests/test
 !tests/t*.nim
 !tests/test.nim
-## Nested test binaries
-tests/**/[a-z_]*/
-!tests/**/*.nim
+## Nested test binaries (compiled extensionless executables next to .nim
+## sources under should_compile/<category>/, should_fail/<category>/,
+## should_warn/<category>/). Single `*` (not `**`) so the pattern targets
+## binaries one level below `should_*`, not the category dir itself —
+## git forbids re-including files under an ignored parent directory, so
+## a directory-level rule (the prior `tests/**/[a-z_]*/`) silently blocked
+## new .nim sources from `git add` and forced `git add -f` (this happened
+## in PR #9). Per gitignore glob semantics, `[a-z_]*` only constrains the
+## first character (the rest is a `*` non-slash wildcard), so `.nim`
+## sources also match and need an explicit re-include below.
+tests/should_compile/*/[a-z_]*
+tests/should_fail/*/[a-z_]*
+tests/should_warn/*/[a-z_]*
+!tests/should_compile/**/*.nim
+!tests/should_fail/**/*.nim
+!tests/should_warn/**/*.nim
 !tests/**/.gitkeep
 ## Debug binaries and symbols
 tests/debug_*
