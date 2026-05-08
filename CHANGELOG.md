@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Internal
+
+- Drop the unreachable sentinel `""` from `buildSingleTargetMatchCase`'s
+  state-name `case` expression. `error` from `std/macros` aborts compilation,
+  so the case type-checks as `string` from the three matching branches alone;
+  the sentinel only added an `UnreachableCode` compiler warning visible
+  during `nimble test`.
+- Tighten `.gitignore` rule for nested test binaries. The prior pattern
+  `tests/**/[a-z_]*/` (directory-level) excluded category subdirs like
+  `tests/should_compile/transitions/`, which prevented re-including new
+  `.nim` sources via `!tests/**/*.nim` (git forbids re-including files
+  under an ignored parent). New file-level patterns target binaries one
+  level below `should_*` without matching the category dirs themselves,
+  so new test sources can be added without `git add -f`.
+
 ## [0.8.0] - 2026-05-07
 
 ### Added
