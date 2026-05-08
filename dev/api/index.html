@@ -1631,10 +1631,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#buildSingleTargetMatchCase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildSingleTargetMatchCase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#generateBranchMatch" class="md-nav__link">
     <span class="md-ellipsis">
       
         generateBranchMatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateSingleTargetMatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateSingleTargetMatch
       
     </span>
   </a>
@@ -2626,10 +2648,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#buildSingleTargetMatchCase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildSingleTargetMatchCase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#generateBranchMatch" class="md-nav__link">
     <span class="md-ellipsis">
       
         generateBranchMatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generateSingleTargetMatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generateSingleTargetMatch
       
     </span>
   </a>
@@ -4888,8 +4932,8 @@ body of a <code>typestate</code> macro invocation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L687" target="_blank" rel="noopener">
-            src/typestates/parser.nim:687
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L726" target="_blank" rel="noopener">
+            src/typestates/parser.nim:726
           </a>
         
       </div>
@@ -7332,6 +7376,124 @@ resulting AST is sema-checked.</p>
   
 
   
+    <h4 id="buildSingleTargetMatchCase" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">buildSingleTargetMatchCase</span>
+      
+    <a href="#buildSingleTargetMatchCase" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildSingleTargetMatchCase</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">validStateName</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>INTERNAL: this helper is exported for use by the generated single-target</p>
+<p><code>match</code> macro via <code>bindSym</code>. User code should not call it directly.</p>
+<p>Helper used by every generated single-target <code>match</code> macro to rewrite an
+arms block of the shape <code>StateName(bindName): body</code> into a hygienic
+<code>block:</code> statement that moves the matched value into the bound name and
+then runs the body.</p>
+<ul>
+<li><code>value</code>: NimNode for the matched state value (passed to the macro).</li>
+<li><code>arms</code>: NimNode for the StmtList of <code>Call(StateIdent, bindIdent, body)</code> arms.</li>
+<li><code>validStateName</code>: bare base name of the only valid state (e.g. "Approved").</li>
+</ul>
+<p>Two-path AST emit driven by <code>value.kind</code>:</p>
+<ul>
+<li>
+<p>L-value source (<code>nnkIdent</code>/<code>nnkSym</code>/<code>nnkDotExpr</code>/<code>nnkBracketExpr</code>):
+  </p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">block</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">body</span>
+</code></pre></div>
+  <code>move()</code> accepts the l-value directly; no copy hook is invoked. The
+  l-value MUST be a <code>var</code> binding (e.g. <code>var a = ...; match a:</code>) because
+  <code>system.move</code> requires a <code>var T</code> parameter. A <code>let</code>-bound source emits
+  the standard "expression is immutable, not 'var'" error at the user's
+  call site.<p></p>
+</li>
+<li>
+<p>R-value source (call expressions, etc.):
+  </p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">block</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">value</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">body</span>
+</code></pre></div>
+  Materializing the rvalue into a <code>var</code> goes through <code>=sink</code>
+  (sink-on-construction), not <code>=copy</code>, so the <code>{.error.}</code> copy hook on
+  distinct state types is never reached. The temp is required because
+  <code>move()</code> demands a <code>var</code> binding.<p></p>
+</li>
+</ul>
+<p>The <code>block:</code> wrapper provides hygiene so adjacent matches with the same
+bind name don't collide.</p>
+<p>Errors at the user's call site for malformed arms or a state-name
+mismatch.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>value</code>
+              (<code>NimNode</code>)
+              
+            </li>
+          
+            <li>
+              <code>arms</code>
+              (<code>NimNode</code>)
+              
+            </li>
+          
+            <li>
+              <code>validStateName</code>
+              (<code>string</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code></p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L774" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:774
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
     <h4 id="generateBranchMatch" class="doc doc-heading">
       
       <span class="doc doc-object-name doc-proc-name">generateBranchMatch</span>
@@ -7407,8 +7569,95 @@ F4.A0 probe).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L774" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:774
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L905" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:905
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="generateSingleTargetMatch" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">generateSingleTargetMatch</span>
+      
+    <a href="#generateSingleTargetMatch" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">generateSingleTargetMatch</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Generate a <code>match</code> macro for each state, supporting single-target match.</p>
+<p>For every state in the graph, emits a macro with this signature:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">StateType</span><span class="o">&gt;</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Single-target pattern match; rewrites to `block: let bind = move(value); body`.</span>
+</code></pre></div>
+<p>Call-site syntax (exactly one arm naming the state):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">match</span><span class="w"> </span><span class="n">a</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">Approved</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">useApproved</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+<p>Rewritten to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">block</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">useApproved</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+<p>R-value sources (e.g. call expressions) are first materialized into a
+gensym'd <code>let</code> so <code>move()</code> has an l-value. Sink-on-construction avoids
+the <code>=copy</code> error hook on distinct state types.</p>
+<p>The per-state <code>match</code> overloads coexist with the per-branching-union
+<code>match</code> overloads emitted by <code>generateBranchMatch</code>; Nim disambiguates
+by the typed first parameter. The parser-side collision validator
+prevents same-name overload duplication between a state and a branch
+wrapper type.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>TypestateGraph</code>)
+               – The typestate graph
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code> – AST for one `match` macro per state</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1024" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1024
           </a>
         
       </div>
@@ -7451,6 +7700,9 @@ It generates:</p>
 <li>Branch types for branching transitions (user-named via <code>as TypeName</code>)</li>
 <li>Branch constructors (<code>toTypeName</code>)</li>
 <li>Branch operators (<code>-&gt;</code>)</li>
+<li>Branch <code>$</code> overloads</li>
+<li>Per-branching-union <code>match</code> macros</li>
+<li>Per-state single-target <code>match</code> macros</li>
 </ol>
 <p>For generic typestates like <code>Container[T]</code>, all generated types
 and procs include proper type parameters.</p>
@@ -7485,8 +7737,8 @@ and procs include proper type parameters.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L893" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:893
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1105" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1105
           </a>
         
       </div>
