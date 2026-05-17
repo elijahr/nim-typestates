@@ -53,11 +53,10 @@ proc tick(q: sink Queued, skip: bool): Running {.transition.} =
   ## Registered transition. Body declares `s: Started`, which is
   ## non-terminal in typestate `Task` and has no destructor — CFG-001
   ## must fire on the early `return`.
-  var s: Started
+  var s {.used.}: Started
   if skip:
     result = Running(q)
     return # CFG-001 on this return: 's' is Started, no destructor.
   result = Running(q)
-  discard s
 
 verifyTypestates()

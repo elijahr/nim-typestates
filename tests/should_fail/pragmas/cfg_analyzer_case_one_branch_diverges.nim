@@ -57,14 +57,11 @@ proc route(b: sink Open, n: int): Sealed {.transition.} =
   ## terminal — here one branch does not, so CFG-002 must fire.
   case n
   of 0:
-    var s: Done
-    discard s
+    var s {.used.}: Done
   of 1:
-    var s: Running
-    discard s
+    var s {.used.}: Running
   else:
-    var s: Done
-    discard s
+    var s {.used.}: Done
   result = Sealed(b)
 
 verifyTypestates()

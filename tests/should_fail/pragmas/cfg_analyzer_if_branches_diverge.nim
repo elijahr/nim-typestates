@@ -54,11 +54,9 @@ proc tick(s0: sink Idle, cond: bool): Closed {.transition.} =
   ## Both arms declare `s` with different non-terminal types. Reconciliation
   ## must emit CFG-002 at the join point.
   if cond:
-    var s: Started
-    discard s
+    var s {.used.}: Started
   else:
-    var s: Running
-    discard s
+    var s {.used.}: Running
   result = Closed(s0)
 
 verifyTypestates()

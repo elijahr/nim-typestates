@@ -450,6 +450,123 @@ proc walkCfg(
     validateExitEdge(result, node, "raise", destructorTypes)
     result = unreachableState()
 
+  of nnkDiscardStmt:
+    # §3.3 handleDiscard (CFG-003): a `discard <expr>` whose expression has
+    # a typestate-bearing static type is rejected when that type is NOT a
+    # terminal state AND no `{.destructorTransition.}` covers it. Bare
+    # `discard` (empty operand) is a no-op for the analyzer.
+    #
+    # Static-type resolution: in a macro pass at verifyTypestates() time the
+    # body AST is captured pre-typecheck. R-6 fallback: we resolve the
+    # discarded expression via the analyzer's per-local state map (when the
+    # expression is a bare Ident/Sym referring to a tracked local). Other
+    # shapes (call expressions, dotExprs) cannot be reliably typed without
+    # `getTypeInst`, which is not callable here on un-typed AST — those are
+    # passed through. Discarding a tracked local that has a registered
+    # destructor is accepted (the destructor will bridge to terminal).
+    if node.len >= 1 and node[0].kind != nnkEmpty:
+      var exprStateName = ""
+      let opnd = node[0]
+      if opnd.kind in {nnkIdent, nnkSym}:
+        for local in result.locals:
+          if local.name == opnd.strVal:
+            exprStateName = local.stateType
+            break
+      if exprStateName.len > 0:
+        let graphOpt = findTypestateForState(exprStateName)
+        if graphOpt.isSome:
+          let graph = graphOpt.get
+          var isTerminal = false
+          for term in graph.terminalStates:
+            if extractBaseName(term) == exprStateName:
+              isTerminal = true
+              break
+          let hasDestructor =
+            exprStateName in destructorTypes and
+            destructorTypes[exprStateName].name == graph.name
+          if not isTerminal and not hasDestructor:
+            let terminalList = graph.terminalStates.join(", ")
+            error(
+              "`discard` of typestate value of type '" & exprStateName &
+                "' is not allowed: type is not a terminal state of typestate '" &
+                graph.name & "'. Terminal states: [" & terminalList &
+                "]. Hint: either complete the transition chain to a terminal" &
+                " state, or remove the `discard` and consume the value" &
+                " explicitly.",
+              node,
+            )
+          elif isTerminal:
+            # Terminal-state discard: consume the matching local.
+            for i in 0 ..< result.locals.len:
+              if result.locals[i].stateType == exprStateName:
+                result.locals.delete(i)
+                break
+
+  of nnkWhileStmt, nnkForStmt:
+    # §3.3 loop handling (conservative): walk the body once with the entry
+    # state, then reconcile body-exit with entry (loop may execute 0 or N
+    # times, like an if-without-else). This is intentionally pessimistic;
+    # a full fixpoint iteration is deferred per design §3.3.
+    #
+    # nnkWhileStmt: (cond, body); nnkForStmt: (var..., iter, body).
+    if node.len >= 1:
+      let bodyEnd = walkCfg(node[^1], result, destructorTypes)
+      result = reconcileBranches(@[bodyEnd], false, result, node)
+
+  of nnkBreakStmt:
+    # §3.3 break: an unconditional exit from the enclosing loop scope. Any
+    # typestate-bearing local introduced inside the loop body that escapes
+    # the loop via break (rather than completing the body to a terminal
+    # state) must satisfy validateExitEdge at the break point. The loop
+    # reconcile above only captures the body-end state, so a break that
+    # bypasses the body's terminal-advancing path would otherwise escape
+    # detection. Validating here makes that exit edge explicit.
+    validateExitEdge(result, node, "break", destructorTypes)
+    result = unreachableState()
+
+  of nnkContinueStmt:
+    # continue: jumps back to the loop header, NOT out of the loop. Locals
+    # introduced inside the loop body remain in scope only for the current
+    # iteration; the loop reconcile handles the next-iteration / fall-out
+    # join. Treat as straight-line exit for the linear walk (statements
+    # after continue are dead) but do NOT validateExitEdge — continue is
+    # not a proc-level exit.
+    result = unreachableState()
+
+  of nnkTryStmt:
+    # §3.3 try/except/finally — pessimistic per the design algorithm.
+    #
+    # Shape: nnkTryStmt(body, [exceptBranch...], [finally?]). The try body
+    # is walked normally. Each except branch is walked with the ENTRY state
+    # (most pessimistic — the raise may have fired before any state
+    # advancement in the body, so we cannot trust body-end mutations to be
+    # visible to the handlers). The finally body, when present, is walked
+    # with the reconciled state of body-end + each except-end and runs on
+    # every exit path.
+    if node.len >= 1:
+      let bodyEnd = walkCfg(node[0], result, destructorTypes)
+      var exceptEnds: seq[LiveState] = @[]
+      var hasFinally = false
+      var finallyBody: NimNode = nil
+      for i in 1 ..< node.len:
+        let child = node[i]
+        case child.kind
+        of nnkExceptBranch:
+          # Pessimistic: enter except with the pre-try entry state, not bodyEnd.
+          exceptEnds.add walkCfg(child[^1], result, destructorTypes)
+        of nnkFinally:
+          hasFinally = true
+          if child.len >= 1:
+            finallyBody = child[0]
+        else:
+          discard
+      let postCatch =
+        reconcileBranches(@[bodyEnd] & exceptEnds, true, result, node)
+      if hasFinally and finallyBody != nil:
+        result = walkCfg(finallyBody, postCatch, destructorTypes)
+      else:
+        result = postCatch
+
   else:
     # Default: recurse into children. Steps 5-8 will replace this with
     # call/discard/loop-specific handlers.

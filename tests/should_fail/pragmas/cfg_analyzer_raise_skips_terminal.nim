@@ -61,10 +61,9 @@ proc tick(q: sink Queued, fail: bool): Running {.transition.} =
   ## Body declares `s: Started`; on the `fail` branch the body raises a
   ## Defect (not tracked by `raises: []`). CFG-001 must fire on the raise
   ## edge: `s` is in `Started` (non-terminal) with no destructor.
-  var s: Started
+  var s {.used.}: Started
   if fail:
     raise newException(Defect, "boom") # CFG-001: 's' is Started, no destructor.
   result = Running(q)
-  discard s
 
 verifyTypestates()
