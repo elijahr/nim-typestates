@@ -863,6 +863,126 @@ macro destructorTransition*(spec: untyped, destrDef: untyped): untyped =
   ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
   destructorTransitionCore(spec, destrDef)
 
+proc extractTypeDeclName(typeDef: NimNode): string {.compileTime.} =
+  ## Extract the base type name from a `nnkTypeDef` node, stripping
+  ## visibility postfix (`*`) and generic params (`[T]`).
+  ##
+  ## Examples (input node[0] shape -> result):
+  ## - `PinnedScope`           (nnkIdent)                  -> `"PinnedScope"`
+  ## - `PinnedScope*`          (nnkPostfix)                -> `"PinnedScope"`
+  ## - `PinnedScope[MT, CC]`   (nnkBracketExpr)            -> `"PinnedScope"`
+  ## - `PinnedScope*[MT, CC]`  (nnkPragmaExpr->Postfix)    -> `"PinnedScope"`
+  ##
+  ## NOTE: when a pragma is on a type decl, `typeDef[0]` may be wrapped in
+  ## an `nnkPragmaExpr` whose `[0]` is the name node and `[1]` is the
+  ## pragma. We accept `typeDef` here so the caller can pass the raw
+  ## TypeDef without prior unwrapping.
+  var nameNode = typeDef[0]
+  if nameNode.kind == nnkPragmaExpr:
+    nameNode = nameNode[0]
+  if nameNode.kind == nnkPostfix:
+    # `name*` form -> strip the `*`
+    nameNode = nameNode[1]
+  case nameNode.kind
+  of nnkIdent, nnkSym:
+    return nameNode.strVal
+  of nnkBracketExpr:
+    # `name[T]` — generic. Head should be Ident/Sym.
+    let head = nameNode[0]
+    if head.kind in {nnkIdent, nnkSym}:
+      return head.strVal
+    else:
+      return head.repr
+  else:
+    return nameNode.repr
+
+proc attachTypestateCore*(
+    typestateName: string, initial: NimNode, typeDef: NimNode
+): NimNode {.compileTime.} =
+  ## Shared core for the per-typestate attachment-pragma macros emitted
+  ## by the `typestate` macro (see `codegen.generateAttachmentMarker`).
+  ##
+  ## Implements §3.7 verification rules TA-001..TA-004 and registers the
+  ## binding in `typestateAttachments` so destructorTransition's path (b)
+  ## source resolution and CFG analyzer scope detection can recover the
+  ## initial state from the attached object type name.
+  ##
+  ## TA-001 is unreachable through this entry point — the per-typestate
+  ## macro emitter only runs WHEN the typestate is declared, so an
+  ## undeclared `<TypestateName>` surfaces as Nim's "undeclared identifier"
+  ## error at parse time, attributed to the pragma site. We still emit
+  ## the TA-001 message defensively in case the registry is concurrently
+  ## mutated.
+  ##
+  ## :param typestateName: Name of the typestate whose marker pragma fired
+  ## :param initial: The initial-state argument as written in the pragma
+  ## :param typeDef: The TypeDef AST the pragma decorates
+  ## :returns: `typeDef` unchanged (the pragma is registration-only)
+  if typestateName notin typestateRegistry:
+    # TA-001 (defensive — see proc doc).
+    error(
+      "typestate-attachment pragma: `" & typestateName &
+        "` is not a declared typestate; declare it with `typestate " &
+        typestateName & ": ...` before attaching",
+      initial,
+    )
+  let graph = typestateRegistry[typestateName]
+  let initialStateName = extractTypeName(initial)
+
+  # TA-002: initial state must exist in the typestate's state list.
+  var stateExists = false
+  var declaredStates: seq[string] = @[]
+  for stateKey, state in graph.states:
+    declaredStates.add state.name
+    if state.name == initialStateName:
+      stateExists = true
+  if not stateExists:
+    error(
+      "typestate-attachment pragma: `" & initialStateName &
+        "` is not a state of typestate `" & typestateName &
+        "`; declared states: " & $declaredStates,
+      initial,
+    )
+
+  # TA-003: initial state must not be terminal.
+  if graph.isTerminalState(initialStateName):
+    error(
+      "typestate-attachment pragma: initial state `" & initialStateName &
+        "` is a terminal state of typestate `" & typestateName &
+        "`; instances of `" & extractTypeDeclName(typeDef) &
+        "` would start in a terminal state with no valid transitions",
+      initial,
+    )
+
+  let typeName = extractTypeDeclName(typeDef)
+  let typeKey = extractBaseName(typeName)
+
+  # TA-004: duplicate attachment.
+  let prior = findAttachmentForType(typeKey)
+  if prior.isSome:
+    let p = prior.get
+    error(
+      "typestate-attachment pragma: type `" & typeName &
+        "` is already attached to typestate `" & p.typestateName &
+        "`; a type may attach to at most one typestate",
+      initial,
+    )
+
+  # Register the attachment. We use the LineInfo of the `initial` node
+  # because that pins the diagnostic to the pragma site, not the type
+  # body — useful for downstream tooling.
+  addAttachment(
+    typeKey,
+    AttachmentInfo(
+      typestateName: typestateName,
+      initialState: initialStateName,
+      declaredAt: initial.lineInfoObj,
+    ),
+  )
+
+  # Pragma is registration-only — return the type decl unchanged.
+  result = typeDef
+
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.
   ##
