@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-17
+
+### Breaking (pre-1.0 latitude)
+
+- **CFG analyzer enabled by default.** A new control-flow-graph pass
+  inside `verifyTypestates()` rejects exit edges (return, raise,
+  fall-through, discard, scope-escaping break/continue) that leave a
+  typestate-bearing local in a non-terminal state. Code that compiled and
+  verified under 0.8.0 may newly fail verification under 0.9.0 when the
+  analyzer surfaces a latent early-return-out-of-typestate bug. This is a
+  soft-breaking change covered by pre-1.0 SemVer 2.0 §4 latitude; an
+  empirical audit of two downstream consumers (50 `{.transition.}` procs
+  across nim-debra 0.8.0 + lockfreequeues 4.1.x) found 49/50 safe and 1
+  that needed the `{.skipCfgAnalysis.}` escape hatch. See
+  [docs/guide/cfg-analyzer.md](docs/guide/cfg-analyzer.md) for the
+  migration guide, decision criteria, and the escape hatch.
+- **`{.destructorTransition.}` required on typestate `=destroy` hooks.**
+  Nim `=destroy` hooks for a typestate-bearing type that perform the
+  terminal transition must declare `{.destructorTransition.}` so the CFG
+  analyzer recognizes the auto-consumption at scope exits. Existing
+  destructors that did not perform a transition are unaffected; existing
+  destructors that did perform one were previously invisible to
+  verification and now require the pragma. See
+  [docs/guide/destructor-transitions.md](docs/guide/destructor-transitions.md).
+- **Same-name typestate compile-warning.** When a typestate's name
+  collides with the name of an object type in the same module (e.g.,
+  `typestate Resource:` + `type Resource = object`), the per-typestate
+  attachment-pragma macro cannot be emitted (Nim does not allow
+  redefinition). Codegen now emits a `{.warning.}` at use-site naming the
+  colliding typestate and suggesting a `<Name>Context` rename. Distinct-name
+  typestates are unaffected. This is a documented constraint of the §3.7
+  attachment pragma, not a regression: legacy same-name typestates that
+  never used attachment continue to compile and verify unchanged.
+
+### Added
+
+- **`{.destructorTransition.}` pragma (two arities).**
+    - Single-arg: `proc \`=destroy\`(f: var Open) {.destructorTransition.}`.
+      Destination state inferred as the typestate's `terminalStates` set.
+    - Two-arg: `proc \`=destroy\`(c: var Halfopen)
+      {.destructorTransition: Halfopen -> Closed.}`. Destination state
+      explicit; spec validated against the typestate graph.
+    - Auto-injects `{.raises: [].}` when absent.
+    - Compile-time diagnostic catalog: DT-001..DT-011, DT-013.
+- **`{.skipCfgAnalysis.}` pragma.** Per-proc opt-out for the CFG
+  analyzer. Use sparingly for verified false positives.
+- **Typestate-attachment pragma.** Per-typestate macro emitted by the
+  `typestate` macro of the form `{.<TypestateName>: <InitialState>.}`,
+  applied to an object type declaration to bind that type to a typestate
+  with an initial state. Only available when the typestate name differs
+  from the attached object type (see Breaking above). Compile-time
+  diagnostic catalog: TA-001..TA-004.
+- **CFG analyzer diagnostic codes.** CFG-001 (missed terminal at exit
+  edge), CFG-002 (branch reconciliation mismatch), CFG-003 (discard of
+  non-terminal typestate value).
+- **Public registry surface** in `src/typestates/registry.nim`:
+  `type AttachmentInfo*`, `var typestateAttachments* {.compileTime.}`,
+  `proc findAttachmentForType*`, `proc addAttachment*`.
+- New documentation:
+  [Destructor Transitions](docs/guide/destructor-transitions.md) and
+  [CFG Analyzer](docs/guide/cfg-analyzer.md). New example:
+  `examples/destructor_transition_example.nim`.
+
 ### Fixed
 
 - Declare `chronos` and `results` as test-only dependencies via
@@ -18,6 +81,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Internal
 
+- New `pkDestructorTransition` value on the `ProcKind` enum; new fields
+  on `RegisteredProc`: `body*: NimNode`, `skipCfg*: bool`,
+  `attachedObjectTypeName*: Option[string]`.
+- `destructorTransitionCore` shared implementation for both arities of
+  `destructorTransition` (`src/typestates/pragmas.nim`).
+- CFG analyzer pass integrated into `verifyTypestates*`
+  (`src/typestates/verify.nim`), running after the unmarked-proc check
+  and the F5 decoy pass.
+- `generateAttachmentMarker` codegen helper emits a guarded
+  per-typestate attachment macro plus the same-name fallback warning.
 - Drop the unreachable sentinel `""` from `buildSingleTargetMatchCase`'s
   state-name `case` expression. `error` from `std/macros` aborts compilation,
   so the case type-checks as `string` from the three matching branches alone;
@@ -470,7 +543,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/elijahr/nim-typestates/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/elijahr/nim-typestates/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/elijahr/nim-typestates/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/elijahr/nim-typestates/compare/v0.7.0...v0.7.1
