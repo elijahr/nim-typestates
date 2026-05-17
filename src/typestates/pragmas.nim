@@ -537,6 +537,7 @@ macro transition*(procDef: untyped): untyped =
         modulePath: procDef.lineInfoObj.filename,
         firstParamType: allParams[1][^2].copyNimTree,
         extraParams: extraParams,
+        body: procDef.body,
       )
     )
 

@@ -13,6 +13,7 @@ type
   ProcKind* = enum
     ## Classification of procs operating on state types.
     pkTransition ## Marked with `{.transition.}`
+    pkDestructorTransition ## Marked with `{.destructorTransition.}` (v0.9.0)
     pkNotATransition ## Marked with `{.notATransition.}`
     pkUnmarked ## No pragma specified
 
@@ -30,6 +31,14 @@ type
     ## :var extraParams: Trailing formal-parameter IdentDefs (params 2..N)
     ##   captured verbatim so F5 decoys reproduce the full signature,
     ##   matching overload resolution at call sites with extra args
+    ## :var body: AST of the proc body, captured for later CFG analyzer use
+    ##   (v0.9.0 destructor-transition validation). Defaults to
+    ##   `newEmptyNode()` for procs that do not require body inspection.
+    ## :var skipCfg: When `true`, suppresses CFG analysis for this proc
+    ##   (v0.9.0 `{.skipCfgAnalysis.}` marker). Defaults to `false`.
+    ## :var attachedObjectTypeName: Optional object type name for §3.7
+    ##   typestate-attachment registry lookup (v0.9.0). `none` for procs
+    ##   that are not attached to an object type.
     name*: string
     sourceState*: string
     destStates*: seq[string]
@@ -38,6 +47,9 @@ type
     modulePath*: string
     firstParamType*: NimNode
     extraParams*: seq[NimNode]
+    body*: NimNode
+    skipCfg*: bool
+    attachedObjectTypeName*: Option[string]
 
 var registeredProcs* {.compileTime.}: seq[RegisteredProc]
   ## Compile-time list of all procs registered for verification.
