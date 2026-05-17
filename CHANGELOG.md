@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Declare `chronos` and `results` as test-only dependencies via
+  `taskRequires "test", ...` in `typestates.nimble`. Previously, tests in
+  `tests/should_compile/transitions/async_*` and
+  `tests/should_compile/transitions/wrapper_result_*` failed to compile
+  because their `chronos` / `results` imports were not resolved on a fresh
+  `nimble test`. Production installs unaffected.
+
 ### Internal
 
 - Drop the unreachable sentinel `""` from `buildSingleTargetMatchCase`'s

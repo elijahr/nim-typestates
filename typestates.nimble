@@ -13,6 +13,11 @@ installExt    = @["nim"]
 
 requires "nim >= 2.2.0"
 
+# Test-only dependencies (used by tests/should_compile/transitions/async_*
+# and tests/should_compile/transitions/wrapper_result_*). Not pulled in
+# during production installs.
+taskRequires "test", "chronos >= 4.2.2", "results >= 0.5.0"
+
 # Tasks
 
 task buildCli, "Build the CLI tool":
