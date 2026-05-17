@@ -34,6 +34,7 @@ type AttachedScope {.ScopeContext: ScopeAlive.} = object
 # DT-013 trap: SrcState is the attached object type name (`AttachedScope`)
 # rather than the initial state (`ScopeAlive`). The compiler must flag
 # this because the user almost certainly meant `ScopeAlive -> ScopeDead`.
-proc `=destroy`(s: var AttachedScope)
-    {.destructorTransition: AttachedScope -> ScopeDead.} =
+proc `=destroy`(
+    s: var AttachedScope
+) {.destructorTransition: AttachedScope -> ScopeDead.} =
   discard

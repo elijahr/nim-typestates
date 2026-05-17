@@ -145,10 +145,11 @@ static:
     var inp: ReachabilityInput
     inp.typestateName = "Auth"
     inp.states = @["Pending", "Authenticated", "Failed"]
-    inp.edges = @[
-      GraphEdge(fromState: "Pending", toStates: @["Authenticated"], isWildcard: false),
-      GraphEdge(fromState: "Pending", toStates: @["Failed"], isWildcard: false),
-    ]
+    inp.edges =
+      @[
+        GraphEdge(fromState: "Pending", toStates: @["Authenticated"], isWildcard: false),
+        GraphEdge(fromState: "Pending", toStates: @["Failed"], isWildcard: false),
+      ]
     inp.initialStates = @["Pending"]
     inp.terminalStates = @["Failed"]
     inp.bridgeSources = @["Authenticated"]

@@ -156,9 +156,7 @@ var typestateAttachments* {.compileTime.}: Table[string, AttachmentInfo]
   ## by the `typestate` macro (see `codegen.generateAttachmentMarker` and
   ## `pragmas.attachTypestateCore`).
 
-proc findAttachmentForType*(
-    typeName: string
-): Option[AttachmentInfo] {.compileTime.} =
+proc findAttachmentForType*(typeName: string): Option[AttachmentInfo] {.compileTime.} =
   ## Look up the §3.7 attachment record for an object type by base name.
   ##
   ## Used by `destructorTransitionCore` (pragmas.nim) as the fallback
@@ -174,9 +172,7 @@ proc findAttachmentForType*(
     return some(typestateAttachments[key])
   return none(AttachmentInfo)
 
-proc addAttachment*(
-    typeName: string, info: AttachmentInfo
-) {.compileTime.} =
+proc addAttachment*(typeName: string, info: AttachmentInfo) {.compileTime.} =
   ## Register a typestate-attachment binding for an object type (§3.7).
   ##
   ## Stores under the base name of `typeName` (generic params stripped).

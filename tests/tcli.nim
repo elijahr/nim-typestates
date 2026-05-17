@@ -69,11 +69,12 @@ block testGenerateDot:
   let ts = ParsedTypestate(
     name: "Connection",
     states: @["Disconnected", "Connected", "Errored"],
-    transitions: @[
-      ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
-      ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
-      ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true),
-    ],
+    transitions:
+      @[
+        ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Errored"]),
+        ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
+        ParsedTransition(fromState: "*", toStates: @["Disconnected"], isWildcard: true),
+      ],
   )
 
   let dot = generateDot(ts)
@@ -84,7 +85,8 @@ block testGenerateDot:
   # or compass-point placement will surface as an exact-string mismatch
   # rather than slipping past a substring check that happens to overlap
   # both old and new outputs.
-  const expected = """digraph Connection {
+  const expected =
+    """digraph Connection {
   rankdir=TB;
   splines=spline;
   nodesep=1.0;

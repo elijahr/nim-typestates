@@ -30,9 +30,7 @@ typestate Conn[Proto, Addr]:
   transitions:
     Opened[Proto, Addr] -> Closed[Proto, Addr]
 
-proc `=destroy`[Proto, Addr](
-    o: var Opened[Proto, Addr]
-) {.destructorTransition.} =
+proc `=destroy`[Proto, Addr](o: var Opened[Proto, Addr]) {.destructorTransition.} =
   var underlying = Conn[Proto, Addr](o)
   underlying.closed = true
   discard underlying

@@ -30,8 +30,7 @@ typestate Resource:
   transitions:
     Held -> Released
 
-proc finish(r: sink Held): Released
-    {.transition, skipCfgAnalysis.} =
+proc finish(r: sink Held): Released {.transition, skipCfgAnalysis.} =
   ## Body declares a non-terminal `s: Held` with no destructor; fall-through
   ## would normally fire CFG-001. `{.skipCfgAnalysis.}` bypasses the check.
   var s {.used.}: Held

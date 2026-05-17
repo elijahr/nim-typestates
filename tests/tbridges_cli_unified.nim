@@ -6,7 +6,8 @@ import ../src/typestates/ast_parser
 let sessionFile = "test_session.nim"
 let authFile = "test_auth.nim"
 
-let sessionContent = """
+let sessionContent =
+  """
 type
   Session = object
   Active = distinct Session
@@ -19,7 +20,8 @@ typestate Session:
     Active -> Closed
 """
 
-let authContent = """
+let authContent =
+  """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow

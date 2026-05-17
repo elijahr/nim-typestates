@@ -6,6 +6,7 @@ import ../../../src/typestates
 type
   Buffer = object
     data: int
+
   Filled = distinct Buffer
   Drained = distinct Buffer
 

@@ -23,7 +23,8 @@ proc lintOf(path: string): seq[Finding] =
   let pr = parseTypestatesAst(@[path])
   lintOpaqueStates(pr, @[path])
 
-const opaquePaymentHeader = """
+const opaquePaymentHeader =
+  """
 type
   Payment = object
     id: string
@@ -41,7 +42,8 @@ typestate Payment:
     Authorized -> Captured
 """
 
-const nonOpaquePaymentHeader = """
+const nonOpaquePaymentHeader =
+  """
 type
   Payment = object
     id: string
@@ -74,7 +76,8 @@ suite "Opaque states lint":
   test "2. no warning inside {.transition.}":
     let path = writeTemp(
       "tlint_opaque_02.nim",
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+        """
 proc cap(a: Authorized): Captured {.transition.} =
   Captured(a)
 """,
@@ -86,7 +89,8 @@ proc cap(a: Authorized): Captured {.transition.} =
   test "3. result = inside {.transition.}":
     let path = writeTemp(
       "tlint_opaque_03.nim",
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+        """
 proc cap(a: Authorized): Captured {.transition.} =
   result = Captured(a)
 """,
@@ -107,7 +111,8 @@ proc cap(a: Authorized): Captured {.transition.} =
   test "5. multi-initial states; only non-initial flagged":
     # Typestate with two initial states (A, B) and one non-initial state (C).
     # Bypasses on A() and B() are silent; bypass on C() is flagged.
-    let body = """
+    let body =
+      """
 type
   Doc = object
     s: string
@@ -143,7 +148,8 @@ let z = C(Doc(s: "z"))
     # Edge case — opaqueStates = true but no initial block. Lint should
     # emit one configuration warning and skip all bypass detection on this
     # typestate (so the bypass below must NOT produce a bypass warning).
-    let body = """
+    let body =
+      """
 type
   Doc = object
   A = distinct Doc
@@ -184,7 +190,8 @@ let x = B(Doc())
     # qualified call so this test specifically exercises the nkDotExpr
     # branch of inspectCall.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 # Define a stub holder with a Captured field, then call via dotted access.
 # The callee node is nkDotExpr(payments, Captured), which the lint must
@@ -209,7 +216,8 @@ let bad = payments.Captured(Payment(id: "x"))
     # Initial-state construction is always allowed, regardless of opaqueness.
     # Note: genuine nkBracketExpr generic instantiation (e.g. `Full[int](...)`)
     # handling is deferred to v0.7 and is NOT exercised by this test.
-    let body = """
+    let body =
+      """
 type
   Box = object
     items: seq[int]
@@ -237,7 +245,8 @@ let e = Empty(Box(items: @[1, 2, 3]))
     # exact `:N` substrings. The header is 16 lines (lines 1-16); line 17
     # is blank; we put bypasses on lines 18, 22, 26.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 let a = Captured(Payment(id: "1"))
 let dummy1 = 0
@@ -274,7 +283,8 @@ let c = Captured(Payment(id: "3"))
   test "11. nkCommand form 'Captured payment' (no parens)":
     # `Captured payment` parses as nkCommand. The lint must catch it.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 let payment = Payment(id: "x")
 discard Captured payment
@@ -290,7 +300,8 @@ discard Captured payment
     # need std/asyncdispatch; the lint reads source AST only. The walker
     # detects `transition` in the pragma list regardless of order.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 # Simulated async transition; no runtime needed. {.transition.} is detected
 # by the walker from the pragma list, so the body is in-scope.
@@ -304,7 +315,8 @@ proc cap(a: Authorized): Captured {.transition, gcsafe.} =
 
   test "13. lambda inside {.transition.} body — zero warnings":
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc cap(a: Authorized): Captured {.transition.} =
   let f = proc(x: Authorized): Captured = Captured(x)
@@ -319,7 +331,8 @@ proc cap(a: Authorized): Captured {.transition.} =
     # Same as test 6 but with a richer fixture to confirm config warning
     # is emitted exactly once and bypasses on the misconfigured typestate
     # are NOT warned.
-    let body = """
+    let body =
+      """
 type
   Doc = object
   A = distinct Doc
@@ -348,7 +361,8 @@ let z = C(Doc())
   test "15. mixed opaque + non-opaque typestates":
     # Two typestates in one file: Doc is opaque, Box is not. Bypasses on
     # Doc states are flagged; bypasses on Box states are silent.
-    let body = """
+    let body =
+      """
 type
   Doc = object
     s: string
@@ -388,7 +402,8 @@ let boxBypass = BB(Box(n: 1))
 
   test "16. cast[Captured](p) form — deferred (nkCast not nkCall)":
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 let p = Payment(id: "x")
 let bad = cast[Captured](p)
@@ -424,7 +439,8 @@ let bad = Captured(Payment(id: "x"))
     # user-defined `proc Captured` collides with the state name and every
     # call is warned.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc Captured(s: string): string = "captured " & s
 let z = Captured("hello")
@@ -444,7 +460,8 @@ let z = Captured("hello")
     # walker recurses into all children of nkCall, so it reaches the
     # nested call.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc logged(c: Captured): Captured = c
 let bad = logged(Captured(Payment(id: "x")))
@@ -461,7 +478,8 @@ let bad = logged(Captured(Payment(id: "x")))
     # nkDo is a child of the routine call; the walker enters it with
     # inTransition still > 0.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc invoke(handler: proc(x: Authorized): Captured): Captured =
   discard
@@ -480,7 +498,8 @@ proc cap(a: Authorized): Captured {.transition.} =
     # A template that constructs a state outside a transition is reported
     # at the template definition site.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 template makeC(p: Payment): untyped =
   Captured(p)
@@ -496,7 +515,8 @@ let z = makeC(Payment(id: "x"))
   test "22. non-literal flag rhs — flag stays default false":
     # extractFlag returns none(bool) when rhs is anything other than literal
     # `true`/`false`. Flag stays default false; no opaque entries; zero warnings.
-    let body = """
+    let body =
+      """
 type
   Payment = object
     id: string
@@ -530,7 +550,8 @@ let bad = Captured(Payment(id: "x"))
     # entry to the outer routine and never reset on entry to the nested
     # routine, silently swallowing this bypass.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc cap(a: Authorized): Captured {.transition.} =
   proc inner(): Captured =
@@ -557,7 +578,8 @@ proc cap(a: Authorized): Captured {.transition.} =
     # outer scope. Constructing a non-initial opaque state inside the
     # inner body is therefore allowed.
     let body =
-      opaquePaymentHeader & """
+      opaquePaymentHeader &
+      """
 
 proc outer(c: Created): Authorized {.transition.} =
   proc inner(a: Authorized): Captured {.transition.} =

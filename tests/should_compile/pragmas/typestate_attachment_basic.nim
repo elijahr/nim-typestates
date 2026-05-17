@@ -21,6 +21,7 @@ import std/options
 type
   PinnedScopeAlive = object
     handle: int
+
   PinnedScopeDestroyed = object
     handle: int
 
@@ -52,8 +53,7 @@ verifyTypestates()
 # Compile-time assertion: the registry actually contains the binding.
 static:
   let att = findAttachmentForType("PinnedScope")
-  doAssert att.isSome,
-    "typestate_attachment_basic: PinnedScope attachment missing"
+  doAssert att.isSome, "typestate_attachment_basic: PinnedScope attachment missing"
   doAssert att.get.typestateName == "PinnedScopeContext",
     "typestate_attachment_basic: wrong typestate name"
   doAssert att.get.initialState == "PinnedScopeAlive",

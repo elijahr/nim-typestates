@@ -28,8 +28,7 @@ if not fileExists(Fixture):
 # fixture's `typestate Session:` / `type Session = object` pair) don't mask
 # the bridge-exemption regression we're hunting. We grep the output instead
 # for the specific trap-state warning text.
-let cmd =
-  "nim c --skipUserCfg --skipParentCfg --hints:off --warnings:on " & Fixture
+let cmd = "nim c --skipUserCfg --skipParentCfg --hints:off --warnings:on " & Fixture
 let (output, exitCode) = execCmdEx(cmd)
 
 let binPath = Fixture.changeFileExt("")
@@ -37,10 +36,7 @@ if fileExists(binPath):
   removeFile(binPath)
 
 if exitCode != 0:
-  fail(
-    "fixture failed to compile (exit=" & $exitCode &
-      ").\n--- output ---\n" & output
-  )
+  fail("fixture failed to compile (exit=" & $exitCode & ").\n--- output ---\n" & output)
 
 if "Trap state 'Authenticated'" in output:
   fail(

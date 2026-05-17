@@ -13,7 +13,9 @@ import ../../../src/typestates
 
 type
   Mode = enum
-    mRead, mWrite, mExec
+    mRead
+    mWrite
+    mExec
 
   Ctx[MT: static int, CC: static Mode] = object
     threads: int

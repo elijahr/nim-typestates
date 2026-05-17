@@ -188,14 +188,15 @@ proc formatGitHub*(f: Finding): string =
 proc toJsonNode(f: Finding): JsonNode =
   ## Per-finding JSON shape; severity is implicit in the array name.
   ## Field order: path, line, column, code, message, hint.
-  result = %*{
-    "path": f.path,
-    "line": f.line,
-    "column": f.column,
-    "code": $f.code,
-    "message": f.message,
-    "hint": f.hint,
-  }
+  result =
+    %*{
+      "path": f.path,
+      "line": f.line,
+      "column": f.column,
+      "code": $f.code,
+      "message": f.message,
+      "hint": f.hint,
+    }
 
 proc formatJson*(
     findings: seq[Finding], filesChecked, transitionsChecked: int
@@ -215,13 +216,14 @@ proc formatJson*(
       errs.add f.toJsonNode()
     of sevWarning:
       warns.add f.toJsonNode()
-  let envelope = %*{
-    "schemaVersion": SchemaVersion,
-    "verifyResult": {
-      "filesChecked": filesChecked,
-      "transitionsChecked": transitionsChecked,
-      "errors": errs,
-      "warnings": warns,
-    },
-  }
+  let envelope =
+    %*{
+      "schemaVersion": SchemaVersion,
+      "verifyResult": {
+        "filesChecked": filesChecked,
+        "transitionsChecked": transitionsChecked,
+        "errors": errs,
+        "warnings": warns,
+      },
+    }
   result = $envelope

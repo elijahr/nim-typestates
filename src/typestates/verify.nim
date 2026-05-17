@@ -183,6 +183,260 @@ proc extractTypeNameAst(node: NimNode): string {.compileTime.} =
   else:
     return ""
 
+proc findLocalInnermost*(state: LiveState, name: string): int {.compileTime.} =
+  ## Find the index of the innermost (most-recently-bound) local with the
+  ## given name. Returns -1 if no match. Iterates the locals sequence in
+  ## reverse so that an inner-scope shadow takes precedence over an outer
+  ## binding with the same identifier — required for correctness under
+  ## identifier shadowing (§3.3, Finding #3).
+  for i in countdown(state.locals.len - 1, 0):
+    if state.locals[i].name == name:
+      return i
+  return -1
+
+proc isTerminalForGraph*(
+    stateType: string, graph: TypestateGraph
+): bool {.compileTime.} =
+  ## Return `true` if `stateType` (a base name) is one of the typestate's
+  ## terminal states.
+  for term in graph.terminalStates:
+    if extractBaseName(term) == stateType:
+      return true
+  return false
+
+proc hasDestructorFor*(
+    local: LocalTypestate, destructorTypes: Table[string, TypestateGraph]
+): bool {.compileTime.} =
+  ## Return `true` if a `{.destructorTransition.}` is registered for this
+  ## local's current declared state type AND keyed to the local's owning
+  ## typestate graph (path (a) — state-typed param).
+  local.stateType in destructorTypes and
+    destructorTypes[local.stateType].name == local.graph.name
+
+proc extractCalleeName*(call: NimNode): string {.compileTime.} =
+  ## Extract a stable callee name from a `nnkCall` / `nnkCommand` node.
+  ## Returns the empty string when the callee is not a simple identifier
+  ## (e.g. `obj.method(...)`, `(expr)(...)`, generic instantiations).
+  if call.len < 1:
+    return ""
+  let head = call[0]
+  case head.kind
+  of nnkIdent, nnkSym:
+    return head.strVal
+  of nnkOpenSymChoice, nnkClosedSymChoice:
+    # Symbol choice — every entry shares the same name.
+    if head.len >= 1 and head[0].kind in {nnkIdent, nnkSym}:
+      return head[0].strVal
+    return ""
+  of nnkBracketExpr:
+    # Generic instantiation: foo[T](...) — head[0] is the proc name.
+    if head.len >= 1 and head[0].kind in {nnkIdent, nnkSym}:
+      return head[0].strVal
+    return ""
+  of nnkDotExpr:
+    # Qualified call: module.foo(...) — take the trailing identifier.
+    if head.len >= 2 and head[1].kind in {nnkIdent, nnkSym}:
+      return head[1].strVal
+    return ""
+  else:
+    return ""
+
+proc findRegisteredTransitionForArg*(
+    callName: string, argStateType: string, argGraphName: string
+): Option[RegisteredProc] {.compileTime.} =
+  ## Look up a registered `pkTransition` or `pkDestructorTransition` proc
+  ## by name whose `sourceState` (base name) matches `argStateType` and
+  ## whose typestate matches the local's owning graph. Returns `none` if
+  ## no overload matches.
+  ##
+  ## Handles the union-source convention: a registered proc with empty
+  ## `sourceState` covers multiple source states; the union case is not
+  ## resolved here (the analyzer treats it as a non-match for per-arg
+  ## advancement, since the dst is the same for the union but the analyzer
+  ## has no per-source information). Single-source overloads are the
+  ## common shape and are what these fixtures exercise.
+  ##
+  ## Iterates reverse so the most recently registered overload wins
+  ## under any duplicate registration — defensive consistency with
+  ## innermost-first shadowing.
+  for i in countdown(registeredProcs.len - 1, 0):
+    let p = registeredProcs[i]
+    if p.kind notin {pkTransition, pkDestructorTransition}:
+      continue
+    if p.name != callName:
+      continue
+    if p.sourceState.len == 0:
+      # Union-source proc — without explicit per-source info we cannot
+      # decide which destination this call lands on. Skip.
+      continue
+    if extractBaseName(p.sourceState) != argStateType:
+      continue
+    let graphOpt = findTypestateForState(p.sourceState)
+    if graphOpt.isNone:
+      continue
+    if graphOpt.get.name != argGraphName:
+      continue
+    return some(p)
+  return none(RegisteredProc)
+
+proc firstParamConsumes*(p: RegisteredProc): bool {.compileTime.} =
+  ## Heuristic: does this registered proc consume its first parameter?
+  ## Returns `true` when the first-param-type AST has a `sink` modifier
+  ## (Nim sink-param shape: `nnkCommand(sink, T)`), or otherwise when
+  ## the proc's kind is `pkDestructorTransition` (always consuming via
+  ## `=destroy` injection — its formal param is `var T`, semantically
+  ## a sink at the analyzer level).
+  ##
+  ## Non-sink, non-destructor procs that take a typestate-bearing arg
+  ## (e.g., `var T` for in-place mutation, or `T` by value with
+  ## `consumeOnTransition = false`) leave the caller's local accessible
+  ## after the call; the analyzer advances the local's state in place
+  ## rather than dropping it.
+  if p.kind == pkDestructorTransition:
+    return true
+  let typ = p.firstParamType
+  if typ.isNil:
+    return false
+  if typ.kind == nnkCommand and typ.len == 2 and typ[0].kind in {nnkIdent, nnkSym} and
+      typ[0].strVal == "sink":
+    return true
+  return false
+
+proc applyCallTransitions*(
+    state: var LiveState, call: NimNode, destructorTypes: Table[string, TypestateGraph]
+) {.compileTime.} =
+  ## Inspect a `nnkCall` / `nnkCommand` node. For each argument that is
+  ## a bare identifier referencing a tracked local, look up a registered
+  ## transition proc by name and matching source state; if found, advance
+  ## the local's state to the registered destination. If the new state is
+  ## terminal, drop the local from tracking (consumed).
+  ##
+  ## v0.9.0 Finding #1 (a/c/d): tracks transitions through `nnkCall`,
+  ## `nnkCommand`, and (via callers) `nnkLet/VarSection` / `nnkAsgn` RHS
+  ## composition. Sink-consume composes naturally: a `consume(g)` call
+  ## drops `g` from tracking; the enclosing binding then receives the
+  ## registered destination.
+  if call.kind notin {nnkCall, nnkCommand}:
+    return
+  let callName = extractCalleeName(call)
+  if callName.len == 0:
+    return
+  for argIdx in 1 ..< call.len:
+    let arg = call[argIdx]
+    var argIdent: string
+    case arg.kind
+    of nnkIdent, nnkSym:
+      argIdent = arg.strVal
+    of nnkCommand:
+      # `move x`, `sink x` — peel a single modifier ident.
+      if arg.len == 2 and arg[0].kind in {nnkIdent, nnkSym} and
+          arg[1].kind in {nnkIdent, nnkSym}:
+        let modName = arg[0].strVal
+        if modName in ["move", "sink"]:
+          argIdent = arg[1].strVal
+      if argIdent.len == 0:
+        continue
+    else:
+      continue
+    let localIdx = findLocalInnermost(state, argIdent)
+    if localIdx < 0:
+      continue
+    let local = state.locals[localIdx]
+    let txOpt =
+      findRegisteredTransitionForArg(callName, local.stateType, local.graph.name)
+    if txOpt.isNone:
+      continue
+    let tx = txOpt.get
+    let consumes = firstParamConsumes(tx)
+    # Sink/destructor-consuming call: the argument local is no longer
+    # accessible after the call. The "new state" (the call's destination)
+    # is the call's RETURN value, not a mutation of the argument — so
+    # drop the argument local from tracking regardless of dst-terminal.
+    if consumes:
+      state.locals.delete(localIdx)
+      continue
+    # Non-consuming call (var T / value T with consumeOnTransition=false):
+    # the local persists at the call site; advance its tracked state in
+    # place. Branching destinations cannot be resolved per-call without
+    # a wrapping `match` statement; treat as terminal-equivalent and drop.
+    if tx.destStates.len == 0:
+      state.locals.delete(localIdx)
+      continue
+    if tx.destStates.len > 1:
+      state.locals.delete(localIdx)
+      continue
+    let dstBase = extractBaseName(tx.destStates[0])
+    if isTerminalForGraph(dstBase, local.graph):
+      state.locals.delete(localIdx)
+    else:
+      state.locals[localIdx] = LocalTypestate(
+        name: local.name,
+        stateType: dstBase,
+        graph: local.graph,
+        declaredAt: local.declaredAt,
+      )
+
+proc tryBindLocalFromCallInit*(
+    state: var LiveState,
+    nameNode: NimNode,
+    initNode: NimNode,
+    destructorTypes: Table[string, TypestateGraph],
+) {.compileTime.} =
+  ## Bind a single-name local introduced by `var/let name = call(...)` to
+  ## the call's registered destination state, when the RHS is a registered
+  ## transition call that produces a typestate-bearing value. Composes
+  ## with `applyCallTransitions` already having been invoked on the RHS
+  ## (which advances or drops tracked locals passed as arguments).
+  ##
+  ## This handles the sink-consume shape `let f = consume(g)` and the
+  ## init-via-call shape `var f = open()`: in both cases the LHS binds to
+  ## the registered destination of the call's transition. The destination
+  ## may be terminal — in which case we bind tracking briefly so downstream
+  ## exit edges see it (validateExitEdge accepts terminals).
+  if initNode.isNil or initNode.kind notin {nnkCall, nnkCommand}:
+    return
+  let callName = extractCalleeName(initNode)
+  if callName.len == 0:
+    return
+  # Resolve registered transition with ANY source state matching name; we
+  # need its dest. If sourceState matches a tracked-arg's state, the call's
+  # arg was already advanced by applyCallTransitions; we just bind LHS.
+  for i in countdown(registeredProcs.len - 1, 0):
+    let p = registeredProcs[i]
+    if p.kind notin {pkTransition, pkDestructorTransition}:
+      continue
+    if p.name != callName:
+      continue
+    if p.destStates.len != 1:
+      continue
+    let dstBase = extractBaseName(p.destStates[0])
+    let graphOpt = findTypestateForState(p.destStates[0])
+    if graphOpt.isNone:
+      continue
+    var localName: string
+    case nameNode.kind
+    of nnkIdent, nnkSym:
+      localName = nameNode.strVal
+    of nnkPostfix:
+      if nameNode.len >= 2 and nameNode[1].kind in {nnkIdent, nnkSym}:
+        localName = nameNode[1].strVal
+      else:
+        return
+    of nnkPragmaExpr:
+      if nameNode.len >= 1 and nameNode[0].kind in {nnkIdent, nnkSym}:
+        localName = nameNode[0].strVal
+      else:
+        return
+    else:
+      return
+    state.locals.add LocalTypestate(
+      name: localName,
+      stateType: dstBase,
+      graph: graphOpt.get,
+      declaredAt: nameNode.lineInfoObj,
+    )
+    return
+
 proc bindLocalsFromIdentDefs(
     state: var LiveState,
     identDefs: NimNode,
@@ -196,14 +450,34 @@ proc bindLocalsFromIdentDefs(
   if identDefs.len < 3:
     return
   let typeSlot = identDefs[identDefs.len - 2]
+  let initSlot = identDefs[identDefs.len - 1]
   let typeName = extractTypeNameAst(typeSlot)
   if typeName.len == 0:
+    # No declared type: try the call-init shape `var name = call(...)`.
+    # Apply the call's transition effects to any tracked args first, then
+    # bind the LHS to the call's registered destination. Each leading name
+    # in the IdentDefs is bound (Nim allows grouped names in a single
+    # IdentDefs only when they share a type slot — a typeless init with
+    # grouped names is rare but supported defensively).
+    if initSlot.kind in {nnkCall, nnkCommand}:
+      applyCallTransitions(state, initSlot, destructorTypes)
+      for i in 0 ..< identDefs.len - 2:
+        tryBindLocalFromCallInit(state, identDefs[i], initSlot, destructorTypes)
     return
   let graphOpt = lookupTypestateForType(typeName, destructorTypes)
   if graphOpt.isNone:
+    # Type is not a registered typestate state. Still apply call-init
+    # transitions so any sink-consumed argument is dropped from tracking
+    # — the LHS local is non-typestated, so no LHS binding needed.
+    if initSlot.kind in {nnkCall, nnkCommand}:
+      applyCallTransitions(state, initSlot, destructorTypes)
     return
   let graph = graphOpt.get
   let stateType = extractBaseName(typeName)
+  # Apply transition effects from any RHS call before binding the LHS, so
+  # tracked-arg locals are advanced/dropped in the right order.
+  if initSlot.kind in {nnkCall, nnkCommand}:
+    applyCallTransitions(state, initSlot, destructorTypes)
   for i in 0 ..< identDefs.len - 2:
     let nameNode = identDefs[i]
     var localName: string
@@ -244,32 +518,22 @@ proc validateExitEdge*(
   if not state.reachable:
     return
   for local in state.locals:
-    let isTerminal = block:
-      var found = false
-      for term in local.graph.terminalStates:
-        if extractBaseName(term) == local.stateType:
-          found = true
-          break
-      found
-    if isTerminal:
+    if isTerminalForGraph(local.stateType, local.graph):
       continue
     # Destructor recognition: the local's declared type's base name keys
     # the destructorTypes table. Match BOTH the type name (path (a) — state-
     # typed) and the attached object name (path (b)). For step 1 we only
     # have stateType (the *current* state); attached-object locals would
     # need an extra `declaredType` field — deferred until binding wires it.
-    let hasDestructor = local.stateType in destructorTypes and
-                        destructorTypes[local.stateType].name == local.graph.name
-    if hasDestructor:
+    if hasDestructorFor(local, destructorTypes):
       continue
     let terminalList = local.graph.terminalStates.join(", ")
     error(
       "Typestate-bearing local '" & local.name &
-        "' has not reached a terminal state at this " & edgeKind &
-        ". Current state: '" & local.stateType & "' in typestate '" &
-        local.graph.name & "'. Terminal states: [" & terminalList &
-        "]. Either advance the local to a terminal state before " & edgeKind &
-        ", or arrange for a `{.destructorTransition.}` to fire (held by an" &
+        "' has not reached a terminal state at this " & edgeKind & ". Current state: '" &
+        local.stateType & "' in typestate '" & local.graph.name & "'. Terminal states: [" &
+        terminalList & "]. Either advance the local to a terminal state before " &
+        edgeKind & ", or arrange for a `{.destructorTransition.}` to fire (held by an" &
         " object whose `=destroy` performs the transition).",
       node,
     )
@@ -287,6 +551,11 @@ proc reconcileBranches*(
   ## - For each local appearing in every reachable branch, all branches must
   ##   agree on the post-state OR each branch must reach a terminal state
   ##   (possibly different terminals — the local has reached *a* terminal).
+  ## - For each entry-set local: if it is consumed (absent) in some branches
+  ##   but remains non-terminal in others, CFG-002 fires (Finding #2). An
+  ##   "absent" entry-local in a reachable branch means that branch consumed
+  ##   it via a terminal-discard or a registered terminal-producing call.
+  ##   Inconsistent consumption is rejected.
   ## - State-divergence at the join point emits CFG-002 keyed on the node.
   var effective: seq[LiveState] = @[]
   for s in branchStates:
@@ -299,75 +568,150 @@ proc reconcileBranches*(
     # All branches exited. The join point is itself unreachable.
     return unreachableState()
 
-  # Use the first reachable branch as the candidate post-state shape.
-  # For each local in that branch, check agreement across all other branches.
   result = LiveState(locals: @[], reachable: true)
-  let first = effective[0]
-  for local in first.locals:
-    var perBranchStates: seq[string] = @[local.stateType]
-    var allReachThisLocal = true
-    for other in effective[1 ..^ 1]:
-      var matched = false
-      for olocal in other.locals:
-        if olocal.name == local.name:
-          perBranchStates.add olocal.stateType
-          matched = true
-          break
-      if not matched:
-        # Local was rebound out of existence in one branch (e.g., consumed
-        # by a transition). Treat as "this branch did not preserve the
-        # local at the join" — for now drop it from the merge.
-        allReachThisLocal = false
-        break
-    if not allReachThisLocal:
+
+  # First pass: entry-set locals. For each local present in `entry`, check
+  # its state across all effective branches. A branch that lacks the local
+  # has consumed it (terminal-discard / terminal-producing call), which the
+  # analyzer treats as "reached terminal in this branch."
+  var entryLocalNames: HashSet[string]
+  for el in entry.locals:
+    entryLocalNames.incl el.name
+    var presentStates: seq[string] = @[]
+    var absentBranches = 0
+    for b in effective:
+      let idx = findLocalInnermost(b, el.name)
+      if idx < 0:
+        absentBranches.inc
+      else:
+        presentStates.add b.locals[idx].stateType
+    let totalBranches = effective.len
+
+    if presentStates.len == 0:
+      # Consumed in every branch — drop from merge.
       continue
 
-    # Agreement check.
+    # Some branches still hold the local. Check terminal-vs-non-terminal.
+    var allPresentTerminal = true
+    var anyPresentNonTerminal = false
+    for s in presentStates:
+      if isTerminalForGraph(s, el.graph):
+        discard
+      else:
+        allPresentTerminal = false
+        anyPresentNonTerminal = true
+
+    if absentBranches > 0 and anyPresentNonTerminal:
+      # NEW (Finding #2): inconsistent consumption — some branches reached
+      # terminal (absent), others left the local non-terminal.
+      let stateList = presentStates.join(", ")
+      error(
+        "Typestate-bearing local '" & el.name &
+          "' has inconsistent state across branches: [" & stateList & "] in " &
+          $presentStates.len & " of " & $totalBranches &
+          " branches, consumed in the remaining " & $absentBranches &
+          " branch(es); merge point requires all branches to reach the same" &
+          " state or a common terminal.",
+        node,
+      )
+
+    # All present branches agree on a single state?
     var allSame = true
-    for s in perBranchStates[1 ..^ 1]:
-      if s != perBranchStates[0]:
+    for s in presentStates[1 ..^ 1]:
+      if s != presentStates[0]:
         allSame = false
         break
 
-    if allSame:
-      result.locals.add local
-      continue
-
-    # Different per-branch states: check the terminal-union exception.
-    var allTerminal = true
-    for s in perBranchStates:
-      var isTerm = false
-      for term in local.graph.terminalStates:
-        if extractBaseName(term) == s:
-          isTerm = true
-          break
-      if not isTerm:
-        allTerminal = false
-        break
-
-    if allTerminal:
-      # All branches reached a terminal (possibly different terminals). The
-      # local has reached *a* terminal; downstream exit edges accept it.
-      # Represent the merge by picking the first terminal as a witness — the
-      # exact identity does not matter to validateExitEdge once any terminal
-      # is reached, since hasDestructor / isTerminal both short-circuit.
+    if allSame and absentBranches == 0:
       result.locals.add LocalTypestate(
-        name: local.name,
-        stateType: perBranchStates[0],
-        graph: local.graph,
-        declaredAt: local.declaredAt,
+        name: el.name,
+        stateType: presentStates[0],
+        graph: el.graph,
+        declaredAt: el.declaredAt,
       )
       continue
 
-    # CFG-002: irreconcilable divergence.
+    if allPresentTerminal:
+      # Every present branch reached a terminal (possibly different
+      # terminals); absent branches consumed terminally. Downstream exit
+      # edges accept any terminal — keep a terminal witness if any branch
+      # still holds the local.
+      result.locals.add LocalTypestate(
+        name: el.name,
+        stateType: presentStates[0],
+        graph: el.graph,
+        declaredAt: el.declaredAt,
+      )
+      continue
+
+    # Different per-branch non-terminal states with no absent branches.
+    # Falls under the existing CFG-002 divergence rule.
     error(
-      "Typestate-bearing local '" & local.name &
-        "' has inconsistent state across branches: [" &
-        perBranchStates.join(", ") &
+      "Typestate-bearing local '" & el.name &
+        "' has inconsistent state across branches: [" & presentStates.join(", ") &
         "]; merge point requires all branches to reach the same state or" &
         " a common terminal.",
       node,
     )
+
+  # Second pass: branch-introduced locals (declared inside one or more
+  # branches, NOT in entry). Iterate the union across effective branches
+  # so a local introduced in any branch is considered. For each such local:
+  # - If only ONE branch declares it, it's scope-local — drop.
+  # - If MULTIPLE branches declare it with the same state — keep that state.
+  # - If MULTIPLE branches declare it with different states — CFG-002 (or
+  #   terminal-union exception).
+  # This preserves the pre-existing `cfg_analyzer_if_branches_diverge.nim`
+  # behavior where both arms declare `var s: <state>` with different types.
+  var seenBranchLocals: HashSet[string]
+  for b in effective:
+    for local in b.locals:
+      if local.name in entryLocalNames:
+        continue
+      if local.name in seenBranchLocals:
+        continue
+      seenBranchLocals.incl local.name
+      var perBranch: seq[string] = @[]
+      for b2 in effective:
+        let idx = findLocalInnermost(b2, local.name)
+        if idx >= 0:
+          perBranch.add b2.locals[idx].stateType
+      if perBranch.len <= 1:
+        # Only declared in one branch — scope-local; do not propagate.
+        continue
+      var allSame = true
+      for s in perBranch[1 ..^ 1]:
+        if s != perBranch[0]:
+          allSame = false
+          break
+      if allSame:
+        result.locals.add LocalTypestate(
+          name: local.name,
+          stateType: perBranch[0],
+          graph: local.graph,
+          declaredAt: local.declaredAt,
+        )
+        continue
+      var allTerminal = true
+      for s in perBranch:
+        if not isTerminalForGraph(s, local.graph):
+          allTerminal = false
+          break
+      if allTerminal:
+        result.locals.add LocalTypestate(
+          name: local.name,
+          stateType: perBranch[0],
+          graph: local.graph,
+          declaredAt: local.declaredAt,
+        )
+        continue
+      error(
+        "Typestate-bearing local '" & local.name &
+          "' has inconsistent state across branches: [" & perBranch.join(", ") &
+          "]; merge point requires all branches to reach the same state or" &
+          " a common terminal.",
+        node,
+      )
 
 proc walkCfg(
     node: NimNode, state: LiveState, destructorTypes: Table[string, TypestateGraph]
@@ -391,17 +735,14 @@ proc walkCfg(
         # this block. The exit edge has already been validated by the
         # return/raise handler.
         break
-
   of nnkBlockStmt, nnkBlockExpr:
     # blockStmt is `block [label]: body`; body is the last child.
     if node.len >= 1:
       result = walkCfg(node[^1], result, destructorTypes)
-
   of nnkVarSection, nnkLetSection:
     for identDefs in node:
       if identDefs.kind == nnkIdentDefs:
         bindLocalsFromIdentDefs(result, identDefs, destructorTypes)
-
   of nnkIfStmt, nnkIfExpr:
     var branchStates: seq[LiveState] = @[]
     var hasElse = false
@@ -418,7 +759,6 @@ proc walkCfg(
       else:
         discard
     result = reconcileBranches(branchStates, hasElse, result, node)
-
   of nnkCaseStmt:
     # case node: selector, ofBranch..., (elseBranch)?
     var branchStates: seq[LiveState] = @[]
@@ -441,15 +781,12 @@ proc walkCfg(
       else:
         discard
     result = reconcileBranches(branchStates, hasElse, result, node)
-
   of nnkReturnStmt:
     validateExitEdge(result, node, "return", destructorTypes)
     result = unreachableState()
-
   of nnkRaiseStmt:
     validateExitEdge(result, node, "raise", destructorTypes)
     result = unreachableState()
-
   of nnkDiscardStmt:
     # §3.3 handleDiscard (CFG-003): a `discard <expr>` whose expression has
     # a typestate-bearing static type is rejected when that type is NOT a
@@ -465,22 +802,24 @@ proc walkCfg(
     # passed through. Discarding a tracked local that has a registered
     # destructor is accepted (the destructor will bridge to terminal).
     if node.len >= 1 and node[0].kind != nnkEmpty:
-      var exprStateName = ""
       let opnd = node[0]
+      # Recurse into the discarded expression so any nested registered call
+      # has its transition effects applied to tracked args (e.g., `discard
+      # close(f)` advances/consumes `f`).
+      result = walkCfg(opnd, result, destructorTypes)
+      var localIdx = -1
+      var exprStateName = ""
       if opnd.kind in {nnkIdent, nnkSym}:
-        for local in result.locals:
-          if local.name == opnd.strVal:
-            exprStateName = local.stateType
-            break
+        # Innermost-first lookup so inner-scope shadows take precedence
+        # over outer bindings (§3.3, Finding #3).
+        localIdx = findLocalInnermost(result, opnd.strVal)
+        if localIdx >= 0:
+          exprStateName = result.locals[localIdx].stateType
       if exprStateName.len > 0:
         let graphOpt = findTypestateForState(exprStateName)
         if graphOpt.isSome:
           let graph = graphOpt.get
-          var isTerminal = false
-          for term in graph.terminalStates:
-            if extractBaseName(term) == exprStateName:
-              isTerminal = true
-              break
+          let isTerminal = isTerminalForGraph(exprStateName, graph)
           let hasDestructor =
             exprStateName in destructorTypes and
             destructorTypes[exprStateName].name == graph.name
@@ -491,17 +830,14 @@ proc walkCfg(
                 "' is not allowed: type is not a terminal state of typestate '" &
                 graph.name & "'. Terminal states: [" & terminalList &
                 "]. Hint: either complete the transition chain to a terminal" &
-                " state, or remove the `discard` and consume the value" &
-                " explicitly.",
+                " state, or remove the `discard` and consume the value" & " explicitly.",
               node,
             )
-          elif isTerminal:
-            # Terminal-state discard: consume the matching local.
-            for i in 0 ..< result.locals.len:
-              if result.locals[i].stateType == exprStateName:
-                result.locals.delete(i)
-                break
-
+          elif isTerminal and localIdx >= 0:
+            # Terminal-state discard: consume the specific local we
+            # resolved by name (innermost-first), not the first matching
+            # state-type which would mishandle shadowing.
+            result.locals.delete(localIdx)
   of nnkWhileStmt, nnkForStmt:
     # §3.3 loop handling (conservative): walk the body once with the entry
     # state, then reconcile body-exit with entry (loop may execute 0 or N
@@ -512,7 +848,6 @@ proc walkCfg(
     if node.len >= 1:
       let bodyEnd = walkCfg(node[^1], result, destructorTypes)
       result = reconcileBranches(@[bodyEnd], false, result, node)
-
   of nnkBreakStmt:
     # §3.3 break: an unconditional exit from the enclosing loop scope. Any
     # typestate-bearing local introduced inside the loop body that escapes
@@ -523,7 +858,6 @@ proc walkCfg(
     # detection. Validating here makes that exit edge explicit.
     validateExitEdge(result, node, "break", destructorTypes)
     result = unreachableState()
-
   of nnkContinueStmt:
     # continue: jumps back to the loop header, NOT out of the loop. Locals
     # introduced inside the loop body remain in scope only for the current
@@ -532,7 +866,6 @@ proc walkCfg(
     # after continue are dead) but do NOT validateExitEdge — continue is
     # not a proc-level exit.
     result = unreachableState()
-
   of nnkTryStmt:
     # §3.3 try/except/finally — pessimistic per the design algorithm.
     #
@@ -560,16 +893,88 @@ proc walkCfg(
             finallyBody = child[0]
         else:
           discard
-      let postCatch =
-        reconcileBranches(@[bodyEnd] & exceptEnds, true, result, node)
+      let postCatch = reconcileBranches(@[bodyEnd] & exceptEnds, true, result, node)
       if hasFinally and finallyBody != nil:
         result = walkCfg(finallyBody, postCatch, destructorTypes)
       else:
         result = postCatch
-
+  of nnkCall, nnkCommand:
+    # §3.3 transition-call recognition (Finding #1, scope (a)). For each
+    # tracked local passed as an argument to a registered transition proc
+    # whose source state matches the local's current state, advance the
+    # local to the registered destination (or drop on terminal /
+    # branching destination).
+    applyCallTransitions(result, node, destructorTypes)
+  of nnkAsgn:
+    # §3.3 transition-asgn recognition (Finding #1, scope (c)). Shape:
+    # nnkAsgn(lhs, rhs). When the RHS is a registered transition call:
+    #   1. Apply the call's transition to any tracked argument first.
+    #   2. If the LHS is a bare identifier referencing a tracked local,
+    #      update that local's state to the call's registered destination
+    #      (or drop on terminal destination).
+    # If the RHS is not a registered call, recurse into children so any
+    # deeper call is still recognized.
+    if node.len >= 2:
+      let lhs = node[0]
+      let rhs = node[1]
+      if rhs.kind in {nnkCall, nnkCommand}:
+        applyCallTransitions(result, rhs, destructorTypes)
+        let callName = extractCalleeName(rhs)
+        if callName.len > 0 and lhs.kind in {nnkIdent, nnkSym}:
+          let lhsIdx = findLocalInnermost(result, lhs.strVal)
+          # Find a registered transition proc with this name producing a
+          # single typestate destination — innermost-first for overload
+          # resolution consistency.
+          var tx: Option[RegisteredProc]
+          for i in countdown(registeredProcs.len - 1, 0):
+            let p = registeredProcs[i]
+            if p.kind notin {pkTransition, pkDestructorTransition}:
+              continue
+            if p.name != callName:
+              continue
+            if p.destStates.len != 1:
+              continue
+            tx = some(p)
+            break
+          if tx.isSome:
+            let dstBase = extractBaseName(tx.get.destStates[0])
+            let graphOpt = findTypestateForState(tx.get.destStates[0])
+            if graphOpt.isSome:
+              let graph = graphOpt.get
+              if lhsIdx >= 0:
+                # Re-binding an existing tracked local. If destination is
+                # terminal, drop the old tracking (consumed at this asgn);
+                # otherwise update its state to the new dst.
+                if isTerminalForGraph(dstBase, graph):
+                  result.locals.delete(lhsIdx)
+                else:
+                  result.locals[lhsIdx] = LocalTypestate(
+                    name: lhs.strVal,
+                    stateType: dstBase,
+                    graph: graph,
+                    declaredAt: lhs.lineInfoObj,
+                  )
+              else:
+                # First binding of this name as a typestate-bearing local.
+                if not isTerminalForGraph(dstBase, graph):
+                  result.locals.add LocalTypestate(
+                    name: lhs.strVal,
+                    stateType: dstBase,
+                    graph: graph,
+                    declaredAt: lhs.lineInfoObj,
+                  )
+      else:
+        # Non-call RHS — recurse into children to catch nested calls.
+        for child in node:
+          result = walkCfg(child, result, destructorTypes)
+          if not result.reachable:
+            break
   else:
-    # Default: recurse into children. Steps 5-8 will replace this with
-    # call/discard/loop-specific handlers.
+    # Default: recurse into children. Catches nested expressions whose
+    # transition-bearing calls live inside larger AST shapes (e.g., a
+    # call wrapped in a `result = ...` assignment, or a parenthesized
+    # expression). Each recursive walk applies transition effects via
+    # the nnkCall/nnkCommand handler.
     for child in node:
       result = walkCfg(child, result, destructorTypes)
       if not result.reachable:
@@ -601,9 +1006,7 @@ proc runCfgAnalyzer*() {.compileTime.} =
     # Fall-through exit edge: implicit return at end of body, only if still
     # reachable (i.e., body did not end in an unconditional return/raise).
     if endState.reachable:
-      validateExitEdge(
-        endState, procInfo.body, "fall-through", destructorTypes
-      )
+      validateExitEdge(endState, procInfo.body, "fall-through", destructorTypes)
 
 macro verifyTypestates*(): untyped =
   ## Verify all registered typestates and procs.

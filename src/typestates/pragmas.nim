@@ -625,8 +625,7 @@ proc destructorTransitionCore(
   # proc-shape errors when both are present.
   var parsedSrcStateName, parsedDstStateName: string
   if hasSpec:
-    if spec.kind != nnkInfix or
-        spec[0].kind notin {nnkIdent, nnkSym} or
+    if spec.kind != nnkInfix or spec[0].kind notin {nnkIdent, nnkSym} or
         spec[0].strVal != "->":
       error(
         "`destructorTransition` spec must be of the form " &
@@ -661,8 +660,8 @@ proc destructorTransitionCore(
       procNameNode.repr
   if procName != "=destroy":
     error(
-      "`destructorTransition` may only be applied to a `=destroy` hook " &
-        "(got `" & procName & "`); use `{.transition.}` for non-destructor procs",
+      "`destructorTransition` may only be applied to a `=destroy` hook " & "(got `" &
+        procName & "`); use `{.transition.}` for non-destructor procs",
       destrDef,
     )
 
@@ -747,10 +746,9 @@ proc destructorTransitionCore(
         # DT-013: attached-object-param SrcState mismatch.
         error(
           "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
-            "`) does not match the attached object's initial state (`" &
-            sourceStateName & "`); attached object type `" & paramTypeName &
-            "` is bound to typestate `" & graph.name &
-            "` with initial state `" & sourceStateName & "`.",
+            "`) does not match the attached object's initial state (`" & sourceStateName &
+            "`); attached object type `" & paramTypeName & "` is bound to typestate `" &
+            graph.name & "` with initial state `" & sourceStateName & "`.",
           spec,
         )
       else:
@@ -803,8 +801,10 @@ proc destructorTransitionCore(
 
   # Phase 6: Register the destructor in the proc registry.
   let destStates =
-    if hasSpec: @[parsedDstStateName]
-    else: graph.terminalStates
+    if hasSpec:
+      @[parsedDstStateName]
+    else:
+      graph.terminalStates
   let skipCfg = hasSkipCfgAnalysisPragma(destrDef.pragma)
   registerProc(
     RegisteredProc(
@@ -922,8 +922,8 @@ proc attachTypestateCore*(
     # TA-001 (defensive — see proc doc).
     error(
       "typestate-attachment pragma: `" & typestateName &
-        "` is not a declared typestate; declare it with `typestate " &
-        typestateName & ": ...` before attaching",
+        "` is not a declared typestate; declare it with `typestate " & typestateName &
+        ": ...` before attaching",
       initial,
     )
   let graph = typestateRegistry[typestateName]
@@ -939,8 +939,8 @@ proc attachTypestateCore*(
   if not stateExists:
     error(
       "typestate-attachment pragma: `" & initialStateName &
-        "` is not a state of typestate `" & typestateName &
-        "`; declared states: " & $declaredStates,
+        "` is not a state of typestate `" & typestateName & "`; declared states: " &
+        $declaredStates,
       initial,
     )
 
@@ -948,8 +948,8 @@ proc attachTypestateCore*(
   if graph.isTerminalState(initialStateName):
     error(
       "typestate-attachment pragma: initial state `" & initialStateName &
-        "` is a terminal state of typestate `" & typestateName &
-        "`; instances of `" & extractTypeDeclName(typeDef) &
+        "` is a terminal state of typestate `" & typestateName & "`; instances of `" &
+        extractTypeDeclName(typeDef) &
         "` would start in a terminal state with no valid transitions",
       initial,
     )

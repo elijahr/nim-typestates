@@ -32,8 +32,7 @@ typestate Channel:
     OpenCh -> ClosedCh
 
 # Combined: {.destructorTransition, raises: [], skipCfgAnalysis.}
-proc `=destroy`(c: var OpenCh)
-    {.destructorTransition, raises: [], skipCfgAnalysis.} =
+proc `=destroy`(c: var OpenCh) {.destructorTransition, raises: [], skipCfgAnalysis.} =
   discard
 
 verifyTypestates()

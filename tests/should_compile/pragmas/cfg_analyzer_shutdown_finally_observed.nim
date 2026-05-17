@@ -59,8 +59,7 @@ typestate Manager:
 proc reclaim(a: sink Active) =
   discard a
 
-proc shutdown(m: sink ManagerReady): ManagerShutdown
-    {.transition, skipCfgAnalysis.} =
+proc shutdown(m: sink ManagerReady): ManagerShutdown {.transition, skipCfgAnalysis.} =
   ## Verbatim shape of nim-debra/manager.nim:62 `shutdown` per E1 audit.
   ## A for-loop iterates a worklist; each iteration wraps a sink-consuming
   ## call in `try: <call>; except Exception: discard` to tolerate destructor

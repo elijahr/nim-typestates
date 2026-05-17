@@ -5,7 +5,8 @@ import ../src/typestates/ast_parser
 # Create test file
 let authFile = "test_auth_separate.nim"
 
-let authContent = """
+let authContent =
+  """
 type
   AuthFlow = object
   Authenticated = distinct AuthFlow

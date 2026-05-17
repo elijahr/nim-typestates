@@ -1140,10 +1140,10 @@ proc generateAttachmentMarker*(graph: TypestateGraph): NimNode =
   let nameLit = newLit(graph.name)
   let guardIdent = ident(graph.name)
   let warnLit = newLit(
-    "Typestate '" & graph.name & "' shares a name with object type '" &
-    graph.name & "'; attachment pragma is not available for same-name " &
-    "typestates (Nim macro limitation). Consider renaming the typestate " &
-    "(e.g., '" & graph.name & "Context')."
+    "Typestate '" & graph.name & "' shares a name with object type '" & graph.name &
+      "'; attachment pragma is not available for same-name " &
+      "typestates (Nim macro limitation). Consider renaming the typestate " & "(e.g., '" &
+      graph.name & "Context')."
   )
   result = newStmtList()
   result.add quote do:
@@ -1155,6 +1155,7 @@ proc generateAttachmentMarker*(graph: TypestateGraph): NimNode =
         ## Validates TA-002..TA-004 at compile time and populates
         ## `typestateAttachments`.
         attachTypestateCore(`nameLit`, initial, typeDef)
+
     else:
       {.warning: `warnLit`.}
 

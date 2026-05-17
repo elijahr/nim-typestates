@@ -14,15 +14,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CFG analyzer enabled by default.** A new control-flow-graph pass
   inside `verifyTypestates()` rejects exit edges (return, raise,
   fall-through, discard, scope-escaping break/continue) that leave a
-  typestate-bearing local in a non-terminal state. Code that compiled and
-  verified under 0.8.0 may newly fail verification under 0.9.0 when the
-  analyzer surfaces a latent early-return-out-of-typestate bug. This is a
-  soft-breaking change covered by pre-1.0 SemVer 2.0 §4 latitude; an
-  empirical audit of two downstream consumers (50 `{.transition.}` procs
-  across nim-debra 0.8.0 + lockfreequeues 4.1.x) found 49/50 safe and 1
-  that needed the `{.skipCfgAnalysis.}` escape hatch. See
-  [docs/guide/cfg-analyzer.md](docs/guide/cfg-analyzer.md) for the
-  migration guide, decision criteria, and the escape hatch.
+  typestate-bearing local in a non-terminal state. The analyzer tracks
+  state transitions through call, assignment, var/let-init, and
+  sink-consume positions for registered `{.transition.}` and
+  `{.destructorTransition.}` procs, and resolves identifier shadowing
+  innermost-first. Branch reconciliation rejects locals consumed in
+  some branches but left non-terminal in others (CFG-002). Code that
+  compiled and verified under 0.8.0 may newly fail verification under
+  0.9.0 when the analyzer surfaces a latent early-return-out-of-typestate
+  bug. This is a soft-breaking change covered by pre-1.0 SemVer 2.0 §4
+  latitude; an empirical audit of two downstream consumers (50
+  `{.transition.}` procs across nim-debra 0.8.0 + lockfreequeues 4.1.x)
+  found 49/50 safe and 1 that needed the `{.skipCfgAnalysis.}` escape
+  hatch. See [docs/guide/cfg-analyzer.md](docs/guide/cfg-analyzer.md)
+  for the migration guide, recognized transition shapes, decision
+  criteria, and the escape hatch.
 - **`{.destructorTransition.}` required on typestate `=destroy` hooks.**
   Nim `=destroy` hooks for a typestate-bearing type that perform the
   terminal transition must declare `{.destructorTransition.}` so the CFG

@@ -98,12 +98,17 @@ never reached `Closed`.
 
 ```nim
 proc handle(cond: bool) {.notATransition.} =
-  var c = Active(Connection())
+  var c: Active
   if cond:
-    discard close(move c)
+    discard close(c)
     return
-  discard close(move c)
+  discard close(c)
 ```
+
+The analyzer recognizes `close(c)` as a registered transition call that
+consumes `c` (sink parameter, terminal destination) and drops `c` from
+tracking on every path. The fall-through and the early `return` both
+accept.
 
 **Alternative fix — let a destructor bridge the transition:**
 
@@ -113,11 +118,37 @@ proc `=destroy`(c: var Active) {.destructorTransition.} =
   # Real destructor would release c.Connection.handle here.
 
 proc handle(cond: bool) {.notATransition.} =
-  var c = Active(Connection())
+  var c: Active
   if cond:
     return       # destructor fires, bridges Active -> Closed
-  discard close(move c)
+  discard close(c)
 ```
+
+## Recognized Transition Shapes
+
+The analyzer tracks state transitions through the following statement
+forms when the callee is a registered `{.transition.}` or
+`{.destructorTransition.}` proc:
+
+| Shape | Example | Effect on tracked local(s) |
+|---|---|---|
+| Bare call (sink) | `discard close(f)` | `f` is consumed; dropped from tracking. |
+| Bare call (var / value) | `advance(f)` | `f`'s tracked state advances to the call's destination. Branching destinations drop `f` (resolved later via `match`). |
+| Var-init from call | `var f = open()` | `f` is bound as tracked at the call's destination state. |
+| Reassignment from call | `f = factory(seed)` | `seed` is consumed (sink) or advanced (var); `f` is rebound to the call's destination. |
+| Sink-consume composition | `let f = unpin(g)` | `g` is consumed; `f` is bound at the call's destination. |
+| Terminal `discard` | `discard f` (where `f` is a terminal state) | `f` is consumed; dropped from tracking. |
+
+Identifier shadowing is resolved innermost-first. When a name `x` is
+bound in an outer scope and re-bound in an inner block, references to
+`x` inside the block resolve to the inner binding; references outside
+the block resolve to the outer.
+
+Branch reconciliation requires consistent consumption: if an entry-set
+local is consumed (reaches terminal) in one branch but left in a
+non-terminal state in another, CFG-002 fires. Consuming in all
+branches, or leaving the same state in all branches, both reconcile
+cleanly.
 
 ## When the Analyzer is Wrong: `{.skipCfgAnalysis.}`
 

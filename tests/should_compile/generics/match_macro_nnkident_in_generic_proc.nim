@@ -56,10 +56,8 @@ proc routeWithShadow[T](m: sink Pending, ok: T, bad: T): T =
       label = bad
   label
 
-doAssert routeWithShadow[string](
-  Pending(Msg(payload: "hi")), "delivered", "dropped"
-) == "delivered"
-doAssert routeWithShadow[string](
-  Pending(Msg(payload: "")), "delivered", "dropped"
-) == "dropped"
+doAssert routeWithShadow[string](Pending(Msg(payload: "hi")), "delivered", "dropped") ==
+  "delivered"
+doAssert routeWithShadow[string](Pending(Msg(payload: "")), "delivered", "dropped") ==
+  "dropped"
 echo "match_macro_nnkident_in_generic_proc test passed"

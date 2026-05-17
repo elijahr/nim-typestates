@@ -13,10 +13,11 @@ block testGenerateCodeSimple:
   let ts = ParsedTypestate(
     name: "File",
     states: @["Closed", "Open", "Errored"],
-    transitions: @[
-      ParsedTransition(fromState: "Closed", toStates: @["Open"]),
-      ParsedTransition(fromState: "Open", toStates: @["Closed"]),
-    ],
+    transitions:
+      @[
+        ParsedTransition(fromState: "Closed", toStates: @["Open"]),
+        ParsedTransition(fromState: "Open", toStates: @["Closed"]),
+      ],
   )
 
   let code = generateCode(ts)
@@ -45,10 +46,11 @@ block testGenerateCodeBranching:
   let ts = ParsedTypestate(
     name: "Connection",
     states: @["Disconnected", "Connected", "Failed"],
-    transitions: @[
-      ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Failed"]),
-      ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
-    ],
+    transitions:
+      @[
+        ParsedTransition(fromState: "Disconnected", toStates: @["Connected", "Failed"]),
+        ParsedTransition(fromState: "Connected", toStates: @["Disconnected"]),
+      ],
   )
 
   let code = generateCode(ts)
@@ -112,10 +114,11 @@ block testGenerateCodeCompiles:
   let ts = ParsedTypestate(
     name: "Light",
     states: @["Off", "On"],
-    transitions: @[
-      ParsedTransition(fromState: "Off", toStates: @["On"]),
-      ParsedTransition(fromState: "On", toStates: @["Off"]),
-    ],
+    transitions:
+      @[
+        ParsedTransition(fromState: "Off", toStates: @["On"]),
+        ParsedTransition(fromState: "On", toStates: @["Off"]),
+      ],
   )
 
   let generatedCode = generateCode(ts)
@@ -132,7 +135,8 @@ type
 
 # --- Generated code below ---
 """ &
-    generatedCode & """
+    generatedCode &
+    """
 
 # Test the generated code works
 when isMainModule:
@@ -190,10 +194,11 @@ block testGenerateCodeBranchingCompiles:
   let ts = ParsedTypestate(
     name: "Door",
     states: @["Locked", "Unlocked", "Open"],
-    transitions: @[
-      ParsedTransition(fromState: "Locked", toStates: @["Unlocked"]),
-      ParsedTransition(fromState: "Unlocked", toStates: @["Locked", "Open"]),
-    ],
+    transitions:
+      @[
+        ParsedTransition(fromState: "Locked", toStates: @["Unlocked"]),
+        ParsedTransition(fromState: "Unlocked", toStates: @["Locked", "Open"]),
+      ],
   )
 
   let generatedCode = generateCode(ts)
@@ -208,7 +213,8 @@ type
   Open = distinct Door
 
 """ &
-    generatedCode & """
+    generatedCode &
+    """
 
 when isMainModule:
   # Test branch type construction
