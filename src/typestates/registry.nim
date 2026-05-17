@@ -135,6 +135,53 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
         return some(graph)
   return none(TypestateGraph)
 
+type AttachmentInfo* = object
+  ## Information about a §3.7 typestate-attachment registration (v0.9.0).
+  ##
+  ## When a user-defined object type is bound to a typestate via a
+  ## `{.<typestateName>: <initialState>.}` pragma (the typestate-attachment
+  ## pragma), this record captures the binding so destructorTransition's
+  ## source resolution (§3.1.1, path (b)) can recover the initial state.
+  ##
+  ## :var typestateName: Name of the typestate the type is attached to
+  ## :var initialState: The initial state for instances of the attached type
+  ## :var declaredAt: Source location of the attachment pragma
+  ##
+  ## NOTE: This shape is scaffolded in v0.9.0 sub-phase 3.1.b.2 so the
+  ## destructorTransitionCore source-resolution algorithm can implement
+  ## the attachment-fallback path without forward references. The actual
+  ## attachment-pragma implementation that POPULATES this registry lands
+  ## in sub-phase 3.1.b.4. Until then `findAttachmentForType` always
+  ## returns `none` and destructors with attached-object params fail
+  ## with DT-006 — which is the correct behavior for any user who tries
+  ## the §3.7 pattern before 3.1.b.4 lands.
+  typestateName*: string
+  initialState*: string
+  declaredAt*: LineInfo
+
+var typestateAttachments* {.compileTime.}: Table[string, AttachmentInfo]
+  ## Maps attached object type names (base names) to their attachment
+  ## record. Populated in sub-phase 3.1.b.4 by the typestate-attachment
+  ## pragma; currently empty (see `AttachmentInfo` doc).
+
+proc findAttachmentForType*(
+    typeName: string
+): Option[AttachmentInfo] {.compileTime.} =
+  ## Look up the §3.7 attachment record for an object type by base name.
+  ##
+  ## Used by `destructorTransitionCore` (pragmas.nim) as the fallback
+  ## source-resolution path when `findTypestateForState` does not match
+  ## (i.e., the destructor's `var T` parameter is not itself a registered
+  ## typestate state, but is an object type bound to a typestate via the
+  ## attachment pragma).
+  ##
+  ## :param typeName: Object type name (extractBaseName already applied)
+  ## :returns: `some(info)` if registered, `none` otherwise
+  let key = extractBaseName(typeName)
+  if key in typestateAttachments:
+    return some(typestateAttachments[key])
+  return none(AttachmentInfo)
+
 type BranchTypeInfo* = object
   ## Information about a user-defined branch type.
   ##

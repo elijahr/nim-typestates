@@ -301,6 +301,33 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   else:
     result = @[node.repr]
 
+proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
+  ## AST scan for `{.skipCfgAnalysis.}` on a procDef's pragma node.
+  ##
+  ## Walks the `nnkPragma` children and matches `nnkIdent`/`nnkSym` with
+  ## strVal `"skipCfgAnalysis"`. Combined forms like
+  ## `{.raises: [], skipCfgAnalysis.}` or
+  ## `{.destructorTransition, skipCfgAnalysis.}` are recognized because
+  ## the scan iterates ALL children, not a single substring.
+  ##
+  ## Critically: this is NOT a CLI substring match (which the verifier
+  ## documentation calls out as broken — see
+  ## `project_typestates_verify_substring_matcher` memory).
+  result = false
+  if pragmaNode.kind == nnkEmpty:
+    return
+  for pragma in pragmaNode:
+    case pragma.kind
+    of nnkIdent, nnkSym:
+      if pragma.strVal == "skipCfgAnalysis":
+        return true
+    of nnkExprColonExpr, nnkCall:
+      if pragma.len >= 1 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].strVal == "skipCfgAnalysis":
+        return true
+    else:
+      discard
+
 macro transition*(procDef: untyped): untyped =
   ## Mark a proc as a state transition and verify it at compile time.
   ##
@@ -538,8 +565,303 @@ macro transition*(procDef: untyped): untyped =
         firstParamType: allParams[1][^2].copyNimTree,
         extraParams: extraParams,
         body: procDef.body,
+        skipCfg: hasSkipCfgAnalysisPragma(procDef.pragma),
       )
     )
+
+template skipCfgAnalysis*() {.pragma.}
+  ## Marker pragma: suppress the v0.9.0 CFG analyzer for this proc.
+  ##
+  ## When applied to a proc registered via `{.transition.}` or
+  ## `{.destructorTransition.}`, the registered proc's `skipCfg` flag is
+  ## set to `true`, telling the CFG analyzer (§3.3) to skip per-local
+  ## terminal-reachability checks for the proc body. Useful as an escape
+  ## hatch when the analyzer cannot model a proc's control flow (e.g.,
+  ## opaque exit via FFI / setjmp-style continuations / asyncdispatch
+  ## bodies the analyzer doesn't yet understand).
+  ##
+  ## The pragma itself is a no-op marker — its EFFECT is realized in the
+  ## destructorTransition / transition macro's pragma-scan pass, which
+  ## inspects `procDef.pragma` as AST nodes (NOT a stringified CLI
+  ## substring scan, which would mis-handle combined pragmas like
+  ## `{.raises: [], skipCfgAnalysis.}`).
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc tricky(x: A): B {.transition, skipCfgAnalysis.} =
+  ##   ## CFG analyzer skips this proc.
+  ##   B(x)
+  ## ```
+
+proc destructorTransitionCore(
+    spec: NimNode, destrDef: NimNode
+): NimNode {.compileTime.} =
+  ## Shared core for both arities of `{.destructorTransition.}`.
+  ##
+  ## :param spec: `nil` for single-arg form; `nnkInfix(->,Src,Dst)` for two-arg form
+  ## :param destrDef: The `=destroy` proc definition
+  ##
+  ## Implements:
+  ##
+  ## - DT-001: not a proc def
+  ## - DT-002: proc name != `=destroy`
+  ## - DT-003: wrong arity
+  ## - DT-004: param not `var T`
+  ## - DT-005: non-empty raises
+  ## - DT-006: param type unknown to typestate registry + attachment registry
+  ## - DT-007: typestate has no terminal states (single-arg only)
+  ## - DT-008: source type is already terminal
+  ## - DT-009: spec malformed (two-arg only)
+  ## - DT-010: spec SrcState mismatch (two-arg only)
+  ## - DT-011: spec DstState not terminal (two-arg only)
+  ## - DT-013: deferred to 3.1.b.4 (requires populated attachment registry)
+  ##
+  ## See: design-destructortransition-cfg-analyzer-20260516.md §3.1, §3.1.1
+  result = destrDef
+  let hasSpec = spec != nil
+
+  # Phase 0: Two-arg form — parse spec eagerly so spec-shape errors precede
+  # proc-shape errors when both are present.
+  var parsedSrcStateName, parsedDstStateName: string
+  if hasSpec:
+    if spec.kind != nnkInfix or
+        spec[0].kind notin {nnkIdent, nnkSym} or
+        spec[0].strVal != "->":
+      error(
+        "`destructorTransition` spec must be of the form " &
+          "`SrcState -> DstState`; got `" & spec.repr & "`",
+        spec,
+      )
+    parsedSrcStateName = extractTypeName(spec[1])
+    parsedDstStateName = extractTypeName(spec[2])
+
+  # Phase 1: Shape validation
+  if destrDef.kind != nnkProcDef:
+    error("`destructorTransition` may only be applied to a proc definition", destrDef)
+
+  let procNameNode =
+    if destrDef[0].kind == nnkPostfix:
+      destrDef[0][1]
+    else:
+      destrDef[0]
+  # For `=destroy`, AccQuoted has two children: `=` and `destroy`.
+  # Concatenate all child idents to recover the full operator-ident name.
+  let procName =
+    case procNameNode.kind
+    of nnkAccQuoted:
+      var parts = ""
+      for c in procNameNode:
+        if c.kind in {nnkIdent, nnkSym}:
+          parts.add c.strVal
+      parts
+    of nnkIdent, nnkSym:
+      procNameNode.strVal
+    else:
+      procNameNode.repr
+  if procName != "=destroy":
+    error(
+      "`destructorTransition` may only be applied to a `=destroy` hook " &
+        "(got `" & procName & "`); use `{.transition.}` for non-destructor procs",
+      destrDef,
+    )
+
+  if destrDef.params.len != 2:
+    # params[0] is return type, params[1..N] are formal params.
+    # destructors take exactly one var-self param.
+    error(
+      "`=destroy` hook with `{.destructorTransition.}` must take exactly one " &
+        "parameter (the var self); got " & $(destrDef.params.len - 1),
+      destrDef,
+    )
+
+  let paramTypeNode = destrDef.params[1][^2]
+  if paramTypeNode.kind != nnkVarTy:
+    error(
+      "`=destroy` hook with `{.destructorTransition.}` must take its parameter " &
+        "by `var`; got `" & paramTypeNode.repr & "`",
+      destrDef,
+    )
+
+  let paramTypeName = extractTypeName(paramTypeNode[0])
+
+  # Phase 2: Resolve the typestate graph and source state. Two paths:
+  #   (a) state-typed param: param type IS a registered typestate state
+  #   (b) attached-object param: param type is bound via §3.7 attachment
+  #
+  # NOTE: The §3.7 attachment registry is populated by sub-phase 3.1.b.4.
+  # Until then `findAttachmentForType` always returns `none`, so path (b)
+  # always fails and DT-006 fires for attached-object-param destructors.
+  # This is intentional: the failure mode is honest (the attachment
+  # pragma doesn't exist yet) and the path itself is correctly wired.
+  var graph: TypestateGraph
+  var sourceStateName: string
+  var attachedObjectTypeNameOpt = none(string)
+
+  let graphOpt = findTypestateForState(paramTypeName)
+  if graphOpt.isSome:
+    graph = graphOpt.get
+    sourceStateName = paramTypeName
+  else:
+    let attOpt = findAttachmentForType(paramTypeName)
+    if attOpt.isNone:
+      # DT-006: both lookups failed.
+      error(
+        "`destructorTransition` parameter type `" & paramTypeName &
+          "` is not part of any registered typestate AND no " &
+          "typestate-attachment pragma (§3.7) was found for it.",
+        paramTypeNode,
+      )
+    let att = attOpt.get
+    if att.typestateName notin typestateRegistry:
+      error(
+        "internal: attachment registry references unknown typestate `" &
+          att.typestateName & "`",
+        paramTypeNode,
+      )
+    graph = typestateRegistry[att.typestateName]
+    sourceStateName = att.initialState
+    attachedObjectTypeNameOpt = some(paramTypeName)
+
+  # Phase 3: Terminal-state sanity (DT-007, DT-008)
+  if graph.terminalStates.len == 0:
+    error(
+      "`destructorTransition` requires the typestate `" & graph.name &
+        "` to declare at least one terminal state via `terminal:`; " &
+        "destructors model terminal transitions and need an explicit terminal.",
+      destrDef,
+    )
+  if graph.isTerminalState(sourceStateName):
+    error(
+      "`destructorTransition` source type `" & sourceStateName &
+        "` is already a terminal state of typestate `" & graph.name &
+        "`; destructor cannot perform a transition",
+      destrDef,
+    )
+
+  # Phase 4: Two-arg form cross-check (DT-010, DT-011, DT-013)
+  if hasSpec:
+    let srcMatches = parsedSrcStateName == sourceStateName
+    if not srcMatches:
+      if attachedObjectTypeNameOpt.isSome:
+        # DT-013: attached-object-param SrcState mismatch.
+        error(
+          "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
+            "`) does not match the attached object's initial state (`" &
+            sourceStateName & "`); attached object type `" & paramTypeName &
+            "` is bound to typestate `" & graph.name &
+            "` with initial state `" & sourceStateName & "`.",
+          spec,
+        )
+      else:
+        # DT-010: state-typed-param mismatch.
+        error(
+          "`destructorTransition` spec SrcState `" & parsedSrcStateName &
+            "` does not match destructor parameter type `" & paramTypeName & "`",
+          spec,
+        )
+    if parsedDstStateName notin graph.terminalStates:
+      let terminals = graph.terminalStates.join(", ")
+      error(
+        "`destructorTransition` spec DstState `" & parsedDstStateName &
+          "` is not a terminal state of typestate `" & graph.name &
+          "`; declared terminals: " & terminals,
+        spec,
+      )
+
+  # Phase 5: raises validation + auto-injection (mirrors transition* logic)
+  var hasRaises = false
+  var raisesIsEmpty = true
+  let pragmaNode = destrDef.pragma
+  if pragmaNode.kind != nnkEmpty:
+    for pragma in pragmaNode:
+      case pragma.kind
+      of nnkIdent, nnkSym:
+        discard
+      of nnkExprColonExpr:
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+          hasRaises = true
+          if pragma[1].kind == nnkBracket and pragma[1].len > 0:
+            raisesIsEmpty = false
+      of nnkCall:
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+          hasRaises = true
+          if pragma.len > 1:
+            let arg = pragma[1]
+            if arg.kind == nnkBracket and arg.len > 0:
+              raisesIsEmpty = false
+      else:
+        discard
+  if hasRaises and not raisesIsEmpty:
+    error(
+      "`destructorTransition` destructor `" & procName &
+        "` has non-empty raises list; destructors must have `{.raises: [].}`",
+      destrDef,
+    )
+  if not hasRaises:
+    result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
+
+  # Phase 6: Register the destructor in the proc registry.
+  let destStates =
+    if hasSpec: @[parsedDstStateName]
+    else: graph.terminalStates
+  let skipCfg = hasSkipCfgAnalysisPragma(destrDef.pragma)
+  registerProc(
+    RegisteredProc(
+      name: "=destroy",
+      sourceState: sourceStateName,
+      destStates: destStates,
+      kind: pkDestructorTransition,
+      declaredAt: destrDef.lineInfoObj,
+      modulePath: destrDef.lineInfoObj.filename,
+      firstParamType: paramTypeNode.copyNimTree,
+      extraParams: @[],
+      body: destrDef.body,
+      skipCfg: skipCfg,
+      attachedObjectTypeName: attachedObjectTypeNameOpt,
+    )
+  )
+
+macro destructorTransition*(destrDef: untyped): untyped =
+  ## Mark a `=destroy` hook as a terminal state transition (single-arg form).
+  ##
+  ## Use when the typestate declares exactly one terminal state OR when the
+  ## destructor consumes the union of all terminals; the destination is
+  ## inferred as the typestate's `terminalStates` set.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## typestate Connection:
+  ##   states Open, Closed
+  ##   terminal: Closed
+  ##   transitions:
+  ##     Open -> Closed
+  ##
+  ## proc `=destroy`(c: var Open) {.destructorTransition.} =
+  ##   discard
+  ## ```
+  ##
+  ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
+  destructorTransitionCore(nil, destrDef)
+
+macro destructorTransition*(spec: untyped, destrDef: untyped): untyped =
+  ## Mark a `=destroy` hook as a terminal state transition (two-arg form).
+  ##
+  ## Use when the typestate declares multiple terminal states and the
+  ## destructor pins exactly one. The spec syntax `SrcState -> DstState`
+  ## mirrors `{.transition: A -> B.}` for visual symmetry.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc `=destroy`(c: var Open)
+  ##     {.destructorTransition: Open -> Closed.} =
+  ##   discard
+  ## ```
+  ##
+  ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
+  destructorTransitionCore(spec, destrDef)
 
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.
