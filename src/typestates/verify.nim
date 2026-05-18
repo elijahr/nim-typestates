@@ -50,11 +50,27 @@ type
     ##   on this value when populated. Without it, destructor recognition
     ##   silently misses path (b), producing false CFG-001 on attached
     ##   locals that are correctly covered by a `{.destructorTransition.}`.
+    ## :var isSink: `true` when the param was declared `sink T` (ownership
+    ##   transfers into the callee). `false` for `var T` (borrowed) params.
+    ##   Round-9 Finding #1: the source-state-aware overload lookup
+    ##   (`findTransitionByCalleeAndArgStates`) needs sink-typed
+    ##   typestate-bearing params at trailing positions in the entry set so
+    ##   it can disambiguate overloads whose only difference is the source
+    ##   state of a trailing sink param. The pre-population path
+    ##   (`runCfgAnalyzer`) MUST skip `isSink=true` entries: sink ownership
+    ##   transfers in and the value dies with the proc frame regardless of
+    ##   whether the body textually references it, so pre-populating sink
+    ##   params would false-fire CFG-001 in every transition body that
+    ##   constructs `result` independently of the sink param (which is the
+    ##   canonical `proc tx(s: sink Src): Dst` shape). The lookup path uses
+    ##   only `paramIndex` + `stateType` and therefore IGNORES `isSink`,
+    ##   recovering disambiguation without changing pre-population behavior.
     name*: string
     stateType*: string
     graphName*: string
     paramIndex*: int
     attachedTypeName*: string
+    isSink*: bool
 
   RegisteredProc* = object
     ## Information about a proc registered for verification.
@@ -1546,12 +1562,25 @@ proc walkCfg(
       # actual consumption.
       var preWalkLocalName = ""
       var preWalkStateName = ""
+      # Round-9 Finding #2: capture `attachedTypeName` pre-walk in addition
+      # to `name` + `stateType`. When the operand walk consumes the local
+      # via an intrinsic shape (`discard move(f)`, `discard f.sink()`,
+      # etc.), the post-walk live-set no longer holds the local (localIdx
+      # falls back to -1). Without the pre-walk attached-type capture,
+      # the destructor lookup below would key only on `exprStateName`
+      # (the typestate state name); for attached locals (§3.7) the
+      # destructor is registered against the OBJECT type name, so the
+      # lookup misses and CFG-003 false-fires. Capturing here parallels
+      # the round-6 propagation of `attachedTypeName` across in-place
+      # state advancement (line 982) and across asgn rebind (line 1789).
+      var preWalkAttachedTypeName = ""
       let preWalkLocalOpt = extractTrackedLocal(opnd)
       if preWalkLocalOpt.isSome:
         let preIdx = findLocalInnermost(result, preWalkLocalOpt.get)
         if preIdx >= 0:
           preWalkLocalName = result.locals[preIdx].name
           preWalkStateName = result.locals[preIdx].stateType
+          preWalkAttachedTypeName = result.locals[preIdx].attachedTypeName
       # Recurse into the discarded expression so any nested registered call
       # has its transition effects applied to tracked args (e.g., `discard
       # close(f)` advances/consumes `f`). The
@@ -1626,11 +1655,21 @@ proc walkCfg(
           # is the post-walk state, not necessarily what
           # `result.locals[localIdx]` currently holds — they may have
           # diverged when the operand walk consumed the local).
+          #
+          # Round-9 Finding #2: fall back to the PRE-WALK attached-type
+          # capture when the operand walk consumed the local
+          # (`localIdx == -1`). Pre-round-9 only the post-walk
+          # `result.locals[localIdx].attachedTypeName` was consulted; when
+          # an intrinsic shape (`discard move(f)`, `discard f.sink()`)
+          # dropped the attached local from the live-set, attachedKey
+          # fell back to "" and the destructor lookup missed under the
+          # OBJECT type name. Threading `preWalkAttachedTypeName` here
+          # mirrors the pre-walk `exprStateName` recovery path above.
           let attachedKey =
             if localIdx >= 0:
               result.locals[localIdx].attachedTypeName
             else:
-              ""
+              preWalkAttachedTypeName
           let hasDestructor =
             (
               attachedKey.len > 0 and attachedKey in destructorTypes and
@@ -1876,7 +1915,17 @@ proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
     # params. Each entry's `graphName` is resolved through the registry
     # so the analyzer's terminal / destructor checks key off the actual
     # `TypestateGraph` value (matching how body-introduced locals work).
+    #
+    # Round-9 Finding #1: `typestatedParams` now ALSO captures `sink T`
+    # params (for the source-state-aware overload lookup at trailing
+    # positions in call sites). Skip `isSink=true` entries at the
+    # pre-population step: sink ownership transfers in and the value
+    # dies with the proc frame regardless of body-side textual
+    # consumption — pre-populating sink params would false-fire CFG-001
+    # in every canonical `result = Dst(src.Base)` transition body.
     for tp in procInfo.typestatedParams:
+      if tp.isSink:
+        continue
       if tp.graphName notin typestateRegistry:
         continue
       let graph = typestateRegistry[tp.graphName]

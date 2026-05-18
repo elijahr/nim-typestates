@@ -303,50 +303,64 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
 
 proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileTime.} =
   ## Walk a procDef's formal parameters and capture every typestate-bearing
-  ## `var T` parameter's name + state type + owning graph name.
+  ## `var T` or `sink T` parameter's name + state type + owning graph name
+  ## + ownership flag.
   ##
   ## Round-2 Finding #2: the CFG analyzer (verify.nim, `runCfgAnalyzer`)
-  ## pre-populates `LiveState` with these entries at proc entry so a proc
+  ## pre-populates `LiveState` with `var T` entries at proc entry so a proc
   ## that takes `var f: Open` and returns early without consuming `f`
   ## correctly fires CFG-001.
+  ##
+  ## Round-9 Finding #1: the entry set now ALSO includes `sink T`
+  ## typestate-bearing params (with `isSink=true`). The source-state-aware
+  ## overload lookup (`findTransitionByCalleeAndArgStates`) needs every
+  ## typestate-bearing param's positional index + source state to
+  ## disambiguate overloads whose only difference is the source state of a
+  ## trailing sink param (e.g., `proc tx(a: int, b: sink Open): Closed` vs.
+  ## `proc tx(a: int, b: sink HalfOpen): Closed`). Position-0 sink params
+  ## are already disambiguated by `RegisteredProc.sourceState`, but
+  ## trailing-position sink params were silently excluded by the var-only
+  ## filter — `argStates[paramIndex]` couldn't constrain the search and the
+  ## last-registered overload won by name-only countdown.
   ##
   ## Parameter shape: nnkFormalParams is `[returnType, identDefs1, identDefs2, ...]`.
   ## Each `nnkIdentDefs` is `[name1, name2, ..., type, default]`. Grouped
   ## leading names (e.g. `proc f(a, b: var Open)`) share a single type slot
   ## at index `^2`.
   ##
-  ## Scope decision — `var T` only:
-  ## A `var T` parameter is borrowed; the caller's binding persists after
-  ## the call and must observe a coherent post-state. The analyzer MUST
-  ## verify the body brought it to terminal (or that a destructor will
-  ## fire). That is the exact failure mode Finding #2 targets — the
-  ## brief's canonical acceptance fixture is `proc f(var f: File[Open])`
-  ## that returns early without consuming `f`.
+  ## Recognised param-kind shapes:
+  ## - `var T`: `nnkVarTy(T)`. `isSink=false`. Pre-populated AND used for
+  ##   overload disambiguation.
+  ## - `sink T`: `nnkCommand(ident("sink"), T)`. `isSink=true`. Used for
+  ##   overload disambiguation only; the runCfgAnalyzer pre-population
+  ##   loop SKIPS `isSink=true` entries so transition bodies that
+  ##   construct `result` independently of the sink param continue to
+  ##   verify cleanly. The body's exit edge IS the consumption point for
+  ##   sink params under Nim's ownership model — pre-populating them would
+  ##   false-fire CFG-001 in every canonical `result = Dst(src.Base)`
+  ##   transition body.
   ##
-  ## `sink T` and value-`T` parameters are NOT pre-populated:
-  ## - `sink T`: ownership transfers into the callee; the proc itself
-  ##   IS the transition (its signature encodes Src -> Dst). The result
-  ##   becomes the destination state; the sink param's value dies with
-  ##   the proc frame regardless of whether the body textually references
-  ##   it (e.g., the canonical `result = Dst(src.Base)` body works, but
-  ##   so does a body that constructs the result independently).
-  ## - value `T`: a copy/move local to the proc; same scope as sink for
-  ##   analysis purposes — no caller-visible post-state.
-  ## Treating these as pre-populated would cause false positives in every
-  ## existing `{.transition.}` proc body that doesn't textually reference
-  ## the sink param (e.g., generic-typestate fixtures that construct the
-  ## result from raw fields). The brief's `sink T should enter the set`
-  ## guidance assumed the analyzer would recognize all body-side
-  ## consumption shapes; in practice the body's exit edge IS the
-  ## consumption point for sink/value params, which is best modeled by
-  ## not pre-populating them at all.
+  ## Explicitly EXCLUDED param-kind shapes (no entry produced):
+  ## - bare value `T` (e.g., `proc f(p: Open)`): no Nim modifier wrapper;
+  ##   the param is a copy/move local to the proc with no caller-visible
+  ##   post-state and no positional disambiguation requirement at present
+  ##   (value-T transitions are uncommon in the test suite; if needed,
+  ##   extending the matcher to detect bare typestate-bearing idents would
+  ##   be a future round). The current source-state-aware lookup only
+  ##   exercises var-T and sink-T shapes.
+  ## - `ref T` / `ptr T` / `lent T`: reference-like modifiers; the analyzer
+  ##   does not model heap aliasing today.
+  ## - `static T`, `typedesc[T]`: compile-time-only; never a runtime
+  ##   typestate-bearing local.
+  ##
+  ## Union-source param types (e.g. `var (A | B)`, `sink (A | B)`) are
+  ## skipped: the param's "current state" is ambiguous until the overload
+  ## is resolved at the call site.
   ##
   ## Resolution: each leading name's declared type is run through
   ## `extractTypeName` (peels generic brackets, etc.) and looked up
   ## against the typestate registry via `findTypestateForState`.
-  ## Non-typestate-bearing params are skipped. Union-source param types
-  ## (e.g. `var (A | B)`) are also skipped: the param's "current state"
-  ## is ambiguous until the overload is resolved at the call site.
+  ## Non-typestate-bearing params are skipped.
   result = @[]
   let params = procDef.params
   if params.kind != nnkFormalParams:
@@ -368,10 +382,18 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
       continue
     let nameCount = identDefs.len - 2
     let typeSlot = identDefs[^2]
-    # Scope: `var T` only (see proc doc). `nnkVarTy` directly wraps the
-    # underlying type; `sink T` is `nnkCommand(sink, T)`; bare `T` is
-    # an ident/bracket/dot. Only `nnkVarTy` qualifies for pre-population.
-    if typeSlot.kind != nnkVarTy:
+    # Round-9 Finding #1 — recognise BOTH `var T` and `sink T` shapes.
+    # `nnkVarTy(T)` is `var T` (borrowed, isSink=false).
+    # `nnkCommand(ident("sink"), T)` is `sink T` (owned, isSink=true).
+    # Other modifiers (`ref T`, `ptr T`, bare `T`, `static T`, etc.) are
+    # excluded — see proc doc for the full rationale.
+    var isSink = false
+    if typeSlot.kind == nnkVarTy:
+      isSink = false
+    elif typeSlot.kind == nnkCommand and typeSlot.len == 2 and
+        typeSlot[0].kind in {nnkIdent, nnkSym} and typeSlot[0].strVal == "sink":
+      isSink = true
+    else:
       paramPos += nameCount
       continue
     let paramTypes = extractAllSourceTypeNames(typeSlot)
@@ -443,6 +465,7 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
         graphName: graph.name,
         paramIndex: paramPos + j,
         attachedTypeName: attachedTypeNameForParam,
+        isSink: isSink,
       )
     paramPos += nameCount
 

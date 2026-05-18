@@ -78,6 +78,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `extractTypestatedParams` captures `sink T` params
+  for source-state-aware overload disambiguation at trailing positions.**
+  Round-9 surfaced a parallel gap to the round-5 source-state-aware
+  overload-lookup work: the helper that builds `TypestatedParam`
+  entries on each registered proc matched ONLY `var T` typestate-
+  bearing params (`nnkVarTy`), silently excluding `sink T`
+  (`nnkCommand(sink, T)`) typestate-bearing params at trailing
+  positions. `findTransitionByCalleeAndArgStates` iterates
+  `typestatedParams` to apply per-position source-state constraints
+  against the call-site `argStates`; with trailing sink params
+  excluded from the seq, the lookup had no constraint at those
+  positions and degraded to a name-only countdown that picked the
+  last-registered overload regardless of trailing-arg source state.
+  Two transitions sharing the same first-param source state but
+  differing only in the source state of a trailing sink param (e.g.
+  `combine(a: sink Open, b: sink Stage1): Mid1` vs.
+  `combine(a: sink Open, b: sink Stage2): Mid2`) silently
+  mis-disambiguated at every `var f = combine(...)` and
+  `f = combine(...)` call site, binding the LHS to the wrong
+  destination and downstream-leaking the wrongly-bound local as a
+  CFG-001 false positive. Round-9 extends the helper to ALSO match
+  `nnkCommand(sink, T)` and adds an `isSink: bool` field to
+  `TypestatedParam`; the source-state-aware lookup naturally picks up
+  the new entries via the existing `paramIndex`-based iteration. The
+  `runCfgAnalyzer` pre-population step skips `isSink=true` entries so
+  transition bodies that construct `result` independently of the sink
+  param (the canonical `result = Dst(src.Base)` shape) continue to
+  verify cleanly — sink ownership transfers in and the value dies
+  with the proc frame regardless of body-side textual consumption, so
+  pre-populating sink params would false-fire CFG-001 in every
+  transition body. The audit matrix this round extends the param-kind
+  filter audit (var T matched, sink T matched as of this round; bare
+  value T, ref T, ptr T, static T, typedesc[T], and union sources are
+  documented as intentional exclusions in the proc doc). New fixtures
+  cover both var-init and asgn binding paths:
+  `cfg_analyzer_overloaded_sink_transition_var_init` and
+  `cfg_analyzer_overloaded_sink_transition_asgn`. No
+  known-limitation language.
+- **CFG analyzer: discard handler captures pre-walk `attachedTypeName`
+  for the destructor-lookup-key fallback.** Round-9 surfaced a parallel
+  gap to the round-6 destructor-lookup-key threading and round-8 branch
+  reconciliation work: the discard handler's bespoke direct-table
+  destructor lookup (kept inline because `hasDestructorFor`'s
+  LocalTypestate signature cannot be threaded through when the operand
+  walk has consumed the local) keyed `attachedKey` ONLY on the
+  post-walk `result.locals[localIdx].attachedTypeName`. Intrinsic-
+  consumer shapes (`discard move(m)`, `discard m.sink()`,
+  `discard system.move(m)`, `discard m.move()`) consume the underlying
+  tracked local inside the operand walk via
+  `applyCallTransitions`'s intrinsic-arg block, so `localIdx` falls
+  back to -1 at the lookup point and `attachedKey` was forced to "".
+  For §3.7 attached locals, the destructor is registered against the
+  OBJECT type name (not the typestate state name); with `attachedKey`
+  empty the lookup fell back to `exprStateName` only, missed the
+  Mailbox-keyed destructor, and CFG-003 false-fired on an attached
+  local whose holder-type destructor would correctly bridge the
+  moved-out temporary to terminal at scope exit. Round-9 adds a
+  pre-walk capture of `attachedTypeName` (parallel to the existing
+  pre-walk `name` + `stateType` capture introduced in round-5 Finding
+  #3) so the destructor lookup falls back to `preWalkAttachedTypeName`
+  when `localIdx == -1`. The audit matrix this round extends from
+  CONSTRUCTION sites (round-6 + round-8) to USE sites — the two USE
+  sites of `attachedTypeName` for destructor/diagnostic decisions are
+  `hasDestructorFor` (line 317, threaded correctly since round-6) and
+  this discard-handler direct-table lookup (line 1670, fixed this
+  round). No other USE sites surfaced; the audit confirmed coverage.
+  New fixtures cover both branches:
+  `cfg_analyzer_discard_attached_type_with_destructor` (the
+  destructor-covered case now compiles cleanly) and
+  `cfg_analyzer_discard_attached_type_no_destructor` (the
+  no-destructor case still fires CFG-003 correctly, confirming the
+  round-9 fix does not weaken coverage). No known-limitation
+  language.
 - **CFG analyzer: `attachedTypeName` propagated through
   `reconcileBranches`.** Round-8 surfaced a parallel gap to the
   round-6 destructor-lookup-key threading: the four `LocalTypestate`
