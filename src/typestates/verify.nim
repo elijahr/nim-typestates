@@ -702,8 +702,29 @@ proc extractTrackedLocal*(n: NimNode): Option[string] {.compileTime.} =
       return extractTrackedLocal(n[0])
     return none(string)
   of nnkCommand, nnkCall:
-    if n.len == 2 and isIntrinsicConsumer(n[0]):
-      return extractTrackedLocal(n[1])
+    # Round-7 Finding #2: route intrinsic-consumer shape discrimination
+    # through `intrinsicConsumerArg`, which uniformly recognises prefix
+    # (`move(f)`), qualified-prefix (`system.move(f)`), AND method-call
+    # sugar (`f.move()`). Pre-fix the gate `n.len == 2 and
+    # isIntrinsicConsumer(n[0])` only matched the prefix/qualified
+    # shapes (which carry the consumed arg at `n[1]`); the dot-call
+    # shape `f.move()` is parsed as `nnkCall(nnkDotExpr(f, move))` —
+    # `n.len == 1` and the callee is the DotExpr — and fell through to
+    # `return none(string)`. That false-negative left the underlying
+    # tracked local invisible to `buildArgStatesFromCall` (so a
+    # transition call like `close(f.move())` could not resolve its arg
+    # to `f` during overload disambiguation) and to the discard
+    # handler's pre-walk capture (so `discard f.move()` bypassed CFG-003
+    # non-terminal-discard validation). Same class as round-5 Finding
+    # #2 which unified `isIntrinsicConsumer` to recognise the dot-call
+    # callee shape; this round extends the unification to the
+    # `extractTrackedLocal` recursion site that consumes those callees.
+    # For non-intrinsic calls `intrinsicConsumerArg` returns `nil` and
+    # the helper returns `none(string)` — identical to the pre-fix
+    # behaviour for that branch.
+    let arg = intrinsicConsumerArg(n)
+    if arg != nil:
+      return extractTrackedLocal(arg)
     return none(string)
   of nnkConv:
     if n.len == 2:

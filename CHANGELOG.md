@@ -78,6 +78,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `extractTrackedLocal` recognises dot-call intrinsic
+  consumers in `nnkCall` / `nnkCommand`.** Round-7 closed the
+  remaining coverage gap in the helper's intrinsic-consumer branch:
+  pre-fix the gate `n.len == 2 and isIntrinsicConsumer(n[0])` only
+  matched the prefix shape `move(f)` / `system.move(f)` (which carry
+  the consumed arg at `n[1]`) and returned `none(string)` for the
+  method-call sugar shape `f.move()` (parsed as
+  `nnkCall(nnkDotExpr(f, move))` with `n.len == 1` and the callee
+  itself the DotExpr). The false-negative left the underlying tracked
+  local invisible to two downstream consumers: (1)
+  `buildArgStatesFromCall`'s per-arg resolution, so a registered
+  transition called as `close(f.move())` could not disambiguate its
+  arg's source-state against the underlying local `f`, leaving `f`
+  tracked at its pre-call state through the fall-through edge and
+  false-firing CFG-001 on the canonical Nim ownership-transfer
+  idiom; and (2) the discard handler's pre-walk capture, so `discard
+  f.move()` of a non-terminal local with no covering destructor
+  silently bypassed CFG-003 (the operand walk's intrinsic-arg drop
+  hid the violation because no pre-walk state was captured to
+  validate against). Post-fix the helper delegates to
+  `intrinsicConsumerArg`, which uniformly handles prefix,
+  qualified-prefix, AND dot-call shapes — yielding the consumed
+  argument position for every recognised callee, and `nil` (→
+  `none(string)`) for non-intrinsic calls, preserving the pre-fix
+  behaviour for that branch. Same class as round-5 Finding #2 which
+  unified `isIntrinsicConsumer` to recognise the dot-call callee
+  shape; round-7 extends that unification to the helper that resolves
+  the consumed-argument position downstream. New fixtures cover both
+  effects: `cfg_analyzer_dot_call_intrinsic_as_call_arg` (positive —
+  `close(src.move())` inside a transition body resolves `src` and
+  reaches terminal cleanly) and `cfg_analyzer_discard_dot_call_-
+  intrinsic_non_terminal` (negative — `discard f.move()` on a
+  non-terminal local with no destructor fires CFG-003 as expected).
+  No known-limitation language.
 - **CFG analyzer: §3.7 typestate-attachment threaded through the
   destructor-lookup data model.** Round-6 surfaced a single coherent
   integration gap: the §3.7 typestate-attachment pragma (introduced

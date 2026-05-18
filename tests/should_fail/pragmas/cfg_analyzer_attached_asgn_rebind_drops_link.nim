@@ -42,7 +42,9 @@ typestate BadgeContext:
 type BadgeHolder {.BadgeContext: BadgeIssued.} = object
   payload: int
 
-proc leakingHandler(src: sink BadgeIssued, b: var BadgeHolder, skip: bool): BadgeRevoked {.transition.} =
+proc leakingHandler(
+    src: sink BadgeIssued, b: var BadgeHolder, skip: bool
+): BadgeRevoked {.transition.} =
   ## Attached `var BadgeHolder` param: round-6 fix tracks `b` with
   ## stateType=BadgeIssued, attachedTypeName=BadgeHolder. No
   ## destructor is registered against EITHER key, so the early
