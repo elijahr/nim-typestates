@@ -78,6 +78,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: source-state-aware overload lookup correctly indexes
+  through mixed typestate / non-typestate parameters.** Round-4
+  introduced `findTransitionByCalleeAndArgStates` with a loop that
+  iterated `argStates` (call-site arg positions, length = call arg
+  count) and indexed into `p.typestatedParams` (compacted
+  typestate-bearing-only entries, length ≤ call arg count) with the
+  same loop variable. When a registered transition mixed
+  typestate-bearing `var T` params with non-typestate params at
+  intervening positions, the trailing typestate-bearing arg's
+  call-site position was beyond `typestatedParams.len`, tripping the
+  out-of-bounds guard and falsely rejecting the proc. Round-5
+  captures each `TypestatedParam`'s 0-based proc-parameter position
+  (new field `paramIndex`) at registration time, and the lookup
+  iterates the compacted `typestatedParams` seq, indexing back into
+  `argStates` via `paramIndex`. The first-position param's
+  source-state constraint remains handled by the existing
+  `p.sourceState` check; the loop now correctly disambiguates
+  overloads across mixed-param signatures like
+  `proc mt(a: sink Open, n: int, b: var Open): HalfOpen`.
+- **CFG analyzer: `isIntrinsicConsumer` recognises dot-call method
+  form `f.move()`.** Round-3 added prefix `move(f)` / `sink(f)` and
+  qualified `system.move(f)` / `system.sink(f)` recognition. The
+  method-call sugar form `f.move()` (parsed as
+  `nnkCall(nnkDotExpr(receiver, methodIdent))` where the receiver IS
+  the consumed value) was missed: library code using pipe-style
+  intrinsic consumption left the underlying tracked local on the
+  live-set and false-fired CFG-001 at fall-through (or asgn-binding
+  loss for the asgn-RHS variant). Round-5 extends the recognizer to
+  accept any `nnkDotExpr` whose trailing identifier is `move` or
+  `sink`. A companion helper `intrinsicConsumerArg(call)`
+  disambiguates the consumed-argument position: for the
+  `system.X(f)` qualified-prefix shape the arg is `call[1]`; for the
+  `f.X()` method-call shape the arg is the receiver `call[0][0]`.
+  All call sites (the `applyCallTransitions` intrinsic block, the
+  discard handler, the asgn handler) route through the unified
+  helper so the shape discrimination lives in one place. Note: the
+  parser does not accept `f.sink()` as a method call (`sink` is a
+  reserved type modifier in Nim), so only `f.move()` is exercisable
+  via dot-call sugar; qualified `system.sink(f)` and prefix
+  `sink(f)` continue to be recognised symmetrically.
+- **CFG analyzer: `discard move(f)` no longer bypasses CFG-003 on
+  non-terminal locals.** The discard handler's pre-round-5
+  intrinsic-callee short-circuit (`isIntrinsicConsumer(opnd[0])` ->
+  drop local + return) ran BEFORE the CFG-003 non-terminal-discard
+  check, allowing `discard move(f)` where `f` was at a non-terminal
+  state with no `{.destructorTransition.}` to silently pass. The
+  short-circuit was also redundant: the operand recursion through
+  `walkCfg` -> `applyCallTransitions` already handled the intrinsic
+  consumption via its own intrinsic-consumer block. Round-5 removes
+  the redundant short-circuit and adds a pre-walk state capture so
+  the CFG-003 check observes the discarded value's pre-discard
+  state — if the underlying local was at a non-terminal state with
+  no covering destructor, the discard fires CFG-003 naming the
+  state and the typestate. Existing `discard move(f)` patterns in
+  `{.notATransition.}` wrappers (which the analyzer does not visit)
+  are unaffected; transition-proc-body patterns that previously
+  bypassed CFG-003 silently now correctly fire the diagnostic. The
+  `discard_move_unrelated_local_leaks` should_fail fixture was
+  updated to isolate its CFG-001 intent from this CFG-003 closure
+  by giving the moved local a registered destructor.
+- **CFG analyzer: asgn and var-init binding paths strip transparent
+  AST wrappers before the kind check.** Pre-round-5 the asgn
+  handler (and `bindLocalsFromIdentDefs` var-init path) keyed off
+  `rhs.kind in {nnkCall, nnkCommand}` directly. The Nim parser
+  wraps several structurally-transparent shapes around expressions:
+  `nnkPar(x)` (parenthesised single expression, e.g. `f = (open())`),
+  `nnkStmtListExpr(..., x)` (statement-list-as-expression whose last
+  child is the value, e.g. `f = (let _ = setup(); open())`), and
+  `nnkBlockStmt(name, body)` / `nnkBlockExpr(name, body)` (block-
+  as-expression, e.g. `f = block: open()`). All three slipped past
+  the kind check to the else-branch which recursed into children
+  (applying nested call effects via `walkCfg`) but never invoked
+  the LHS binding-recovery path, so `f` lost its tracked state on
+  rebinding from a wrapped registered-transition call. Round-5
+  introduces `stripTransparentExprWrappers(n)` which descends to
+  the underlying value-producing node (recursively, so
+  `((open()))` and `block: (open())` both reduce), and the asgn
+  and var-init paths apply it before the kind check. The same
+  helper-coverage audit extended `extractTrackedLocal` to handle
+  multi-statement `nnkStmtListExpr` (last expression) and
+  `nnkBlockStmt` / `nnkBlockExpr` (body's last expression) shapes,
+  so every tracked-local extraction site benefits from the
+  expanded wrapper coverage uniformly.
 - **CFG analyzer: unified AST-traversal pattern matching.** Introduced
   `extractTrackedLocal(n: NimNode): Option[string]` and
   `isIntrinsicConsumer(callee: NimNode): bool` helpers in

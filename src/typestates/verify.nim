@@ -28,9 +28,22 @@ type
     ## :var graphName: Name of the owning typestate graph; used by the
     ##   analyzer to recover the full `TypestateGraph` via the registry
     ##   without needing to round-trip AST through compile-time tables
+    ## :var paramIndex: 0-based positional index of this parameter within
+    ##   the proc's formal-parameter list (where 0 = first param, 1 =
+    ##   second param, ...). Captured because `typestatedParams` is a
+    ##   compacted seq containing ONLY typestate-bearing params; the
+    ##   source-state-aware overload lookup
+    ##   (`findTransitionByCalleeAndArgStates`) needs the param's
+    ##   original positional index to align with the call-site `argStates`
+    ##   seq, which has one entry per call-site arg position (including
+    ##   non-typestate-bearing args). Round-5 Finding #1 (verify.nim:382):
+    ##   pre-round-5 the lookup iterated `argStates` and indexed into
+    ##   `typestatedParams` with the same `j`, going out-of-bounds when a
+    ##   proc mixed typestated and non-typestated params.
     name*: string
     stateType*: string
     graphName*: string
+    paramIndex*: int
 
   RegisteredProc* = object
     ## Information about a proc registered for verification.
@@ -362,22 +375,41 @@ proc findTransitionByCalleeAndArgStates*(
         continue
       if extractBaseName(p.sourceState) != argStates[0].get:
         continue
-    # Apply trailing-position constraints against `typestatedParams`. The
-    # first typestate-bearing param is the source-state-bearing first param;
-    # subsequent entries match argStates[1..]. Positions whose argStates
-    # entry is `none` are wildcards.
+    # Apply trailing-position constraints against `typestatedParams`.
+    # Round-5 Finding #1: iterate `typestatedParams` (the shorter seq,
+    # one entry per typestate-bearing param) and index back into
+    # `argStates` via each entry's captured `paramIndex` (the param's
+    # 0-based position in the proc's formal-parameter list). Pre-round-5
+    # the loop iterated `argStates` and indexed into `typestatedParams`
+    # with the same `j` — out-of-bounds when a proc mixed typestated and
+    # non-typestated params (e.g., `proc tx(a: int, b: sink Open)` has
+    # argStates.len == 2 but typestatedParams.len == 1, and argStates[1]
+    # corresponds to typestatedParams[0].paramIndex == 1, not [1]).
+    #
+    # The first proc-position typestated param (paramIndex == 0) is
+    # already covered by the position-0 sourceState check above (when
+    # the first proc param is itself typestate-bearing). Skip it here
+    # to avoid double-checking. When the first proc param is non-
+    # typestated (e.g. `proc tx(a: int, b: sink Open)`), the
+    # position-0 sourceState check skips on `p.sourceState`
+    # non-state-typestate-name and this loop alone disambiguates by
+    # the trailing typestated param's source-state.
     var ok = true
-    for j in 1 ..< argStates.len:
-      if argStates[j].isNone:
+    for tp in p.typestatedParams:
+      if tp.paramIndex == 0:
+        # First-proc-position param: source-state handled by position-0
+        # check above.
         continue
-      # Locate the j'th typestate-bearing param (0 = first param, already
-      # handled above; 1 = second typestate-bearing param, etc.).
-      if j >= p.typestatedParams.len:
-        # Registered proc has fewer typestate-bearing params than the
-        # constrained call-site shape — not a match.
+      if tp.paramIndex >= argStates.len:
+        # Registered proc declares a typestate-bearing param at a
+        # position the call site did not supply — call shape doesn't
+        # match this overload.
         ok = false
         break
-      if p.typestatedParams[j].stateType != argStates[j].get:
+      if argStates[tp.paramIndex].isNone:
+        # Wildcard at this call-site position.
+        continue
+      if tp.stateType != argStates[tp.paramIndex].get:
         ok = false
         break
     if not ok:
@@ -410,15 +442,29 @@ proc firstParamConsumes*(p: RegisteredProc): bool {.compileTime.} =
 
 proc isIntrinsicConsumer*(callee: NimNode): bool {.compileTime.} =
   ## Predicate: is `callee` a reference to a value-consuming intrinsic —
-  ## `move`, `sink`, or their qualified `system.move` / `system.sink`?
+  ## `move`, `sink`, or any equivalent parser shape (qualified
+  ## `system.move`, method-call `f.move()`)?
   ##
   ## Recognizes:
   ##
-  ## - `nnkIdent` / `nnkSym` whose `strVal` is `move` or `sink`
+  ## - `nnkIdent` / `nnkSym` whose `strVal` is `move` or `sink` — bare
+  ##   prefix form `move(f)` / `sink(f)`.
   ## - `nnkOpenSymChoice` / `nnkClosedSymChoice` whose representative
-  ##   identifier is `move` or `sink`
+  ##   identifier is `move` or `sink` — overloaded-symbol form.
   ## - `nnkDotExpr(system, move)` / `nnkDotExpr(system, sink)` — the
-  ##   qualified forms used after explicit module prefixing
+  ##   qualified prefix forms used after explicit module prefixing
+  ##   (`system.move(f)`).
+  ## - `nnkDotExpr(receiver, move)` / `nnkDotExpr(receiver, sink)` where
+  ##   the trailing identifier is `move` or `sink` — the method-call
+  ##   sugar form `f.move()` / `f.sink()`. Round-5 Finding #2: pre-fix
+  ##   the recognizer accepted only the qualified `system`-prefixed
+  ##   DotExpr; arbitrary receivers were unrecognised, so idiomatic
+  ##   pipe-style code that used `f.move()` left the underlying tracked
+  ##   local on the live-set and false-fired CFG-001 at fall-through.
+  ##   Callers that need to identify WHICH node is the consumed argument
+  ##   (the receiver for method-call, `call[1]` for prefix / qualified
+  ##   prefix) use `intrinsicConsumerArg` instead of duplicating the
+  ##   shape discrimination.
   ##
   ## Used by `extractTrackedLocal` (to unwrap intrinsic-consumer wrappers
   ## around a tracked local) and by the analyzer's `discard` / `asgn`
@@ -434,12 +480,125 @@ proc isIntrinsicConsumer*(callee: NimNode): bool {.compileTime.} =
       return callee[0].strVal in ["move", "sink"]
     return false
   of nnkDotExpr:
-    if callee.len >= 2 and callee[0].kind in {nnkIdent, nnkSym} and
-        callee[1].kind in {nnkIdent, nnkSym}:
-      return callee[0].strVal == "system" and callee[1].strVal in ["move", "sink"]
+    if callee.len >= 2 and callee[1].kind in {nnkIdent, nnkSym}:
+      # Round-5 Finding #2: recognise EITHER qualified-prefix shape
+      # `system.move` (receiver is the module qualifier) OR method-call
+      # shape `f.move()` (receiver is the consumed value). Both produce
+      # the same DotExpr callee structure; the trailing ident name in
+      # {move, sink} is the discriminating signal. Differentiating which
+      # node is the consumed argument is `intrinsicConsumerArg`'s job.
+      return callee[1].strVal in ["move", "sink"]
     return false
   else:
     return false
+
+proc intrinsicConsumerArg*(call: NimNode): NimNode {.compileTime.} =
+  ## For a call node whose callee is an intrinsic consumer, return the
+  ## AST node representing the consumed argument (the value the
+  ## intrinsic transfers ownership of). Returns `nil` when `call` is not
+  ## an intrinsic-consumer shape or the consumed-argument position
+  ## cannot be located.
+  ##
+  ## Shape -> consumed argument:
+  ##
+  ## - `nnkCall(move|sink, arg)` / `nnkCommand(move|sink, arg)` (prefix)
+  ##   -> `arg = call[1]`. Requires `call.len == 2`.
+  ## - `nnkCall(nnkDotExpr(system, move|sink), arg)` (qualified prefix)
+  ##   -> `arg = call[1]`. Requires `call.len == 2`.
+  ## - `nnkCall(nnkDotExpr(receiver, move|sink))` (method-call sugar)
+  ##   -> `arg = receiver = call[0][0]`. Requires `call.len == 1` (no
+  ##   explicit args) and the DotExpr's receiver is not the literal
+  ##   `system` module qualifier.
+  ##
+  ## Round-5 Finding #2: replaces the per-site `call.len == 2`-gated
+  ## checks with a single helper so the discard handler, asgn handler,
+  ## and `applyCallTransitions` all route through identical shape
+  ## discrimination. Pre-round-5 the `system.X` vs `f.X` ambiguity was
+  ## handled only at the recognizer level; this helper makes the
+  ## consumed-argument position explicit and centralizes the choice.
+  if call.isNil or call.kind notin {nnkCall, nnkCommand}:
+    return nil
+  if call.len < 1:
+    return nil
+  let callee = call[0]
+  if not isIntrinsicConsumer(callee):
+    return nil
+  case callee.kind
+  of nnkIdent, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice:
+    # Prefix shape: arg is the second child of the call.
+    if call.len == 2:
+      return call[1]
+    return nil
+  of nnkDotExpr:
+    # DotExpr shape: discriminate qualified-prefix `system.move(arg)`
+    # vs method-call `arg.move()` by whether the call carries explicit
+    # args. The Nim parser produces:
+    #   `system.move(f)`     -> nnkCall(nnkDotExpr(system, move), f)   (len 2)
+    #   `f.move()` / `f.move` -> nnkCall(nnkDotExpr(f, move))           (len 1)
+    if callee.len < 2:
+      return nil
+    let receiver = callee[0]
+    let methodIdent = callee[1]
+    if methodIdent.kind notin {nnkIdent, nnkSym}:
+      return nil
+    if receiver.kind in {nnkIdent, nnkSym} and receiver.strVal == "system" and
+        call.len == 2:
+      # Qualified prefix: arg is the explicit second child.
+      return call[1]
+    if call.len == 1:
+      # Method-call sugar: receiver IS the consumed arg.
+      return receiver
+    return nil
+  else:
+    return nil
+
+proc stripTransparentExprWrappers*(n: NimNode): NimNode {.compileTime.} =
+  ## Strip "transparent" AST wrappers from an expression node and return
+  ## the underlying value-producing node. Round-5 Finding #4: the asgn
+  ## handler and var-init binding path key off `rhs.kind in {nnkCall,
+  ## nnkCommand}` to decide whether to invoke `applyCallTransitions` +
+  ## binding-recovery. The Nim parser wraps expressions in several
+  ## structurally-transparent shapes that pre-fix slipped through that
+  ## kind-check unrecognised:
+  ##
+  ## - `nnkPar(x)` — parenthesised single expression: `f = (open())`.
+  ## - `nnkStmtListExpr(..., x)` — statement-list-as-expression whose
+  ##   last child is the value: `f = (let _ = setup(); open())`.
+  ## - `nnkBlockStmt(name, body)` / `nnkBlockExpr(name, body)` — block-
+  ##   as-expression: `f = block: open()`. The block's body is itself
+  ##   a stmt list whose last expression is the block's value.
+  ##
+  ## Pre-fix these wrappers fell through to the asgn handler's else-
+  ## branch which recursed into children but never invoked the
+  ## binding-recovery path, so `f` lost its tracked state on rebinding
+  ## from a wrapped registered-transition call.
+  ##
+  ## The helper recurses: `f = ((open()))` and `f = block: (open())`
+  ## both reduce to the inner `open()` call. Returns the input node
+  ## unchanged when no wrapper applies, and never returns `nil`.
+  if n.isNil:
+    return n
+  case n.kind
+  of nnkPar, nnkTupleConstr:
+    # Single-expression parenthesisation. nnkTupleConstr appears for
+    # `(x,)` (1-tuple); we only strip the no-comma `(x)` shape which
+    # the parser emits as nnkPar with one child.
+    if n.kind == nnkPar and n.len == 1:
+      return stripTransparentExprWrappers(n[0])
+    return n
+  of nnkStmtListExpr:
+    # Statement-list-as-expression: the value is the last child.
+    if n.len >= 1:
+      return stripTransparentExprWrappers(n[^1])
+    return n
+  of nnkBlockStmt, nnkBlockExpr:
+    # Block-as-expression: nnkBlockStmt(name, body). The body is a
+    # stmt list (or single expression); recurse into it.
+    if n.len >= 2:
+      return stripTransparentExprWrappers(n[^1])
+    return n
+  else:
+    return n
 
 proc extractTrackedLocal*(n: NimNode): Option[string] {.compileTime.} =
   ## Recursively resolve a `NimNode` to the underlying tracked-local
@@ -490,10 +649,27 @@ proc extractTrackedLocal*(n: NimNode): Option[string] {.compileTime.} =
     if n.len == 2:
       return extractTrackedLocal(n[1])
     return none(string)
-  of nnkPar, nnkStmtListExpr:
-    # Parenthesized / single-expression statement lists — transparent.
+  of nnkPar:
+    # Parenthesized single expression — transparent.
     if n.len == 1:
       return extractTrackedLocal(n[0])
+    return none(string)
+  of nnkStmtListExpr:
+    # Statement-list-as-expression — the value is the last child. Round-5
+    # helper-coverage audit: the original len==1 gate handled only the
+    # trivial single-expr case; multi-stmt `(let _ = setup(); f)` was
+    # silently dropped.
+    if n.len >= 1:
+      return extractTrackedLocal(n[^1])
+    return none(string)
+  of nnkBlockStmt, nnkBlockExpr:
+    # Block-as-expression — the value is the body (last child). Round-5
+    # helper-coverage audit: blocks were not recognized, so a tracked
+    # local extracted from `block: f` resolved to `none` and any
+    # asgn / discard / call-arg routing through this helper missed the
+    # local entirely.
+    if n.len >= 2:
+      return extractTrackedLocal(n[^1])
     return none(string)
   else:
     return none(string)
@@ -640,17 +816,31 @@ proc applyCallTransitions*(
     for arg in argNodes:
       consumeLocalsInSubtree(state, arg)
     return
-  # Round-3 Finding #3 (verify.nim:447): intrinsic-callee consumption.
-  # `move(f)` / `sink(f)` / `system.move(f)` as the call itself (not
-  # wrapping another call's argument) — the caller routed us here from a
-  # `discard move(f)` or `x = move(f)` site (the asgn / discard handlers
-  # walk into the RHS / operand). `move`/`sink` semantically transfers
-  # ownership of the argument; the local is no longer accessible to the
-  # caller after the wrapper. Drop the underlying tracked local without
-  # consulting `registeredProcs` (move/sink are not registered transitions
-  # but are valid consumption sites under Nim's ownership model).
-  if isIntrinsicConsumer(call[0]) and call.len == 2:
-    let trackedOpt = extractTrackedLocal(call[1])
+  # Round-3 Finding #3 (verify.nim:447) + round-5 Finding #2: intrinsic-
+  # callee consumption. Symmetric across all parser shapes that produce
+  # an intrinsic callee:
+  #
+  # - `move(f)` / `sink(f)` — prefix form; callee is bare ident/sym/
+  #   SymChoice; consumed arg is `call[1]`.
+  # - `system.move(f)` / `system.sink(f)` — qualified prefix; callee is
+  #   `nnkDotExpr(system, move|sink)`; consumed arg is `call[1]` (the
+  #   receiver `system` is a module qualifier, not a value).
+  # - `f.move()` / `f.sink()` — dot-call (method-call) form; callee is
+  #   `nnkDotExpr(receiver, move|sink)` where receiver is NOT a module
+  #   qualifier; consumed arg is the receiver `call[0][0]`. Round-5
+  #   Finding #2: pre-fix this shape was unrecognised, so library code
+  #   that used method-call sugar for `move`/`sink` (idiomatic in
+  #   pipe-style code) left the underlying tracked local on the live-set
+  #   and false-fired CFG-001 at fall-through.
+  #
+  # `move`/`sink` semantically transfers ownership of the argument; the
+  # local is no longer accessible to the caller after the wrapper. Drop
+  # the underlying tracked local without consulting `registeredProcs`
+  # (move/sink are not registered transitions but are valid consumption
+  # sites under Nim's ownership model).
+  let intrinsicArg = intrinsicConsumerArg(call)
+  if intrinsicArg != nil:
+    let trackedOpt = extractTrackedLocal(intrinsicArg)
     if trackedOpt.isSome:
       let idx = findLocalInnermost(state, trackedOpt.get)
       if idx >= 0:
@@ -787,7 +977,16 @@ proc bindLocalsFromIdentDefs(
   if identDefs.len < 3:
     return
   let typeSlot = identDefs[identDefs.len - 2]
-  let initSlot = identDefs[identDefs.len - 1]
+  # Round-5 Finding #4: strip transparent AST wrappers from the init
+  # slot before the kind check. Same gap as the asgn handler (see
+  # below): `var f = (open())`, `var f = block: open()`,
+  # `var f: T = (open())` wrap the RHS in nnkPar / nnkBlockStmt /
+  # nnkStmtListExpr respectively. Pre-round-5 these shapes fell
+  # through the initSlot.kind in {nnkCall, nnkCommand} check and the
+  # var-init binding-recovery path was skipped, so `f` was bound at
+  # the declared state (or not bound at all for typeless init) and
+  # the call's destination-state binding was lost.
+  let initSlot = stripTransparentExprWrappers(identDefs[identDefs.len - 1])
   let typeName = extractTypeNameAst(typeSlot)
   if typeName.len == 0:
     # No declared type: try the call-init shape `var name = call(...)`.
@@ -1200,40 +1399,80 @@ proc walkCfg(
     # destructor is accepted (the destructor will bridge to terminal).
     if node.len >= 1 and node[0].kind != nnkEmpty:
       let opnd = node[0]
+      # Round-5 Finding #3: capture the discarded expression's underlying
+      # tracked-local state BEFORE walking the operand, so the CFG-003
+      # non-terminal-discard check observes the local's PRE-discard
+      # state. Pre-round-5 a redundant intrinsic short-circuit returned
+      # early on `discard move(f)` BEFORE the CFG-003 check, allowing a
+      # non-terminal local with no destructor to bypass validation
+      # entirely. Simply removing the short-circuit was not enough: the
+      # post-walk state would show `f` already consumed by
+      # `applyCallTransitions`'s intrinsic block (round-3 Finding #3),
+      # so the CFG-003 lookup would also miss it. Capturing pre-walk
+      # state preserves CFG-003 coverage while letting the walk handle
+      # actual consumption.
+      var preWalkLocalName = ""
+      var preWalkStateName = ""
+      let preWalkLocalOpt = extractTrackedLocal(opnd)
+      if preWalkLocalOpt.isSome:
+        let preIdx = findLocalInnermost(result, preWalkLocalOpt.get)
+        if preIdx >= 0:
+          preWalkLocalName = result.locals[preIdx].name
+          preWalkStateName = result.locals[preIdx].stateType
       # Recurse into the discarded expression so any nested registered call
       # has its transition effects applied to tracked args (e.g., `discard
-      # close(f)` advances/consumes `f`).
+      # close(f)` advances/consumes `f`). The
+      # `discard move(f)` / `discard sink(f)` / `discard f.move()`
+      # intrinsic-consumption shapes are handled by this recursion —
+      # `walkCfg` routes the operand to the `nnkCall` handler which
+      # invokes `applyCallTransitions`, and that proc's
+      # intrinsic-consumer block (round-3 Finding #3 / round-5
+      # Finding #2) drops the underlying tracked local.
       result = walkCfg(opnd, result, destructorTypes)
-      # Round-3 Finding #3 (verify.nim:447): `discard move(f)` /
-      # `discard sink(f)` is the canonical bare-intrinsic consumption
-      # shape — `move`/`sink` is the callee and isn't a registered
-      # transition, so the per-call recursion above leaves the tracked
-      # local untouched. Special-case the intrinsic wrapper here: route
-      # through `extractTrackedLocal` to find the underlying local and
-      # drop it unconditionally. The discarded value (the moved-out
-      # temporary) is the destructor's target, not the tracked local —
-      # so this is a valid consume regardless of the local's current
-      # state.
-      if opnd.kind in {nnkCall, nnkCommand} and opnd.len == 2 and
-          isIntrinsicConsumer(opnd[0]):
-        let trackedOpt = extractTrackedLocal(opnd[1])
-        if trackedOpt.isSome:
-          let idx = findLocalInnermost(result, trackedOpt.get)
-          if idx >= 0:
-            result.locals.delete(idx)
-        return
       # Resolve the discarded expression to a tracked local via the
       # unified helper. Handles bare `discard f`, `discard f.Base`,
-      # `discard f.field.subfield`, and (already short-circuited above)
-      # the intrinsic-consumer shapes. Innermost-first lookup so
-      # inner-scope shadows take precedence over outer bindings.
+      # `discard f.field.subfield`, and intrinsic-consumer shapes.
+      # Innermost-first lookup so inner-scope shadows take precedence
+      # over outer bindings.
+      #
+      # Round-5 Finding #3: prefer the pre-walk capture when the
+      # underlying local is no longer in the live-set (consumed by the
+      # operand walk above, e.g. `discard move(f)` drops `f`).
+      # Otherwise (bare `discard f` with no consuming walk) fall through
+      # to the post-walk lookup so terminal-state discards still
+      # consume the local from tracking via the existing post-check
+      # path below.
       var localIdx = -1
       var exprStateName = ""
-      let discardLocalOpt = extractTrackedLocal(opnd)
-      if discardLocalOpt.isSome:
-        localIdx = findLocalInnermost(result, discardLocalOpt.get)
-        if localIdx >= 0:
-          exprStateName = result.locals[localIdx].stateType
+      if preWalkStateName.len > 0:
+        # Operand referenced a tracked local before the walk. If the
+        # walk consumed it (intrinsic move/sink), localIdx remains -1
+        # (we deliberately do NOT relookup), but we still validate
+        # CFG-003 against the captured pre-walk state. If the walk did
+        # not consume it (bare `discard f`), the local is still in the
+        # live-set with the same (or advanced) state and the post-walk
+        # lookup recovers `localIdx` so a terminal-state discard
+        # consumes it correctly below.
+        exprStateName = preWalkStateName
+        let postIdx = findLocalInnermost(result, preWalkLocalName)
+        if postIdx >= 0:
+          localIdx = postIdx
+          # Update exprStateName to the post-walk state — the operand
+          # may have advanced the local (e.g., `discard close(f)` on
+          # an Open->Closed registered transition), and CFG-003 should
+          # observe the post-walk type (Closed, which is terminal).
+          exprStateName = result.locals[postIdx].stateType
+      else:
+        # Operand did not reference any tracked local at the pre-walk
+        # point. Try a fresh post-walk resolution for compatibility
+        # with shapes the unified helper recognises only after the
+        # walk has restructured them (today none, but preserves the
+        # legacy fall-back).
+        let discardLocalOpt = extractTrackedLocal(opnd)
+        if discardLocalOpt.isSome:
+          localIdx = findLocalInnermost(result, discardLocalOpt.get)
+          if localIdx >= 0:
+            exprStateName = result.locals[localIdx].stateType
       if exprStateName.len > 0:
         let graphOpt = findTypestateForState(exprStateName)
         if graphOpt.isSome:
@@ -1336,7 +1575,17 @@ proc walkCfg(
     # deeper call is still recognized.
     if node.len >= 2:
       let lhs = node[0]
-      let rhs = node[1]
+      # Round-5 Finding #4: strip transparent AST wrappers before the
+      # kind check. `f = (open())` parses as `nnkAsgn(f, nnkPar(open()))`;
+      # `f = block: open()` parses as
+      # `nnkAsgn(f, nnkBlockStmt(_, nnkStmtList(open())))`;
+      # `f = (let _ = setup(); open())` parses with `nnkStmtListExpr`.
+      # Pre-round-5 these shapes fell through the rhs.kind in
+      # {nnkCall, nnkCommand} check to the else-branch which recursed
+      # into children (applying nested call effects via walkCfg) but
+      # never invoked the LHS binding-recovery path — so `f` lost its
+      # tracked state.
+      let rhs = stripTransparentExprWrappers(node[1])
       if rhs.kind in {nnkCall, nnkCommand}:
         # Round-4 Finding #2: capture per-arg source-states from the
         # PRE-call live-set before `applyCallTransitions` mutates it, so

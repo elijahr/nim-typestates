@@ -351,31 +351,44 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
   let params = procDef.params
   if params.kind != nnkFormalParams:
     return
+  # Track the running 0-based positional index of the next proc parameter
+  # across IdentDefs entries. Grouped names share a single IdentDefs slot
+  # (e.g. `proc f(a, b: var Open)` has one IdentDefs with two names that
+  # occupy proc positions 0 and 1 respectively). Round-5 Finding #1: the
+  # source-state-aware overload lookup needs each typestate-bearing param's
+  # original positional index to align with the call-site `argStates` seq
+  # (which has one entry per call-site arg position, including non-
+  # typestate-bearing args).
+  var paramPos = 0
   for i in 1 ..< params.len:
     let identDefs = params[i]
     if identDefs.kind != nnkIdentDefs:
       continue
     if identDefs.len < 3:
       continue
+    let nameCount = identDefs.len - 2
     let typeSlot = identDefs[^2]
     # Scope: `var T` only (see proc doc). `nnkVarTy` directly wraps the
     # underlying type; `sink T` is `nnkCommand(sink, T)`; bare `T` is
     # an ident/bracket/dot. Only `nnkVarTy` qualifies for pre-population.
     if typeSlot.kind != nnkVarTy:
+      paramPos += nameCount
       continue
     let paramTypes = extractAllSourceTypeNames(typeSlot)
     if paramTypes.len != 1:
       # Union-source (`A | B`) or unresolvable: defer to call-site
       # resolution; the analyzer cannot pre-bind without per-overload
       # source disambiguation.
+      paramPos += nameCount
       continue
     let typeName = paramTypes[0]
     let graphOpt = findTypestateForState(typeName)
     if graphOpt.isNone:
+      paramPos += nameCount
       continue
     let graph = graphOpt.get
     let stateBase = extractBaseName(typeName)
-    for j in 0 ..< identDefs.len - 2:
+    for j in 0 ..< nameCount:
       let nameNode = identDefs[j]
       var nameStr: string
       case nameNode.kind
@@ -394,8 +407,12 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
       else:
         continue
       result.add TypestatedParam(
-        name: nameStr, stateType: stateBase, graphName: graph.name
+        name: nameStr,
+        stateType: stateBase,
+        graphName: graph.name,
+        paramIndex: paramPos + j,
       )
+    paramPos += nameCount
 
 proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
   ## AST scan for `{.skipCfgAnalysis.}` on a procDef's pragma node.
