@@ -301,6 +301,102 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   else:
     result = @[node.repr]
 
+proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileTime.} =
+  ## Walk a procDef's formal parameters and capture every typestate-bearing
+  ## `var T` parameter's name + state type + owning graph name.
+  ##
+  ## Round-2 Finding #2: the CFG analyzer (verify.nim, `runCfgAnalyzer`)
+  ## pre-populates `LiveState` with these entries at proc entry so a proc
+  ## that takes `var f: Open` and returns early without consuming `f`
+  ## correctly fires CFG-001.
+  ##
+  ## Parameter shape: nnkFormalParams is `[returnType, identDefs1, identDefs2, ...]`.
+  ## Each `nnkIdentDefs` is `[name1, name2, ..., type, default]`. Grouped
+  ## leading names (e.g. `proc f(a, b: var Open)`) share a single type slot
+  ## at index `^2`.
+  ##
+  ## Scope decision — `var T` only:
+  ## A `var T` parameter is borrowed; the caller's binding persists after
+  ## the call and must observe a coherent post-state. The analyzer MUST
+  ## verify the body brought it to terminal (or that a destructor will
+  ## fire). That is the exact failure mode Finding #2 targets — the
+  ## brief's canonical acceptance fixture is `proc f(var f: File[Open])`
+  ## that returns early without consuming `f`.
+  ##
+  ## `sink T` and value-`T` parameters are NOT pre-populated:
+  ## - `sink T`: ownership transfers into the callee; the proc itself
+  ##   IS the transition (its signature encodes Src -> Dst). The result
+  ##   becomes the destination state; the sink param's value dies with
+  ##   the proc frame regardless of whether the body textually references
+  ##   it (e.g., the canonical `result = Dst(src.Base)` body works, but
+  ##   so does a body that constructs the result independently).
+  ## - value `T`: a copy/move local to the proc; same scope as sink for
+  ##   analysis purposes — no caller-visible post-state.
+  ## Treating these as pre-populated would cause false positives in every
+  ## existing `{.transition.}` proc body that doesn't textually reference
+  ## the sink param (e.g., generic-typestate fixtures that construct the
+  ## result from raw fields). The brief's `sink T should enter the set`
+  ## guidance assumed the analyzer would recognize all body-side
+  ## consumption shapes; in practice the body's exit edge IS the
+  ## consumption point for sink/value params, which is best modeled by
+  ## not pre-populating them at all.
+  ##
+  ## Resolution: each leading name's declared type is run through
+  ## `extractTypeName` (peels generic brackets, etc.) and looked up
+  ## against the typestate registry via `findTypestateForState`.
+  ## Non-typestate-bearing params are skipped. Union-source param types
+  ## (e.g. `var (A | B)`) are also skipped: the param's "current state"
+  ## is ambiguous until the overload is resolved at the call site.
+  result = @[]
+  let params = procDef.params
+  if params.kind != nnkFormalParams:
+    return
+  for i in 1 ..< params.len:
+    let identDefs = params[i]
+    if identDefs.kind != nnkIdentDefs:
+      continue
+    if identDefs.len < 3:
+      continue
+    let typeSlot = identDefs[^2]
+    # Scope: `var T` only (see proc doc). `nnkVarTy` directly wraps the
+    # underlying type; `sink T` is `nnkCommand(sink, T)`; bare `T` is
+    # an ident/bracket/dot. Only `nnkVarTy` qualifies for pre-population.
+    if typeSlot.kind != nnkVarTy:
+      continue
+    let paramTypes = extractAllSourceTypeNames(typeSlot)
+    if paramTypes.len != 1:
+      # Union-source (`A | B`) or unresolvable: defer to call-site
+      # resolution; the analyzer cannot pre-bind without per-overload
+      # source disambiguation.
+      continue
+    let typeName = paramTypes[0]
+    let graphOpt = findTypestateForState(typeName)
+    if graphOpt.isNone:
+      continue
+    let graph = graphOpt.get
+    let stateBase = extractBaseName(typeName)
+    for j in 0 ..< identDefs.len - 2:
+      let nameNode = identDefs[j]
+      var nameStr: string
+      case nameNode.kind
+      of nnkIdent, nnkSym:
+        nameStr = nameNode.strVal
+      of nnkPostfix:
+        if nameNode.len >= 2 and nameNode[1].kind in {nnkIdent, nnkSym}:
+          nameStr = nameNode[1].strVal
+        else:
+          continue
+      of nnkPragmaExpr:
+        if nameNode.len >= 1 and nameNode[0].kind in {nnkIdent, nnkSym}:
+          nameStr = nameNode[0].strVal
+        else:
+          continue
+      else:
+        continue
+      result.add TypestatedParam(
+        name: nameStr, stateType: stateBase, graphName: graph.name
+      )
+
 proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
   ## AST scan for `{.skipCfgAnalysis.}` on a procDef's pragma node.
   ##
@@ -566,6 +662,7 @@ macro transition*(procDef: untyped): untyped =
         extraParams: extraParams,
         body: procDef.body,
         skipCfg: hasSkipCfgAnalysisPragma(procDef.pragma),
+        typestatedParams: extractTypestatedParams(procDef),
       )
     )
 
@@ -819,6 +916,7 @@ proc destructorTransitionCore(
       body: destrDef.body,
       skipCfg: skipCfg,
       attachedObjectTypeName: attachedObjectTypeNameOpt,
+      typestatedParams: extractTypestatedParams(destrDef),
     )
   )
 

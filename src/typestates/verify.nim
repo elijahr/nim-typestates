@@ -17,6 +17,21 @@ type
     pkNotATransition ## Marked with `{.notATransition.}`
     pkUnmarked ## No pragma specified
 
+  TypestatedParam* = object
+    ## A single typestate-bearing formal parameter of a registered proc,
+    ## captured at registration time so the CFG analyzer can pre-populate
+    ## the live-set with parameter locals at proc entry (round-2 Finding #2).
+    ##
+    ## :var name: Parameter name (the IdentDefs leading ident)
+    ## :var stateType: Base name of the parameter's declared state type
+    ##   (e.g. `"Open"` for `var f: File[Open]` or `var f: Open`)
+    ## :var graphName: Name of the owning typestate graph; used by the
+    ##   analyzer to recover the full `TypestateGraph` via the registry
+    ##   without needing to round-trip AST through compile-time tables
+    name*: string
+    stateType*: string
+    graphName*: string
+
   RegisteredProc* = object
     ## Information about a proc registered for verification.
     ##
@@ -39,6 +54,13 @@ type
     ## :var attachedObjectTypeName: Optional object type name for §3.7
     ##   typestate-attachment registry lookup (v0.9.0). `none` for procs
     ##   that are not attached to an object type.
+    ## :var typestatedParams: All typestate-bearing formal parameters (name +
+    ##   declared state type + owning graph). Round-2 Finding #2: the
+    ##   analyzer pre-populates `LiveState` with these at proc entry so a
+    ##   proc that takes `var f: Open` and returns early without consuming
+    ##   `f` correctly fires CFG-001. Empty for procs with no typestate-
+    ##   bearing params and for procs registered before this field was
+    ##   introduced.
     name*: string
     sourceState*: string
     destStates*: seq[string]
@@ -50,6 +72,7 @@ type
     body*: NimNode
     skipCfg*: bool
     attachedObjectTypeName*: Option[string]
+    typestatedParams*: seq[TypestatedParam]
 
 var registeredProcs* {.compileTime.}: seq[RegisteredProc]
   ## Compile-time list of all procs registered for verification.
@@ -302,6 +325,42 @@ proc firstParamConsumes*(p: RegisteredProc): bool {.compileTime.} =
     return true
   return false
 
+proc consumeLocalsInSubtree(state: var LiveState, node: NimNode) {.compileTime.} =
+  ## Walk `node`'s subtree and drop every tracked local appearing as a bare
+  ## ident/sym (or as the head of an `nnkDotExpr`) from `state.locals`.
+  ##
+  ## Round-2 Finding #2 support: recognizes the canonical Nim typestate
+  ## conversion-consume idiom `Dst(src.Base)` and its variants. A
+  ## conversion call whose callee is a registered state-type ident
+  ## (handled by `applyCallTransitions`) consumes any tracked local that
+  ## appears anywhere inside the conversion's argument expression — either
+  ## as `Dst(src)` (bare ident) or `Dst(src.Base)` (DotExpr accessing the
+  ## underlying base type).
+  if node.isNil:
+    return
+  case node.kind
+  of nnkIdent, nnkSym:
+    let idx = findLocalInnermost(state, node.strVal)
+    if idx >= 0:
+      state.locals.delete(idx)
+  of nnkDotExpr:
+    # `local.Base` — the local is on the LHS. Don't recurse into the RHS
+    # field-name ident; it never refers to a local.
+    if node.len >= 1:
+      consumeLocalsInSubtree(state, node[0])
+  else:
+    for child in node:
+      consumeLocalsInSubtree(state, child)
+
+proc isStateTypeName(name: string): bool {.compileTime.} =
+  ## Predicate: does `name` (a callee identifier) match a state of some
+  ## registered typestate? Used by `applyCallTransitions` to recognize
+  ## conversion-consume calls like `Closed(f.File)` where `Closed` is a
+  ## registered state, not a proc.
+  if name.len == 0:
+    return false
+  return findTypestateForState(name).isSome
+
 proc applyCallTransitions*(
     state: var LiveState, call: NimNode, destructorTypes: Table[string, TypestateGraph]
 ) {.compileTime.} =
@@ -316,13 +375,54 @@ proc applyCallTransitions*(
   ## composition. Sink-consume composes naturally: a `consume(g)` call
   ## drops `g` from tracking; the enclosing binding then receives the
   ## registered destination.
+  ##
+  ## Round-2 Finding #1 (dot-call shape): when the call is in method-call
+  ## syntax `obj.method(args)`, the call AST is `nnkCall` with
+  ## `call[0]` an `nnkDotExpr(receiver, methodIdent)`. The receiver
+  ## `call[0][0]` is implicitly the first argument (parameter position 0)
+  ## of the underlying proc; the explicit args `call[1..N-1]` follow.
+  ## Iterating only `call[1..N-1]` (as the pre-round-2 code did) missed
+  ## the receiver entirely, so idiomatic `f.close()` left `f` non-terminal
+  ## at exit and fired false-positive CFG-001. `nnkCommand` with a
+  ## DotExpr head is the parens-less form and is handled symmetrically.
   if call.kind notin {nnkCall, nnkCommand}:
     return
   let callName = extractCalleeName(call)
   if callName.len == 0:
     return
+  # Round-2 Finding #2 support: conversion-consume idiom.
+  #
+  # When the callee identifier is itself a registered state-type name (e.g.
+  # `Closed` in `Closed(f.File)`), the "call" is a Nim type conversion, not
+  # a registered proc invocation. The canonical typestate-procedure body
+  # produces its result by converting a sink/var/value-typed source local
+  # into the destination state type: `result = Dst(src.Base)`. Without
+  # recognizing this, a sink-typed param entering the live-set under
+  # Finding #2 would never be marked consumed, falsely failing the
+  # fall-through exit edge inside every transition proc body.
+  #
+  # The chosen recognition rule: when the callee is a state-type name,
+  # treat any tracked local appearing in the call's argument subtree as
+  # consumed (dropped from tracking). This matches Nim's actual semantics
+  # (the conversion is the canonical end-of-life for the source value)
+  # and keeps the rule narrow enough to avoid over-tracking — only
+  # registered state-type names trigger it, not arbitrary type
+  # conversions.
+  if isStateTypeName(callName):
+    for argIdx in 1 ..< call.len:
+      consumeLocalsInSubtree(state, call[argIdx])
+    return
+  # Build the iteration set of argument nodes. For dot-call shapes, the
+  # receiver `call[0][0]` is param position 0 (the implicit first arg);
+  # `call[1..N-1]` are params 1..N-1. For prefix-call shapes, `call[0]` is
+  # the callee ident and `call[1..N-1]` are params 0..N-2.
+  let isDotCall = call[0].kind == nnkDotExpr
+  var argNodes: seq[NimNode] = @[]
+  if isDotCall and call[0].len >= 1:
+    argNodes.add call[0][0]
   for argIdx in 1 ..< call.len:
-    let arg = call[argIdx]
+    argNodes.add call[argIdx]
+  for arg in argNodes:
     var argIdent: string
     case arg.kind
     of nnkIdent, nnkSym:
@@ -986,59 +1086,85 @@ proc procHasSkipCfgPragma(procInfo: RegisteredProc): bool {.compileTime.} =
   ## the registration captured.
   procInfo.skipCfg
 
-proc runCfgAnalyzer*() {.compileTime.} =
-  ## Entry point for the v0.9.0 CFG analyzer (§3.3). Iterates every proc in
-  ## `registeredProcs` and walks its captured body AST, validating exit
-  ## edges against the live-set of typestate-bearing locals.
+proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
+  ## Entry point for the v0.9.0 CFG analyzer (§3.3). Iterates the procs in
+  ## `registeredProcs` whose `modulePath` matches `callerModulePath` and
+  ## walks each captured body AST, validating exit edges against the live-
+  ## set of typestate-bearing locals.
   ##
   ## Phase A (table build) runs once per call; Phase B (per-proc walk) runs
   ## once per registered proc. Procs without a captured body (`body` is
   ## empty) are skipped — they were registered before the body-capture
   ## extension or are CLI-tooling registrations that do not need analysis.
+  ##
+  ## Round-2 Finding #3 (per-module scope, v0.9.0): `registeredProcs` is a
+  ## global compile-time `seq` that accumulates across every imported
+  ## module's `{.transition.}` / `{.destructorTransition.}` macro
+  ## expansions. Without scoping, each module's `verifyTypestates()` call
+  ## would re-walk every accumulated body — O(N^2) compile-time cost
+  ## across a project. We restrict per-call analysis to the calling
+  ## module's procs (matched by `modulePath`), so each module pays only
+  ## for its own bodies. Cross-module call-graph analysis is a documented
+  ## future enhancement; v0.9.0 analyzes the caller's module only.
+  ##
+  ## When `callerModulePath` is empty (e.g. legacy callers, CLI tooling),
+  ## all registered procs are analyzed — preserving the pre-round-2
+  ## behavior for that entry point.
+  ##
+  ## Round-2 Finding #2: at proc entry, the analyzer pre-populates the
+  ## live-set with one `LocalTypestate` per typestate-bearing formal
+  ## parameter (captured into `procInfo.typestatedParams` at registration
+  ## time). This catches the early-return / raise param-leak case the
+  ## prior analyzer silently missed — a proc taking `var f: Open` and
+  ## returning without consuming `f` correctly fires CFG-001.
   let destructorTypes = buildDestructorTypes()
   for procInfo in registeredProcs:
     if procHasSkipCfgPragma(procInfo):
       continue
     if procInfo.body.isNil or procInfo.body.kind == nnkEmpty:
       continue
+    if callerModulePath.len > 0 and procInfo.modulePath != callerModulePath:
+      continue
     var state = initLiveState()
+    # Round-2 Finding #2: pre-populate live-set with typestate-bearing
+    # params. Each entry's `graphName` is resolved through the registry
+    # so the analyzer's terminal / destructor checks key off the actual
+    # `TypestateGraph` value (matching how body-introduced locals work).
+    for tp in procInfo.typestatedParams:
+      if tp.graphName notin typestateRegistry:
+        continue
+      let graph = typestateRegistry[tp.graphName]
+      state.locals.add LocalTypestate(
+        name: tp.name,
+        stateType: tp.stateType,
+        graph: graph,
+        declaredAt: procInfo.declaredAt,
+      )
     let endState = walkCfg(procInfo.body, state, destructorTypes)
     # Fall-through exit edge: implicit return at end of body, only if still
     # reachable (i.e., body did not end in an unconditional return/raise).
     if endState.reachable:
       validateExitEdge(endState, procInfo.body, "fall-through", destructorTypes)
 
-macro verifyTypestates*(): untyped =
-  ## Verify all registered typestates and procs.
+macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
+  ## Implementation macro for `verifyTypestates`. Receives the caller's
+  ## absolute module file path captured via `instantiationInfo` at the
+  ## template-expansion site.
   ##
-  ## Call at the end of a module to check:
-  ##
-  ## - All transitions are valid
-  ## - All procs on state types are properly marked (if strictTransitions)
-  ## - No external transitions on sealed typestates
-  ##
-  ## Example:
-  ##
-  ## ```nim
-  ## import typestates
-  ##
-  ## typestate File:
-  ##   states Closed, Open
-  ##   transitions:
-  ##     Closed -> Open
-  ##
-  ## proc open(f: Closed): Open {.transition.} = ...
-  ##
-  ## verifyTypestates()  # Validates everything above
-  ## ```
-  ##
-  ## :returns: Empty statement list (validation is compile-time only)
-  ## :raises: Compile-time error if verification fails
+  ## Round-2 Finding #3: `callerFile` is used to scope the per-module CFG
+  ## analyzer pass (`runCfgAnalyzer`) so each `verifyTypestates()` call
+  ## walks only its own module's procs, eliminating the prior O(N^2)
+  ## cross-module re-analysis cost.
 
   result = newStmtList()
 
-  # Check each registered proc
+  # Check each registered proc. Round-2 Finding #3: scope this scan to the
+  # caller's module so each verifyTypestates() call only inspects its own
+  # procs. The original cross-module scan would, in a project with N
+  # imported modules, redundantly re-check every module's procs N times.
   for procInfo in registeredProcs:
+    if procInfo.modulePath != callerFile:
+      continue
     if procInfo.kind == pkUnmarked:
       # Find the typestate for this state
       let graphOpt = findTypestateForState(procInfo.sourceState)
@@ -1097,6 +1223,12 @@ macro verifyTypestates*(): untyped =
   var unionProcNames: HashSet[string]
 
   for procInfo in registeredProcs:
+    # Round-2 Finding #3: only emit F5 decoys for transitions registered in
+    # the caller's module. The decoys are added to this module's output via
+    # `result.add`; emitting decoys for foreign-module procs would inject
+    # them into the wrong module.
+    if procInfo.modulePath != callerFile:
+      continue
     if procInfo.kind != pkTransition:
       continue
     if procInfo.sourceState.len == 0:
@@ -1216,7 +1348,43 @@ macro verifyTypestates*(): untyped =
 
   # CFG analyzer pass (v0.9.0 §3.3). Runs AFTER F5 decoy emission so the
   # emitted decoys do not pollute the per-proc body walks below.
-  runCfgAnalyzer()
+  # Round-2 Finding #3: scoped to the caller's module only.
+  runCfgAnalyzer(callerFile)
 
   # Return empty - just for compile-time checking
   result.add newCommentStmtNode("typestates verified")
+
+template verifyTypestates*(): untyped =
+  ## Verify all registered typestates and procs.
+  ##
+  ## Call at the end of a module to check:
+  ##
+  ## - All transitions are valid
+  ## - All procs on state types are properly marked (if strictTransitions)
+  ## - No external transitions on sealed typestates
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## import typestates
+  ##
+  ## typestate File:
+  ##   states Closed, Open
+  ##   transitions:
+  ##     Closed -> Open
+  ##
+  ## proc open(f: Closed): Open {.transition.} = ...
+  ##
+  ## verifyTypestates()  # Validates everything above
+  ## ```
+  ##
+  ## :returns: Empty statement list (validation is compile-time only)
+  ## :raises: Compile-time error if verification fails
+  ##
+  ## Round-2 Finding #3: implemented as a template that captures the
+  ## caller's absolute module path via `instantiationInfo(-1, fullPaths =
+  ## true)` and forwards it to `verifyTypestatesImpl`. This lets the
+  ## implementation macro scope its per-proc scans (strictTransitions,
+  ## external check, F5 decoy emission, CFG analyzer) to the caller's
+  ## module only — eliminating the prior O(N^2) cross-module work.
+  verifyTypestatesImpl(static(instantiationInfo(-1, fullPaths = true).filename))

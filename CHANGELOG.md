@@ -78,6 +78,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer recognizes method-call (dot-call) shapes.** The
+  analyzer now treats the receiver `call[0][0]` of an
+  `nnkCall`/`nnkCommand` with an `nnkDotExpr` head as the implicit first
+  argument (parameter position 0) of the underlying proc. Pre-fix the
+  per-call iteration walked only `call[1..N-1]`, missing the receiver
+  entirely and false-firing CFG-001 on idiomatic `f.close()` /
+  `f.transition()` / chained dot-call patterns. Prefix-call shape
+  (`close(f)`) was unaffected and remains the same code path.
+- **CFG analyzer pre-populates `var T` typestate-bearing params.** At
+  proc entry the analyzer now seeds `LiveState` with one local per
+  `var T` typestate-bearing formal parameter, captured at registration
+  time into the new `RegisteredProc.typestatedParams` field. Pre-fix the
+  live-set was empty at proc entry, so a proc that took
+  `var f: File[Open]` and returned early without consuming `f` silently
+  passed analysis. Sink-typed and value-typed params are NOT
+  pre-populated: their values die with the proc frame regardless of
+  whether the body textually references them (the proc's signature
+  itself encodes the transition Src -> Dst). The analyzer also now
+  recognizes the canonical conversion-consume idiom `Dst(src.Base)`,
+  dropping a tracked local from the live-set when it appears inside a
+  type-conversion call whose callee is a registered state-type ident.
+- **CFG analyzer scoped to caller's module.** `verifyTypestates()` is
+  now a template that captures the caller's absolute module path via
+  `instantiationInfo(-1, fullPaths = true)` and forwards it to
+  `verifyTypestatesImpl`. The implementation macro filters
+  `registeredProcs` to entries whose `modulePath` matches the caller,
+  applying that filter to the strictTransitions/external-proc check,
+  the F5 decoy emission, and `runCfgAnalyzer`. Pre-fix every module's
+  `verifyTypestates()` call re-walked every accumulated proc body from
+  every imported module — O(N^2) compile-time cost across a project.
+  Cross-module call-graph analysis remains a future enhancement;
+  v0.9.0 analyzes the caller's module only. Legacy callers (e.g.
+  CLI tooling) that invoke `runCfgAnalyzer()` directly with an empty
+  `callerModulePath` continue to walk every registered proc.
 - Declare `chronos` and `results` as test-only dependencies via
   `taskRequires "test", ...` in `typestates.nimble`. Previously, tests in
   `tests/should_compile/transitions/async_*` and
@@ -89,7 +123,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New `pkDestructorTransition` value on the `ProcKind` enum; new fields
   on `RegisteredProc`: `body*: NimNode`, `skipCfg*: bool`,
-  `attachedObjectTypeName*: Option[string]`.
+  `attachedObjectTypeName*: Option[string]`,
+  `typestatedParams*: seq[TypestatedParam]`. New public type
+  `TypestatedParam*` (name + stateType + graphName) captures
+  typestate-bearing `var T` formal parameters at registration time so
+  the CFG analyzer can pre-populate the live-set at proc entry.
+- `verifyTypestates*` is now a template that captures the caller's
+  module path via `instantiationInfo(-1, fullPaths = true)` and forwards
+  it to a new `verifyTypestatesImpl*(callerFile: static[string])` macro,
+  which scopes its per-proc scans to the caller's module. `runCfgAnalyzer*`
+  gains an optional `callerModulePath` parameter (defaults to empty,
+  preserving the all-procs behavior for direct callers).
 - `destructorTransitionCore` shared implementation for both arities of
   `destructorTransition` (`src/typestates/pragmas.nim`).
 - CFG analyzer pass integrated into `verifyTypestates*`
