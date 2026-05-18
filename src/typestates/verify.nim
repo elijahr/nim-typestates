@@ -302,6 +302,89 @@ proc findRegisteredTransitionForArg*(
     return some(p)
   return none(RegisteredProc)
 
+proc findTransitionByCalleeAndArgStates*(
+    callee: string, argStates: seq[Option[string]]
+): Option[RegisteredProc] {.compileTime.} =
+  ## Round-4 Finding #2/#3: source-state-aware lookup for the var-init and
+  ## asgn binding paths. Returns the registered transition proc whose name
+  ## is `callee`, whose `destStates.len == 1` (single-target), and whose
+  ## first-param source-state (and, when known, each typestate-bearing
+  ## param's declared state) matches the corresponding entry in
+  ## `argStates`.
+  ##
+  ## `argStates[i]`:
+  ## - `some(stateName)` — the call-site arg at position `i` is a tracked
+  ##   local in state `stateName`. The registered proc's param at position
+  ##   `i` (in `typestatedParams` order, with the first-param source state
+  ##   anchored to position 0) MUST match `stateName` for this to be a
+  ##   candidate.
+  ## - `none` — the call-site arg is not a tracked local; treat as a
+  ##   wildcard (any registered source-state is acceptable at this position).
+  ##
+  ## When `argStates` is empty (no positional info available), the lookup
+  ## degrades to name-only matching for backward compatibility with the
+  ## pre-round-4 var-init/asgn sites — the caller falls back to the
+  ## conservative behavior they had before this helper existed.
+  ##
+  ## Iterates reverse so the most recently registered overload wins under
+  ## any duplicate registration — same precedence as
+  ## `findRegisteredTransitionForArg` and the innermost-first shadowing
+  ## convention used elsewhere in the analyzer.
+  ##
+  ## Returns `none(RegisteredProc)` when zero registered procs match;
+  ## the caller should treat that as "no LHS binding" (conservative drop).
+  if callee.len == 0:
+    return none(RegisteredProc)
+  # Determine whether ANY argStates entry constrains the search. When every
+  # entry is `none`, the caller has no source-state information to share, so
+  # we degrade to name-only matching (preserving pre-round-4 behavior).
+  var anyConstraint = false
+  for s in argStates:
+    if s.isSome:
+      anyConstraint = true
+      break
+  for i in countdown(registeredProcs.len - 1, 0):
+    let p = registeredProcs[i]
+    if p.kind notin {pkTransition, pkDestructorTransition}:
+      continue
+    if p.name != callee:
+      continue
+    if p.destStates.len != 1:
+      continue
+    if not anyConstraint:
+      return some(p)
+    # Apply position-0 source-state constraint (the first-param state).
+    # Union-source procs (`p.sourceState == ""`) cannot be disambiguated by
+    # source state here; skip them when the caller supplied a constraint at
+    # position 0, otherwise treat as wildcard at position 0.
+    if argStates.len >= 1 and argStates[0].isSome:
+      if p.sourceState.len == 0:
+        continue
+      if extractBaseName(p.sourceState) != argStates[0].get:
+        continue
+    # Apply trailing-position constraints against `typestatedParams`. The
+    # first typestate-bearing param is the source-state-bearing first param;
+    # subsequent entries match argStates[1..]. Positions whose argStates
+    # entry is `none` are wildcards.
+    var ok = true
+    for j in 1 ..< argStates.len:
+      if argStates[j].isNone:
+        continue
+      # Locate the j'th typestate-bearing param (0 = first param, already
+      # handled above; 1 = second typestate-bearing param, etc.).
+      if j >= p.typestatedParams.len:
+        # Registered proc has fewer typestate-bearing params than the
+        # constrained call-site shape — not a match.
+        ok = false
+        break
+      if p.typestatedParams[j].stateType != argStates[j].get:
+        ok = false
+        break
+    if not ok:
+      continue
+    return some(p)
+  return none(RegisteredProc)
+
 proc firstParamConsumes*(p: RegisteredProc): bool {.compileTime.} =
   ## Heuristic: does this registered proc consume its first parameter?
   ## Returns `true` when the first-param-type AST has a `sink` modifier
@@ -414,6 +497,41 @@ proc extractTrackedLocal*(n: NimNode): Option[string] {.compileTime.} =
     return none(string)
   else:
     return none(string)
+
+proc buildArgStatesFromCall*(
+    state: LiveState, call: NimNode
+): seq[Option[string]] {.compileTime.} =
+  ## Round-4: gather per-arg-position source-state info for a call node,
+  ## used to drive the source-state-aware overload lookup in the var-init
+  ## (`tryBindLocalFromCallInit`) and asgn binding paths. Mirrors the
+  ## argument-iteration shape `applyCallTransitions` uses:
+  ##
+  ## - Dot-call shape `obj.method(args)`: receiver `call[0][0]` is param 0.
+  ## - Prefix-call shape `method(args)`: `call[1..N-1]` are params 0..N-2.
+  ##
+  ## For each positional arg we resolve via `extractTrackedLocal` to a
+  ## tracked-local name; if found in the live-set, the entry is
+  ## `some(stateType)`. Otherwise the entry is `none` (wildcard for
+  ## overload disambiguation).
+  result = @[]
+  if call.kind notin {nnkCall, nnkCommand}:
+    return
+  let isDotCall = call[0].kind == nnkDotExpr
+  var argNodes: seq[NimNode] = @[]
+  if isDotCall and call[0].len >= 1:
+    argNodes.add call[0][0]
+  for argIdx in 1 ..< call.len:
+    argNodes.add call[argIdx]
+  for arg in argNodes:
+    let identOpt = extractTrackedLocal(arg)
+    if identOpt.isNone:
+      result.add none(string)
+      continue
+    let idx = findLocalInnermost(state, identOpt.get)
+    if idx < 0:
+      result.add none(string)
+    else:
+      result.add some(state.locals[idx].stateType)
 
 proc consumeLocalsInSubtree(state: var LiveState, node: NimNode) {.compileTime.} =
   ## Walk `node`'s subtree and drop every tracked local appearing in it,
@@ -592,6 +710,7 @@ proc tryBindLocalFromCallInit*(
     nameNode: NimNode,
     initNode: NimNode,
     destructorTypes: Table[string, TypestateGraph],
+    argStates: seq[Option[string]] = @[],
 ) {.compileTime.} =
   ## Bind a single-name local introduced by `var/let name = call(...)` to
   ## the call's registered destination state, when the RHS is a registered
@@ -604,49 +723,56 @@ proc tryBindLocalFromCallInit*(
   ## the registered destination of the call's transition. The destination
   ## may be terminal — in which case we bind tracking briefly so downstream
   ## exit edges see it (validateExitEdge accepts terminals).
+  ##
+  ## Round-4 Finding #3: `argStates` carries per-position source-state info
+  ## captured by the caller BEFORE `applyCallTransitions` mutates the live
+  ## set. When non-empty, the registered-transition lookup is filtered by
+  ## both callee-name AND each arg's source-state via
+  ## `findTransitionByCalleeAndArgStates`, so an overload set disambiguated
+  ## by source-state (e.g., `tx: File[Closed] -> File[Open]` vs
+  ## `tx: File[Errored] -> File[Open]`) binds the LHS to the correct
+  ## destination instead of whichever overload happens to appear last in
+  ## the registry. An empty `argStates` (legacy callers, or call sites
+  ## with no tracked-local args) degrades to the pre-round-4 name-only
+  ## lookup, preserving the prior behavior.
   if initNode.isNil or initNode.kind notin {nnkCall, nnkCommand}:
     return
   let callName = extractCalleeName(initNode)
   if callName.len == 0:
     return
-  # Resolve registered transition with ANY source state matching name; we
-  # need its dest. If sourceState matches a tracked-arg's state, the call's
-  # arg was already advanced by applyCallTransitions; we just bind LHS.
-  for i in countdown(registeredProcs.len - 1, 0):
-    let p = registeredProcs[i]
-    if p.kind notin {pkTransition, pkDestructorTransition}:
-      continue
-    if p.name != callName:
-      continue
-    if p.destStates.len != 1:
-      continue
-    let dstBase = extractBaseName(p.destStates[0])
-    let graphOpt = findTypestateForState(p.destStates[0])
-    if graphOpt.isNone:
-      continue
-    var localName: string
-    case nameNode.kind
-    of nnkIdent, nnkSym:
-      localName = nameNode.strVal
-    of nnkPostfix:
-      if nameNode.len >= 2 and nameNode[1].kind in {nnkIdent, nnkSym}:
-        localName = nameNode[1].strVal
-      else:
-        return
-    of nnkPragmaExpr:
-      if nameNode.len >= 1 and nameNode[0].kind in {nnkIdent, nnkSym}:
-        localName = nameNode[0].strVal
-      else:
-        return
+  let txOpt = findTransitionByCalleeAndArgStates(callName, argStates)
+  if txOpt.isNone:
+    # No matching transition (either name-only mismatch when argStates is
+    # empty, or no overload matches the call-site source-states). Caller's
+    # conservative behavior — no LHS binding — is preserved.
+    return
+  let p = txOpt.get
+  let dstBase = extractBaseName(p.destStates[0])
+  let graphOpt = findTypestateForState(p.destStates[0])
+  if graphOpt.isNone:
+    return
+  var localName: string
+  case nameNode.kind
+  of nnkIdent, nnkSym:
+    localName = nameNode.strVal
+  of nnkPostfix:
+    if nameNode.len >= 2 and nameNode[1].kind in {nnkIdent, nnkSym}:
+      localName = nameNode[1].strVal
     else:
       return
-    state.locals.add LocalTypestate(
-      name: localName,
-      stateType: dstBase,
-      graph: graphOpt.get,
-      declaredAt: nameNode.lineInfoObj,
-    )
+  of nnkPragmaExpr:
+    if nameNode.len >= 1 and nameNode[0].kind in {nnkIdent, nnkSym}:
+      localName = nameNode[0].strVal
+    else:
+      return
+  else:
     return
+  state.locals.add LocalTypestate(
+    name: localName,
+    stateType: dstBase,
+    graph: graphOpt.get,
+    declaredAt: nameNode.lineInfoObj,
+  )
 
 proc bindLocalsFromIdentDefs(
     state: var LiveState,
@@ -670,10 +796,19 @@ proc bindLocalsFromIdentDefs(
     # in the IdentDefs is bound (Nim allows grouped names in a single
     # IdentDefs only when they share a type slot — a typeless init with
     # grouped names is rare but supported defensively).
+    #
+    # Round-4 Finding #3: capture per-arg source-states from the PRE-call
+    # live-set before `applyCallTransitions` mutates it, so the
+    # `tryBindLocalFromCallInit` overload lookup can disambiguate
+    # registered transitions by source-state when a proc name is
+    # registered with multiple overloads.
     if initSlot.kind in {nnkCall, nnkCommand}:
+      let argStates = buildArgStatesFromCall(state, initSlot)
       applyCallTransitions(state, initSlot, destructorTypes)
       for i in 0 ..< identDefs.len - 2:
-        tryBindLocalFromCallInit(state, identDefs[i], initSlot, destructorTypes)
+        tryBindLocalFromCallInit(
+          state, identDefs[i], initSlot, destructorTypes, argStates
+        )
     return
   let graphOpt = lookupTypestateForType(typeName, destructorTypes)
   if graphOpt.isNone:
@@ -750,7 +885,11 @@ proc validateExitEdge*(
     )
 
 proc reconcileBranches*(
-    branchStates: seq[LiveState], hasElse: bool, entry: LiveState, node: NimNode
+    branchStates: seq[LiveState],
+    hasElse: bool,
+    entry: LiveState,
+    node: NimNode,
+    destructorTypes: Table[string, TypestateGraph] = initTable[string, TypestateGraph](),
 ): LiveState {.compileTime.} =
   ## §3.3 branch reconciliation (CFG-002): merge per-branch LiveStates at a
   ## join point.
@@ -768,6 +907,16 @@ proc reconcileBranches*(
   ##   it via a terminal-discard or a registered terminal-producing call.
   ##   Inconsistent consumption is rejected.
   ## - State-divergence at the join point emits CFG-002 keyed on the node.
+  ## - Round-4 Finding #1: branch-local locals (declared inside ONE branch,
+  ##   absent from the entry set AND absent from at least one other
+  ##   branch) MUST reach a terminal state — or be backed by a
+  ##   `{.destructorTransition.}` — before they go out of scope at
+  ##   branch-close. Pre-round-4 these locals were silently dropped from
+  ##   the merged live-set, escaping CFG-001 validation entirely. The
+  ##   `destructorTypes` parameter is required for the destructor
+  ##   short-circuit; the default empty table preserves the legacy
+  ##   caller contract for sites that haven't been migrated yet (no
+  ##   destructor recognition; the branch-close validation still fires).
   var effective: seq[LiveState] = @[]
   for s in branchStates:
     if s.reachable:
@@ -868,7 +1017,14 @@ proc reconcileBranches*(
   # Second pass: branch-introduced locals (declared inside one or more
   # branches, NOT in entry). Iterate the union across effective branches
   # so a local introduced in any branch is considered. For each such local:
-  # - If only ONE branch declares it, it's scope-local — drop.
+  # - Round-4 Finding #1: BEFORE dropping a branch-local that escapes the
+  #   merged live-set (declared in fewer branches than the effective set,
+  #   i.e. absent from at least one branch), validate every branch where
+  #   it IS present reached a terminal state OR has a registered
+  #   `{.destructorTransition.}`. A non-terminal branch-local going out
+  #   of scope at branch-close is a leak: pre-fix it was silently
+  #   dropped from the merged live-set and never reached
+  #   `validateExitEdge`.
   # - If MULTIPLE branches declare it with the same state — keep that state.
   # - If MULTIPLE branches declare it with different states — CFG-002 (or
   #   terminal-union exception).
@@ -883,12 +1039,42 @@ proc reconcileBranches*(
         continue
       seenBranchLocals.incl local.name
       var perBranch: seq[string] = @[]
+      var perBranchLocals: seq[LocalTypestate] = @[]
       for b2 in effective:
         let idx = findLocalInnermost(b2, local.name)
         if idx >= 0:
           perBranch.add b2.locals[idx].stateType
+          perBranchLocals.add b2.locals[idx]
+      # Round-4 Finding #1: validate every branch-instance reaches terminal
+      # (or has a destructor) when the local is absent from at least one
+      # effective branch. Going out of scope at branch-close requires the
+      # same terminal-reach guarantee as a return / raise / fall-through
+      # exit edge — anything less is a leak. The destructor short-circuit
+      # mirrors `validateExitEdge`'s rule for `{.destructorTransition.}`
+      # types: Nim's `=destroy` injection fires the bridging transition
+      # when the branch's local goes out of scope.
+      if perBranch.len < effective.len:
+        for bl in perBranchLocals:
+          if isTerminalForGraph(bl.stateType, bl.graph):
+            continue
+          if hasDestructorFor(bl, destructorTypes):
+            continue
+          let terminalList = bl.graph.terminalStates.join(", ")
+          error(
+            "Typestate-bearing local '" & bl.name &
+              "' has not reached a terminal state at this branch-close" &
+              " (scope-exit). Current state: '" & bl.stateType & "' in typestate '" &
+              bl.graph.name & "'. Terminal states: [" & terminalList &
+              "]. Either advance the local to a terminal state before the" &
+              " branch closes, or arrange for a `{.destructorTransition.}`" &
+              " to fire (held by an object whose `=destroy` performs the" &
+              " transition).",
+            node,
+          )
       if perBranch.len <= 1:
-        # Only declared in one branch — scope-local; do not propagate.
+        # Only declared in one branch — already validated above. Do not
+        # propagate into the merged live-set (the local is out of scope
+        # at the join point).
         continue
       var allSame = true
       for s in perBranch[1 ..^ 1]:
@@ -969,7 +1155,7 @@ proc walkCfg(
           branchStates.add walkCfg(branch[0], result, destructorTypes)
       else:
         discard
-    result = reconcileBranches(branchStates, hasElse, result, node)
+    result = reconcileBranches(branchStates, hasElse, result, node, destructorTypes)
   of nnkCaseStmt:
     # case node: selector, ofBranch..., (elseBranch)?
     var branchStates: seq[LiveState] = @[]
@@ -991,7 +1177,7 @@ proc walkCfg(
           branchStates.add walkCfg(branch[0], result, destructorTypes)
       else:
         discard
-    result = reconcileBranches(branchStates, hasElse, result, node)
+    result = reconcileBranches(branchStates, hasElse, result, node, destructorTypes)
   of nnkReturnStmt:
     validateExitEdge(result, node, "return", destructorTypes)
     result = unreachableState()
@@ -1080,7 +1266,7 @@ proc walkCfg(
     # nnkWhileStmt: (cond, body); nnkForStmt: (var..., iter, body).
     if node.len >= 1:
       let bodyEnd = walkCfg(node[^1], result, destructorTypes)
-      result = reconcileBranches(@[bodyEnd], false, result, node)
+      result = reconcileBranches(@[bodyEnd], false, result, node, destructorTypes)
   of nnkBreakStmt:
     # §3.3 break: an unconditional exit from the enclosing loop scope. Any
     # typestate-bearing local introduced inside the loop body that escapes
@@ -1126,7 +1312,8 @@ proc walkCfg(
             finallyBody = child[0]
         else:
           discard
-      let postCatch = reconcileBranches(@[bodyEnd] & exceptEnds, true, result, node)
+      let postCatch =
+        reconcileBranches(@[bodyEnd] & exceptEnds, true, result, node, destructorTypes)
       if hasFinally and finallyBody != nil:
         result = walkCfg(finallyBody, postCatch, destructorTypes)
       else:
@@ -1151,24 +1338,25 @@ proc walkCfg(
       let lhs = node[0]
       let rhs = node[1]
       if rhs.kind in {nnkCall, nnkCommand}:
+        # Round-4 Finding #2: capture per-arg source-states from the
+        # PRE-call live-set before `applyCallTransitions` mutates it, so
+        # the registered-transition lookup can disambiguate by
+        # source-state when the proc name has multiple overloads.
+        let argStates = buildArgStatesFromCall(result, rhs)
         applyCallTransitions(result, rhs, destructorTypes)
         let callName = extractCalleeName(rhs)
         if callName.len > 0 and lhs.kind in {nnkIdent, nnkSym}:
           let lhsIdx = findLocalInnermost(result, lhs.strVal)
-          # Find a registered transition proc with this name producing a
-          # single typestate destination — innermost-first for overload
-          # resolution consistency.
-          var tx: Option[RegisteredProc]
-          for i in countdown(registeredProcs.len - 1, 0):
-            let p = registeredProcs[i]
-            if p.kind notin {pkTransition, pkDestructorTransition}:
-              continue
-            if p.name != callName:
-              continue
-            if p.destStates.len != 1:
-              continue
-            tx = some(p)
-            break
+          # Round-4 Finding #2: shared source-state-aware lookup via
+          # `findTransitionByCalleeAndArgStates`. When `argStates` is
+          # empty (no tracked-local args), the helper degrades to
+          # name-only matching — preserving pre-round-4 behavior for
+          # the bare `f = factory(seed)` shape where `seed` is not
+          # tracked. When `argStates` constrains the search, an overload
+          # set disambiguated by source-state binds the LHS to the
+          # correct destination instead of whichever overload last won
+          # the name-only countdown loop.
+          let tx = findTransitionByCalleeAndArgStates(callName, argStates)
           if tx.isSome:
             let dstBase = extractBaseName(tx.get.destStates[0])
             let graphOpt = findTypestateForState(tx.get.destStates[0])

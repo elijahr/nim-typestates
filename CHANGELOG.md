@@ -118,6 +118,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   recognizes the canonical conversion-consume idiom `Dst(src.Base)`,
   dropping a tracked local from the live-set when it appears inside a
   type-conversion call whose callee is a registered state-type ident.
+- **CFG analyzer validates branch-introduced locals at scope-exit.**
+  `reconcileBranches` now validates every branch-local declared inside a
+  single branch (absent from the entry-set AND absent from at least one
+  other branch) reaches a terminal state — or has a registered
+  `{.destructorTransition.}` — before the branch closes. Pre-fix these
+  branch-locals were silently dropped from the merged live-set,
+  escaping CFG-001 validation entirely: a `var f = open()` inside an
+  `if` branch with no consumption and no destructor produced a clean
+  compile when it should have flagged a leak. The new check fires at
+  branch-close with a CFG-001-shaped diagnostic naming the local and
+  its non-terminal state. Destructor short-circuit mirrors
+  `validateExitEdge`'s existing rule for `{.destructorTransition.}`
+  types: Nim's `=destroy` injection fires at branch-close, so a
+  destructor-backed branch-local is accepted without explicit
+  consumption.
+- **CFG analyzer var-init and asgn binding paths use source-state-aware
+  overload lookup.** A new helper `findTransitionByCalleeAndArgStates`
+  (and supporting `buildArgStatesFromCall`) replaces the name-only
+  countdown loops at the var-init site (`tryBindLocalFromCallInit`,
+  `verify.nim:625`) and the asgn binding site (`verify.nim:1172`).
+  Pre-fix both sites picked the LAST registered overload by callee
+  name regardless of the call-site arg's source-state — so a proc
+  registered with multiple overloads disambiguated by source-state
+  (e.g., `tx: File[Closed] -> File[Open]` and
+  `tx: File[Errored] -> File[Open]`) would mis-bind the LHS to
+  whichever overload happened to appear last. The new helper filters
+  candidates by both callee-name AND each tracked-local arg's
+  source-state, picking the matching overload deterministically.
+  Composes with the call-site source-state-aware lookup that already
+  existed in `applyCallTransitions` via `findRegisteredTransitionForArg`
+  (round-1). When the call-site has no tracked-local args, the helper
+  degrades to name-only matching, preserving the pre-round-4 behavior
+  for call sites that cannot supply source-state information.
 - **CFG analyzer scoped to caller's module.** `verifyTypestates()` is
   now a template that captures the caller's absolute module path via
   `instantiationInfo(-1, fullPaths = true)` and forwards it to
