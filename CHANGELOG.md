@@ -78,6 +78,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`destructorTransitionCore` proc-name extraction unwraps
+  `nnkPragmaExpr` before the `nnkPostfix` peel.** Round-16
+  (Gemini r15) surfaced a narrow-shape gap on the destructor
+  proc-name extractor: when a `=destroy` hook was BOTH exported AND
+  carried extra pragmas (e.g.
+  `proc \`=destroy\`* {.inline, destructorTransition.}(...)`), Nim
+  parsed the proc-name slot as
+  `PragmaExpr(Postfix(*, AccQuoted(=, destroy)), Pragma)`. The
+  extractor peeled only a top-level `nnkPostfix`, left the
+  `nnkPragmaExpr` in place, and the case-dispatch fell through to
+  `procNameNode.repr` — returning the full wrapped form. The
+  `procName != "=destroy"` discriminator then errored out with a
+  misleading "may only be applied to a `=destroy` hook" diagnostic
+  on a syntactically valid destructor. Post-fix the unwrap precedence
+  mirrors `extractTypeDeclName` (pragmas.nim:1052-1057): peel
+  `nnkPragmaExpr`, then `nnkPostfix`, then dispatch on the leaf
+  `nnkAccQuoted` / `nnkIdent` / `nnkSym` node. New fixtures:
+  `tests/should_compile/pragmas/destructor_transition_exported_with_pragma.nim`
+  (exported + extra-pragma destructor compiles) and
+  `tests/should_fail/pragmas/destructor_transition_exported_with_pragma_wrong_name.nim`
+  (DT-002 still fires on a non-`=destroy` proc with the same wrapper
+  shape, confirming the unwrap exposes the real name to the
+  discriminator rather than masking it).
+- **`extractTypestatedParams` param-name unwrap systematized to
+  handle nested wrappers.** Round-16 (Gemini r15) extended the
+  same precedence chain to the param-name extractor inside
+  `extractTypestatedParams`. The pre-fix code dispatched on the
+  outer wrapper kind: the `nnkPragmaExpr` branch inspected only
+  `[0].kind in {nnkIdent, nnkSym}`, so a hand-built procDef with
+  `PragmaExpr(Postfix(*, p), Pragma)` (Nim's parser rejects this
+  shape from user source — `proc f(p* {.x.}: T)` fails with
+  "identifier expected, but found 'p*'", but a downstream macro
+  synthesizing a procDef AST can emit it) skipped the param entry
+  silently, and `nnkAccQuoted` names were not recognised at all.
+  Post-fix the extractor peels `nnkPragmaExpr` then `nnkPostfix`
+  before dispatching on the leaf, accepting `nnkIdent` / `nnkSym` /
+  `nnkAccQuoted`. New unit test
+  `tests/textract_typestated_params_name_shapes.nim` asserts the
+  five recognised shapes (bare ident, postfix, pragma-decorated,
+  nested postfix-in-pragmaExpr, AccQuoted-in-pragmaExpr) against
+  hand-built procDef ASTs with a registered typestate graph. New
+  end-to-end fixture
+  `tests/should_compile/pragmas/typestate_param_with_pragma.nim`
+  exercises the user-reachable `p {.userPragma.}: var Src` shape
+  through `{.transition.}` registration.
 - **`extractTypeDeclName` handles the exported-generic AST shape and
   three stale comment blocks cleaned up.** Round-15 (Gemini r14)
   surfaced a defensive recognizer gap plus three documentation

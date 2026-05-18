@@ -443,21 +443,31 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
       stateBase = extractBaseName(att.initialState)
       attachedTypeNameForParam = typeBase
     for j in 0 ..< nameCount:
-      let nameNode = identDefs[j]
+      # Unwrap precedence mirrors `extractTypeDeclName` (pragmas.nim:1052-1057)
+      # and `destructorTransitionCore` proc-name extraction. Param names can
+      # nest wrappers in either order: a plain `p`, an exported `p*`, a
+      # pragma-decorated `p {.x.}`, and the combined exported + pragma form
+      # `p* {.x.}` which Nim parses as `PragmaExpr(Postfix(*, p), Pragma)`.
+      # Backticked names (`nnkAccQuoted`) are also accepted as a leaf
+      # shape. Peel PragmaExpr first, then Postfix, then dispatch on the
+      # final ident-bearing node.
+      var nameNode = identDefs[j]
+      if nameNode.kind == nnkPragmaExpr and nameNode.len >= 1:
+        nameNode = nameNode[0]
+      if nameNode.kind == nnkPostfix and nameNode.len >= 2:
+        nameNode = nameNode[1]
       var nameStr: string
       case nameNode.kind
       of nnkIdent, nnkSym:
         nameStr = nameNode.strVal
-      of nnkPostfix:
-        if nameNode.len >= 2 and nameNode[1].kind in {nnkIdent, nnkSym}:
-          nameStr = nameNode[1].strVal
-        else:
+      of nnkAccQuoted:
+        var parts = ""
+        for c in nameNode:
+          if c.kind in {nnkIdent, nnkSym}:
+            parts.add c.strVal
+        if parts.len == 0:
           continue
-      of nnkPragmaExpr:
-        if nameNode.len >= 1 and nameNode[0].kind in {nnkIdent, nnkSym}:
-          nameStr = nameNode[0].strVal
-        else:
-          continue
+        nameStr = parts
       else:
         continue
       result.add TypestatedParam(
@@ -809,11 +819,23 @@ proc destructorTransitionCore(
   if destrDef.kind != nnkProcDef:
     error("`destructorTransition` may only be applied to a proc definition", destrDef)
 
-  let procNameNode =
-    if destrDef[0].kind == nnkPostfix:
-      destrDef[0][1]
-    else:
-      destrDef[0]
+  # Unwrap precedence mirrors `extractTypeDeclName` (pragmas.nim:1052-1057):
+  # `nnkPragmaExpr` wraps the export/name node when extra pragmas sit on
+  # the proc decl alongside `{.destructorTransition.}` (e.g. `proc
+  # `=destroy`* {.inline, destructorTransition.}(...)` parses as
+  # `PragmaExpr(Postfix(*, AccQuoted), Pragma)`). Peel the PragmaExpr
+  # first, then the Postfix, leaving the bare name node (AccQuoted /
+  # Ident / Sym) for the case-dispatch below. Without the PragmaExpr
+  # peel the case fell through to `procNameNode.repr` and returned the
+  # entire wrapped form, failing the `=destroy` discriminator with a
+  # misleading "may only be applied to a `=destroy` hook" diagnostic.
+  let procNameNode = block:
+    var node = destrDef[0]
+    if node.kind == nnkPragmaExpr:
+      node = node[0]
+    if node.kind == nnkPostfix:
+      node = node[1]
+    node
   # For `=destroy`, AccQuoted has two children: `=` and `destroy`.
   # Concatenate all child idents to recover the full operator-ident name.
   let procName =
