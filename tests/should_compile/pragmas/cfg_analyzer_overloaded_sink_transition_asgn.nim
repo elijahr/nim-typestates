@@ -24,6 +24,16 @@
 ## destructor that bridged `helper` to terminal at fall-through is no
 ## longer needed and was removed from this fixture as part of the
 ## round-12 patch.
+##
+## Round-14 (Gemini r13 HIGH) closed the sink-param pre-population
+## skip in `runCfgAnalyzer`. Each `combine` overload's BODY now has
+## its trailing `b: sink Stage1` (resp. Stage2) sink param tracked
+## symmetrically with `a`. The bodies must explicitly consume `b`;
+## an explicit conversion-consume `discard Closed1(b.Slot)` (resp.
+## Closed2) routes `b` to its registered terminal via the same
+## conversion-consume path that consumes `a` in the
+## `result = Mid1(a.Slot)` expression. No destructor is needed; the
+## call-site disambiguation in `drive` is unchanged.
 import ../../../src/typestates
 
 type
@@ -59,14 +69,19 @@ typestate Slot:
     Mid2 -> Closed2
 
 proc combine(a: sink Open, b: sink Stage1): Mid1 {.transition.} =
-  ## First overload: (Open, Stage1) -> Mid1.
+  ## First overload: (Open, Stage1) -> Mid1. Round-14: explicit
+  ## conversion-consume of `b` to terminal Closed1 before
+  ## constructing `result`.
+  discard Closed1(b.Slot)
   result = Mid1(a.Slot)
 
 proc combine(a: sink Open, b: sink Stage2): Mid2 {.transition.} =
   ## Second overload (registered AFTER): (Open, Stage2) -> Mid2.
   ## Pre-round-9 the asgn lookup picks this last-registered overload via
   ## name-only countdown — `f` mis-rebinds as Mid2 even when the
-  ## call-site trailing arg is Stage1.
+  ## call-site trailing arg is Stage1. Round-14: same explicit
+  ## conversion-consume of `b` to terminal Closed2.
+  discard Closed2(b.Slot)
   result = Mid2(a.Slot)
 
 proc close(r: sink Mid1): Closed1 {.transition.} =

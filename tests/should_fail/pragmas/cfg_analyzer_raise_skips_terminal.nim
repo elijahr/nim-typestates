@@ -16,6 +16,13 @@
 ## Here `tick(...)` is a {.transition.} proc whose body declares
 ## `s: Started` (non-terminal of typestate Job, no destructor). The raise on
 ## the conditional branch leaves `s` non-terminal -> CFG-001 fires.
+##
+## Round-14 (Gemini r13 HIGH): the sink-param pre-population skip was
+## reversed. `q: sink Queued` is now in the live-set at the raise.
+## To keep the fixture's focus on `s: Started` (a body-local without
+## destructor), Queued is given a `=destroy {.destructorTransition.}`
+## so the destructor short-circuit accepts `q` at the raise edge —
+## only `s` then trips CFG-001.
 # expects: "has not reached a terminal state at this raise"
 # expects: "Started"
 # expects: "Done"
@@ -56,6 +63,14 @@ typestate Job:
     Done
   transitions:
     Started -> Done
+
+proc `=destroy`(s: var Queued) {.destructorTransition.} =
+  ## Round-14 scaffold: bridges Queued -> Running so the
+  ## round-14-tracked sink param `q` is accepted at the raise edge
+  ## via the destructor short-circuit. The fixture's CFG-001 target
+  ## is the destructor-less Job state `Started` declared as a
+  ## body-local.
+  discard
 
 proc tick(q: sink Queued, fail: bool): Running {.transition.} =
   ## Body declares `s: Started`; on the `fail` branch the body raises a

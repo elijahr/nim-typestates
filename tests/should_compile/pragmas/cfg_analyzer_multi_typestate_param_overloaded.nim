@@ -51,11 +51,18 @@ typestate SlotContext:
     OpenTertiary -> ClosedB
 
 proc combine(a: sink Open, b: sink OpenSecondary): ClosedA {.transition.} =
-  ## First overload: (Open, OpenSecondary) -> ClosedA.
+  ## First overload: (Open, OpenSecondary) -> ClosedA. Round-14:
+  ## explicit conversion-consume of `b` to its registered terminal
+  ## ClosedA before constructing `result` (pre-round-14 the
+  ## sink-param pre-population skip suppressed CFG-001 on `b`).
+  discard ClosedA(b.Slot)
   result = ClosedA(a.Slot)
 
 proc combine(a: sink Open, b: sink OpenTertiary): ClosedB {.transition.} =
   ## Second overload (registered AFTER): (Open, OpenTertiary) -> ClosedB.
+  ## Round-14: same explicit conversion-consume of `b` to terminal
+  ## ClosedB.
+  discard ClosedB(b.Slot)
   result = ClosedB(a.Slot)
 
 proc driveA(a: var Open, b: var OpenSecondary): ClosedA {.transition.} =

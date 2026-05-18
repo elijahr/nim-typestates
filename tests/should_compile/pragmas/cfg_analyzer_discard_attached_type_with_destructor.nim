@@ -28,6 +28,13 @@
 ## reconcileBranches). This site was a USE site (not a construction
 ## site), which is why the audit matrix extended in this round had to
 ## enumerate it explicitly.
+##
+## Round-14 (Gemini r13 HIGH) closed the sink-param pre-population
+## skip. `src: sink Driver` is now tracked; the body does not
+## consume `src`, so a `=destroy(var Driver) {.destructorTransition.}`
+## scaffold bridges Driver -> Driven at scope-exit. The fixture's
+## focus on attached-param destructor lookup via
+## `preWalkAttachedTypeName` is unchanged.
 import ../../../src/typestates
 
 type
@@ -54,6 +61,13 @@ proc `=destroy`(m: var Mailbox) {.destructorTransition.} =
   ## Destructor closes the Mailbox holder. Lookup-key contract:
   ## destructorTypes["Mailbox"] (the attached type name) maps to
   ## typestate `Drive`.
+  discard
+
+proc `=destroy`(d: var Driver) {.destructorTransition.} =
+  ## Round-14 scaffolding: bridges Driver -> Driven so the
+  ## round-14-tracked `src: sink Driver` param in `handle` is
+  ## accepted at fall-through without an explicit body consumption.
+  ## Additive to the fixture's attached-param focus.
   discard
 
 proc handle(src: sink Driver, m: var Mailbox): Driven {.transition.} =

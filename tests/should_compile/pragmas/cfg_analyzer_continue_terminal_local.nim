@@ -8,6 +8,13 @@
 ## validateExitEdge, which accepts terminal locals (and locals with a
 ## registered `{.destructorTransition.}`). This fixture exercises the
 ## terminal-accept path of the continue handler added in round 11.
+##
+## Round-14 (Gemini r13 HIGH): the sink-param pre-population skip
+## was reversed. `g: sink Latch` is now in the live-set at the
+## continue edge, non-terminal. A `=destroy(var Latch)
+## {.destructorTransition.}` is registered so the destructor
+## short-circuit accepts the continue edge; the terminal-locals path
+## the fixture targets (the body's `done: Locked`) remains the focus.
 import ../../../src/typestates
 
 type
@@ -27,6 +34,13 @@ typestate Hatch:
     Locked
   transitions:
     Latch -> Locked
+
+proc `=destroy`(h: var Latch) {.destructorTransition.} =
+  ## Round-14 scaffold: bridges Latch -> Locked at scope-exit so the
+  ## round-14-tracked sink param `g` is accepted at the continue
+  ## exit edge inside the while-loop without changing the fixture's
+  ## terminal-locals focus.
+  discard
 
 proc cycle(g: sink Latch, skip: bool): Locked {.transition.} =
   ## while-body declares `done: Locked` (terminal). The continue exit

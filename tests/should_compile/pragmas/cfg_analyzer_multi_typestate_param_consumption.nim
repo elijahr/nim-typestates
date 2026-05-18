@@ -46,7 +46,11 @@ proc combine(a: sink Open, b: sink Pending): Closed {.transition.} =
   ## Multi-typestate-param sink consumer: BOTH `a` and `b` are sink-typed
   ## typestate-bearing params. The registered transition's
   ## `typestatedParams` carries paramIndex=0 (Open, isSink=true) and
-  ## paramIndex=1 (Pending, isSink=true).
+  ## paramIndex=1 (Pending, isSink=true). Round-14: explicit
+  ## conversion-consume of `b` to its registered terminal Closed
+  ## before constructing `result` (the sink-param pre-population skip
+  ## that suppressed CFG-001 on `b` was reversed in round-14).
+  discard Closed(b.Slot)
   result = Closed(a.Slot)
 
 proc drive(a: var Open, b: var Pending): Closed {.transition.} =

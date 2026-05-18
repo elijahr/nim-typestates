@@ -30,8 +30,14 @@ typestate Pipe:
     Open -> Closed
 
 proc merge(a, b: sink Open): Closed {.transition.} =
-  ## Consumes both inputs to terminal.
-  discard b
+  ## Consumes both inputs to terminal. Round-14: the sink-param
+  ## pre-population skip was reversed; `b` is now tracked in the
+  ## live-set, so `discard b` (pre-round-14) would fire CFG-003 on
+  ## the non-terminal Open value. Replace with an explicit
+  ## conversion-consume `discard Closed(b.Pipe)` that routes `b` to
+  ## its registered terminal via the conversion-consume path,
+  ## mirroring how `a` is consumed in the result expression.
+  discard Closed(b.Pipe)
   result = Closed(a.Pipe)
 
 proc useDotCallMoveArg() {.notATransition.} =

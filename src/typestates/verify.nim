@@ -56,15 +56,21 @@ type
     ##   (`findTransitionByCalleeAndArgStates`) needs sink-typed
     ##   typestate-bearing params at trailing positions in the entry set so
     ##   it can disambiguate overloads whose only difference is the source
-    ##   state of a trailing sink param. The pre-population path
-    ##   (`runCfgAnalyzer`) MUST skip `isSink=true` entries: sink ownership
-    ##   transfers in and the value dies with the proc frame regardless of
-    ##   whether the body textually references it, so pre-populating sink
-    ##   params would false-fire CFG-001 in every transition body that
-    ##   constructs `result` independently of the sink param (which is the
-    ##   canonical `proc tx(s: sink Src): Dst` shape). The lookup path uses
-    ##   only `paramIndex` + `stateType` and therefore IGNORES `isSink`,
-    ##   recovering disambiguation without changing pre-population behavior.
+    ##   state of a trailing sink param. Round-14 reversal of the round-9
+    ##   pre-population skip: the analyzer now tracks `isSink=true` params
+    ##   symmetrically with `var T` params. The original concern was that
+    ##   the canonical `result = Dst(src.Base)` shape would false-fire
+    ##   CFG-001 because the body never named the sink param textually.
+    ##   The round-7 `extractTrackedLocal` improvements unwrap `nnkDotExpr`
+    ##   (`src.Base`) recursively, and `applyCallTransitions`'
+    ##   conversion-consume path (`isStateTypeName(callName)`) consumes
+    ##   every tracked local in the conversion's subtree — so the canonical
+    ##   shape already drops the sink param from tracking before exit-edge
+    ##   validation. The earlier skip was over-conservative: a sink-T
+    ##   transition body that `discard`s the sink param without consuming
+    ##   it silently passed. The lookup path uses only `paramIndex` +
+    ##   `stateType` and therefore IGNORES `isSink`, so the round-9
+    ##   disambiguation goal is preserved.
     name*: string
     stateType*: string
     graphName*: string
@@ -1309,6 +1315,35 @@ proc reconcileBranches*(
     if absentBranches > 0 and anyPresentNonTerminal:
       # NEW (Finding #2): inconsistent consumption — some branches reached
       # terminal (absent), others left the local non-terminal.
+      #
+      # Round-14 (Gemini r13 MEDIUM): destructor short-circuit. When every
+      # present-non-terminal branch's instance of the local has a
+      # registered `{.destructorTransition.}`, the non-consume branch's
+      # tail is bridged by Nim's injected `=destroy` at scope-exit —
+      # exactly the same way the branch-introduced-local path below
+      # (lines 1417-1422) accepts non-terminal branches via
+      # `hasDestructorFor`. Without this guard CFG-002 false-fires on
+      # patterns like `if cond: discard close(c) # else: c not consumed`
+      # where `c`'s type has a registered destructor. Check each
+      # present-non-terminal branch's actual local (carrying its
+      # post-branch state + attachedTypeName) so the destructor lookup
+      # keys on the in-scope state, mirroring the sibling pattern below.
+      # If every non-terminal instance is destructor-covered, drop the
+      # local from the merged live-set just as if every branch had
+      # consumed it; otherwise emit CFG-002.
+      var allCovered = true
+      for b in effective:
+        let idx = findLocalInnermost(b, el.name)
+        if idx < 0:
+          continue
+        let bl = b.locals[idx]
+        if isTerminalForGraph(bl.stateType, bl.graph):
+          continue
+        if not hasDestructorFor(bl, destructorTypes):
+          allCovered = false
+          break
+      if allCovered:
+        continue
       let stateList = presentStates.join(", ")
       error(
         "Typestate-bearing local '" & el.name &
@@ -1672,13 +1707,7 @@ proc walkCfg(
           # consult that key first so `discard` of an attached local
           # whose destructor is registered under its holder type is
           # correctly permitted. Parallel to `hasDestructorFor`'s
-          # path-(b) handling, kept inline because this site already
-          # had a bespoke direct-table lookup that hasDestructorFor's
-          # signature (which takes a LocalTypestate) cannot be threaded
-          # through without restructuring the call (`exprStateName` here
-          # is the post-walk state, not necessarily what
-          # `result.locals[localIdx]` currently holds — they may have
-          # diverged when the operand walk consumed the local).
+          # path-(b) handling.
           #
           # Round-9 Finding #2: fall back to the PRE-WALK attached-type
           # capture when the operand walk consumed the local
@@ -1689,19 +1718,33 @@ proc walkCfg(
           # fell back to "" and the destructor lookup missed under the
           # OBJECT type name. Threading `preWalkAttachedTypeName` here
           # mirrors the pre-walk `exprStateName` recovery path above.
+          #
+          # Round-14 (Gemini r13 MEDIUM): de-duplicate destructor lookup.
+          # The bespoke direct-table check was a verbatim restatement of
+          # `hasDestructorFor`'s body — every change to the canonical
+          # lookup (attached-first ordering, graph-name match) had to
+          # be mirrored here by hand. Construct a representative
+          # `LocalTypestate` from the post-walk `exprStateName` (which
+          # may differ from the live-set state when the operand walk
+          # advanced it) and the recovered `attachedKey`, then delegate
+          # to `hasDestructorFor`. The post-walk state divergence the
+          # pre-round-14 comment cited is handled by passing
+          # `exprStateName` directly into the temp `LocalTypestate`'s
+          # `stateType` field — the helper keys on that value, not on
+          # whatever the live-set currently holds.
           let attachedKey =
             if localIdx >= 0:
               result.locals[localIdx].attachedTypeName
             else:
               preWalkAttachedTypeName
-          let hasDestructor =
-            (
-              attachedKey.len > 0 and attachedKey in destructorTypes and
-              destructorTypes[attachedKey].name == graph.name
-            ) or (
-              exprStateName in destructorTypes and
-              destructorTypes[exprStateName].name == graph.name
-            )
+          let destructorProbe = LocalTypestate(
+            name: "",
+            stateType: exprStateName,
+            graph: graph,
+            declaredAt: node.lineInfoObj,
+            attachedTypeName: attachedKey,
+          )
+          let hasDestructor = hasDestructorFor(destructorProbe, destructorTypes)
           if not isTerminal and not hasDestructor:
             let terminalList = graph.terminalStates.join(", ")
             error(
@@ -1946,16 +1989,25 @@ proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
     # so the analyzer's terminal / destructor checks key off the actual
     # `TypestateGraph` value (matching how body-introduced locals work).
     #
-    # Round-9 Finding #1: `typestatedParams` now ALSO captures `sink T`
-    # params (for the source-state-aware overload lookup at trailing
-    # positions in call sites). Skip `isSink=true` entries at the
-    # pre-population step: sink ownership transfers in and the value
-    # dies with the proc frame regardless of body-side textual
-    # consumption — pre-populating sink params would false-fire CFG-001
-    # in every canonical `result = Dst(src.Base)` transition body.
+    # Round-14 reversal of the round-9 skip. Round-9 originally skipped
+    # `isSink=true` entries at pre-population on the theory that the
+    # canonical `proc tx(s: sink Src): Dst; result = Dst(s.Base)` shape
+    # never names `s` textually and would false-fire CFG-001. Round-7's
+    # unified `extractTrackedLocal` (which unwraps `nnkDotExpr`
+    # recursively) combined with `applyCallTransitions`'
+    # conversion-consume path (`isStateTypeName(callName)` calling
+    # `consumeLocalsInSubtree`) already drops the sink param from
+    # tracking when the body produces its result via the canonical
+    # conversion. The skip was therefore over-conservative: a sink-T
+    # transition proc that fails to consume its sink param (e.g.,
+    # `result = Dst(Connection())` with no reference to `s`) silently
+    # passed the analyzer. Tracking sink params symmetrically with
+    # `var T` params closes that gap; canonical conversion bodies still
+    # verify cleanly because conversion-consume drops the sink param
+    # before exit-edge validation runs. Sink params with registered
+    # `{.destructorTransition.}` types remain accepted at exit via the
+    # destructor short-circuit, same as `var T` params.
     for tp in procInfo.typestatedParams:
-      if tp.isSink:
-        continue
       if tp.graphName notin typestateRegistry:
         continue
       let graph = typestateRegistry[tp.graphName]

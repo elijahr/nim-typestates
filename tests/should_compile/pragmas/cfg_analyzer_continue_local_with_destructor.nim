@@ -10,6 +10,13 @@
 ## a destructor that bridges to terminal. This fixture exercises the
 ## destructor-accept path of the continue handler added in round 11,
 ## paralleling cfg_analyzer_branch_local_with_destructor.
+##
+## Round-14 (Gemini r13 HIGH): the sink-param pre-population skip
+## was reversed; `g: sink Latch` is tracked at the continue edge.
+## A `=destroy(var Latch) {.destructorTransition.}` scaffold accepts
+## the continue edge via the destructor short-circuit; the fixture's
+## focus on the destructor-backed `aux: Live` body-local stays
+## intact.
 import ../../../src/typestates
 
 type
@@ -53,6 +60,12 @@ typestate Hatch:
     Locked
   transitions:
     Latch -> Locked
+
+proc `=destroy`(h: var Latch) {.destructorTransition.} =
+  ## Round-14 scaffold: bridges Latch -> Locked at scope-exit so the
+  ## round-14-tracked sink param `g` is accepted at the continue exit
+  ## edge.
+  discard
 
 proc cycle(g: sink Latch, skip: bool): Locked {.transition.} =
   ## while-body declares `aux: Live` (non-terminal but destructor-backed).

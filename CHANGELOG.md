@@ -78,6 +78,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `runCfgAnalyzer` pre-populates sink-typed
+  typestate-bearing params symmetrically with `var T` params.**
+  Round-14 (Gemini r13 HIGH) reversed the round-9 skip
+  (`if tp.isSink: continue`) on the live-set pre-population loop.
+  The skip was added on the theory that the canonical
+  `proc tx(s: sink Src): Dst; result = Dst(s.Base)` shape would
+  false-fire CFG-001 because the body never named the sink param
+  textually. Round-7's unified `extractTrackedLocal` already unwraps
+  `nnkDotExpr` recursively, and `applyCallTransitions`'
+  conversion-consume path (`isStateTypeName(callName)` calling
+  `consumeLocalsInSubtree`) drops every tracked local in the
+  conversion subtree — so the canonical shape consumes the sink
+  param before the fall-through exit edge runs. The skip was
+  over-conservative: a sink-T transition body that constructs
+  `result` from a fresh value (e.g.,
+  `result = Closed(File(h: 0))`) silently passed the analyzer.
+  Round-14 tracks sink params symmetrically with `var T` params at
+  pre-population; canonical conversion bodies still verify cleanly
+  because conversion-consume drops the sink param at the asgn site;
+  sink params whose type carries a registered
+  `{.destructorTransition.}` remain accepted at exit via the
+  destructor short-circuit in `validateExitEdge`. New fixtures
+  `cfg_analyzer_sink_param_discarded_in_body` and
+  `cfg_analyzer_sink_param_non_terminal_early_return` lock in the
+  positive (CFG-001 fires) path; `cfg_analyzer_sink_param_canonical_consumption`
+  and `cfg_analyzer_sink_param_destructor_coverage` lock in the
+  negative (clean) path. The round-9 sink-overload fixtures
+  (`cfg_analyzer_overloaded_sink_transition_var_init`,
+  `cfg_analyzer_overloaded_sink_transition_asgn`,
+  `cfg_analyzer_tracks_sink_consume`,
+  `cfg_analyzer_sink_wrong_state`) continue to verify cleanly
+  without re-introducing destructor-coverage workarounds, confirming
+  conversion-consume covers every canonical-shape case. No
+  known-limitation language.
+- **CFG analyzer: branch reconciliation accepts non-consume tail
+  when destructor covers the entry-set local.** Round-14 (Gemini
+  r13 MEDIUM) closed a parallel destructor-aware gap at the
+  consume-side reconciliation site in `reconcileBranches`. When an
+  entry-set typestate-bearing local was consumed in one branch and
+  left non-terminal in another, the analyzer emitted CFG-002
+  ("inconsistent state across branches") without consulting
+  `hasDestructorFor`. The branch-introduced-local path below
+  (verify.nim lines 1417-1422) already short-circuited via the
+  destructor; the consume-side reconciliation was the parallel gap.
+  Round-14 mirrors that pattern: for each present-non-terminal
+  branch instance, consult `hasDestructorFor` against the
+  in-scope `LocalTypestate`. If every non-terminal instance is
+  destructor-covered, drop the local from the merged live-set as
+  if every branch had consumed it; otherwise emit CFG-002. The
+  destructor probe keys on each branch's actual `stateType` +
+  `attachedTypeName`, so the lookup remains correct even when a
+  branch advanced the local before going out of scope. New fixtures
+  `cfg_analyzer_branch_consume_else_destructor` (clean),
+  `cfg_analyzer_branch_consume_else_no_destructor` (CFG-002 still
+  fires when no destructor is registered), and
+  `cfg_analyzer_branch_both_consume` (clean baseline) lock in the
+  narrow destructor-only relaxation.
+- **CFG analyzer: destructor lookup de-duplicated at the
+  `discard` non-terminal validation site.** Round-14 (Gemini r13
+  MEDIUM) removed a bespoke direct-table destructor check in the
+  `nnkDiscardStmt` handler that was a verbatim restatement of
+  `hasDestructorFor`'s body (attached-type-first, then state-type,
+  both gated on graph-name match). Every change to the canonical
+  lookup had to be mirrored at the bespoke site by hand. The
+  round-14 refactor constructs a representative `LocalTypestate`
+  from the post-walk `exprStateName` and the recovered
+  `attachedKey` (which already handles the round-9 pre-walk
+  fall-back when intrinsic-consume drops the local) and delegates
+  to `hasDestructorFor`. The post-walk state divergence the
+  pre-round-14 comment cited is handled by passing `exprStateName`
+  directly into the temp probe's `stateType` field — the helper
+  keys on that value, not on whatever the live-set currently holds.
+  Behaviour-preserving; existing fixtures continue to verify
+  cleanly.
 - **CFG analyzer: `extractCalleeName` recognizes module-qualified
   generic call shapes.** Round-13 (Momus r3 BOT-C2) surfaced a
   callee-recognition gap in the `nnkBracketExpr` branch of
