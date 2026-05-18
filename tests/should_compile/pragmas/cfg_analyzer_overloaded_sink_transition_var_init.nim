@@ -23,6 +23,16 @@
 ## source-state-aware overload lookup uses ALL typestate-bearing param
 ## entries and correctly disambiguates by the trailing-param source
 ## state.
+##
+## Round-12 (Gemini r11 finding #1) closed the orthogonal
+## multi-typestate-param consumption gap in `applyCallTransitions`:
+## per-arg consumption now iterates the matched transition's
+## `typestatedParams` and consumes every sink-typed arg at the call
+## site (not just the first-position match). Stage1 (`helper`) is
+## consumed directly by combine's call-site loop, so the round-9
+## `=destroy(x: var Stage1) {.destructorTransition.}` destructor that
+## bridged `helper` to terminal at fall-through is no longer needed
+## and was removed from this fixture as part of the round-12 patch.
 import ../../../src/typestates
 
 type
@@ -56,17 +66,6 @@ typestate Slot:
     Stage2 -> Closed2
     Mid1 -> Closed1
     Mid2 -> Closed2
-
-proc `=destroy`(x: var Stage1) {.destructorTransition.} =
-  ## Destructor covers `helper: var Stage1` at fall-through. Stage1 is
-  ## not consumed by `combine`'s call-site per-arg loop (the per-arg
-  ## consumption keys on the first-param transition match; trailing
-  ## sink params are not consumed by that path) — orthogonal to the
-  ## round-9 OVERLOAD LOOKUP fix this fixture targets. The destructor
-  ## bridges `helper` to terminal at fall-through so the test isolates
-  ## the overload-lookup behavior without coupling to trailing-arg
-  ## consumption.
-  discard
 
 proc combine(a: sink Open, b: sink Stage1): Mid1 {.transition.} =
   ## First overload: (Open, Stage1) -> Mid1. The TRAILING param's

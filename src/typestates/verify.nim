@@ -236,8 +236,16 @@ proc lookupTypestateForType*(typeName: string): Option[TypestateGraph] {.compile
 
 proc extractTypeNameAst(node: NimNode): string {.compileTime.} =
   ## Extract a stable type-name string from an IdentDefs type slot.
-  ## Handles `T`, `T[U, V]`, `var T`, `ref T`, `ptr T`, and qualified
-  ## `module.T`. Returns the empty string if no name can be recovered.
+  ## Handles `T`, `T[U, V]`, `var T`, and qualified `module.T`. Returns
+  ## the empty string if no name can be recovered.
+  ##
+  ## Round-12 Finding #2: the `nnkRefTy` / `nnkPtrTy` peel branches were
+  ## removed as dead defense-in-depth. The analyzer does not model heap
+  ## aliasing (round-9 param-kind audit) and `extractTypestatedParams`
+  ## already excludes `ref T` / `ptr T` parameters from the per-proc
+  ## `typestatedParams` seq at registration time, so this helper is never
+  ## invoked on a ref/ptr type slot. Peeling the wrappers here masked
+  ## potential bugs in upstream filtering rather than catching them.
   if node.isNil or node.kind == nnkEmpty:
     return ""
   case node.kind
@@ -247,7 +255,7 @@ proc extractTypeNameAst(node: NimNode): string {.compileTime.} =
     if node.len >= 1:
       return extractTypeNameAst(node[0])
     return ""
-  of nnkVarTy, nnkRefTy, nnkPtrTy:
+  of nnkVarTy:
     if node.len >= 1:
       return extractTypeNameAst(node[0])
     return ""
@@ -353,44 +361,6 @@ proc extractCalleeName*(call: NimNode): string {.compileTime.} =
   else:
     return ""
 
-proc findRegisteredTransitionForArg*(
-    callName: string, argStateType: string, argGraphName: string
-): Option[RegisteredProc] {.compileTime.} =
-  ## Look up a registered `pkTransition` or `pkDestructorTransition` proc
-  ## by name whose `sourceState` (base name) matches `argStateType` and
-  ## whose typestate matches the local's owning graph. Returns `none` if
-  ## no overload matches.
-  ##
-  ## Handles the union-source convention: a registered proc with empty
-  ## `sourceState` covers multiple source states; the union case is not
-  ## resolved here (the analyzer treats it as a non-match for per-arg
-  ## advancement, since the dst is the same for the union but the analyzer
-  ## has no per-source information). Single-source overloads are the
-  ## common shape and are what these fixtures exercise.
-  ##
-  ## Iterates reverse so the most recently registered overload wins
-  ## under any duplicate registration — defensive consistency with
-  ## innermost-first shadowing.
-  for i in countdown(registeredProcs.len - 1, 0):
-    let p = registeredProcs[i]
-    if p.kind notin {pkTransition, pkDestructorTransition}:
-      continue
-    if p.name != callName:
-      continue
-    if p.sourceState.len == 0:
-      # Union-source proc — without explicit per-source info we cannot
-      # decide which destination this call lands on. Skip.
-      continue
-    if extractBaseName(p.sourceState) != argStateType:
-      continue
-    let graphOpt = findTypestateForState(p.sourceState)
-    if graphOpt.isNone:
-      continue
-    if graphOpt.get.name != argGraphName:
-      continue
-    return some(p)
-  return none(RegisteredProc)
-
 proc findTransitionByCalleeAndArgStates*(
     callee: string, argStates: seq[Option[string]]
 ): Option[RegisteredProc] {.compileTime.} =
@@ -416,9 +386,8 @@ proc findTransitionByCalleeAndArgStates*(
   ## conservative behavior they had before this helper existed.
   ##
   ## Iterates reverse so the most recently registered overload wins under
-  ## any duplicate registration — same precedence as
-  ## `findRegisteredTransitionForArg` and the innermost-first shadowing
-  ## convention used elsewhere in the analyzer.
+  ## any duplicate registration — same precedence as the innermost-first
+  ## shadowing convention used elsewhere in the analyzer.
   ##
   ## Returns `none(RegisteredProc)` when zero registered procs match;
   ## the caller should treat that as "no LHS binding" (conservative drop).
@@ -941,7 +910,53 @@ proc applyCallTransitions*(state: var LiveState, call: NimNode) {.compileTime.} 
       if idx >= 0:
         state.locals.delete(idx)
     return
-  for arg in argNodes:
+  # Round-12 Finding #1 (multi-typestate-param consumption gap): resolve
+  # the registered transition ONCE against the full call-site arg-state
+  # vector, then apply per-arg effects across EVERY typestate-bearing
+  # parameter position in the matched transition's `typestatedParams`.
+  #
+  # Pre-round-12 the per-arg loop called `findRegisteredTransitionForArg`
+  # for each argument independently: it keyed on (callName, argStateType)
+  # and returned the first transition whose first-param source-state
+  # matched. For a proc with multiple typestate-bearing params (e.g.
+  # `proc combine(a: sink T1, b: sink T2)`) the loop applied the
+  # transition's effects only to the FIRST typestate-bearing arg whose
+  # state matched; trailing typestate-bearing args silently fell through
+  # the name-lookup mismatch (their `argStateType` was a different state
+  # name than the transition's `sourceState`) and were not consumed.
+  # The round-9 sink-overload fixtures workarounded this via destructor
+  # coverage on the trailing-param state; Gemini round-11 flagged it as
+  # a ship-blocker.
+  #
+  # The fix composes with the existing `findTransitionByCalleeAndArgStates`
+  # helper (round-4 r5 r9) which already considers the full arg-state
+  # vector and the matched transition's full `typestatedParams` seq for
+  # disambiguation. Each entry in `typestatedParams` carries the param's
+  # `paramIndex` (0-based formal-param position, aligned with the
+  # `argNodes` seq above) and `isSink` flag (sink-typed → consume on
+  # call). The dispatch table per matched param:
+  #
+  # - `tp.isSink` (or `tx.kind == pkDestructorTransition`, whose `var T`
+  #   formal is semantically a sink at the analyzer level): consume the
+  #   call-site arg local (drop from tracking). Symmetric across all
+  #   typestate-bearing param positions.
+  # - Non-consuming + `paramIndex == 0`: advance the local's tracked
+  #   state to the registered destination (the LHS return type). Mirrors
+  #   pre-round-12 behavior for the canonical `var T` first-param shape.
+  # - Non-consuming + `paramIndex != 0`: structurally underspecified —
+  #   the registration captures one return type (`destStates[0]`, bound
+  #   at the LHS by `tryBindLocalFromCallInit`) but no per-trailing-param
+  #   destination. Treat as terminal-equivalent and drop, mirroring the
+  #   existing `destStates.len > 1` branching-destination drop.
+  let argStates = buildArgStatesFromCall(state, call)
+  let txOpt = findTransitionByCalleeAndArgStates(callName, argStates)
+  if txOpt.isNone:
+    return
+  let tx = txOpt.get
+  for tp in tx.typestatedParams:
+    if tp.paramIndex >= argNodes.len:
+      continue
+    let arg = argNodes[tp.paramIndex]
     # Round-3 Finding #2 (verify.nim:437): unified arg resolution via
     # `extractTrackedLocal` handles `nnkIdent`/`nnkSym` direct, `nnkDotExpr`
     # receivers (`f.Base`), `nnkCommand` and `nnkCall` wrappers around
@@ -951,32 +966,27 @@ proc applyCallTransitions*(state: var LiveState, call: NimNode) {.compileTime.} 
     let argIdentOpt = extractTrackedLocal(arg)
     if argIdentOpt.isNone:
       continue
-    let argIdent = argIdentOpt.get
-    let localIdx = findLocalInnermost(state, argIdent)
+    let localIdx = findLocalInnermost(state, argIdentOpt.get)
     if localIdx < 0:
       continue
     let local = state.locals[localIdx]
-    let txOpt =
-      findRegisteredTransitionForArg(callName, local.stateType, local.graph.name)
-    if txOpt.isNone:
-      continue
-    let tx = txOpt.get
-    let consumes = firstParamConsumes(tx)
-    # Sink/destructor-consuming call: the argument local is no longer
-    # accessible after the call. The "new state" (the call's destination)
-    # is the call's RETURN value, not a mutation of the argument — so
-    # drop the argument local from tracking regardless of dst-terminal.
+    # Consume semantics: sink-typed param OR destructorTransition kind
+    # (destructor's `var T` formal param is semantically a sink at the
+    # analyzer level).
+    let consumes = tp.isSink or tx.kind == pkDestructorTransition
     if consumes:
       state.locals.delete(localIdx)
       continue
-    # Non-consuming call (var T / value T with consumeOnTransition=false):
-    # the local persists at the call site; advance its tracked state in
-    # place. Branching destinations cannot be resolved per-call without
-    # a wrapping `match` statement; treat as terminal-equivalent and drop.
-    if tx.destStates.len == 0:
+    # Non-consuming trailing typestate param: structurally underspecified
+    # (no per-param dst in the registration). Drop conservatively.
+    if tp.paramIndex != 0:
       state.locals.delete(localIdx)
       continue
-    if tx.destStates.len > 1:
+    # Non-consuming first-position param (var T / value T with
+    # consumeOnTransition=false): advance state in place to the registered
+    # destination. Branching destinations cannot be resolved per-call
+    # without a wrapping `match`; treat as terminal-equivalent and drop.
+    if tx.destStates.len != 1:
       state.locals.delete(localIdx)
       continue
     let dstBase = extractBaseName(tx.destStates[0])

@@ -14,6 +14,16 @@
 ##
 ## After round-9 the asgn rebinds `f` as Mid1 (correct), so the
 ## downstream `close(f)` consumes `f` to terminal Closed1 cleanly.
+##
+## Round-12 (Gemini r11 finding #1) closed the orthogonal
+## multi-typestate-param consumption gap in `applyCallTransitions`:
+## per-arg consumption now iterates the matched transition's
+## `typestatedParams` and consumes every sink-typed trailing arg.
+## Stage1 (`helper`) is consumed by combine's call-site loop directly,
+## so the round-9 `=destroy(x: var Stage1) {.destructorTransition.}`
+## destructor that bridged `helper` to terminal at fall-through is no
+## longer needed and was removed from this fixture as part of the
+## round-12 patch.
 import ../../../src/typestates
 
 type
@@ -47,13 +57,6 @@ typestate Slot:
     Stage2 -> Closed2
     Mid1 -> Closed1
     Mid2 -> Closed2
-
-proc `=destroy`(x: var Stage1) {.destructorTransition.} =
-  ## Destructor covers `helper: var Stage1` at fall-through. Stage1 is
-  ## not consumed by `combine`'s call-site per-arg loop — see the
-  ## sister fixture cfg_analyzer_overloaded_sink_transition_var_init
-  ## for the rationale.
-  discard
 
 proc combine(a: sink Open, b: sink Stage1): Mid1 {.transition.} =
   ## First overload: (Open, Stage1) -> Mid1.

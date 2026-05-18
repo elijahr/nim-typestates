@@ -78,6 +78,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `applyCallTransitions` applies per-arg state
+  transitions across ALL typestate-bearing parameter positions at a
+  call site.** Round-12 (Gemini r11) surfaced a multi-typestate-param
+  consumption gap: the per-arg loop in `applyCallTransitions` looked
+  up a transition independently for each call-site argument via
+  `findRegisteredTransitionForArg`, which keyed on
+  `(callName, argStateType)` against the registered proc's first-param
+  source-state. For a registered transition with MULTIPLE typestate-
+  bearing parameters (e.g. `proc combine(a: sink T1, b: sink T2)`),
+  the per-arg lookup for `a` matched (its `argStateType` equalled the
+  proc's first-param `sourceState`) and consumed `a`, but the per-arg
+  lookup for `b` returned `none` (its `argStateType` did not equal the
+  proc's first-param `sourceState`) — `b` stayed in the live-set and
+  false-fired CFG-001 at fall-through. The round-9 sink-overload
+  fixtures worked around this orthogonal gap via destructor coverage
+  on the trailing-param state; Gemini r11 flagged it as a real
+  ship-blocker. The fix composes with the existing
+  `findTransitionByCalleeAndArgStates` helper (rounds 4/5/9), which
+  already considers the full call-site arg-state vector and the
+  matched transition's full `typestatedParams` seq. The refactored
+  per-arg loop resolves the full transition once, then iterates the
+  matched transition's `typestatedParams`, maps each entry's
+  `paramIndex` back to the call-site arg position, and applies
+  per-arg consumption: sink-typed (or `pkDestructorTransition`-kind)
+  params drop the tracked local; non-consuming first-position params
+  advance in place to the registered destination; non-consuming
+  trailing typestate params drop conservatively (the registration
+  captures one return type but no per-trailing-param destination, so
+  their post-call state is structurally underspecified). The now-dead
+  `findRegisteredTransitionForArg` helper was retired. The round-9
+  sink-overload fixtures (`cfg_analyzer_overloaded_sink_transition_var_init`
+  and `cfg_analyzer_overloaded_sink_transition_asgn`) had their
+  `{.destructorTransition.}` workarounds removed and continue to
+  verify cleanly under the round-12 fix, confirming the underlying
+  gap is genuinely closed. New fixtures cover the negative-regression
+  scenarios:
+  `cfg_analyzer_multi_typestate_param_consumption` (basic two-sink
+  multi-typestate-param consumption, would fail pre-round-12),
+  `cfg_analyzer_multi_typestate_param_overloaded` (composition with
+  source-state-aware overload disambiguation across two registered
+  overloads sharing the same first-param source-state), and the
+  should_fail fixture
+  `cfg_analyzer_multi_typestate_param_result_non_terminal` (locks in
+  that the multi-typestate consumption does not over-consume — a
+  non-terminal LHS return from a multi-param transition still fires
+  CFG-001 at fall-through). No known-limitation language.
+- **CFG analyzer: `extractTypeNameAst` no longer peels `nnkRefTy` /
+  `nnkPtrTy` wrappers.** Round-12 (Gemini r11) flagged the peel as
+  dead defense-in-depth. The analyzer does not model heap aliasing
+  (documented in the round-9 param-kind audit), and
+  `extractTypestatedParams` already excludes `ref T` / `ptr T`
+  parameters from the per-proc `typestatedParams` seq at registration
+  time, so `extractTypeNameAst` is never invoked on a ref/ptr type
+  slot in practice. Peeling the wrappers here masked potential bugs
+  in upstream filtering rather than catching them; removing the
+  branches keeps the helper's contract aligned with the audited param-
+  kind filter. Behavior unchanged; surface narrowed. No
+  known-limitation language.
 - **CFG analyzer: continue handler validates exit edges.** Round-11
   surfaced a parallel gap to the existing break-handler validation:
   the `continue` handler in `walkCfg` dropped non-terminal body-locals
