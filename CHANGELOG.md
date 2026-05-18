@@ -78,6 +78,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: continue handler validates exit edges.** Round-11
+  surfaced a parallel gap to the existing break-handler validation:
+  the `continue` handler in `walkCfg` dropped non-terminal body-locals
+  from tracking without first calling `validateExitEdge`, so a
+  typestate-bearing local introduced inside a loop body that escaped
+  the current iteration via `continue` (without reaching a terminal
+  state and without a registered `{.destructorTransition.}`) silently
+  slipped past the analyzer. The break handler already validated the
+  symmetric case correctly; round-11 mirrors the same
+  `validateExitEdge` call into the continue handler, using the
+  edge-kind label `"continue"` (parallel to the existing `"break"` /
+  `"return"` / `"raise"` / `"fall-through"` labels) so CFG-001
+  diagnostics report the exit edge accurately. The terminal-accept
+  and destructor-accept short-circuits inside `validateExitEdge` are
+  reused unchanged, so loops whose body-locals reach terminal before
+  `continue` or whose types carry a `{.destructorTransition.}`
+  continue to verify cleanly. New fixtures cover the three exit-edge
+  shapes:
+  `cfg_analyzer_continue_drops_non_terminal_local` (rejects),
+  `cfg_analyzer_continue_terminal_local` (terminal-accept), and
+  `cfg_analyzer_continue_local_with_destructor` (destructor-accept).
+  Closes the audit-incompleteness gap between `break` and `continue`
+  exit-edge validation. No known-limitation language.
+- **CFG analyzer: dead `destructorTypes` parameter removed from
+  `lookupTypestateForType`.** Round-11 cleanup: the
+  `lookupTypestateForType` proc accepted a `destructorTypes:
+  Table[string, TypestateGraph]` parameter that was referenced in the
+  docstring but never read by the proc body — graph resolution
+  routes solely through `findTypestateForState` and
+  `findAttachmentForType`, both of which key on the type name alone.
+  The destructor table is consulted at the actual exit-edge check
+  (`validateExitEdge` -> `hasDestructorFor`) and never during graph
+  resolution. Removed the parameter from the signature and updated
+  the single call site in `tryBindLocalFromCallInit`'s var/let-init
+  path. Same cleanup pattern as round-8's `applyCallTransitions`
+  `destructorTypes` removal; behavior unchanged, surface narrowed.
 - **CFG analyzer: `extractTypestatedParams` captures `sink T` params
   for source-state-aware overload disambiguation at trailing positions.**
   Round-9 surfaced a parallel gap to the round-5 source-state-aware

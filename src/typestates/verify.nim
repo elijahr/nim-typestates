@@ -204,9 +204,7 @@ proc buildDestructorTypes(): Table[string, TypestateGraph] {.compileTime.} =
         extractBaseName(procInfo.sourceState)
     result[key] = graphOpt.get
 
-proc lookupTypestateForType*(
-    typeName: string, destructorTypes: Table[string, TypestateGraph]
-): Option[TypestateGraph] {.compileTime.} =
+proc lookupTypestateForType*(typeName: string): Option[TypestateGraph] {.compileTime.} =
   ## Resolve a declared-type name to its typestate graph. Used by the
   ## analyzer when binding a local (e.g., `var x: Alive` -> Alive's graph).
   ##
@@ -221,10 +219,12 @@ proc lookupTypestateForType*(
   ##    scope: PinnedScope[...]` where PinnedScope is attached). Uses
   ##    `findAttachmentForType`.
   ##
-  ## The `destructorTypes` table is consulted as a hint but not the only
-  ## source — a local of a typestate state without a registered destructor
-  ## still binds and is tracked; the analyzer's exit-edge check rejects it
-  ## if it never reaches terminal AND has no destructor.
+  ## Destructor recognition is NOT consulted here — a local of a typestate
+  ## state without a registered destructor still binds and is tracked; the
+  ## analyzer's exit-edge check (`validateExitEdge`) rejects it if it never
+  ## reaches terminal AND has no destructor. The destructor table is
+  ## therefore irrelevant to graph resolution and is not threaded into this
+  ## proc.
   let base = extractBaseName(typeName)
   let direct = findTypestateForState(base)
   if direct.isSome:
@@ -1112,7 +1112,7 @@ proc bindLocalsFromIdentDefs(
           state, identDefs[i], initSlot, destructorTypes, argStates
         )
     return
-  let graphOpt = lookupTypestateForType(typeName, destructorTypes)
+  let graphOpt = lookupTypestateForType(typeName)
   if graphOpt.isNone:
     # Type is not a registered typestate state. Still apply call-init
     # transitions so any sink-consumed argument is dropped from tracking
@@ -1714,12 +1714,18 @@ proc walkCfg(
     validateExitEdge(result, node, "break", destructorTypes)
     result = unreachableState()
   of nnkContinueStmt:
-    # continue: jumps back to the loop header, NOT out of the loop. Locals
-    # introduced inside the loop body remain in scope only for the current
-    # iteration; the loop reconcile handles the next-iteration / fall-out
-    # join. Treat as straight-line exit for the linear walk (statements
-    # after continue are dead) but do NOT validateExitEdge — continue is
-    # not a proc-level exit.
+    # §3.3 continue: jumps back to the loop header. Locals introduced
+    # inside the loop body that escape the current iteration via continue
+    # (rather than completing the body to a terminal state) must satisfy
+    # validateExitEdge at the continue point — the next iteration begins
+    # a fresh body scope, so any non-terminal body-local that reached
+    # continue would be silently destroyed by Nim with no destructor
+    # bridge and no analyzer-visible transition. The loop reconcile above
+    # only captures the body-end state, so a continue that bypasses the
+    # body's terminal-advancing path would otherwise escape detection
+    # (parallel to break). Validating here makes that exit edge explicit
+    # and closes the gap relative to the break handler.
+    validateExitEdge(result, node, "continue", destructorTypes)
     result = unreachableState()
   of nnkTryStmt:
     # §3.3 try/except/finally — pessimistic per the design algorithm.
