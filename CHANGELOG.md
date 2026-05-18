@@ -78,6 +78,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`extractTypeDeclName` handles the exported-generic AST shape and
+  three stale comment blocks cleaned up.** Round-15 (Gemini r14)
+  surfaced a defensive recognizer gap plus three documentation
+  blocks that no longer described the current implementation:
+    - `extractTypeDeclName` (pragmas.nim) accepted only `Ident`/`Sym`
+      at the head of an `nnkBracketExpr`. The natural Nim parse of
+      `type T*[G] = object` puts `nnkPostfix(*, T)` at the TypeDef
+      head (handled by the top-level Postfix-unwrap), so the
+      BracketExpr branch was not exercised in the primary path —
+      but any downstream macro that synthesizes a
+      `BracketExpr(Postfix(*, T), G)` shape would have hit the
+      fallback `head.repr` and returned a name with the stale `*`
+      export marker, causing §3.7 attachment-registry lookups to
+      miss. The round-15 patch peels a nested `nnkPostfix` inside
+      the BracketExpr branch, mirroring the top-level unwrap, so
+      both AST shapes collapse to the bare base name. New
+      load-bearing unit test `tests/textract_type_decl_name.nim`
+      asserts the four input shapes (`T`, `T*`, `T[G]`, `T*[G]`)
+      directly against hand-built TypeDef ASTs (analogous to the
+      round-13 `textract_callee_name.nim` pattern). New end-to-end
+      fixtures `tests/should_compile/pragmas/typestate_attachment_exported_type.nim`
+      and `typestate_attachment_exported_generic_type.nim` cover the
+      attachment-registry path through the natural Nim parse.
+    - Sink-param-tracking comment in `extractTypestatedParams`
+      (pragmas.nim:334) was updated to reflect round-14's symmetric
+      pre-population of `sink T` and `var T` params and the
+      conversion-consume path that keeps canonical conversion
+      bodies clean.
+    - DT-013 entry in the destructor-transition diagnostic catalog
+      (pragmas.nim:787) was updated from "deferred" to
+      "attached-object-param SrcState mismatch (two-arg only)" —
+      DT-013 has been implemented since the §3.7 attachment registry
+      landed (see pragmas.nim:916-923).
+    - §3.7 attachment-registry stub note in `destructorTransitionCore`'s
+      Phase 2 (pragmas.nim:860) was rewritten to describe the now-
+      functional registry path: `findAttachmentForType` returns real
+      bindings populated by `attachTypestateCore` when a per-typestate
+      attachment pragma fires on a type declaration.
 - **CFG analyzer: `runCfgAnalyzer` pre-populates sink-typed
   typestate-bearing params symmetrically with `var T` params.**
   Round-14 (Gemini r13 HIGH) reversed the round-9 skip

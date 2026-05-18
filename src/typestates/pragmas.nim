@@ -331,14 +331,15 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
   ## Recognised param-kind shapes:
   ## - `var T`: `nnkVarTy(T)`. `isSink=false`. Pre-populated AND used for
   ##   overload disambiguation.
-  ## - `sink T`: `nnkCommand(ident("sink"), T)`. `isSink=true`. Used for
-  ##   overload disambiguation only; the runCfgAnalyzer pre-population
-  ##   loop SKIPS `isSink=true` entries so transition bodies that
-  ##   construct `result` independently of the sink param continue to
-  ##   verify cleanly. The body's exit edge IS the consumption point for
-  ##   sink params under Nim's ownership model — pre-populating them would
-  ##   false-fire CFG-001 in every canonical `result = Dst(src.Base)`
-  ##   transition body.
+  ## - `sink T`: `nnkCommand(ident("sink"), T)`. `isSink=true`.
+  ##   Pre-populated AND used for overload disambiguation. Round-14
+  ##   reversed the round-9 skip on sink params; canonical conversion
+  ##   bodies (e.g. `result = Dst(s.Base)`) still verify cleanly
+  ##   because `applyCallTransitions`' conversion-consume path drops
+  ##   the sink param from tracking when the body produces its result
+  ##   via the canonical conversion. Symmetric tracking with `var T`
+  ##   closes the gap where a sink-T transition that never references
+  ##   its sink param silently passed the analyzer.
   ##
   ## Explicitly EXCLUDED param-kind shapes (no entry produced):
   ## - bare value `T` (e.g., `proc f(p: Open)`): no Nim modifier wrapper;
@@ -784,7 +785,7 @@ proc destructorTransitionCore(
   ## - DT-009: spec malformed (two-arg only)
   ## - DT-010: spec SrcState mismatch (two-arg only)
   ## - DT-011: spec DstState not terminal (two-arg only)
-  ## - DT-013: deferred to 3.1.b.4 (requires populated attachment registry)
+  ## - DT-013: attached-object-param SrcState mismatch (two-arg only)
   ##
   ## See: design-destructortransition-cfg-analyzer-20260516.md §3.1, §3.1.1
   result = destrDef
@@ -857,11 +858,12 @@ proc destructorTransitionCore(
   #   (a) state-typed param: param type IS a registered typestate state
   #   (b) attached-object param: param type is bound via §3.7 attachment
   #
-  # NOTE: The §3.7 attachment registry is populated by sub-phase 3.1.b.4.
-  # Until then `findAttachmentForType` always returns `none`, so path (b)
-  # always fails and DT-006 fires for attached-object-param destructors.
-  # This is intentional: the failure mode is honest (the attachment
-  # pragma doesn't exist yet) and the path itself is correctly wired.
+  # The §3.7 attachment registry is populated by `attachTypestateCore`
+  # (below) when a per-typestate attachment pragma fires on a type
+  # decl. `findAttachmentForType` returns real bindings as of 0.9.0;
+  # path (b) resolves the graph and source state from the attachment
+  # record. Path (a) is tried first so that state-typed params (the
+  # common case) short-circuit the registry lookup.
   var graph: TypestateGraph
   var sourceStateName: string
   var attachedObjectTypeNameOpt = none(string)
@@ -1033,7 +1035,7 @@ macro destructorTransition*(spec: untyped, destrDef: untyped): untyped =
   ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
   destructorTransitionCore(spec, destrDef)
 
-proc extractTypeDeclName(typeDef: NimNode): string {.compileTime.} =
+proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
   ## Extract the base type name from a `nnkTypeDef` node, stripping
   ## visibility postfix (`*`) and generic params (`[T]`).
   ##
@@ -1057,8 +1059,20 @@ proc extractTypeDeclName(typeDef: NimNode): string {.compileTime.} =
   of nnkIdent, nnkSym:
     return nameNode.strVal
   of nnkBracketExpr:
-    # `name[T]` — generic. Head should be Ident/Sym.
-    let head = nameNode[0]
+    # `name[T]` — generic. Head is typically Ident/Sym, but for a
+    # manually-built or unusual AST shape it may itself wrap an
+    # `nnkPostfix(*, Ident)` (the exported-generic form
+    # `BracketExpr(Postfix(*, T), G)`). Peel the Postfix first so the
+    # returned base name never carries a stale export marker. The
+    # natural Nim parse of `type T*[G] = object` puts `Postfix` at the
+    # TypeDef head (handled above on line 1053) rather than inside a
+    # BracketExpr, but this defensive peel keeps the proc robust
+    # against any caller that builds the BracketExpr-first shape and
+    # is the path exercised by `textract_type_decl_name`'s hand-built
+    # AST for the `T*[G]` case.
+    var head = nameNode[0]
+    if head.kind == nnkPostfix and head.len >= 2:
+      head = head[1]
     if head.kind in {nnkIdent, nnkSym}:
       return head.strVal
     else:
