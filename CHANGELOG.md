@@ -78,6 +78,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: §3.7 typestate-attachment threaded through the
+  destructor-lookup data model.** Round-6 surfaced a single coherent
+  integration gap: the §3.7 typestate-attachment pragma (introduced
+  earlier in 0.9.0) was never plumbed into the analyzer's
+  `LocalTypestate` / `TypestatedParam` data model. Destructors for
+  attached object types are registered against the OBJECT type name,
+  not the typestate state name, so the analyzer's
+  `stateType`-keyed destructor lookup silently missed every
+  `=destroy` declared with `{.destructorTransition.}` on an attached
+  holder type, false-firing CFG-001 at every exit edge for attached
+  locals and params that were correctly covered by a destructor.
+  Round-6 extends `TypestatedParam` and `LocalTypestate` with a new
+  `attachedTypeName: string` field (empty for state-typed locals and
+  params — path (a) — preserving the pre-round-6 behaviour exactly
+  for non-attached typestate machines). `hasDestructorFor` now keys
+  on `attachedTypeName` first when set and falls back to
+  `stateType`, with both paths still requiring the resolved
+  destructor's owning typestate graph to match the local's graph so
+  same-state-name collisions across distinct typestates do not
+  satisfy each other. `extractTypestatedParams` (pragmas.nim)
+  resolves the param's `stateType` to the attachment's
+  `initialState` (not the object type name, which is not itself a
+  registered state) and captures the object type name into
+  `attachedTypeName`. `bindLocalsFromIdentDefs` (var-init), the asgn
+  rebind path, the in-place advancement inside
+  `applyCallTransitions`, the discard-handler's destructor probe in
+  `walkCfg`, and the proc-entry pre-population from
+  `proc.typestatedParams` all propagate `attachedTypeName` through
+  every `LocalTypestate` construction site so the field survives
+  state advancement, rebind, and live-set pre-pop. A destructor-
+  lookup-key audit matrix (every callsite × {attached-with-
+  destructor, attached-without-destructor, non-attached-with-
+  destructor, non-attached-without-destructor}) confirmed the
+  state-typed fallback path remains intact for non-attached
+  typestate machines and no additional gaps surfaced. New fixtures
+  cover each finding's positive and negative regression: attached
+  local non-terminal at scope (CFG-001 fires using the
+  attachedTypeName-keyed lookup); attached local with
+  destructorTransition reaches terminal cleanly via the destructor
+  hit; attached param transitioned mid-body and consumed at exit
+  (live-set pre-pop preserves the field across transitions);
+  attached asgn-rebind regression (rebind keeps the field, so
+  destructor lookup still hits after the first transition); and a
+  mixed proc taking both attached and state-typed params confirming
+  the fallback path still hits non-attached destructors. No
+  known-limitation language.
 - **CFG analyzer: source-state-aware overload lookup correctly indexes
   through mixed typestate / non-typestate parameters.** Round-4
   introduced `findTransitionByCalleeAndArgStates` with a loop that

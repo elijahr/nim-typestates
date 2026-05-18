@@ -40,10 +40,21 @@ type
     ##   pre-round-5 the lookup iterated `argStates` and indexed into
     ##   `typestatedParams` with the same `j`, going out-of-bounds when a
     ##   proc mixed typestated and non-typestated params.
+    ## :var attachedTypeName: Base name of the original §3.7 attached object
+    ##   type when the param was declared with `var T` where `T` is bound
+    ##   to a typestate via the typestate-attachment pragma. Empty string
+    ##   for non-attached typestate machines (state-typed params — path
+    ##   (a)). Round-6 §3.7 ↔ analyzer integration: destructors for attached
+    ##   object types are registered against the OBJECT type name, not the
+    ##   typestate state name, so the analyzer's destructor lookup must key
+    ##   on this value when populated. Without it, destructor recognition
+    ##   silently misses path (b), producing false CFG-001 on attached
+    ##   locals that are correctly covered by a `{.destructorTransition.}`.
     name*: string
     stateType*: string
     graphName*: string
     paramIndex*: int
+    attachedTypeName*: string
 
   RegisteredProc* = object
     ## Information about a proc registered for verification.
@@ -117,10 +128,24 @@ type
     ##   analyzer recognizes transition-consuming calls
     ## :var graph: Owning typestate
     ## :var declaredAt: Source location of the binding (for diagnostics)
+    ## :var attachedTypeName: Base name of the original §3.7 attached object
+    ##   type, when this local was declared with the attached-object type
+    ##   (path (b)). Empty string for state-typed locals (path (a)) and for
+    ##   locals bound via call-init or assignment whose destination is a
+    ##   typestate state name. Round-6 §3.7 ↔ analyzer integration: keeps
+    ##   the original holder-type name available across state advancement
+    ##   so destructor lookup keys correctly on the object type (against
+    ##   which the `{.destructorTransition.}` is registered), not on the
+    ##   advanced typestate state. MUST be propagated through every
+    ##   LocalTypestate construction site — including asgn rebind and
+    ##   var-init binding-recovery — or destructor recognition silently
+    ##   regresses to the pre-round-6 broken behavior after the first
+    ##   transition.
     name*: string
     stateType*: string
     graph*: TypestateGraph
     declaredAt*: LineInfo
+    attachedTypeName*: string
 
   LiveState* = object
     ## Analyzer state at a program point. `reachable=false` after an
@@ -244,8 +269,43 @@ proc hasDestructorFor*(
     local: LocalTypestate, destructorTypes: Table[string, TypestateGraph]
 ): bool {.compileTime.} =
   ## Return `true` if a `{.destructorTransition.}` is registered for this
-  ## local's current declared state type AND keyed to the local's owning
-  ## typestate graph (path (a) — state-typed param).
+  ## local AND keyed to the local's owning typestate graph.
+  ##
+  ## Two lookup paths, in order:
+  ##
+  ## 1. **Attached-object path (b)**: when `attachedTypeName` is non-empty
+  ##    (the local was declared with a §3.7 attached object type),
+  ##    `=destroy(var ObjectType)` is registered against the OBJECT type
+  ##    name — NOT the typestate state name. Key the lookup on
+  ##    `attachedTypeName` first; an attached local that has advanced past
+  ##    its initial state still maps to the SAME destructor (Nim's
+  ##    `=destroy` fires for the holder, not the state).
+  ## 2. **State-typed path (a)**: when `attachedTypeName` is empty (the
+  ##    common case for typestate-machine locals like `var f: Open`), key
+  ##    on `stateType`. This is the pre-round-6 behavior; preserved intact
+  ##    so non-attached typestate machines continue to resolve their
+  ##    destructors identically.
+  ##
+  ## Both paths additionally require the resolved destructor's owning
+  ## typestate graph to match `local.graph.name`, so a destructor
+  ## registered against `var Open` in typestate `File` does not falsely
+  ## satisfy a local in a different typestate that happens to share the
+  ## state name `Open`.
+  ##
+  ## Round-6 §3.7 ↔ analyzer integration. Pre-fix `hasDestructorFor`
+  ## keyed only on `stateType`; attached locals advanced past their
+  ## initial state lost destructor recognition because the lookup key
+  ## (the advanced state name) did not match the destructor's
+  ## registration key (the object type name). This is finding #3 of the
+  ## round-6 Gemini re-review.
+  if local.attachedTypeName.len > 0:
+    if local.attachedTypeName in destructorTypes and
+        destructorTypes[local.attachedTypeName].name == local.graph.name:
+      return true
+    # Intentional fall-through: an attached local MAY also have a
+    # state-typed destructor registered for its current state under
+    # path (a). This is a rare hybrid case but harmless — the
+    # state-typed lookup below handles it.
   local.stateType in destructorTypes and
     destructorTypes[local.stateType].name == local.graph.name
 
@@ -888,11 +948,19 @@ proc applyCallTransitions*(
     if isTerminalForGraph(dstBase, local.graph):
       state.locals.delete(localIdx)
     else:
+      # Round-6 audit-matrix follow-up (parallel to the asgn rebind
+      # site): preserve `attachedTypeName` across an in-place transition
+      # advancement. The local's holder type does not change when the
+      # typestate state advances; the destructor stays registered
+      # against the SAME object type. Dropping the field here regresses
+      # destructor recognition on attached locals after the first
+      # non-consuming transition in a body.
       state.locals[localIdx] = LocalTypestate(
         name: local.name,
         stateType: dstBase,
         graph: local.graph,
         declaredAt: local.declaredAt,
+        attachedTypeName: local.attachedTypeName,
       )
 
 proc tryBindLocalFromCallInit*(
@@ -1018,7 +1086,25 @@ proc bindLocalsFromIdentDefs(
       applyCallTransitions(state, initSlot, destructorTypes)
     return
   let graph = graphOpt.get
-  let stateType = extractBaseName(typeName)
+  # Round-6 §3.7 ↔ analyzer integration: when the declared type is an
+  # attached object type (path (b)), `extractBaseName(typeName)` returns
+  # the OBJECT type name (e.g. `"PinnedScope"`), which is NOT a state of
+  # the typestate. Using it as `stateType` would (1) leave
+  # `isTerminalForGraph` always returning false (the object type is not in
+  # `graph.terminalStates`), and (2) make every call-driven advancement
+  # path miss the local because `applyCallTransitions` keys on the
+  # current state-type name being a registered state. Resolve to the
+  # attachment's initial state instead. State-typed locals (path (a)) keep
+  # their existing extractBaseName behavior — `attBase` is non-empty only
+  # when `findAttachmentForType` matched, which by construction excludes
+  # state names.
+  let typeBase = extractBaseName(typeName)
+  let attOpt = findAttachmentForType(typeBase)
+  var stateType = typeBase
+  var attachedTypeName = ""
+  if attOpt.isSome:
+    stateType = extractBaseName(attOpt.get.initialState)
+    attachedTypeName = typeBase
   # Apply transition effects from any RHS call before binding the LHS, so
   # tracked-arg locals are advanced/dropped in the right order.
   if initSlot.kind in {nnkCall, nnkCommand}:
@@ -1048,6 +1134,7 @@ proc bindLocalsFromIdentDefs(
       stateType: stateType,
       graph: graph,
       declaredAt: identDefs.lineInfoObj,
+      attachedTypeName: attachedTypeName,
     )
 
 proc validateExitEdge*(
@@ -1478,9 +1565,34 @@ proc walkCfg(
         if graphOpt.isSome:
           let graph = graphOpt.get
           let isTerminal = isTerminalForGraph(exprStateName, graph)
+          # Round-6 audit-matrix follow-up: the destructor lookup at this
+          # site originally keyed only on `exprStateName` (the typestate
+          # state name). For attached locals (§3.7) the destructor is
+          # registered against the OBJECT TYPE name, not the state. When
+          # the local we just resolved carries an `attachedTypeName`,
+          # consult that key first so `discard` of an attached local
+          # whose destructor is registered under its holder type is
+          # correctly permitted. Parallel to `hasDestructorFor`'s
+          # path-(b) handling, kept inline because this site already
+          # had a bespoke direct-table lookup that hasDestructorFor's
+          # signature (which takes a LocalTypestate) cannot be threaded
+          # through without restructuring the call (`exprStateName` here
+          # is the post-walk state, not necessarily what
+          # `result.locals[localIdx]` currently holds — they may have
+          # diverged when the operand walk consumed the local).
+          let attachedKey =
+            if localIdx >= 0:
+              result.locals[localIdx].attachedTypeName
+            else:
+              ""
           let hasDestructor =
-            exprStateName in destructorTypes and
-            destructorTypes[exprStateName].name == graph.name
+            (
+              attachedKey.len > 0 and attachedKey in destructorTypes and
+              destructorTypes[attachedKey].name == graph.name
+            ) or (
+              exprStateName in destructorTypes and
+              destructorTypes[exprStateName].name == graph.name
+            )
           if not isTerminal and not hasDestructor:
             let terminalList = graph.terminalStates.join(", ")
             error(
@@ -1618,20 +1730,38 @@ proc walkCfg(
                 if isTerminalForGraph(dstBase, graph):
                   result.locals.delete(lhsIdx)
                 else:
+                  # Round-6 §3.7 ↔ analyzer integration: preserve
+                  # attachedTypeName across rebind. The local's HOLDER
+                  # type does not change when the typestate state
+                  # advances — the destructor stays registered against
+                  # the SAME object type. Dropping `attachedTypeName`
+                  # here regresses destructor lookup after the first
+                  # transition (the lookup falls back to `dstBase`,
+                  # which is the typestate state name, not the object
+                  # name the destructor is registered against). This
+                  # is finding #5 of the round-6 Gemini re-review.
+                  let priorAttached = result.locals[lhsIdx].attachedTypeName
                   result.locals[lhsIdx] = LocalTypestate(
                     name: lhs.strVal,
                     stateType: dstBase,
                     graph: graph,
                     declaredAt: lhs.lineInfoObj,
+                    attachedTypeName: priorAttached,
                   )
               else:
                 # First binding of this name as a typestate-bearing local.
+                # No prior `attachedTypeName` to preserve here — the LHS
+                # is a fresh name introduced by this asgn. (Var-init's
+                # explicit-type-slot path is the only place attached
+                # bindings originate; call-init produces state-typed
+                # LHS bindings.)
                 if not isTerminalForGraph(dstBase, graph):
                   result.locals.add LocalTypestate(
                     name: lhs.strVal,
                     stateType: dstBase,
                     graph: graph,
                     declaredAt: lhs.lineInfoObj,
+                    attachedTypeName: "",
                   )
       else:
         # Non-call RHS — recurse into children to catch nested calls.
@@ -1704,11 +1834,20 @@ proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
       if tp.graphName notin typestateRegistry:
         continue
       let graph = typestateRegistry[tp.graphName]
+      # Round-6 §3.7 ↔ analyzer integration (finding #6): propagate
+      # `attachedTypeName` from the captured param into the live-set
+      # entry. Pre-round-6 the loop constructed `LocalTypestate`
+      # without this field, so attached params lost destructor
+      # recognition immediately at proc entry — every exit edge then
+      # false-fired CFG-001 because the destructor lookup keyed only
+      # on the (correctly resolved) initial state but the destructor
+      # was registered against the object type name.
       state.locals.add LocalTypestate(
         name: tp.name,
         stateType: tp.stateType,
         graph: graph,
         declaredAt: procInfo.declaredAt,
+        attachedTypeName: tp.attachedTypeName,
       )
     let endState = walkCfg(procInfo.body, state, destructorTypes)
     # Fall-through exit edge: implicit return at end of body, only if still

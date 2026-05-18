@@ -382,12 +382,43 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
       paramPos += nameCount
       continue
     let typeName = paramTypes[0]
+    let typeBase = extractBaseName(typeName)
+    # Round-6 §3.7 ↔ analyzer integration (findings #1 + #4): resolve the
+    # param type by either path:
+    #
+    # 1. Path (a) — typestate-state-typed param: `findTypestateForState`
+    #    returns the owning graph; `stateBase` is the typestate state
+    #    name; `attachedTypeName` is empty.
+    # 2. Path (b) — attached-object param: the param type is bound to a
+    #    typestate via the §3.7 attachment pragma. `findAttachmentForType`
+    #    returns the attachment record; the param's INITIAL state is the
+    #    attachment's `initialState` (NOT the object type name, which is
+    #    not itself a registered state). `attachedTypeName` captures the
+    #    object type name so the analyzer's destructor lookup can key on
+    #    it (destructors on attached object types are registered against
+    #    the object type, not against the state).
+    var graph: TypestateGraph
+    var stateBase: string
+    var attachedTypeNameForParam = ""
     let graphOpt = findTypestateForState(typeName)
-    if graphOpt.isNone:
-      paramPos += nameCount
-      continue
-    let graph = graphOpt.get
-    let stateBase = extractBaseName(typeName)
+    if graphOpt.isSome:
+      graph = graphOpt.get
+      stateBase = typeBase
+    else:
+      let attOpt = findAttachmentForType(typeBase)
+      if attOpt.isNone:
+        paramPos += nameCount
+        continue
+      let att = attOpt.get
+      if att.typestateName notin typestateRegistry:
+        # Defensive: registry has the attachment record but the named
+        # typestate is missing. Cannot resolve a coherent initial state;
+        # skip pre-population for this param.
+        paramPos += nameCount
+        continue
+      graph = typestateRegistry[att.typestateName]
+      stateBase = extractBaseName(att.initialState)
+      attachedTypeNameForParam = typeBase
     for j in 0 ..< nameCount:
       let nameNode = identDefs[j]
       var nameStr: string
@@ -411,6 +442,7 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
         stateType: stateBase,
         graphName: graph.name,
         paramIndex: paramPos + j,
+        attachedTypeName: attachedTypeNameForParam,
       )
     paramPos += nameCount
 
