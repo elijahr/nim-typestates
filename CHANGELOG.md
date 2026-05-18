@@ -78,6 +78,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: unified AST-traversal pattern matching.** Introduced
+  `extractTrackedLocal(n: NimNode): Option[string]` and
+  `isIntrinsicConsumer(callee: NimNode): bool` helpers in
+  `src/typestates/verify.nim`. Every AST-traversal site in the analyzer
+  (call-argument iteration, conversion-consume subtree walk, discard
+  operand resolution, asgn RHS handling, and conversion-consume receiver
+  routing for dot-call shapes) now routes through these helpers,
+  eliminating per-site pattern coverage gaps. The helpers recognise
+  `nnkIdent` / `nnkSym` direct references, `nnkDotExpr` receivers
+  (`f.Base`, `obj.field.subfield`), `nnkCommand` and `nnkCall` wrappers
+  around `move` / `sink` / `system.move` / `system.sink` symmetrically,
+  `nnkConv` explicit conversions, and arbitrary recursive compositions
+  (`close(move(f.Base))`, `Closed(move(c).Buffer)`, `src.Dst()`,
+  `discard move(f)`, `x = move(f)`). Closes the pattern-coverage class
+  of false-positive / false-negative bugs surfaced across the
+  round-1 / round-2 / round-3 review iterations: the conversion-consume
+  path is no longer dot-call-blind, the move/sink unwrap is no longer
+  `nnkCall`-blind, and intrinsic-callee consumption shapes are
+  recognised in both `discard` and `asgn` positions.
 - **CFG analyzer recognizes method-call (dot-call) shapes.** The
   analyzer now treats the receiver `call[0][0]` of an
   `nnkCall`/`nnkCommand` with an `nnkDotExpr` head as the implicit first

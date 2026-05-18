@@ -325,27 +325,127 @@ proc firstParamConsumes*(p: RegisteredProc): bool {.compileTime.} =
     return true
   return false
 
-proc consumeLocalsInSubtree(state: var LiveState, node: NimNode) {.compileTime.} =
-  ## Walk `node`'s subtree and drop every tracked local appearing as a bare
-  ## ident/sym (or as the head of an `nnkDotExpr`) from `state.locals`.
+proc isIntrinsicConsumer*(callee: NimNode): bool {.compileTime.} =
+  ## Predicate: is `callee` a reference to a value-consuming intrinsic —
+  ## `move`, `sink`, or their qualified `system.move` / `system.sink`?
   ##
-  ## Round-2 Finding #2 support: recognizes the canonical Nim typestate
-  ## conversion-consume idiom `Dst(src.Base)` and its variants. A
-  ## conversion call whose callee is a registered state-type ident
+  ## Recognizes:
+  ##
+  ## - `nnkIdent` / `nnkSym` whose `strVal` is `move` or `sink`
+  ## - `nnkOpenSymChoice` / `nnkClosedSymChoice` whose representative
+  ##   identifier is `move` or `sink`
+  ## - `nnkDotExpr(system, move)` / `nnkDotExpr(system, sink)` — the
+  ##   qualified forms used after explicit module prefixing
+  ##
+  ## Used by `extractTrackedLocal` (to unwrap intrinsic-consumer wrappers
+  ## around a tracked local) and by the analyzer's `discard` / `asgn`
+  ## handlers to recognize bare `discard move(f)` / `x = move(f)`
+  ## consumption shapes whose callee is itself the intrinsic.
+  if callee.isNil:
+    return false
+  case callee.kind
+  of nnkIdent, nnkSym:
+    return callee.strVal in ["move", "sink"]
+  of nnkOpenSymChoice, nnkClosedSymChoice:
+    if callee.len >= 1 and callee[0].kind in {nnkIdent, nnkSym}:
+      return callee[0].strVal in ["move", "sink"]
+    return false
+  of nnkDotExpr:
+    if callee.len >= 2 and callee[0].kind in {nnkIdent, nnkSym} and
+        callee[1].kind in {nnkIdent, nnkSym}:
+      return callee[0].strVal == "system" and callee[1].strVal in ["move", "sink"]
+    return false
+  else:
+    return false
+
+proc extractTrackedLocal*(n: NimNode): Option[string] {.compileTime.} =
+  ## Recursively resolve a `NimNode` to the underlying tracked-local
+  ## identifier name. Returns `none(string)` when the node does not reduce
+  ## to a single tracked-local reference.
+  ##
+  ## Handles, recursively, the canonical AST shapes the analyzer
+  ## encounters at every traversal site (call args, discard operands,
+  ## asgn LHS/RHS):
+  ##
+  ## - `nnkIdent` / `nnkSym` — direct local reference: return `strVal`.
+  ## - `nnkDotExpr(receiver, field)` — recurse into the receiver
+  ##   (covers `f.Base`, `obj.field.subfield`, and the canonical
+  ##   `f.File` / `r.Resource` patterns where the analyzer needs to
+  ##   resolve the underlying local).
+  ## - `nnkCommand(intrinsic, arg)` / `nnkCall(intrinsic, arg)` where
+  ##   `intrinsic` is `move` / `sink` / `system.move` / `system.sink` —
+  ##   unwrap and recurse into the wrapped argument. Symmetric across
+  ##   `nnkCommand` (parens-less `move f`) and `nnkCall` (parens form
+  ##   `move(f)`); both Nim parser shapes are accepted.
+  ## - `nnkConv(typeName, expr)` — explicit type-conversion: recurse
+  ##   into the expression operand.
+  ## - All other shapes return `none(string)`.
+  ##
+  ## Composes recursively: `close(move(f.Base))` resolves to `f`,
+  ## `move(f).Base` resolves to `f`, etc.
+  ##
+  ## Replaces the per-site bespoke pattern matchers that the round-1,
+  ## round-2, and round-3 reviews surfaced as having narrower (and
+  ## inconsistent) coverage. Every analyzer site that asks "is this AST
+  ## node a reference to a tracked local?" now routes through this
+  ## helper, eliminating the class of pattern-coverage gaps that produced
+  ## false positives and false negatives in successive review rounds.
+  if n.isNil:
+    return none(string)
+  case n.kind
+  of nnkIdent, nnkSym:
+    return some(n.strVal)
+  of nnkDotExpr:
+    if n.len >= 1:
+      return extractTrackedLocal(n[0])
+    return none(string)
+  of nnkCommand, nnkCall:
+    if n.len == 2 and isIntrinsicConsumer(n[0]):
+      return extractTrackedLocal(n[1])
+    return none(string)
+  of nnkConv:
+    if n.len == 2:
+      return extractTrackedLocal(n[1])
+    return none(string)
+  of nnkPar, nnkStmtListExpr:
+    # Parenthesized / single-expression statement lists — transparent.
+    if n.len == 1:
+      return extractTrackedLocal(n[0])
+    return none(string)
+  else:
+    return none(string)
+
+proc consumeLocalsInSubtree(state: var LiveState, node: NimNode) {.compileTime.} =
+  ## Walk `node`'s subtree and drop every tracked local appearing in it,
+  ## recognising the same canonical AST shapes as `extractTrackedLocal`
+  ## (direct ident, `f.Base` receiver, `move(f)` / `sink(f)` wrappers,
+  ## explicit `nnkConv`).
+  ##
+  ## Round-2 Finding #2 / round-3 Finding #1 support: recognises the
+  ## canonical Nim typestate conversion-consume idiom and its variants.
+  ## A conversion call whose callee is a registered state-type ident
   ## (handled by `applyCallTransitions`) consumes any tracked local that
-  ## appears anywhere inside the conversion's argument expression — either
-  ## as `Dst(src)` (bare ident) or `Dst(src.Base)` (DotExpr accessing the
-  ## underlying base type).
+  ## appears anywhere inside the conversion's argument expression — bare
+  ## `Dst(src)`, `Dst(src.Base)`, `Dst(move(src))`, `Dst(move(src.Base))`,
+  ## or `src.Dst()` (dot-call conversion, receiver routed in through
+  ## `argNodes` at the call site).
   if node.isNil:
+    return
+  # Try the unified helper first: if the node reduces to a single tracked
+  # local, drop it and stop recursing — we have the local of interest.
+  let trackedOpt = extractTrackedLocal(node)
+  if trackedOpt.isSome:
+    let idx = findLocalInnermost(state, trackedOpt.get)
+    if idx >= 0:
+      state.locals.delete(idx)
     return
   case node.kind
   of nnkIdent, nnkSym:
-    let idx = findLocalInnermost(state, node.strVal)
-    if idx >= 0:
-      state.locals.delete(idx)
+    # Already handled by extractTrackedLocal above; left for exhaustiveness.
+    discard
   of nnkDotExpr:
-    # `local.Base` — the local is on the LHS. Don't recurse into the RHS
-    # field-name ident; it never refers to a local.
+    # Non-receiver-reducing DotExpr — recurse into the LHS (the field
+    # identifier on the RHS never references a local).
     if node.len >= 1:
       consumeLocalsInSubtree(state, node[0])
   else:
@@ -390,54 +490,65 @@ proc applyCallTransitions*(
   let callName = extractCalleeName(call)
   if callName.len == 0:
     return
-  # Round-2 Finding #2 support: conversion-consume idiom.
+  # Build the unified iteration set of argument nodes. For dot-call shapes
+  # `obj.method(args)` the receiver `call[0][0]` is parameter position 0
+  # (implicit first argument); the explicit args `call[1..N-1]` follow.
+  # For prefix-call shapes `method(args)` the receiver slot is empty and
+  # `call[1..N-1]` are params 0..N-2.
   #
-  # When the callee identifier is itself a registered state-type name (e.g.
-  # `Closed` in `Closed(f.File)`), the "call" is a Nim type conversion, not
-  # a registered proc invocation. The canonical typestate-procedure body
-  # produces its result by converting a sink/var/value-typed source local
-  # into the destination state type: `result = Dst(src.Base)`. Without
-  # recognizing this, a sink-typed param entering the live-set under
-  # Finding #2 would never be marked consumed, falsely failing the
-  # fall-through exit edge inside every transition proc body.
-  #
-  # The chosen recognition rule: when the callee is a state-type name,
-  # treat any tracked local appearing in the call's argument subtree as
-  # consumed (dropped from tracking). This matches Nim's actual semantics
-  # (the conversion is the canonical end-of-life for the source value)
-  # and keeps the rule narrow enough to avoid over-tracking — only
-  # registered state-type names trigger it, not arbitrary type
-  # conversions.
-  if isStateTypeName(callName):
-    for argIdx in 1 ..< call.len:
-      consumeLocalsInSubtree(state, call[argIdx])
-    return
-  # Build the iteration set of argument nodes. For dot-call shapes, the
-  # receiver `call[0][0]` is param position 0 (the implicit first arg);
-  # `call[1..N-1]` are params 1..N-1. For prefix-call shapes, `call[0]` is
-  # the callee ident and `call[1..N-1]` are params 0..N-2.
+  # Round-2 Finding #1 / round-3 Finding #1 (verify.nim:424): both
+  # conversion-consume and registered-transition argument iteration now
+  # consume the SAME argNodes seq, so dot-call conversions like
+  # `src.Dst()` route their receiver through the same consume path as
+  # prefix-call conversions like `Dst(src.Base)`. Pre-fix the
+  # conversion-consume early return iterated only `call[1..N-1]`, missing
+  # the receiver entirely for the dot-call shape.
   let isDotCall = call[0].kind == nnkDotExpr
   var argNodes: seq[NimNode] = @[]
   if isDotCall and call[0].len >= 1:
     argNodes.add call[0][0]
   for argIdx in 1 ..< call.len:
     argNodes.add call[argIdx]
+  # Round-2 Finding #2 / round-3 Finding #1: conversion-consume idiom.
+  #
+  # When the callee identifier is itself a registered state-type name (e.g.
+  # `Closed` in `Closed(f.File)`), the "call" is a Nim type conversion, not
+  # a registered proc invocation. The canonical typestate-procedure body
+  # produces its result by converting a sink/var/value-typed source local
+  # into the destination state type: `result = Dst(src.Base)` (prefix) or
+  # `result = src.Dst()` (dot-call) — both supported here because the
+  # receiver flows through `argNodes` uniformly with explicit args.
+  if isStateTypeName(callName):
+    for arg in argNodes:
+      consumeLocalsInSubtree(state, arg)
+    return
+  # Round-3 Finding #3 (verify.nim:447): intrinsic-callee consumption.
+  # `move(f)` / `sink(f)` / `system.move(f)` as the call itself (not
+  # wrapping another call's argument) — the caller routed us here from a
+  # `discard move(f)` or `x = move(f)` site (the asgn / discard handlers
+  # walk into the RHS / operand). `move`/`sink` semantically transfers
+  # ownership of the argument; the local is no longer accessible to the
+  # caller after the wrapper. Drop the underlying tracked local without
+  # consulting `registeredProcs` (move/sink are not registered transitions
+  # but are valid consumption sites under Nim's ownership model).
+  if isIntrinsicConsumer(call[0]) and call.len == 2:
+    let trackedOpt = extractTrackedLocal(call[1])
+    if trackedOpt.isSome:
+      let idx = findLocalInnermost(state, trackedOpt.get)
+      if idx >= 0:
+        state.locals.delete(idx)
+    return
   for arg in argNodes:
-    var argIdent: string
-    case arg.kind
-    of nnkIdent, nnkSym:
-      argIdent = arg.strVal
-    of nnkCommand:
-      # `move x`, `sink x` — peel a single modifier ident.
-      if arg.len == 2 and arg[0].kind in {nnkIdent, nnkSym} and
-          arg[1].kind in {nnkIdent, nnkSym}:
-        let modName = arg[0].strVal
-        if modName in ["move", "sink"]:
-          argIdent = arg[1].strVal
-      if argIdent.len == 0:
-        continue
-    else:
+    # Round-3 Finding #2 (verify.nim:437): unified arg resolution via
+    # `extractTrackedLocal` handles `nnkIdent`/`nnkSym` direct, `nnkDotExpr`
+    # receivers (`f.Base`), `nnkCommand` and `nnkCall` wrappers around
+    # `move`/`sink`/`system.move`/`system.sink`, and `nnkConv` explicit
+    # conversions — all recursively, so nested shapes like
+    # `close(move(f.Base))` resolve cleanly to `f`.
+    let argIdentOpt = extractTrackedLocal(arg)
+    if argIdentOpt.isNone:
       continue
+    let argIdent = argIdentOpt.get
     let localIdx = findLocalInnermost(state, argIdent)
     if localIdx < 0:
       continue
@@ -907,12 +1018,34 @@ proc walkCfg(
       # has its transition effects applied to tracked args (e.g., `discard
       # close(f)` advances/consumes `f`).
       result = walkCfg(opnd, result, destructorTypes)
+      # Round-3 Finding #3 (verify.nim:447): `discard move(f)` /
+      # `discard sink(f)` is the canonical bare-intrinsic consumption
+      # shape — `move`/`sink` is the callee and isn't a registered
+      # transition, so the per-call recursion above leaves the tracked
+      # local untouched. Special-case the intrinsic wrapper here: route
+      # through `extractTrackedLocal` to find the underlying local and
+      # drop it unconditionally. The discarded value (the moved-out
+      # temporary) is the destructor's target, not the tracked local —
+      # so this is a valid consume regardless of the local's current
+      # state.
+      if opnd.kind in {nnkCall, nnkCommand} and opnd.len == 2 and
+          isIntrinsicConsumer(opnd[0]):
+        let trackedOpt = extractTrackedLocal(opnd[1])
+        if trackedOpt.isSome:
+          let idx = findLocalInnermost(result, trackedOpt.get)
+          if idx >= 0:
+            result.locals.delete(idx)
+        return
+      # Resolve the discarded expression to a tracked local via the
+      # unified helper. Handles bare `discard f`, `discard f.Base`,
+      # `discard f.field.subfield`, and (already short-circuited above)
+      # the intrinsic-consumer shapes. Innermost-first lookup so
+      # inner-scope shadows take precedence over outer bindings.
       var localIdx = -1
       var exprStateName = ""
-      if opnd.kind in {nnkIdent, nnkSym}:
-        # Innermost-first lookup so inner-scope shadows take precedence
-        # over outer bindings (§3.3, Finding #3).
-        localIdx = findLocalInnermost(result, opnd.strVal)
+      let discardLocalOpt = extractTrackedLocal(opnd)
+      if discardLocalOpt.isSome:
+        localIdx = findLocalInnermost(result, discardLocalOpt.get)
         if localIdx >= 0:
           exprStateName = result.locals[localIdx].stateType
       if exprStateName.len > 0:
