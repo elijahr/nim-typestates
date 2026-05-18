@@ -78,6 +78,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `attachedTypeName` propagated through
+  `reconcileBranches`.** Round-8 surfaced a parallel gap to the
+  round-6 destructor-lookup-key threading: the four `LocalTypestate`
+  construction sites inside `reconcileBranches` (entry-set all-same
+  merge, entry-set terminal-witness preservation, branch-introduced
+  all-same merge, branch-introduced terminal-witness preservation)
+  built merged live-set entries WITHOUT propagating
+  `attachedTypeName` from the per-branch source. Any §3.7 attached
+  local that crossed a branch reconciliation surfaced downstream
+  with `attachedTypeName=""`, so the destructor lookup at the next
+  exit edge fell back to `stateType`, missed the registered
+  `=destroy` on the holder type, and false-fired CFG-001 on
+  destructor-covered attached locals after the merge. Same class as
+  round-6 (which threaded the field through var-init, asgn-rebind,
+  in-place advancement, and live-set pre-pop) — round-8 extends the
+  audit matrix from destructor-lookup-key sites to ALL
+  `LocalTypestate` construction sites in `verify.nim`. The matrix
+  re-run confirmed only the four `reconcileBranches` sites were
+  missing the propagation; the call-init fresh-bind (line 1049) and
+  asgn fresh-bind (line 1780) intentionally start with
+  `attachedTypeName=""` because call-init / asgn produce state-typed
+  bindings whose LHS has no prior holder-type lineage. Also removes
+  an unused `destructorTypes` parameter from `applyCallTransitions`
+  identified by the same round-8 review pass — the proc body never
+  read the table, so the parameter was dead weight on all five call
+  sites and tripped a -Wunused-parameter equivalent on the
+  signature. New fixtures cover both the entry-set and
+  branch-introduced merge sites with and without destructor
+  coverage:
+  `cfg_analyzer_attached_branch_entry_local_drops_link` (CFG-001
+  fires under the attachedTypeName-keyed lookup miss when no
+  destructor is registered),
+  `cfg_analyzer_attached_branch_entry_local_destructor` (the
+  attached-type destructor hit survives the entry-set merge),
+  `cfg_analyzer_attached_branch_introduced_local_drops_link` (same
+  shape for the second-pass branch-introduced merge), and
+  `cfg_analyzer_attached_branch_introduced_local_destructor` (the
+  positive path for the second-pass merge). No known-limitation
+  language.
 - **CFG analyzer: `extractTrackedLocal` recognises dot-call intrinsic
   consumers in `nnkCall` / `nnkCommand`.** Round-7 closed the
   remaining coverage gap in the helper's intrinsic-consumer branch:

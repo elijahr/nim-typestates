@@ -836,9 +836,7 @@ proc isStateTypeName(name: string): bool {.compileTime.} =
     return false
   return findTypestateForState(name).isSome
 
-proc applyCallTransitions*(
-    state: var LiveState, call: NimNode, destructorTypes: Table[string, TypestateGraph]
-) {.compileTime.} =
+proc applyCallTransitions*(state: var LiveState, call: NimNode) {.compileTime.} =
   ## Inspect a `nnkCall` / `nnkCommand` node. For each argument that is
   ## a bare identifier referencing a tracked local, look up a registered
   ## transition proc by name and matching source state; if found, advance
@@ -1092,7 +1090,7 @@ proc bindLocalsFromIdentDefs(
     # registered with multiple overloads.
     if initSlot.kind in {nnkCall, nnkCommand}:
       let argStates = buildArgStatesFromCall(state, initSlot)
-      applyCallTransitions(state, initSlot, destructorTypes)
+      applyCallTransitions(state, initSlot)
       for i in 0 ..< identDefs.len - 2:
         tryBindLocalFromCallInit(
           state, identDefs[i], initSlot, destructorTypes, argStates
@@ -1104,7 +1102,7 @@ proc bindLocalsFromIdentDefs(
     # transitions so any sink-consumed argument is dropped from tracking
     # — the LHS local is non-typestated, so no LHS binding needed.
     if initSlot.kind in {nnkCall, nnkCommand}:
-      applyCallTransitions(state, initSlot, destructorTypes)
+      applyCallTransitions(state, initSlot)
     return
   let graph = graphOpt.get
   # Round-6 §3.7 ↔ analyzer integration: when the declared type is an
@@ -1129,7 +1127,7 @@ proc bindLocalsFromIdentDefs(
   # Apply transition effects from any RHS call before binding the LHS, so
   # tracked-arg locals are advanced/dropped in the right order.
   if initSlot.kind in {nnkCall, nnkCommand}:
-    applyCallTransitions(state, initSlot, destructorTypes)
+    applyCallTransitions(state, initSlot)
   for i in 0 ..< identDefs.len - 2:
     let nameNode = identDefs[i]
     var localName: string
@@ -1290,11 +1288,21 @@ proc reconcileBranches*(
         break
 
     if allSame and absentBranches == 0:
+      # Round-8 §3.7 ↔ analyzer integration: propagate `attachedTypeName`
+      # from the entry-set source. The local's HOLDER type does not
+      # change across branch reconciliation; dropping the field here
+      # regresses destructor lookup after the merge, the same way the
+      # round-6 asgn-rebind / var-init / live-set pre-pop sites
+      # regressed before the field was threaded through them. Same
+      # class as round-6; round-8 extends the audit matrix from
+      # destructor-lookup-key sites to ALL LocalTypestate construction
+      # sites.
       result.locals.add LocalTypestate(
         name: el.name,
         stateType: presentStates[0],
         graph: el.graph,
         declaredAt: el.declaredAt,
+        attachedTypeName: el.attachedTypeName,
       )
       continue
 
@@ -1303,11 +1311,17 @@ proc reconcileBranches*(
       # terminals); absent branches consumed terminally. Downstream exit
       # edges accept any terminal — keep a terminal witness if any branch
       # still holds the local.
+      #
+      # Round-8: same attachedTypeName propagation rule as the all-same
+      # path above — the field must survive into the merged live-set so
+      # any downstream non-terminal validation that still queries
+      # destructor coverage keys correctly on the holder type.
       result.locals.add LocalTypestate(
         name: el.name,
         stateType: presentStates[0],
         graph: el.graph,
         declaredAt: el.declaredAt,
+        attachedTypeName: el.attachedTypeName,
       )
       continue
 
@@ -1389,11 +1403,17 @@ proc reconcileBranches*(
           allSame = false
           break
       if allSame:
+        # Round-8: branch-introduced locals also carry attachedTypeName
+        # when the source declaration was an attached-object local
+        # (path (b)). Use the first per-branch instance as the source —
+        # every per-branch instance refers to the same lexical
+        # declaration so the field is identical across them.
         result.locals.add LocalTypestate(
           name: local.name,
           stateType: perBranch[0],
           graph: local.graph,
           declaredAt: local.declaredAt,
+          attachedTypeName: perBranchLocals[0].attachedTypeName,
         )
         continue
       var allTerminal = true
@@ -1402,11 +1422,16 @@ proc reconcileBranches*(
           allTerminal = false
           break
       if allTerminal:
+        # Round-8: same attachedTypeName propagation rule as the
+        # all-same path above; preserve the holder-type name into the
+        # terminal-union witness so destructor lookup remains correct
+        # downstream.
         result.locals.add LocalTypestate(
           name: local.name,
           stateType: perBranch[0],
           graph: local.graph,
           declaredAt: local.declaredAt,
+          attachedTypeName: perBranchLocals[0].attachedTypeName,
         )
         continue
       error(
@@ -1696,7 +1721,7 @@ proc walkCfg(
     # whose source state matches the local's current state, advance the
     # local to the registered destination (or drop on terminal /
     # branching destination).
-    applyCallTransitions(result, node, destructorTypes)
+    applyCallTransitions(result, node)
   of nnkAsgn:
     # §3.3 transition-asgn recognition (Finding #1, scope (c)). Shape:
     # nnkAsgn(lhs, rhs). When the RHS is a registered transition call:
@@ -1725,7 +1750,7 @@ proc walkCfg(
         # the registered-transition lookup can disambiguate by
         # source-state when the proc name has multiple overloads.
         let argStates = buildArgStatesFromCall(result, rhs)
-        applyCallTransitions(result, rhs, destructorTypes)
+        applyCallTransitions(result, rhs)
         let callName = extractCalleeName(rhs)
         if callName.len > 0 and lhs.kind in {nnkIdent, nnkSym}:
           let lhsIdx = findLocalInnermost(result, lhs.strVal)
