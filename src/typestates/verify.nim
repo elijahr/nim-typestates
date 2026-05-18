@@ -349,9 +349,26 @@ proc extractCalleeName*(call: NimNode): string {.compileTime.} =
       return head[0].strVal
     return ""
   of nnkBracketExpr:
-    # Generic instantiation: foo[T](...) — head[0] is the proc name.
-    if head.len >= 1 and head[0].kind in {nnkIdent, nnkSym}:
-      return head[0].strVal
+    # Generic instantiation: head[0] is the proc reference. Round-13
+    # extends recognition beyond the bare-ident `foo[T](...)` shape to
+    # cover symbol-choice (overloaded generics resolved to a choice
+    # set) and module-qualified `module.foo[T](...)` calls where the
+    # AST nests a dot-expr inside the bracket-expr.
+    if head.len >= 1:
+      case head[0].kind
+      of nnkIdent, nnkSym:
+        return head[0].strVal
+      of nnkOpenSymChoice, nnkClosedSymChoice:
+        if head[0].len >= 1 and head[0][0].kind in {nnkIdent, nnkSym}:
+          return head[0][0].strVal
+      of nnkDotExpr:
+        # module.foo[T](args) — trailing identifier of the dot-expr is
+        # the proc name. Mirrors the precedence of the top-level
+        # nnkDotExpr branch below.
+        if head[0].len >= 2 and head[0][1].kind in {nnkIdent, nnkSym}:
+          return head[0][1].strVal
+      else:
+        discard
     return ""
   of nnkDotExpr:
     # Qualified call: module.foo(...) — take the trailing identifier.
@@ -1012,7 +1029,6 @@ proc tryBindLocalFromCallInit*(
     state: var LiveState,
     nameNode: NimNode,
     initNode: NimNode,
-    destructorTypes: Table[string, TypestateGraph],
     argStates: seq[Option[string]] = @[],
 ) {.compileTime.} =
   ## Bind a single-name local introduced by `var/let name = call(...)` to
@@ -1118,9 +1134,7 @@ proc bindLocalsFromIdentDefs(
       let argStates = buildArgStatesFromCall(state, initSlot)
       applyCallTransitions(state, initSlot)
       for i in 0 ..< identDefs.len - 2:
-        tryBindLocalFromCallInit(
-          state, identDefs[i], initSlot, destructorTypes, argStates
-        )
+        tryBindLocalFromCallInit(state, identDefs[i], initSlot, argStates)
     return
   let graphOpt = lookupTypestateForType(typeName)
   if graphOpt.isNone:

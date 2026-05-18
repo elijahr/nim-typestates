@@ -78,6 +78,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CFG analyzer: `extractCalleeName` recognizes module-qualified
+  generic call shapes.** Round-13 (Momus r3 BOT-C2) surfaced a
+  callee-recognition gap in the `nnkBracketExpr` branch of
+  `extractCalleeName` (verify.nim:336). The branch checked
+  `head[0].kind in {nnkIdent, nnkSym}` — true for the unqualified
+  `foo[T](...)` shape but FALSE for the module-qualified
+  `module.foo[T](...)` shape, where the AST nests a `nnkDotExpr`
+  inside the bracket-expr: `Call(BracketExpr(DotExpr(module, foo),
+  T), args)`. Pre-fix the recognizer returned the empty string, the
+  analyzer treated the call as unrecognized, and the downstream
+  consumption / LHS-binding paths
+  (`applyCallTransitions`, `tryBindLocalFromCallInit`, asgn-from-call
+  rebind) silently lost transition tracking. The fix extends the
+  bracket-expr branch to dispatch on `head[0].kind` and recurse on
+  the dot-expr's trailing identifier, mirroring the precedence of
+  the top-level `nnkDotExpr` branch; `nnkOpenSymChoice` /
+  `nnkClosedSymChoice` heads at the bracket position are also
+  handled symmetrically. Audit-matrix extension over r3/r5/r8/r9/r12:
+  each prior round closed a distinct callee head-shape class
+  (bare-ident, dot-call, transparent wrappers, sink-overload,
+  multi-typestate-param); r13 closes the dot-then-bracket
+  cross-module generic shape. Structural unit tests in
+  `tests/textract_callee_name.nim` drive the recognizer directly
+  with hand-built ASTs across every head shape and lock in the
+  post-fix behaviour; the recognizer's pre-fix branches FAIL the
+  BOT-C2 case in that suite. A complementary end-to-end fixture
+  `cfg_analyzer_module_qualified_generic_call` exercises the
+  `module.foo[T](args)` call through a registered generic
+  transition. No known-limitation language.
+- **CFG analyzer: `tryBindLocalFromCallInit` dead parameter removed.**
+  Round-13 (Momus r3 BOT-C1) cleanup. The `destructorTypes:
+  Table[string, TypestateGraph]` parameter was present in the
+  signature but never referenced in the body — the binding-recovery
+  path keys on the registered transition's destination state (via
+  `findTransitionByCalleeAndArgStates` + `findTypestateForState`),
+  not on the destructor table. Same cleanup class as r8
+  (`applyCallTransitions` `destructorTypes` removal) and r11
+  (`lookupTypestateForType` `destructorTypes` removal). The single
+  call site in `bindLocalsFromIdentDefs` was updated to drop the
+  argument. No behaviour change; the analyzer's destructor-keyed
+  paths continue to thread `destructorTypes` through the
+  `walkCfg` / `validateExitEdge` chain unchanged.
+- **Docs: `cfg-analyzer.md` worked-example fix snippets.** Round-13
+  (Gemini r12) flagged two uncompilable snippets at lines ~101 and
+  ~121: both opened with `var c: Active` even though `Active` is
+  `distinct Connection` and the surrounding code does not provide a
+  zero-initialiser, so a user copy-pasting the snippet would face a
+  type-conversion error before reaching the analyzer's CFG-001
+  diagnostic. Replaced with `var c = Active(Connection())` to mirror
+  the working snippet earlier in the same guide. Both snippets
+  continue to demonstrate their intended analyzer behaviour (consume
+  on both paths; destructor bridges the transition). The change is
+  verified by extracting each snippet to a standalone `.nim` file
+  and running `nim check`.
+- **CHANGELOG: `dot_call_intrinsic` fixture-name typo corrected.**
+  Round-13 (Gemini r12) flagged a stray hyphen across a line break
+  in the round-7 entry — `dot_call_-\n  intrinsic_non_terminal`
+  rendered as a different name than the actual fixture file
+  `cfg_analyzer_discard_dot_call_intrinsic_non_terminal.nim`. The
+  typo was a pure rendering issue (hyphen + soft-wrap, not in the
+  fixture name itself); corrected in place to match the canonical
+  filename. No code change; CHANGELOG narrative is now consistent
+  with the on-disk fixture name.
 - **CFG analyzer: `applyCallTransitions` applies per-arg state
   transitions across ALL typestate-bearing parameter positions at a
   call site.** Round-12 (Gemini r11) surfaced a multi-typestate-param
@@ -314,8 +377,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the consumed-argument position downstream. New fixtures cover both
   effects: `cfg_analyzer_dot_call_intrinsic_as_call_arg` (positive —
   `close(src.move())` inside a transition body resolves `src` and
-  reaches terminal cleanly) and `cfg_analyzer_discard_dot_call_-
-  intrinsic_non_terminal` (negative — `discard f.move()` on a
+  reaches terminal cleanly) and
+  `cfg_analyzer_discard_dot_call_intrinsic_non_terminal` (negative —
+  `discard f.move()` on a
   non-terminal local with no destructor fires CFG-003 as expected).
   No known-limitation language.
 - **CFG analyzer: §3.7 typestate-attachment threaded through the

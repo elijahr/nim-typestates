@@ -98,7 +98,7 @@ never reached `Closed`.
 
 ```nim
 proc handle(cond: bool) {.notATransition.} =
-  var c: Active
+  var c = Active(Connection())
   if cond:
     discard close(c)
     return
@@ -118,7 +118,7 @@ proc `=destroy`(c: var Active) {.destructorTransition.} =
   # Real destructor would release c.Connection.handle here.
 
 proc handle(cond: bool) {.notATransition.} =
-  var c: Active
+  var c = Active(Connection())
   if cond:
     return       # destructor fires, bridges Active -> Closed
   discard close(c)
