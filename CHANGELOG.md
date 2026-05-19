@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-05-18
+## [0.9.0] - 2026-05-19
 
 ### Breaking (pre-1.0 latitude)
 
@@ -78,6 +78,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`peelNameWrappers` loops until a leaf and `extractTypeDeclName`
+  handles `nnkAccQuoted` at both top-level and BracketExpr-head
+  positions.** Round-18 defensive consistency on the r17 shared
+  helpers. `peelNameWrappers` was single-pass (one `nnkPragmaExpr`
+  peel followed by one `nnkPostfix` peel), so hand-built ASTs with
+  the inverse `Postfix(PragmaExpr(...))` ordering or deeper nesting
+  left a residual wrapper on the returned node; the helper now loops
+  while the kind is in `{nnkPragmaExpr, nnkPostfix}` and drains every
+  layer. `extractTypeDeclName` previously fell through to `.repr`
+  for backticked type names (`type \`foo\` = object`), preserving
+  the backticks and breaking attachment-registry lookups that key
+  off the bare identifier; the proc now dispatches on `nnkAccQuoted`
+  at the top-level case AND inside the `nnkBracketExpr` head case,
+  reassembling the bare name via `accQuotedToStr` to match
+  `extractTypestatedParams` and `destructorTransitionCore`. Neither
+  shape is reachable from natural Nim parser output, but both are
+  reachable from downstream macros that hand-build TypeDef ASTs.
+  `tests/textract_type_decl_name.nim` extended with three backtick
+  cases (`\`foo\``, `\`foo\`*`, `\`foo\`*[G]`) and a
+  three-block arbitrary-wrapper-nesting case
+  (inverse Postfix-outside-PragmaExpr, three-deep PragmaExpr/Postfix
+  alternation, double Postfix). All 215 prior comprehensive-runner
+  tests continue to pass byte-identical.
 - **`destructorTransitionCore` proc-name extraction unwraps
   `nnkPragmaExpr` before the `nnkPostfix` peel.** Round-16
   (Gemini r15) surfaced a narrow-shape gap on the destructor

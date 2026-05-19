@@ -146,3 +146,113 @@ suite "extractTypeDeclName TypeDef head-shape recognizer":
       )
       extractTypeDeclName(typeDef)
     check got == "Slot"
+
+  test "backticked type: `type \\`foo\\` = object`":
+    ## Round-18 GEM-MED-2 acceptance. Backticked type names parse with
+    ## `nnkAccQuoted` at the TypeDef head. Pre-fix the case dispatch fell
+    ## through to `nameNode.repr`, which preserves the surrounding
+    ## backticks; attachment-registry lookups keyed off the bare name
+    ## would miss. Post-fix the explicit `nnkAccQuoted` branch reassembles
+    ## the bare identifier via `accQuotedToStr` (matching
+    ## `extractTypestatedParams` and `destructorTransitionCore`).
+    const got = static:
+      let accQuoted = nnkAccQuoted.newTree(ident("foo"))
+      let typeDef = nnkTypeDef.newTree(
+        accQuoted,
+        newEmptyNode(),
+        nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+      )
+      extractTypeDeclName(typeDef)
+    check got == "foo"
+
+  test "exported backticked type: `type \\`foo\\`* = object`":
+    ## Round-18 GEM-MED-2 acceptance. Top-level `nnkPostfix` wraps
+    ## `nnkAccQuoted`. `peelNameWrappers` strips the Postfix, then the
+    ## new `nnkAccQuoted` dispatch branch handles the leaf.
+    const got = static:
+      let accQuoted = nnkAccQuoted.newTree(ident("foo"))
+      let postfix = nnkPostfix.newTree(ident("*"), accQuoted)
+      let typeDef = nnkTypeDef.newTree(
+        postfix,
+        newEmptyNode(),
+        nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+      )
+      extractTypeDeclName(typeDef)
+    check got == "foo"
+
+  test "exported backticked generic: `type \\`foo\\`*[G] = object` (hand-built bracket)":
+    ## Round-18 GEM-MED-2 acceptance for the BracketExpr-head path. The
+    ## hand-built shape is `BracketExpr(Postfix(*, AccQuoted(foo)), G)`.
+    ## `peelNameWrappers` on the bracket head strips the Postfix, leaving
+    ## the AccQuoted leaf for the new `nnkAccQuoted` dispatch branch
+    ## inside the BracketExpr case.
+    const got = static:
+      let accQuoted = nnkAccQuoted.newTree(ident("foo"))
+      let postfix = nnkPostfix.newTree(ident("*"), accQuoted)
+      let bracket = nnkBracketExpr.newTree(postfix, ident("G"))
+      let typeDef = nnkTypeDef.newTree(
+        bracket,
+        newEmptyNode(),
+        nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+      )
+      extractTypeDeclName(typeDef)
+    check got == "foo"
+
+  test "peelNameWrappers loops through arbitrary wrapper nesting (GEM-MED-1)":
+    ## Round-18 GEM-MED-1 acceptance. The r17 helper was single-pass
+    ## (one PragmaExpr peel followed by one Postfix peel). Inverse
+    ## orderings (`Postfix(PragmaExpr(...))`) and deeper nestings would
+    ## leave residual wrappers on the returned node. Post-fix the helper
+    ## loops until a leaf, so every arbitrary nesting of
+    ## {PragmaExpr, Postfix} collapses to the underlying leaf. Hand-built
+    ## ASTs only — Nim's parser produces just the `PragmaExpr(Postfix)`
+    ## shape, but downstream macros that synthesize TypeDef / ProcDef
+    ## ASTs may emit either order or recurse deeper.
+    ##
+    ## Exercised via `extractTypeDeclName` which is the only currently
+    ## exported caller; this keeps the helper's behaviour observable
+    ## without coupling the test to its internal symbol.
+    block inverse_order_postfix_outside_pragmaexpr:
+      ## `Postfix(*, PragmaExpr(Ident, Pragma))` — inverse of the parser
+      ## shape. Single-pass would peel the Postfix and return the
+      ## PragmaExpr unchanged; the loop continues and unwraps.
+      const got = static:
+        let inner =
+          nnkPragmaExpr.newTree(ident("Slot"), nnkPragma.newTree(ident("dummy")))
+        let postfix = nnkPostfix.newTree(ident("*"), inner)
+        let typeDef = nnkTypeDef.newTree(
+          postfix,
+          newEmptyNode(),
+          nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+        )
+        extractTypeDeclName(typeDef)
+      check got == "Slot"
+    block deeper_nesting_pragmaexpr_postfix_pragmaexpr:
+      ## `PragmaExpr(Postfix(*, PragmaExpr(Ident, P1)), P2)` — three
+      ## wrappers deep. Single-pass peeled the outer two and stopped on
+      ## the residual inner PragmaExpr; the loop drains all three.
+      const got = static:
+        let innerPragma =
+          nnkPragmaExpr.newTree(ident("Slot"), nnkPragma.newTree(ident("p1")))
+        let postfix = nnkPostfix.newTree(ident("*"), innerPragma)
+        let outerPragma = nnkPragmaExpr.newTree(postfix, nnkPragma.newTree(ident("p2")))
+        let typeDef = nnkTypeDef.newTree(
+          outerPragma,
+          newEmptyNode(),
+          nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+        )
+        extractTypeDeclName(typeDef)
+      check got == "Slot"
+    block double_postfix_theoretical:
+      ## `Postfix(*, Postfix(*, Ident))` — theoretical hand-built shape.
+      ## Single-pass peeled one Postfix; the loop peels both.
+      const got = static:
+        let inner = nnkPostfix.newTree(ident("*"), ident("Slot"))
+        let outer = nnkPostfix.newTree(ident("*"), inner)
+        let typeDef = nnkTypeDef.newTree(
+          outer,
+          newEmptyNode(),
+          nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), newEmptyNode()),
+        )
+        extractTypeDeclName(typeDef)
+      check got == "Slot"

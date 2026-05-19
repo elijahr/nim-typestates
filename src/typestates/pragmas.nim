@@ -121,11 +121,21 @@ proc peelNameWrappers*(n: NimNode): NimNode {.compileTime.} =
   ##
   ## AccQuoted, BracketExpr, and other non-wrapper leaves pass through
   ## untouched — callers must dispatch on the returned node's kind.
+  ##
+  ## The loop form (vs. a single PragmaExpr-then-Postfix pass) handles
+  ## arbitrary wrapper nesting and the inverse `Postfix(PragmaExpr(...))`
+  ## order. Nim's parser only produces the `PragmaExpr(Postfix(...))`
+  ## shape for `T* {.pragma.}`, but downstream macros that hand-build
+  ## TypeDef / ProcDef / IdentDefs ASTs may emit either order or recurse
+  ## deeper; round-18 defensive consistency.
   result = n
-  if result.kind == nnkPragmaExpr and result.len >= 1:
-    result = result[0]
-  if result.kind == nnkPostfix and result.len >= 2:
-    result = result[1]
+  while result.kind in {nnkPragmaExpr, nnkPostfix}:
+    if result.kind == nnkPragmaExpr and result.len >= 1:
+      result = result[0]
+    elif result.kind == nnkPostfix and result.len >= 2:
+      result = result[1]
+    else:
+      break
 
 proc accQuotedToStr*(n: NimNode): string {.compileTime.} =
   ## Reassemble the string form of a backticked identifier from its
@@ -1100,6 +1110,14 @@ proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
   case nameNode.kind
   of nnkIdent, nnkSym:
     return nameNode.strVal
+  of nnkAccQuoted:
+    # Backticked type names like `type \`foo\` = object` arrive here as
+    # `AccQuoted(Ident("foo"))`. Round-18 defensive consistency: reassemble
+    # the bare identifier via `accQuotedToStr` (matching
+    # `extractTypestatedParams` and `destructorTransitionCore`) so
+    # attachment-registry lookups key off the bare name rather than the
+    # `.repr` form with surrounding backticks preserved.
+    return accQuotedToStr(nameNode)
   of nnkBracketExpr:
     # `name[T]` — generic. Head is typically Ident/Sym, but for a
     # manually-built or unusual AST shape it may itself wrap an
@@ -1113,8 +1131,13 @@ proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
     # is the path exercised by `textract_type_decl_name`'s hand-built
     # AST for the `T*[G]` case.
     let head = peelNameWrappers(nameNode[0])
-    if head.kind in {nnkIdent, nnkSym}:
+    case head.kind
+    of nnkIdent, nnkSym:
       return head.strVal
+    of nnkAccQuoted:
+      # Backticked head inside a BracketExpr (`\`foo\`[G]` or
+      # `\`foo\`*[G]`). Round-18 defensive consistency.
+      return accQuotedToStr(head)
     else:
       return head.repr
   else:
