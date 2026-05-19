@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-05-17
+## [0.9.0] - 2026-05-18
 
 ### Breaking (pre-1.0 latitude)
 
@@ -778,6 +778,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   preserving the all-procs behavior for direct callers).
 - `destructorTransitionCore` shared implementation for both arities of
   `destructorTransition` (`src/typestates/pragmas.nim`).
+- Extract `peelNameWrappers` and `accQuotedToStr` compile-time helpers in
+  `src/typestates/pragmas.nim`. Consolidates the `nnkPragmaExpr` →
+  `nnkPostfix` name-wrapper peel and the `nnkAccQuoted` ident-reassembly
+  loop previously duplicated across `extractTypestatedParams`,
+  `destructorTransitionCore`, and `extractTypeDeclName`. Behaviour
+  preserved — same fixtures, same test pass count.
 - CFG analyzer pass integrated into `verifyTypestates*`
   (`src/typestates/verify.nim`), running after the unmarked-proc check
   and the F5 decoy pass.

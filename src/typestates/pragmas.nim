@@ -106,6 +106,44 @@ proc isTransparentWrapper*(name: string): bool {.compileTime.} =
     transparentWrappers.contains(name) or
     transparentWrappers.contains(extractBaseName(name))
 
+proc peelNameWrappers*(n: NimNode): NimNode {.compileTime.} =
+  ## Peel `nnkPragmaExpr` then `nnkPostfix` wrappers off a name-position
+  ## node and return the underlying identifier-bearing node.
+  ##
+  ## Param names, proc names, and type-decl heads can nest wrappers in
+  ## either order:
+  ##
+  ## - `p`                 (nnkIdent / nnkSym)             -> unchanged
+  ## - `p*`                (nnkPostfix)                    -> peel Postfix
+  ## - `p {.pragma.}`      (nnkPragmaExpr)                 -> peel PragmaExpr
+  ## - `p* {.pragma.}`     (nnkPragmaExpr(Postfix(*, p)))  -> peel both
+  ## - `` `name` ``        (nnkAccQuoted)                  -> unchanged
+  ##
+  ## AccQuoted, BracketExpr, and other non-wrapper leaves pass through
+  ## untouched — callers must dispatch on the returned node's kind.
+  result = n
+  if result.kind == nnkPragmaExpr and result.len >= 1:
+    result = result[0]
+  if result.kind == nnkPostfix and result.len >= 2:
+    result = result[1]
+
+proc accQuotedToStr*(n: NimNode): string {.compileTime.} =
+  ## Reassemble the string form of a backticked identifier from its
+  ## `nnkAccQuoted` AST.
+  ##
+  ## Walks the children of `n` and concatenates `strVal` for each
+  ## `nnkIdent`/`nnkSym` child. Operator-idents like `=destroy` parse as
+  ## `AccQuoted(Ident("="), Ident("destroy"))` and round-trip back to
+  ## `"=destroy"`.
+  ##
+  ## :param n: A node with `n.kind == nnkAccQuoted`
+  ## :returns: The reassembled identifier string. Empty when no
+  ##           Ident/Sym children are present.
+  assert n.kind == nnkAccQuoted, "accQuotedToStr expects nnkAccQuoted; got " & $n.kind
+  for c in n:
+    if c.kind in {nnkIdent, nnkSym}:
+      result.add c.strVal
+
 proc extractTypeName(node: NimNode): string =
   ## Extract the type name from a type AST node.
   ##
@@ -443,28 +481,21 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
       stateBase = extractBaseName(att.initialState)
       attachedTypeNameForParam = typeBase
     for j in 0 ..< nameCount:
-      # Unwrap precedence mirrors `extractTypeDeclName` (pragmas.nim:1052-1057)
-      # and `destructorTransitionCore` proc-name extraction. Param names can
+      # Unwrap precedence mirrors `extractTypeDeclName` and
+      # `destructorTransitionCore` proc-name extraction. Param names can
       # nest wrappers in either order: a plain `p`, an exported `p*`, a
       # pragma-decorated `p {.x.}`, and the combined exported + pragma form
       # `p* {.x.}` which Nim parses as `PragmaExpr(Postfix(*, p), Pragma)`.
       # Backticked names (`nnkAccQuoted`) are also accepted as a leaf
-      # shape. Peel PragmaExpr first, then Postfix, then dispatch on the
-      # final ident-bearing node.
-      var nameNode = identDefs[j]
-      if nameNode.kind == nnkPragmaExpr and nameNode.len >= 1:
-        nameNode = nameNode[0]
-      if nameNode.kind == nnkPostfix and nameNode.len >= 2:
-        nameNode = nameNode[1]
+      # shape. `peelNameWrappers` strips PragmaExpr then Postfix; dispatch
+      # on the final ident-bearing node.
+      let nameNode = peelNameWrappers(identDefs[j])
       var nameStr: string
       case nameNode.kind
       of nnkIdent, nnkSym:
         nameStr = nameNode.strVal
       of nnkAccQuoted:
-        var parts = ""
-        for c in nameNode:
-          if c.kind in {nnkIdent, nnkSym}:
-            parts.add c.strVal
+        let parts = accQuotedToStr(nameNode)
         if parts.len == 0:
           continue
         nameStr = parts
@@ -819,33 +850,23 @@ proc destructorTransitionCore(
   if destrDef.kind != nnkProcDef:
     error("`destructorTransition` may only be applied to a proc definition", destrDef)
 
-  # Unwrap precedence mirrors `extractTypeDeclName` (pragmas.nim:1052-1057):
-  # `nnkPragmaExpr` wraps the export/name node when extra pragmas sit on
-  # the proc decl alongside `{.destructorTransition.}` (e.g. `proc
-  # `=destroy`* {.inline, destructorTransition.}(...)` parses as
-  # `PragmaExpr(Postfix(*, AccQuoted), Pragma)`). Peel the PragmaExpr
-  # first, then the Postfix, leaving the bare name node (AccQuoted /
-  # Ident / Sym) for the case-dispatch below. Without the PragmaExpr
-  # peel the case fell through to `procNameNode.repr` and returned the
-  # entire wrapped form, failing the `=destroy` discriminator with a
-  # misleading "may only be applied to a `=destroy` hook" diagnostic.
-  let procNameNode = block:
-    var node = destrDef[0]
-    if node.kind == nnkPragmaExpr:
-      node = node[0]
-    if node.kind == nnkPostfix:
-      node = node[1]
-    node
-  # For `=destroy`, AccQuoted has two children: `=` and `destroy`.
-  # Concatenate all child idents to recover the full operator-ident name.
+  # Unwrap precedence mirrors `extractTypeDeclName`: `nnkPragmaExpr` wraps
+  # the export/name node when extra pragmas sit on the proc decl alongside
+  # `{.destructorTransition.}` (e.g. `proc `=destroy`* {.inline,
+  # destructorTransition.}(...)` parses as `PragmaExpr(Postfix(*,
+  # AccQuoted), Pragma)`). `peelNameWrappers` strips the PragmaExpr then
+  # the Postfix, leaving the bare name node (AccQuoted / Ident / Sym) for
+  # the case-dispatch below. Without the PragmaExpr peel the case fell
+  # through to `procNameNode.repr` and returned the entire wrapped form,
+  # failing the `=destroy` discriminator with a misleading "may only be
+  # applied to a `=destroy` hook" diagnostic.
+  let procNameNode = peelNameWrappers(destrDef[0])
+  # For `=destroy`, AccQuoted has two children: `=` and `destroy`;
+  # `accQuotedToStr` concatenates them to recover the operator-ident name.
   let procName =
     case procNameNode.kind
     of nnkAccQuoted:
-      var parts = ""
-      for c in procNameNode:
-        if c.kind in {nnkIdent, nnkSym}:
-          parts.add c.strVal
-      parts
+      accQuotedToStr(procNameNode)
     of nnkIdent, nnkSym:
       procNameNode.strVal
     else:
@@ -1071,12 +1092,11 @@ proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
   ## an `nnkPragmaExpr` whose `[0]` is the name node and `[1]` is the
   ## pragma. We accept `typeDef` here so the caller can pass the raw
   ## TypeDef without prior unwrapping.
-  var nameNode = typeDef[0]
-  if nameNode.kind == nnkPragmaExpr:
-    nameNode = nameNode[0]
-  if nameNode.kind == nnkPostfix:
-    # `name*` form -> strip the `*`
-    nameNode = nameNode[1]
+  # `peelNameWrappers` strips the natural Nim parse shapes:
+  # PragmaExpr(Postfix(*, name)) for `T* {.pragma.}`, Postfix(*, name)
+  # for `T*`, PragmaExpr(name) for `T {.pragma.}`, leaving the bare
+  # ident / sym / BracketExpr for the case-dispatch below.
+  let nameNode = peelNameWrappers(typeDef[0])
   case nameNode.kind
   of nnkIdent, nnkSym:
     return nameNode.strVal
@@ -1084,17 +1104,15 @@ proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
     # `name[T]` — generic. Head is typically Ident/Sym, but for a
     # manually-built or unusual AST shape it may itself wrap an
     # `nnkPostfix(*, Ident)` (the exported-generic form
-    # `BracketExpr(Postfix(*, T), G)`). Peel the Postfix first so the
-    # returned base name never carries a stale export marker. The
-    # natural Nim parse of `type T*[G] = object` puts `Postfix` at the
-    # TypeDef head (handled above on line 1053) rather than inside a
+    # `BracketExpr(Postfix(*, T), G)`). Peel the head so the returned
+    # base name never carries a stale export marker. The natural Nim
+    # parse of `type T*[G] = object` puts `Postfix` at the TypeDef head
+    # (handled by the outer peel above) rather than inside a
     # BracketExpr, but this defensive peel keeps the proc robust
     # against any caller that builds the BracketExpr-first shape and
     # is the path exercised by `textract_type_decl_name`'s hand-built
     # AST for the `T*[G]` case.
-    var head = nameNode[0]
-    if head.kind == nnkPostfix and head.len >= 2:
-      head = head[1]
+    let head = peelNameWrappers(nameNode[0])
     if head.kind in {nnkIdent, nnkSym}:
       return head.strVal
     else:
