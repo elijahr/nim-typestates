@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.8.0"
+version       = "0.9.0"
 author        = "elijahr <elijahr+typestates@gmail.com>"
 description   = "Compile-time typestate validation for Nim"
 license       = "MIT"
@@ -12,6 +12,11 @@ installExt    = @["nim"]
 # Dependencies
 
 requires "nim >= 2.2.0"
+
+# Test-only dependencies (used by tests/should_compile/transitions/async_*
+# and tests/should_compile/transitions/wrapper_result_*). Not pulled in
+# during production installs.
+taskRequires "test", "chronos >= 4.2.2", "results >= 0.5.0"
 
 # Tasks
 

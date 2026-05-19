@@ -1,0 +1,84 @@
+## Test (CFG-001 — raise edge): a `raise` inside a registered transition
+## proc creates an exit edge from any program point in the body. If a
+## typestate-bearing local is in scope, non-terminal, and has no registered
+## `{.destructorTransition.}` for its type, the analyzer must reject at the
+## raise node.
+##
+## Per §3.3, raise is treated identically to return for exit-edge validation
+## (CFG-001 unified for return + raise; the only difference is the `edgeKind`
+## string in the diagnostic).
+##
+## We use a `Defect` (not tracked by `{.raises: [].}`) so the analyzer's
+## CFG-001 fires BEFORE the raises checker. The transition pragma
+## auto-injects `{.raises: [].}` — using a CatchableError would error at
+## the raises checker first and the test would catch the wrong diagnostic.
+##
+## Here `tick(...)` is a {.transition.} proc whose body declares
+## `s: Started` (non-terminal of typestate Job, no destructor). The raise on
+## the conditional branch leaves `s` non-terminal -> CFG-001 fires.
+##
+## Round-14 (Gemini r13 HIGH): the sink-param pre-population skip was
+## reversed. `q: sink Queued` is now in the live-set at the raise.
+## To keep the fixture's focus on `s: Started` (a body-local without
+## destructor), Queued is given a `=destroy {.destructorTransition.}`
+## so the destructor short-circuit accepts `q` at the raise edge —
+## only `s` then trips CFG-001.
+# expects: "has not reached a terminal state at this raise"
+# expects: "Started"
+# expects: "Done"
+import ../../../src/typestates
+
+type
+  Slot = object
+    n: int
+
+  Queued = distinct Slot
+  Running = distinct Slot
+
+typestate Slot:
+  consumeOnTransition = false
+  strictTransitions = false
+  states Queued, Running
+  initial:
+    Queued
+  terminal:
+    Running
+  transitions:
+    Queued -> Running
+
+type
+  Job = object
+    n: int
+
+  Started = distinct Job
+  Done = distinct Job
+
+typestate Job:
+  consumeOnTransition = false
+  strictTransitions = false
+  states Started, Done
+  initial:
+    Started
+  terminal:
+    Done
+  transitions:
+    Started -> Done
+
+proc `=destroy`(s: var Queued) {.destructorTransition.} =
+  ## Round-14 scaffold: bridges Queued -> Running so the
+  ## round-14-tracked sink param `q` is accepted at the raise edge
+  ## via the destructor short-circuit. The fixture's CFG-001 target
+  ## is the destructor-less Job state `Started` declared as a
+  ## body-local.
+  discard
+
+proc tick(q: sink Queued, fail: bool): Running {.transition.} =
+  ## Body declares `s: Started`; on the `fail` branch the body raises a
+  ## Defect (not tracked by `raises: []`). CFG-001 must fire on the raise
+  ## edge: `s` is in `Started` (non-terminal) with no destructor.
+  var s {.used.}: Started
+  if fail:
+    raise newException(Defect, "boom") # CFG-001: 's' is Started, no destructor.
+  result = Running(q)
+
+verifyTypestates()

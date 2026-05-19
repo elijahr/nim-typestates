@@ -5,6 +5,14 @@
 ##
 ## If decoy emission ever expands to cover generic typestates, this test
 ## breaks because the error message changes shape.
+##
+## Round-14 (Gemini r13 HIGH): the sink-param pre-population skip was
+## reversed. `fill`'s body produces `Full[int](Container[int](...))`
+## from a fresh value; the sink `e: Empty[int]` is not referenced
+## and `Container` has no terminal states, so a
+## `{.destructorTransition.}` cannot bridge `e`. Add
+## `{.skipCfgAnalysis.}`. The type-mismatch diagnostic this fixture
+## targets is at the CALL SITE (`f.fill(1)` where `f: Full[int]`).
 # expects: "type mismatch"
 import ../../../src/typestates
 
@@ -22,7 +30,7 @@ typestate Container[T]:
   transitions:
     Empty[T] -> Full[T]
 
-proc fill(e: sink Empty[int], v: int): Full[int] {.transition.} =
+proc fill(e: sink Empty[int], v: int): Full[int] {.transition, skipCfgAnalysis.} =
   Full[int](Container[int](value: v))
 
 verifyTypestates()

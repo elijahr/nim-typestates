@@ -1103,6 +1103,62 @@ proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
 
     result.add matchMacro
 
+proc generateAttachmentMarker*(graph: TypestateGraph): NimNode =
+  ## Generate the per-typestate attachment-pragma macro (§3.7).
+  ##
+  ## For typestate `<Name>`, emits:
+  ##
+  ## ```nim
+  ## when not declared(<Name>):
+  ##   macro <Name>*(initial: untyped, typeDef: untyped): untyped =
+  ##     attachTypestateCore("<Name>", initial, typeDef)
+  ## ```
+  ##
+  ## The `when not declared(<Name>)` guard prevents a redefinition error
+  ## when the typestate name collides with an existing identifier in
+  ## scope — the established convention pairs `typestate Resource:` with
+  ## `type Resource = object`. In that case the attachment-pragma macro
+  ## is silently skipped; the typestate still works for state-typed
+  ## destructor params (path (a) in §3.1), it just can't be used as an
+  ## attachment-pragma target. Users who want attachment-pragma support
+  ## should name their typestate distinctly from any underlying type
+  ## (e.g. `PinnedScopeContext` paired with `type PinnedScope = object`,
+  ## per the nim-debra 0.8.0 convention).
+  ##
+  ## When the guard fires (no collision) and a user later writes
+  ## `type T {.<Name>: <InitialState>.} = object`, Nim invokes this macro
+  ## with `(initial = <InitialState>, typeDef = <T's TypeDef>)`. The
+  ## macro delegates to `attachTypestateCore` (pragmas.nim) which
+  ## validates TA-002..TA-004 and registers the attachment (TA-001 is
+  ## unreachable through this code path — see `attachTypestateCore`'s
+  ## doc comment for the unreachable-defense rationale).
+  ##
+  ## :param graph: The typestate graph (`graph.name` is the macro name)
+  ## :returns: A `nnkStmtList` wrapping the guarded macro definition
+  let macroIdent = ident(graph.name)
+  let exportedName = nnkPostfix.newTree(ident("*"), macroIdent)
+  let nameLit = newLit(graph.name)
+  let guardIdent = ident(graph.name)
+  let warnLit = newLit(
+    "Typestate '" & graph.name & "' shares a name with object type '" & graph.name &
+      "'; attachment pragma is not available for same-name " &
+      "typestates (Nim macro limitation). Consider renaming the typestate " & "(e.g., '" &
+      graph.name & "Context')."
+  )
+  result = newStmtList()
+  result.add quote do:
+    when not declared(`guardIdent`):
+      macro `exportedName`(initial: untyped, typeDef: untyped): untyped =
+        ## Typestate-attachment pragma (auto-generated; see §3.7 of the
+        ## v0.9.0 design doc). Apply to a type declaration to bind the
+        ## type to this typestate with `initial` as the starting state.
+        ## Validates TA-002..TA-004 at compile time and populates
+        ## `typestateAttachments`.
+        attachTypestateCore(`nameLit`, initial, typeDef)
+
+    else:
+      {.warning: `warnLit`.}
+
 proc generateAll*(graph: TypestateGraph): NimNode =
   ## Generate all helper types and procs for a typestate.
   ##
@@ -1138,3 +1194,4 @@ proc generateAll*(graph: TypestateGraph): NimNode =
   result.add generateBranchDollar(graph)
   result.add generateBranchMatch(graph)
   result.add generateSingleTargetMatch(graph)
+  result.add generateAttachmentMarker(graph)
