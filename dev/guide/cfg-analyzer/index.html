@@ -7,13 +7,13 @@
       
       
       
-        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/verification/">
+        <link rel="canonical" href="https://elijahr.github.io/nim-typestates/latest/guide/cfg-analyzer/">
       
       
-        <link rel="prev" href="../cfg-analyzer/">
+        <link rel="prev" href="../destructor-transitions/">
       
       
-        <link rel="next" href="../ci-integration/">
+        <link rel="next" href="../verification/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Verification - nim-typestates</title>
+        <title>CFG Analyzer - nim-typestates</title>
       
     
     
@@ -91,7 +91,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#verification" class="md-skip">
+        <a href="#cfg-analyzer-v090" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Verification
+              CFG Analyzer
             
           </span>
         </div>
@@ -691,34 +691,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../cfg-analyzer/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CFG Analyzer
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -738,7 +710,7 @@
   <span class="md-ellipsis">
     
   
-    Verification
+    CFG Analyzer
   
 
     
@@ -756,7 +728,7 @@
   <span class="md-ellipsis">
     
   
-    Verification
+    CFG Analyzer
   
 
     
@@ -782,10 +754,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#compile-time-checking" class="md-nav__link">
+  <a href="#the-decision-enabled-by-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compile-Time Checking
+        The α Decision (Enabled by Default)
       
     </span>
   </a>
@@ -793,10 +765,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verifytypestates-macro" class="md-nav__link">
+  <a href="#what-the-analyzer-enforces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        verifyTypestates() Macro
+        What the Analyzer Enforces
       
     </span>
   </a>
@@ -804,10 +776,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#diagnostic-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Diagnostic Codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-example-080-accepted-090-rejects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked Example: 0.8.0 Accepted → 0.9.0 Rejects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recognized-transition-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recognized Transition Shapes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-the-analyzer-is-wrong-skipcfganalysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When the Analyzer is Wrong: {.skipCfgAnalysis.}
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When the Analyzer is Wrong: {.skipCfgAnalysis.}">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -818,6 +851,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -995,10 +1056,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#compile-time-checking" class="md-nav__link">
+  <a href="#the-decision-enabled-by-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compile-Time Checking
+        The α Decision (Enabled by Default)
       
     </span>
   </a>
@@ -1006,10 +1067,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verifytypestates-macro" class="md-nav__link">
+  <a href="#what-the-analyzer-enforces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        verifyTypestates() Macro
+        What the Analyzer Enforces
       
     </span>
   </a>
@@ -1017,10 +1078,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#diagnostic-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Diagnostic Codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-example-080-accepted-090-rejects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked Example: 0.8.0 Accepted → 0.9.0 Rejects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recognized-transition-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recognized Transition Shapes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-the-analyzer-is-wrong-skipcfganalysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When the Analyzer is Wrong: {.skipCfgAnalysis.}
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When the Analyzer is Wrong: {.skipCfgAnalysis.}">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -1047,34 +1169,239 @@
   
 
 
-<h1 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h1>
-<p>The typestates library provides multiple verification layers.</p>
-<h2 id="compile-time-checking">Compile-Time Checking<a class="headerlink" href="#compile-time-checking" title="Permanent link">¶</a></h2>
-<p>The <code>{.transition.}</code> and <code>{.notATransition.}</code> pragmas validate at compile time:</p>
+<h1 id="cfg-analyzer-v090">CFG Analyzer (v0.9.0)<a class="headerlink" href="#cfg-analyzer-v090" title="Permanent link">¶</a></h1>
+<p>The v0.9.0 release adds a control-flow-graph analyzer pass to
+<code>verifyTypestates()</code>. It walks every registered proc body and rejects exit
+edges (return, raise, fall-through, discard, break-escapes-scope) that
+leave a typestate-bearing local in a non-terminal state.</p>
+<h2 id="the-decision-enabled-by-default">The α Decision (Enabled by Default)<a class="headerlink" href="#the-decision-enabled-by-default" title="Permanent link">¶</a></h2>
+<p>The CFG analyzer is <strong>enabled by default</strong> in v0.9.0. It is a soft-breaking
+change under pre-1.0 SemVer §4 latitude:</p>
+<blockquote>
+<p>"Major version zero (0.y.z) is for initial development. Anything MAY
+change at any time." — SemVer 2.0 §4</p>
+</blockquote>
+<p>Code that compiled and verified under 0.8.0 may newly fail verification
+under 0.9.0 when the analyzer surfaces a latent early-return-out-of-typestate
+bug. The pre-1.0 latitude is being spent here on a correctness-improving
+diagnostic, not on churn: an empirical audit of two downstream consumers
+(50 in-tree <code>{.transition.}</code> procs across nim-debra 0.8.0 and
+lockfreequeues 4.1.x) found 49/50 safe and 1 that needed the
+<code>{.skipCfgAnalysis.}</code> escape hatch.</p>
+<h2 id="what-the-analyzer-enforces">What the Analyzer Enforces<a class="headerlink" href="#what-the-analyzer-enforces" title="Permanent link">¶</a></h2>
+<p>For each tracked local of a typestate-bearing type, the analyzer requires
+that <strong>every exit edge</strong> leaves the local in a terminal state — OR that the
+local's type has a registered <code>{.destructorTransition.}</code> whose <code>=destroy</code>
+fires automatically.</p>
+<p>Tracked locals come from two sources:</p>
+<ol>
+<li>Locals whose declared type is a state in a registered typestate, e.g.
+   <code>var f: Open</code> where <code>Open</code> belongs to <code>typestate File:</code>.</li>
+<li>Locals whose declared type is bound via the v0.9.0 typestate-attachment
+   pragma (<code>type T {.MyTypestate: InitialState.} = object</code>); see the
+   <a href="../destructor-transitions/">Destructor Transitions</a> guide.</li>
+</ol>
+<p>Exit edges checked:</p>
 <ul>
-<li>Transitions match declared state machine</li>
-<li>Sealed typestates block external transitions</li>
+<li><code>return</code> (explicit and from <code>result = ...; return</code>)</li>
+<li><code>raise</code></li>
+<li>Fall-through at end of proc body</li>
+<li><code>break</code> / <code>continue</code> that escape the local's lexical scope</li>
+<li><code>discard expr</code> where <code>expr</code>'s static type is the typestate</li>
 </ul>
-<h2 id="verifytypestates-macro">verifyTypestates() Macro<a class="headerlink" href="#verifytypestates-macro" title="Permanent link">¶</a></h2>
-<p>For comprehensive in-module verification:</p>
+<h2 id="diagnostic-codes">Diagnostic Codes<a class="headerlink" href="#diagnostic-codes" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>When it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CFG-001</td>
+<td>A live typestate local is non-terminal at an exit edge, and its type has no <code>{.destructorTransition.}</code> to bridge it.</td>
+</tr>
+<tr>
+<td>CFG-002</td>
+<td>Two <code>if</code> / <code>case</code> branches leave the same local in incompatible non-terminal states; the merge point cannot be reconciled.</td>
+</tr>
+<tr>
+<td>CFG-003</td>
+<td><code>discard expr</code> where <code>expr</code>'s static type is a typestate state that is NOT a declared terminal.</td>
+</tr>
+</tbody>
+</table>
+<p>Every diagnostic is attributed to the exact exit-edge node (return, raise,
+discard, branch merge) and includes the local's current state, the
+typestate's terminal states, and a hint pointing at this page.</p>
+<h2 id="worked-example-080-accepted-090-rejects">Worked Example: 0.8.0 Accepted → 0.9.0 Rejects<a class="headerlink" href="#worked-example-080-accepted-090-rejects" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="n">typestates</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="p">...</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(...)</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(...)</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">verifyTypestates</span><span class="p">()</span><span class="w">  </span><span class="c"># Validates everything above</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">type</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">Connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">Active</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">Closed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Connection</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">consumeOnTransition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">strictTransitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Active</span><span class="p">,</span><span class="w"> </span><span class="n">Closed</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="n">initial</span><span class="p">:</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="n">Active</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="n">terminal</span><span class="p">:</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="n">Closed</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="n">Active</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">sink</span><span class="w"> </span><span class="n">Active</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Connection</span><span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="k">proc</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="n">cond</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Connection</span><span class="p">())</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">cond</span><span class="p">:</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="k">return</span><span class="w">                  </span><span class="c"># CFG-001 in 0.9.0: `c` is still Active</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="k">discard</span><span class="w"> </span><span class="n">close</span><span class="p">(</span><span class="n">move</span><span class="w"> </span><span class="n">c</span><span class="p">)</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="n">verifyTypestates</span><span class="p">()</span>
 </code></pre></div>
-<h2 id="cli-tool">CLI Tool<a class="headerlink" href="#cli-tool" title="Permanent link">¶</a></h2>
-<p>The <code>typestates</code> CLI provides project-wide verification and visualization:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>typestates<span class="w"> </span>verify<span class="w"> </span>src/<span class="w">     </span><span class="c1"># Check all procs are properly marked</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>typestates<span class="w"> </span>dot<span class="w"> </span>src/<span class="w">        </span><span class="c1"># Generate GraphViz diagrams</span>
+<p>0.8.0: silently accepted. The <code>Active</code> local on the early-return path
+never reached <code>Closed</code>.</p>
+<p>0.9.0: rejected with CFG-001 on the <code>return</code> statement.</p>
+<p><strong>Minimal fix — consume on both paths:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="n">cond</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Connection</span><span class="p">())</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">cond</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="k">discard</span><span class="w"> </span><span class="n">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="k">return</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="k">discard</span><span class="w"> </span><span class="n">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 </code></pre></div>
-<p>For non-interactive use, <code>verify</code> accepts <code>--warnings-as-errors</code> (alias <code>-W</code>) to promote warning-severity findings to a non-zero exit code, and <code>--format=github</code> or <code>--format=json</code> for machine-readable output. The <code>github</code> format emits inline PR annotations on GitHub Actions; the <code>json</code> format follows a stable, versioned schema for downstream tooling.</p>
-<p>See <a href="../cli/">CLI Reference</a> for complete usage, <a href="../ci-integration/">CI Integration</a> for the format schemas and CI recipes, and <a href="../visualization/">Visualization</a> for diagram generation.</p>
+<p>The analyzer recognizes <code>close(c)</code> as a registered transition call that
+consumes <code>c</code> (sink parameter, terminal destination) and drops <code>c</code> from
+tracking on every path. The fall-through and the early <code>return</code> both
+accept.</p>
+<p><strong>Alternative fix — let a destructor bridge the transition:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=destroy`</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Active</span><span class="p">)</span><span class="w"> </span><span class="sx">{.destructorTransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">discard</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="c"># Real destructor would release c.Connection.handle here.</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">proc</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="n">cond</span><span class="p">:</span><span class="w"> </span><span class="nb">bool</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Active</span><span class="p">(</span><span class="n">Connection</span><span class="p">())</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">cond</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="k">return</span><span class="w">       </span><span class="c"># destructor fires, bridges Active -&gt; Closed</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="k">discard</span><span class="w"> </span><span class="n">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="recognized-transition-shapes">Recognized Transition Shapes<a class="headerlink" href="#recognized-transition-shapes" title="Permanent link">¶</a></h2>
+<p>The analyzer tracks state transitions through the following statement
+forms when the callee is a registered <code>{.transition.}</code> or
+<code>{.destructorTransition.}</code> proc:</p>
+<table>
+<thead>
+<tr>
+<th>Shape</th>
+<th>Example</th>
+<th>Effect on tracked local(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bare call (sink)</td>
+<td><code>discard close(f)</code></td>
+<td><code>f</code> is consumed; dropped from tracking.</td>
+</tr>
+<tr>
+<td>Bare call (var / value)</td>
+<td><code>advance(f)</code></td>
+<td><code>f</code>'s tracked state advances to the call's destination. Branching destinations drop <code>f</code> (resolved later via <code>match</code>).</td>
+</tr>
+<tr>
+<td>Var-init from call</td>
+<td><code>var f = open()</code></td>
+<td><code>f</code> is bound as tracked at the call's destination state.</td>
+</tr>
+<tr>
+<td>Reassignment from call</td>
+<td><code>f = factory(seed)</code></td>
+<td><code>seed</code> is consumed (sink) or advanced (var); <code>f</code> is rebound to the call's destination.</td>
+</tr>
+<tr>
+<td>Sink-consume composition</td>
+<td><code>let f = unpin(g)</code></td>
+<td><code>g</code> is consumed; <code>f</code> is bound at the call's destination.</td>
+</tr>
+<tr>
+<td>Terminal <code>discard</code></td>
+<td><code>discard f</code> (where <code>f</code> is a terminal state)</td>
+<td><code>f</code> is consumed; dropped from tracking.</td>
+</tr>
+</tbody>
+</table>
+<p>Identifier shadowing is resolved innermost-first. When a name <code>x</code> is
+bound in an outer scope and re-bound in an inner block, references to
+<code>x</code> inside the block resolve to the inner binding; references outside
+the block resolve to the outer.</p>
+<p>Branch reconciliation requires consistent consumption: if an entry-set
+local is consumed (reaches terminal) in one branch but left in a
+non-terminal state in another, CFG-002 fires. Consuming in all
+branches, or leaving the same state in all branches, both reconcile
+cleanly.</p>
+<h2 id="when-the-analyzer-is-wrong-skipcfganalysis">When the Analyzer is Wrong: <code>{.skipCfgAnalysis.}</code><a class="headerlink" href="#when-the-analyzer-is-wrong-skipcfganalysis" title="Permanent link">¶</a></h2>
+<p>A small set of patterns defeat conservative flow analysis. The canonical
+example is <code>nim-debra</code>'s <code>shutdown</code> proc: a <code>try/except</code> wrapper around a
+transition where the analyzer cannot prove the typestate reaches terminal
+in the except branch.</p>
+<p>For these cases, opt out per-proc:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">shutdown</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="w"> </span><span class="n">sink</span><span class="w"> </span><span class="n">Manager</span><span class="p">)</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">skipCfgAnalysis.}</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">drain</span><span class="p">()</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="k">except</span><span class="w"> </span><span class="n">CatchableError</span><span class="p">:</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">forceTerminate</span><span class="p">()</span>
+</code></pre></div>
+<p><code>{.skipCfgAnalysis.}</code> disables CFG-001 / CFG-002 / CFG-003 diagnostics for
+the marked proc body. All other validation (transition graph, raises,
+unmarked-proc strict mode) still applies.</p>
+<h3 id="decision-criteria">Decision Criteria<a class="headerlink" href="#decision-criteria" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely diagnosis</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Early <code>return</code> leaves a local non-terminal that you forgot to consume.</td>
+<td>Real bug.</td>
+<td>Restructure: consume on every path, or add a destructor.</td>
+</tr>
+<tr>
+<td><code>if</code>/<code>case</code> branches honestly compute different terminals (e.g., <code>Ok</code> vs <code>Aborted</code>).</td>
+<td>Real bug (CFG-002).</td>
+<td>Reconcile to a common terminal, or add <code>as ResultType</code> branching transition.</td>
+</tr>
+<tr>
+<td><code>try/except</code> where one arm reaches terminal via a path the analyzer cannot prove.</td>
+<td>False positive.</td>
+<td><code>{.skipCfgAnalysis.}</code>.</td>
+</tr>
+<tr>
+<td>Discard of a <code>Result[State, E]</code> you know is <code>Err(...)</code>.</td>
+<td>False positive.</td>
+<td><code>{.skipCfgAnalysis.}</code> or destructure the Result.</td>
+</tr>
+</tbody>
+</table>
+<p>Apply <code>{.skipCfgAnalysis.}</code> only after confirming the typestate truly
+reaches terminal on every path — the pragma silences the analyzer, it
+does not prove correctness.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../destructor-transitions/">Destructor Transitions</a> — the
+  <code>{.destructorTransition.}</code> pragma that lets <code>=destroy</code> bridge a
+  typestate to its terminal state.</li>
+<li><a href="../verification/">Verification</a> — <code>verifyTypestates()</code> and CLI usage.</li>
+</ul>
 
 
 
@@ -1097,7 +1424,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 2, 2026 11:13:50 UTC"><span class="timeago" datetime="2026-05-02T11:13:50+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 2, 2026 11:13:50 UTC">2026-05-02</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 19, 2026 09:31:01 UTC"><span class="timeago" datetime="2026-05-19T09:31:01+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 19, 2026 09:31:01 UTC">2026-05-19</span>
   </span>
 
     
@@ -1107,7 +1434,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 30, 2025 08:52:39 UTC"><span class="timeago" datetime="2025-11-30T08:52:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 30, 2025 08:52:39 UTC">2025-11-30</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 19, 2026 09:31:01 UTC"><span class="timeago" datetime="2026-05-19T09:31:01+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 19, 2026 09:31:01 UTC">2026-05-19</span>
   </span>
 
     
