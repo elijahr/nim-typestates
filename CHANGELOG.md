@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-05-19
+
+### Documentation
+
+- **Green Mirage postmortem (AGENTS.md).** Captured a recurring failure
+  mode observed during the v0.9.0 destructor-transition cycle: an
+  over-conservative `if isSink: continue` skip introduced to suppress a
+  single observed false-fire (canonical `result = Dst(s.Base)` shape)
+  silently hid a soundness gap on every sink-T transition proc that
+  failed to consume its sink param. The gap survived four review rounds
+  before Gemini surfaced it; remediation required reverting the skip
+  and threading the consumption-recognition fix through the call-shape
+  extractor instead. The rule: when introducing a default-deny / skip
+  predicate to suppress a false-fire, audit the blast radius — what
+  class of real errors does the predicate now exempt from analysis?
+  Often the right fix is to improve the under-recognition that caused
+  the false-fire, not to skip the whole category.
+- Internal documentation only. No behavioural changes; no public API
+  changes; all 219 tests + 116 fixtures from v0.9.0 continue to pass.
+
 ## [0.9.0] - 2026-05-19
 
 ### Breaking (pre-1.0 latitude)
