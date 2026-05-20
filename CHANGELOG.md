@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2]
+
+### Added
+
+- **`defaults:` body section on `typestate` decls.** A new optional
+  `defaults:` section inside the typestate body captures default-value
+  expressions for generic params declared in the bracket head, so
+  consumers can elide a defaulted param at instantiation time. Defaults
+  propagate through every macro-generated type and proc (variant types,
+  state procs, `=copy` hooks, branch constructors, branch operators,
+  `$` overloads, `match` macros, attachment marker) via
+  `buildGenericParams`. Existing typestates without a `defaults:` section
+  continue to work unchanged.
+
+  Example:
+
+  ```nim
+  typestate RegistrationContext[
+      MaxThreads: static int, CC: static PinScopeCardinality]:
+    defaults:
+      CC: ccSingle
+    states:
+      Unregistered[MaxThreads, CC]
+      Registered[MaxThreads, CC]
+    transitions:
+      Unregistered[MaxThreads, CC] ->
+        (Registered[MaxThreads, CC]) as RegisterResult[MaxThreads, CC]
+  ```
+
+  Consumers can then write `RegisterResult[4]` and Nim binds `CC` to
+  the captured `ccSingle` default. The DSL form was chosen over the
+  inline `[CC: static PinScopeCardinality = ccSingle]` shape because
+  Nim's grammar disallows `=` inside `[...]` macro-arg context.
+
+### Validation
+
+- Each `defaults:` entry must reference a generic param declared in the
+  bracket head; otherwise a macro-time error lists the declared params.
+- The left-hand side of an entry must be a bare param name (no constraint
+  re-declaration — the constraint comes from the bracket head).
+- Duplicate entries (same param named twice) are rejected at macro time.
+
 ## [0.9.1] - 2026-05-19
 
 ### Documentation
