@@ -14,7 +14,9 @@
 import std/[macros, sequtils, strutils, tables]
 import types
 
-proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
+proc buildGenericParams*(
+    typeParams: seq[NimNode], defaults: seq[NimNode] = @[]
+): NimNode =
   ## Build a generic params node for proc/type definitions.
   ##
   ## For `@[T]`, generates: `[T]`
@@ -23,12 +25,28 @@ proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
   ## For `@[T: SomeInteger]`, generates: `[T: SomeInteger]`
   ## For `@[]`, returns empty node (non-generic)
   ##
+  ## When `defaults` is non-empty it must be the same length as `typeParams`.
+  ## Each entry is either `newEmptyNode()` (no default for that param) or a
+  ## captured AST node for the default expression. The default is emitted
+  ## into the `nnkIdentDefs` default-value slot for that param, mirroring
+  ## native Nim `proc foo[T = Default]` semantics. The Nim compiler types
+  ## the default expression at type-instantiation time.
+  ##
   ## :param typeParams: Sequence of type parameter nodes
+  ## :param defaults: Optional parallel sequence of default expressions.
+  ##     Empty seq means "no defaults for any param" (back-compat).
   ## :returns: nnkGenericParams node or newEmptyNode()
   if typeParams.len == 0:
     return newEmptyNode()
+  doAssert defaults.len == 0 or defaults.len == typeParams.len,
+    "buildGenericParams: defaults seq must be empty or match typeParams length"
   result = nnkGenericParams.newTree()
-  for p in typeParams:
+  for i, p in typeParams:
+    let defaultNode =
+      if defaults.len == 0 or defaults[i] == nil or defaults[i].kind == nnkEmpty:
+        newEmptyNode()
+      else:
+        defaults[i].copyNimTree
     if p.kind == nnkExprColonExpr:
       # Constrained generic: N: static int or T: SomeInteger
       # ExprColonExpr[0] = name (N or T)
@@ -36,11 +54,11 @@ proc buildGenericParams*(typeParams: seq[NimNode]): NimNode =
       result.add nnkIdentDefs.newTree(
         p[0].copyNimTree, # name
         p[1].copyNimTree, # constraint
-        newEmptyNode(), # default value
+        defaultNode, # default value (newEmptyNode() if none)
       )
     else:
       # Simple generic: T
-      result.add nnkIdentDefs.newTree(p.copyNimTree, newEmptyNode(), newEmptyNode())
+      result.add nnkIdentDefs.newTree(p.copyNimTree, newEmptyNode(), defaultNode)
 
 proc extractTypeParams*(node: NimNode): seq[NimNode] =
   ## Extract type parameters from a type node.
@@ -135,7 +153,7 @@ proc generateUnionType*(graph: TypestateGraph): NimNode =
   result = nnkTypeSection.newTree(
     nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), unionName),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       unionType,
     )
   )
@@ -177,7 +195,7 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
     let procDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), ident("state")),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         enumName, nnkIdentDefs.newTree(ident("f"), stateType, newEmptyNode())
       ),
@@ -227,7 +245,7 @@ proc generateStateDollar*(graph: TypestateGraph): NimNode =
     let procDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         stringIdent, nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
       ),
@@ -329,8 +347,11 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    # Use typestate's type params (with constraints) instead of extracting from branch type
+    # Use typestate's type params (with constraints) instead of extracting from branch type.
+    # Defaults flow through so generated variants inherit them via the same
+    # mechanism as state distincts.
     let branchTypeParams = graph.typeParams
+    let branchTypeParamDefaults = graph.typeParamDefaults
     let kindTypeName = branchBaseName & "Kind"
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -382,7 +403,7 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
     # Use base name for type definition, generic params go in second slot
     let objectDef = nnkTypeDef.newTree(
       nnkPostfix.newTree(ident("*"), ident(branchBaseName)),
-      buildGenericParams(branchTypeParams),
+      buildGenericParams(branchTypeParams, branchTypeParamDefaults),
       nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase)),
     )
 
@@ -421,8 +442,11 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    # Use typestate's type params (with constraints) instead of extracting from branch type
+    # Use typestate's type params (with constraints) instead of extracting from branch type.
+    # Defaults flow through so generated variants inherit them via the same
+    # mechanism as state distincts.
     let branchTypeParams = graph.typeParams
+    let branchTypeParamDefaults = graph.typeParamDefaults
     let procName = "to" & branchBaseName
     let enumPrefix = branchEnumPrefix(branchBaseName)
 
@@ -448,7 +472,7 @@ proc generateBranchConstructors*(graph: TypestateGraph): NimNode =
       let procDef = nnkProcDef.newTree(
         nnkPostfix.newTree(ident("*"), ident(procName)),
         newEmptyNode(),
-        buildGenericParams(branchTypeParams),
+        buildGenericParams(branchTypeParams, branchTypeParamDefaults),
         nnkFormalParams.newTree(
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
@@ -491,7 +515,7 @@ proc generateCopyHooks*(graph: TypestateGraph): NimNode =
     let hookDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("=copy"))),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         newEmptyNode(), # void return
         nnkIdentDefs.newTree(ident("dest"), nnkVarTy.newTree(stateType), newEmptyNode()),
@@ -590,8 +614,11 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
     let branchTypeName = t.branchTypeName
     let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
-    # Use typestate's type params (with constraints) instead of extracting from branch type
+    # Use typestate's type params (with constraints) instead of extracting from branch type.
+    # Defaults flow through so generated variants inherit them via the same
+    # mechanism as state distincts.
     let branchTypeParams = graph.typeParams
+    let branchTypeParamDefaults = graph.typeParamDefaults
     let procName = "to" & branchBaseName
 
     for dest in t.toStates:
@@ -612,7 +639,7 @@ proc generateBranchOperators*(graph: TypestateGraph): NimNode =
       let templateDef = nnkTemplateDef.newTree(
         nnkPostfix.newTree(ident("*"), nnkAccQuoted.newTree(ident("->"))),
         newEmptyNode(),
-        buildGenericParams(branchTypeParams),
+        buildGenericParams(branchTypeParams, branchTypeParamDefaults),
         nnkFormalParams.newTree(
           branchTypeNode.copyNimTree,
           nnkIdentDefs.newTree(
@@ -681,7 +708,7 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
     let procDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         stringIdent, nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode())
       ),
@@ -1009,7 +1036,7 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
     let matchMacro = nnkMacroDef.newTree(
       nnkPostfix.newTree(ident("*"), ident("match")),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         ident("untyped"),
         nnkIdentDefs.newTree(ident("value"), unionTypeNode, newEmptyNode()),
@@ -1090,7 +1117,7 @@ proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
     let matchMacro = nnkMacroDef.newTree(
       nnkPostfix.newTree(ident("*"), ident("match")),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams),
+      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         ident("untyped"),
         nnkIdentDefs.newTree(ident("value"), stateType, newEmptyNode()),

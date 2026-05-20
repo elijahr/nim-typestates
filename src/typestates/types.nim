@@ -162,6 +162,10 @@ type
     ##
     ## :var name: The base type name (e.g., "File" in `typestate File:`)
     ## :var typeParams: Generic type parameters (e.g., @[T] for Container[T], @[] for non-generic)
+    ## :var typeParamDefaults: Default expressions for each typeParam, in the same
+    ##     order as `typeParams`. Each entry is either `newEmptyNode()` (no default)
+    ##     or a captured AST node for the default expression. Populated from the
+    ##     optional `defaults:` body section in the typestate DSL.
     ## :var states: Map of state names to State objects
     ## :var transitions: List of all declared transitions
     ## :var strictTransitions: If true, all procs on states must be categorized
@@ -172,6 +176,12 @@ type
     ## :var declaredInModule: Module filename where typestate was declared
     name*: string
     typeParams*: seq[NimNode] ## Generic params: @[T] or @[K, V] or @[]
+    typeParamDefaults*: seq[NimNode]
+      ## Default-value expressions, parallel to `typeParams`. Each entry is
+      ## `newEmptyNode()` for params without a default, or a captured AST
+      ## node for the default expression supplied in the `defaults:` body
+      ## section. Always the same length as `typeParams` once parsing
+      ## completes.
     states*: Table[string, State]
     transitions*: seq[Transition]
     bridges*: seq[Bridge]

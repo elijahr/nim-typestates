@@ -538,6 +538,165 @@ proc parseTerminalBlock*(graph: var TypestateGraph, node: NimNode) =
   ## :param node: AST node of the terminal block
   graph.terminalStates = parseStateList(node)
 
+proc paramName(typeParam: NimNode): string =
+  ## Extract the name of a typeParam node.
+  ##
+  ## A typeParam is either a bare ident (`T`) or a constrained
+  ## `nnkExprColonExpr` (`T: SomeInteger`). For constrained shapes the name
+  ## is the first child; for bare idents the node itself carries the name.
+  case typeParam.kind
+  of nnkExprColonExpr:
+    if typeParam[0].kind in {nnkIdent, nnkSym}:
+      result = typeParam[0].strVal
+    else:
+      result = typeParam[0].repr
+  of nnkIdent, nnkSym:
+    result = typeParam.strVal
+  else:
+    result = typeParam.repr
+
+proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the optional `defaults:` body section.
+  ##
+  ## Captures default-value expressions for the typestate's bracket-head
+  ## generic parameters. Defaults flow through `buildGenericParams` into
+  ## every generated type and proc (state distincts, variant types, the
+  ## context type, `=copy` hooks, `state()` procs, `$` overloads, etc.).
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## typestate RegistrationContext[
+  ##     MaxThreads: static int,
+  ##     CC: static PinScopeCardinality]:
+  ##   defaults:
+  ##     CC: ccSingle
+  ##   states:
+  ##     Unregistered, Registered
+  ## ```
+  ##
+  ## Validation rules (each rule fires a macro-time `error`):
+  ##
+  ## - Each entry must reference a generic param declared in the bracket
+  ##   head; an unknown name is rejected with a clear message.
+  ## - Each entry references only the param's name (no constraint
+  ##   re-declaration). The constraint comes from the bracket head.
+  ## - Duplicate entries (same param named twice) are rejected.
+  ##
+  ## The default-value expression is captured as-is (`NimNode`) and emitted
+  ## verbatim at codegen; it is typed by the Nim compiler at the
+  ## type-instantiation site, mirroring native `proc foo[T = Default]`
+  ## semantics.
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the `defaults` block (nnkCall with StmtList body)
+  if node.kind notin {nnkCall, nnkCommand}:
+    error("defaults: expected a block of `ParamName: DefaultExpr` entries", node)
+
+  # The body of a `defaults:` section is always a StmtList (the colon-block
+  # form). Inline forms like `defaults: CC: ccSingle` collapse to the same
+  # shape in Nim's AST: nnkCall(Ident "defaults", StmtList(...)).
+  var body: NimNode = nil
+  for i in 1 ..< node.len:
+    if node[i].kind == nnkStmtList:
+      body = node[i]
+      break
+  if body == nil:
+    error(
+      "defaults: section must use a colon-block body with " &
+        "`ParamName: DefaultExpr` entries (e.g. `defaults:\\n  CC: ccSingle`)",
+      node,
+    )
+
+  # Build a name->index map for the bracket-head params so each entry can
+  # validate its target param and slot its default into the right position.
+  var nameToIdx: Table[string, int]
+  for i, p in graph.typeParams:
+    nameToIdx[paramName(p)] = i
+
+  var seenInDefaults: HashSet[string]
+
+  # Inside a StmtList, an entry written as `Name: Expr` parses to
+  # `nnkCall(Ident "Name", StmtList(Expr))`, not `nnkExprColonExpr`. The
+  # `nnkExprColonExpr` shape only appears when the colon-expr is inline in
+  # an enclosing call (e.g. `defaults: CC: ccSingle` on a single line). Both
+  # forms are accepted so the DSL reads naturally in either layout.
+  for entry in body:
+    if entry.kind == nnkEmpty:
+      continue
+    var nameNode: NimNode
+    var defaultExpr: NimNode
+    case entry.kind
+    of nnkCall:
+      # `Name: Expr` inside a StmtList -> nnkCall(name, StmtList(expr))
+      if entry.len != 2 or entry[1].kind != nnkStmtList or entry[1].len == 0:
+        error(
+          "defaults: each entry must take the form `ParamName: DefaultExpr` " &
+            "(got malformed nnkCall body)",
+          entry,
+        )
+      nameNode = entry[0]
+      # A `Name: Expr` entry's StmtList holds exactly one expression node.
+      # Multiple statements under one name would mean the user wrote something
+      # like `CC:\n  ccSingle\n  ccMulti` which is not a valid default.
+      var nonEmptyChildren: seq[NimNode]
+      for c in entry[1]:
+        if c.kind != nnkEmpty:
+          nonEmptyChildren.add c
+      if nonEmptyChildren.len != 1:
+        error(
+          "defaults: each entry must hold exactly one default expression. " & "Got " &
+            $nonEmptyChildren.len & " expressions under '" & (
+            if entry[0].kind in {nnkIdent, nnkSym}: entry[0].strVal
+            else: entry[0].repr
+          ) & "'.",
+          entry,
+        )
+      defaultExpr = nonEmptyChildren[0]
+    of nnkExprColonExpr:
+      # Inline form `defaults: CC: ccSingle` on a single line.
+      if entry.len != 2:
+        error("defaults: each entry must take the form `ParamName: DefaultExpr`", entry)
+      nameNode = entry[0]
+      defaultExpr = entry[1]
+    else:
+      error(
+        "defaults: each entry must take the form `ParamName: DefaultExpr` " &
+          "(got node kind " & $entry.kind & ")",
+        entry,
+      )
+    if nameNode.kind notin {nnkIdent, nnkSym}:
+      error(
+        "defaults: left-hand side must be a bare param name " &
+          "(no constraint re-declaration; the constraint comes from the " &
+          "bracket head). Got node kind " & $nameNode.kind & ".",
+        nameNode,
+      )
+    let pname = nameNode.strVal
+    if pname notin nameToIdx:
+      var declared: seq[string]
+      for p in graph.typeParams:
+        declared.add paramName(p)
+      let declaredStr =
+        if declared.len > 0:
+          declared.join(", ")
+        else:
+          "<none>"
+      error(
+        "defaults: '" & pname & "' does not match any generic param declared " &
+          "in the typestate bracket head. Declared params: " & declaredStr & ".",
+        nameNode,
+      )
+    if pname in seenInDefaults:
+      error(
+        "defaults: '" & pname & "' is listed more than once. Each generic " &
+          "param may have at most one default entry.",
+        nameNode,
+      )
+    seenInDefaults.incl pname
+    let idx = nameToIdx[pname]
+    graph.typeParamDefaults[idx] = defaultExpr.copyNimTree
+
 proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that all states have unique base names.
   ##
@@ -766,9 +925,16 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     # Simple: File
     baseName = extractBaseName(name)
 
+  # Initialize defaults slot parallel to typeParams. Defaults remain
+  # newEmptyNode() unless the typestate body contains a `defaults:` section.
+  var typeParamDefaults: seq[NimNode] = @[]
+  for _ in typeParams:
+    typeParamDefaults.add newEmptyNode()
+
   result = TypestateGraph(
     name: baseName,
     typeParams: typeParams,
+    typeParamDefaults: typeParamDefaults,
     declaredAt: name.lineInfoObj,
     declaredInModule: name.lineInfoObj.filename,
   )
@@ -790,6 +956,8 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
         parseInitialBlock(result, child)
       of "terminal":
         parseTerminalBlock(result, child)
+      of "defaults":
+        parseDefaultsBlock(result, child)
       else:
         error("Unknown section in typestate block: " & sectionName, child)
     else:
