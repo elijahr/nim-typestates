@@ -49,6 +49,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   re-declaration — the constraint comes from the bracket head).
 - Duplicate entries (same param named twice) are rejected at macro time.
 
+### Fixed
+
+- **`destructorTransition` two-arg spec accepts generic terminal states.**
+  Parser stored terminal state reprs verbatim (e.g. `"Closed[N, T]"`)
+  while `pragmas.nim` membership check compared against `extractTypeName`
+  output (bare `"Closed"`). The asymmetry rejected every two-arg
+  `{.destructorTransition: Src -> Dst.}` whose `Dst` was a generic
+  terminal. Comparison now normalizes both sides via `extractBaseName`.
+  Regression fixture:
+  `tests/should_compile/pragmas/destructor_transition_generic_state_spec.nim`.
+
 ## [0.9.1] - 2026-05-19
 
 ### Documentation

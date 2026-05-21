@@ -982,7 +982,18 @@ proc destructorTransitionCore(
             "` does not match destructor parameter type `" & paramTypeName & "`",
           spec,
         )
-    if parsedDstStateName notin graph.terminalStates:
+    # Normalize both sides to bare names before comparing: parser stores
+    # terminal state reprs verbatim (e.g. "Closed[N, T]" for generic
+    # terminals), while `parsedDstStateName` comes from `extractTypeName`
+    # which already strips brackets. Without this normalization, the
+    # membership check rejects any generic-state terminal target.
+    let parsedDstBare = extractBaseName(parsedDstStateName)
+    var dstIsTerminal = false
+    for t in graph.terminalStates:
+      if extractBaseName(t) == parsedDstBare:
+        dstIsTerminal = true
+        break
+    if not dstIsTerminal:
       let terminals = graph.terminalStates.join(", ")
       error(
         "`destructorTransition` spec DstState `" & parsedDstStateName &
