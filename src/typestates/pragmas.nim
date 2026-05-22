@@ -81,6 +81,97 @@ template transparentWrapper*() {.pragma.}
   ## type-level AST interactions simple and consistent with the
   ## `notATransition` marker pattern.
 
+template transitionError*(msg: static string) {.pragma.}
+  ## Author-site diagnostic-string override for `{.transition.}` and
+  ## `{.destructorTransition.}` declaration-time errors.
+  ##
+  ## Use as a sibling pragma to pin a custom error message that the Nim
+  ## compiler emits (verbatim, with the standard file:line prefix) when a
+  ## transition declaration is invalid (e.g., the source/destination edge
+  ## is not in the typestate's transition graph, or the destructor's
+  ## terminal target is not declared).
+  ##
+  ## The pragma itself is a no-op marker — its EFFECT is realized by the
+  ## `transition` and `destructorTransitionCore` macros, which scan the
+  ## host proc's pragma list for a sibling `transitionError: "msg"` and,
+  ## when present, substitute the literal string for the built-in
+  ## diagnostic at every transition-validity `error(...)` site.
+  ##
+  ## **Static-literal only.** The right-hand side must be a string
+  ## literal (no concatenation, no `fmt`, no runtime `var`). The
+  ## extractor fires a compile-time error if the rhs is not `nnkStrLit`:
+  ## `transitionError must be a static string literal (no concatenation,
+  ## no fmt)`.
+  ##
+  ## **Backwards compatible.** Omitting `transitionError` preserves every
+  ## existing diagnostic byte-for-byte.
+  ##
+  ## **Author-site only.** This pragma customizes the declaration-time
+  ## error message emitted when the typestate author writes an invalid
+  ## transition. It does NOT customize the consumer-call-site CFG-001
+  ## diagnostic emitted from `verify.nim:validateExitEdge` when a caller
+  ## invokes a proc whose required entry state does not match the
+  ## current state of the typestate-attached value. Consumer-call-site
+  ## substitution would require CFG-analyzer changes and is out of scope
+  ## for v0.9.3.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc lock(f: Open): Locked {.transition, transitionError:
+  ##     "Cannot lock an open file: call close() first".} =
+  ##   Locked(f)
+  ##
+  ## proc `=destroy`(c: var Halfopen)
+  ##     {.destructorTransition: Halfopen -> Closed,
+  ##       transitionError: "Halfopen must close before destruction".} =
+  ##   discard
+  ## ```
+
+proc extractTransitionErrorPragma*(
+    pragmaNode: NimNode
+): string {.compileTime.} =
+  ## Scan a proc's `nnkPragma` node for a sibling `transitionError: "msg"`
+  ## pragma and return the literal string, or `""` if absent.
+  ##
+  ## Enforces static-literal: when the LHS is `transitionError` but the
+  ## RHS is not `nnkStrLit`, fires a compile-time error.
+  ##
+  ## :param pragmaNode: The `procDef.pragma` node (kind `nnkPragma` or
+  ##                    `nnkEmpty` for procs with no pragmas)
+  ## :returns: The extracted string, or `""` if no `transitionError:`
+  ##           sibling is present.
+  result = ""
+  if pragmaNode.kind == nnkEmpty:
+    return ""
+  for pragma in pragmaNode:
+    case pragma.kind
+    of nnkExprColonExpr:
+      if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].strVal == "transitionError":
+        if pragma[1].kind != nnkStrLit:
+          error(
+            "transitionError must be a static string literal " &
+              "(no concatenation, no fmt)",
+            pragma[1],
+          )
+        return pragma[1].strVal
+    of nnkCall:
+      # Defensive: `transitionError("msg")` call form (not the canonical
+      # sibling-pragma syntax, but accept it so users who type the
+      # call-form get the same behavior rather than a silent miss).
+      if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].strVal == "transitionError":
+        if pragma[1].kind != nnkStrLit:
+          error(
+            "transitionError must be a static string literal " &
+              "(no concatenation, no fmt)",
+            pragma[1],
+          )
+        return pragma[1].strVal
+    else:
+      discard
+
 proc registerTransparentWrapper*(name: string) {.compileTime.} =
   ## Register a generic wrapper type as transparent for `{.transition.}`
   ## return-type validation. Name may be a base name (`"MyResult"`) or a
@@ -692,7 +783,16 @@ macro transition*(procDef: untyped): untyped =
         )
 
   if allDiagnostics.len > 0:
-    error(allDiagnostics.join("\n"), procDef)
+    # v0.9.3: if the proc declares `{.transitionError: "msg".}` as a
+    # sibling pragma, replace the built-in diagnostic wholesale. The
+    # custom string surfaces verbatim with the compiler's standard
+    # file:line prefix. Absent / empty preserves the built-in
+    # diagnostic byte-for-byte.
+    let customMsg = extractTransitionErrorPragma(procDef.pragma)
+    if customMsg.len > 0:
+      error(customMsg, procDef)
+    else:
+      error(allDiagnostics.join("\n"), procDef)
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false
