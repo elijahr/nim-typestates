@@ -127,6 +127,16 @@ template transitionError*(msg: static string) {.pragma.}
   ##       transitionError: "Halfopen must close before destruction".} =
   ##   discard
   ## ```
+  ##
+  ## **v0.9.3 sibling-pragma sweep.** A search of `pragmas.nim` for other
+  ## macro/template decls that emit transition-validity diagnostics
+  ## found only `transition` and `destructorTransition` (via
+  ## `destructorTransitionCore`). The sibling pragmas
+  ## `transparentWrapper`, `skipCfgAnalysis`, and `notATransition` do
+  ## NOT emit transition-validity diagnostics and are out of scope.
+  ## `attachTypestateCore` emits TA-001..TA-004 attachment-validity
+  ## diagnostics (not transition-validity); attachment-error
+  ## customization is a separate feature, not included in v0.9.3.
 
 proc extractTransitionErrorPragma*(
     pragmaNode: NimNode
