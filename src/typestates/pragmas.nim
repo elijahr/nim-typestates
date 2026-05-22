@@ -942,6 +942,26 @@ proc destructorTransitionCore(
   result = destrDef
   let hasSpec = spec != nil
 
+  # v0.9.3: extract `{.transitionError: "msg".}` sibling pragma once and
+  # thread it into every transition-validity diagnostic below. Empty
+  # string means "no override; preserve the built-in message". The
+  # extractor enforces static-string-literal rhs.
+  #
+  # Triage of `error(...)` sites inside this proc:
+  #   - DT-006, DT-007, DT-008, DT-010, DT-011, DT-013: transition-validity
+  #     (the declaration's relationship to the typestate's state graph is
+  #     invalid) — these substitute `customMsg` when non-empty.
+  #   - DT-001 (not proc def), DT-002 (wrong name), DT-003 (wrong arity),
+  #     DT-004 (not var), DT-005 (non-empty raises), DT-009 (spec
+  #     malformed): shape errors (the destructor declaration is
+  #     syntactically wrong). Keep built-in defaults.
+  #   - "internal:" prefixed errors: invariant violations, not user-facing
+  #     transition-validity. Keep defaults.
+  #
+  # DT-001 fires before we can safely read `destrDef.pragma`, so the
+  # extraction is deferred until after the proc-def shape check.
+  var customMsg = ""
+
   # Phase 0: Two-arg form — parse spec eagerly so spec-shape errors precede
   # proc-shape errors when both are present.
   var parsedSrcStateName, parsedDstStateName: string
@@ -959,6 +979,11 @@ proc destructorTransitionCore(
   # Phase 1: Shape validation
   if destrDef.kind != nnkProcDef:
     error("`destructorTransition` may only be applied to a proc definition", destrDef)
+
+  # v0.9.3: now that we know destrDef is a proc def, safely harvest the
+  # `transitionError:` sibling pragma (if any) for downstream
+  # transition-validity diagnostic substitution.
+  customMsg = extractTransitionErrorPragma(destrDef.pragma)
 
   # Unwrap precedence mirrors `extractTypeDeclName`: `nnkPragmaExpr` wraps
   # the export/name node when extra pragmas sit on the proc decl alongside
@@ -1029,12 +1054,15 @@ proc destructorTransitionCore(
     let attOpt = findAttachmentForType(paramTypeName)
     if attOpt.isNone:
       # DT-006: both lookups failed.
-      error(
-        "`destructorTransition` parameter type `" & paramTypeName &
-          "` is not part of any registered typestate AND no " &
-          "typestate-attachment pragma (§3.7) was found for it.",
-        paramTypeNode,
-      )
+      if customMsg.len > 0:
+        error(customMsg, paramTypeNode)
+      else:
+        error(
+          "`destructorTransition` parameter type `" & paramTypeName &
+            "` is not part of any registered typestate AND no " &
+            "typestate-attachment pragma (§3.7) was found for it.",
+          paramTypeNode,
+        )
     let att = attOpt.get
     if att.typestateName notin typestateRegistry:
       error(
@@ -1048,19 +1076,25 @@ proc destructorTransitionCore(
 
   # Phase 3: Terminal-state sanity (DT-007, DT-008)
   if graph.terminalStates.len == 0:
-    error(
-      "`destructorTransition` requires the typestate `" & graph.name &
-        "` to declare at least one terminal state via `terminal:`; " &
-        "destructors model terminal transitions and need an explicit terminal.",
-      destrDef,
-    )
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` requires the typestate `" & graph.name &
+          "` to declare at least one terminal state via `terminal:`; " &
+          "destructors model terminal transitions and need an explicit terminal.",
+        destrDef,
+      )
   if graph.isTerminalState(sourceStateName):
-    error(
-      "`destructorTransition` source type `" & sourceStateName &
-        "` is already a terminal state of typestate `" & graph.name &
-        "`; destructor cannot perform a transition",
-      destrDef,
-    )
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` source type `" & sourceStateName &
+          "` is already a terminal state of typestate `" & graph.name &
+          "`; destructor cannot perform a transition",
+        destrDef,
+      )
 
   # Phase 4: Two-arg form cross-check (DT-010, DT-011, DT-013)
   if hasSpec:
@@ -1068,20 +1102,27 @@ proc destructorTransitionCore(
     if not srcMatches:
       if attachedObjectTypeNameOpt.isSome:
         # DT-013: attached-object-param SrcState mismatch.
-        error(
-          "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
-            "`) does not match the attached object's initial state (`" & sourceStateName &
-            "`); attached object type `" & paramTypeName & "` is bound to typestate `" &
-            graph.name & "` with initial state `" & sourceStateName & "`.",
-          spec,
-        )
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
+              "`) does not match the attached object's initial state (`" &
+              sourceStateName & "`); attached object type `" & paramTypeName &
+              "` is bound to typestate `" & graph.name &
+              "` with initial state `" & sourceStateName & "`.",
+            spec,
+          )
       else:
         # DT-010: state-typed-param mismatch.
-        error(
-          "`destructorTransition` spec SrcState `" & parsedSrcStateName &
-            "` does not match destructor parameter type `" & paramTypeName & "`",
-          spec,
-        )
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "`destructorTransition` spec SrcState `" & parsedSrcStateName &
+              "` does not match destructor parameter type `" & paramTypeName & "`",
+            spec,
+          )
     # Normalize both sides to bare names before comparing: parser stores
     # terminal state reprs verbatim (e.g. "Closed[N, T]" for generic
     # terminals), while `parsedDstStateName` comes from `extractTypeName`
@@ -1095,12 +1136,15 @@ proc destructorTransitionCore(
         break
     if not dstIsTerminal:
       let terminals = graph.terminalStates.join(", ")
-      error(
-        "`destructorTransition` spec DstState `" & parsedDstStateName &
-          "` is not a terminal state of typestate `" & graph.name &
-          "`; declared terminals: " & terminals,
-        spec,
-      )
+      if customMsg.len > 0:
+        error(customMsg, spec)
+      else:
+        error(
+          "`destructorTransition` spec DstState `" & parsedDstStateName &
+            "` is not a terminal state of typestate `" & graph.name &
+            "`; declared terminals: " & terminals,
+          spec,
+        )
 
   # Phase 5: raises validation + auto-injection (mirrors transition* logic)
   var hasRaises = false
