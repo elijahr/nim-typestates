@@ -9,6 +9,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.3]
 
+### Added
+
+- **`{.transitionError: "msg".}` sibling pragma** for author-site
+  diagnostic-string override on `{.transition.}` and
+  `{.destructorTransition.}`. Use as a sibling pragma to pin a custom
+  error message that the Nim compiler emits verbatim (with the standard
+  file:line prefix) when a transition declaration is invalid.
+
+  The custom string fully replaces the built-in
+  `Undeclared transition: ...` (transition) or DT-006/DT-007/DT-008/
+  DT-010/DT-011/DT-013 (destructorTransition) diagnostic. Omitting the
+  pragma preserves every existing message byte-for-byte, so the change
+  is fully backwards compatible.
+
+  The rhs must be a static string literal (no concatenation, no `fmt`,
+  no runtime `var`). Non-literal forms fire the canonical compile-time
+  error: `transitionError must be a static string literal (no
+  concatenation, no fmt)`.
+
+  **Author-site only.** This pragma customizes the declaration-time
+  diagnostic emitted when the typestate author writes an invalid
+  transition. It does NOT customize the consumer-call-site CFG-001
+  diagnostic emitted from `verify.nim:validateExitEdge` when a caller
+  invokes a proc whose required entry state does not match the current
+  state of the typestate-attached value. Consumer-call-site
+  substitution would require CFG-analyzer changes and is deferred.
+
+  Example — `{.transition.}`:
+
+  ```nim
+  proc lock(f: Open): Locked
+      {.transition, transitionError:
+        "Cannot lock an open file: call close() first".} =
+    Locked(f)
+  ```
+
+  Example — `{.destructorTransition.}`:
+
+  ```nim
+  proc `=destroy`(h: var Halfopen)
+      {.destructorTransition: Halfopen -> Closed,
+        transitionError: "Halfopen must close before destruction".} =
+    discard
+  ```
+
+- **`# rejects: "<substring>"` directive** in the comprehensive test
+  runner (`tests/tcomprehensive_runner.nim`). Mirrors the existing
+  `# expects: "..."` directive but asserts the substring does NOT
+  appear in compiler output. Required to verify v0.9.3's wholesale
+  diagnostic substitution (built-in message must not leak through when
+  a custom `transitionError` is provided).
+
+### Migration
+
+None required. The `transitionError` sibling pragma is optional; every
+existing transition / destructorTransition declaration continues to
+compile and produce the same diagnostics as in v0.9.2.
+
+### Compatibility
+
+- Nim >= 2.2.0 (unchanged from v0.9.2).
+- No new dependencies.
+- CFG analyzer (`verify.nim`, `reachability.nim`, `analyzer.nim`)
+  untouched — the feature is purely additive at the pragma-macro layer.
+- **Conditional typestate attachment (`when` predicate) is NOT
+  available in this release.** A sweep of `pragmas.nim`, `codegen.nim`,
+  and the v0.9.0/v0.9.1/v0.9.2 CHANGELOG entries confirmed the
+  attachment-pragma macro signature is unconditional
+  (`<TypestateName>(initial, typeDef)`, no `when` slot). Downstream
+  consumers that need conditional attachment (e.g., attaching a
+  typestate only when a generic parameter takes a specific value) must
+  use the two-type dispatch alias pattern: declare two distinct types
+  (one with typestate attached, one without) and select between them
+  via a `when`-conditional type alias at the consumer call site.
+
 ## [0.9.2]
 
 ### Added
