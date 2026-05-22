@@ -81,7 +81,7 @@ template transparentWrapper*() {.pragma.}
   ## type-level AST interactions simple and consistent with the
   ## `notATransition` marker pattern.
 
-template transitionError*(msg: static string) {.pragma.}
+template transitionError*(msg: string) {.pragma.}
   ## Author-site diagnostic-string override for `{.transition.}` and
   ## `{.destructorTransition.}` declaration-time errors.
   ##
@@ -679,6 +679,14 @@ macro transition*(procDef: untyped): untyped =
   ## ```
   result = procDef
 
+  # v0.9.3: validate `{.transitionError: "msg".}` sibling pragma upfront.
+  # Calling the extractor here (rather than inside the error branch
+  # below) ensures the static-string-literal check fires even on
+  # transitions that are otherwise valid — catching authoring mistakes
+  # at the declaration site instead of only when the transition is
+  # broken.
+  let customMsg = extractTransitionErrorPragma(procDef.pragma)
+
   # Extract signature info
   let params = procDef.params
   if params.len < 2:
@@ -797,8 +805,9 @@ macro transition*(procDef: untyped): untyped =
     # sibling pragma, replace the built-in diagnostic wholesale. The
     # custom string surfaces verbatim with the compiler's standard
     # file:line prefix. Absent / empty preserves the built-in
-    # diagnostic byte-for-byte.
-    let customMsg = extractTransitionErrorPragma(procDef.pragma)
+    # diagnostic byte-for-byte. `customMsg` is harvested upfront (see
+    # the top of this macro) so the static-string-literal check fires
+    # even for transitions that are otherwise valid.
     if customMsg.len > 0:
       error(customMsg, procDef)
     else:
