@@ -179,14 +179,14 @@ proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} 
     case pragma.kind
     of nnkExprColonExpr:
       if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
-          pragma[0].strVal == "transitionError":
+          pragma[0].eqIdent("transitionError"):
         return getStaticStringValue(pragma[1])
     of nnkCall:
       # Defensive: `transitionError("msg")` call form (not the canonical
       # sibling-pragma syntax, but accept it so users who type the
       # call-form get the same behavior rather than a silent miss).
       if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
-          pragma[0].strVal == "transitionError":
+          pragma[0].eqIdent("transitionError"):
         return getStaticStringValue(pragma[1])
     else:
       discard
@@ -649,11 +649,11 @@ proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
   for pragma in pragmaNode:
     case pragma.kind
     of nnkIdent, nnkSym:
-      if pragma.strVal == "skipCfgAnalysis":
+      if pragma.eqIdent("skipCfgAnalysis"):
         return true
     of nnkExprColonExpr, nnkCall:
       if pragma.len >= 1 and pragma[0].kind in {nnkIdent, nnkSym} and
-          pragma[0].strVal == "skipCfgAnalysis":
+          pragma[0].eqIdent("skipCfgAnalysis"):
         return true
     else:
       discard
@@ -1184,12 +1184,12 @@ proc destructorTransitionCore(
       of nnkIdent, nnkSym:
         discard
       of nnkExprColonExpr:
-        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
           hasRaises = true
           if pragma[1].kind == nnkBracket and pragma[1].len > 0:
             raisesIsEmpty = false
       of nnkCall:
-        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
           hasRaises = true
           if pragma.len > 1:
             let arg = pragma[1]

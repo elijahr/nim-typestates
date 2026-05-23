@@ -608,13 +608,13 @@ proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
       node,
     )
 
-  # Build a name->index map for the bracket-head params so each entry can
-  # validate its target param and slot its default into the right position.
-  var nameToIdx: Table[string, int]
-  for i, p in graph.typeParams:
-    nameToIdx[paramName(p)] = i
-
-  var seenInDefaults: HashSet[string]
+  # Track the param names already given a default so duplicates are rejected.
+  # Membership is tested with `eqIdent` (style-insensitive, per Nim's
+  # identifier rules: first character case-sensitive, subsequent characters
+  # case- and underscore-insensitive) so e.g. `MaxThreads` and `Maxthreads`
+  # are treated as the same param rather than slipping through as two distinct
+  # entries.
+  var seenInDefaults: seq[NimNode]
 
   # Inside a StmtList, an entry written as `Name: Expr` parses to
   # `nnkCall(Ident "Name", StmtList(Expr))`, not `nnkExprColonExpr`. The
@@ -676,7 +676,16 @@ proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
         nameNode,
       )
     let pname = nameNode.strVal
-    if pname notin nameToIdx:
+    # Resolve the entry's param name against the bracket-head params with a
+    # style-insensitive linear scan (`eqIdent`), so a non-canonical spelling
+    # (case/underscore variant) still binds. N params is tiny; linear search
+    # is the idiomatic Nim-macro approach.
+    var idx = -1
+    for i, p in graph.typeParams:
+      if eqIdent(nameNode, paramName(p)):
+        idx = i
+        break
+    if idx < 0:
       var declared: seq[string]
       for p in graph.typeParams:
         declared.add paramName(p)
@@ -690,14 +699,20 @@ proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
           "in the typestate bracket head. Declared params: " & declaredStr & ".",
         nameNode,
       )
-    if pname in seenInDefaults:
+    # Duplicate detection is also style-insensitive: a second entry whose name
+    # is `eqIdent`-equal to an already-seen one is a duplicate.
+    var isDuplicate = false
+    for seen in seenInDefaults:
+      if eqIdent(seen, nameNode):
+        isDuplicate = true
+        break
+    if isDuplicate:
       error(
         "defaults: '" & pname & "' is listed more than once. Each generic " &
           "param may have at most one default entry.",
         nameNode,
       )
-    seenInDefaults.incl pname
-    let idx = nameToIdx[pname]
+    seenInDefaults.add nameNode
     graph.typeParamDefaults[idx] = defaultExpr.copyNimTree
 
 proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
@@ -948,18 +963,21 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
       parseFlag(result, child)
     of nnkCall, nnkCommand:
       let sectionName = child[0].strVal
-      case sectionName
-      of "states":
+      # Dispatch on the section keyword with `eqIdent` (style-insensitive, per
+      # Nim's identifier rules) so a non-canonical spelling (case/underscore
+      # variant) still resolves. `sectionName` is retained for the unknown-
+      # section error message.
+      if child[0].eqIdent("states"):
         parseStates(result, child)
-      of "transitions":
+      elif child[0].eqIdent("transitions"):
         parseTransitionsBlock(result, child)
-      of "bridges":
+      elif child[0].eqIdent("bridges"):
         parseBridgesBlock(result, child)
-      of "initial":
+      elif child[0].eqIdent("initial"):
         parseInitialBlock(result, child)
-      of "terminal":
+      elif child[0].eqIdent("terminal"):
         parseTerminalBlock(result, child)
-      of "defaults":
+      elif child[0].eqIdent("defaults"):
         parseDefaultsBlock(result, child)
       else:
         error("Unknown section in typestate block: " & sectionName, child)

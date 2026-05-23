@@ -61,6 +61,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   diagnostic substitution (built-in message must not leak through when
   a custom `transitionError` is provided).
 
+### Fixed
+
+- **Style-insensitive identifier matching** for custom pragmas
+  (`transitionError`, `skipCfgAnalysis`, `raises`) and the typestate DSL
+  (the `defaults:` section keyword, all six section keywords, and
+  `defaults:` generic-param names). Matching now follows Nim's identifier
+  rules (case- and underscore-insensitive after the first character),
+  replacing case-sensitive `strVal ==` comparisons with `eqIdent`.
+  Previously a non-canonical spelling (case/underscore variant) was
+  silently ignored — a variant-spelled `transitionError` lost its custom
+  message and fell back to the built-in diagnostic — or rejected — a
+  variant-spelled section keyword or `defaults:` param name produced an
+  "Unknown section" / "does not match any generic param" error. Every
+  error-message string is unchanged; only the matching became
+  style-insensitive.
+
 ### Migration
 
 None required. The `transitionError` sibling pragma is optional; every
