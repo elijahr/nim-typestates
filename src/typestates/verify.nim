@@ -2051,6 +2051,15 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
   for procInfo in registeredProcs:
     if procInfo.modulePath != callerFile:
       continue
+    # CONFIRMED DEAD (v0.9.3 M12 sweep): this guard is structurally
+    # unreachable. The only two RegisteredProc producers hardcode
+    # `pkTransition` (pragmas.nim:901) and `pkDestructorTransition`
+    # (pragmas.nim:1212); nothing ever constructs a proc with
+    # `kind: pkUnmarked`. Live strict-mode / unmarked-proc enforcement
+    # runs through the independent CLI text/AST path (cli.nim:524-556),
+    # which never touches ProcKind. Kept (not deleted) for v0.9.3 to keep
+    # the release scoped to transitionError + hygiene; slated for removal
+    # in v0.10. See AGENTS.md "Pattern Signals from v0.9.3" M12.
     if procInfo.kind == pkUnmarked:
       # Find the typestate for this state
       let graphOpt = findTypestateForState(procInfo.sourceState)
