@@ -141,6 +141,25 @@ template transitionError*(msg: string) {.pragma.}
   ## diagnostics (not transition-validity); attachment-error
   ## customization is a separate feature, not included in v0.9.3.
 
+proc getStaticStringValue(node: NimNode): string {.compileTime.} =
+  ## Enforce static-string-literal rhs for a `transitionError:` sibling
+  ## pragma and return its value.
+  ##
+  ## Shared by the `nnkExprColonExpr` (canonical `transitionError: "msg"`)
+  ## and `nnkCall` (defensive `transitionError("msg")`) branches of
+  ## `extractTransitionErrorPragma`: both accept only string-literal forms
+  ## (`nnkStrLit`, `nnkRStrLit`, `nnkTripleStrLit`) and fire the same
+  ## compile-time error otherwise.
+  ##
+  ## :param node: The pragma rhs node (`pragma[1]`)
+  ## :returns: The literal string value of `node`
+  if node.kind notin {nnkStrLit, nnkRStrLit, nnkTripleStrLit}:
+    error(
+      "transitionError must be a static string literal " & "(no concatenation, no fmt)",
+      node,
+    )
+  return node.strVal
+
 proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} =
   ## Scan a proc's `nnkPragma` node for a sibling `transitionError: "msg"`
   ## pragma and return the literal string, or `""` if absent.
@@ -161,26 +180,14 @@ proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} 
     of nnkExprColonExpr:
       if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
           pragma[0].strVal == "transitionError":
-        if pragma[1].kind notin {nnkStrLit, nnkRStrLit, nnkTripleStrLit}:
-          error(
-            "transitionError must be a static string literal " &
-              "(no concatenation, no fmt)",
-            pragma[1],
-          )
-        return pragma[1].strVal
+        return getStaticStringValue(pragma[1])
     of nnkCall:
       # Defensive: `transitionError("msg")` call form (not the canonical
       # sibling-pragma syntax, but accept it so users who type the
       # call-form get the same behavior rather than a silent miss).
       if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
           pragma[0].strVal == "transitionError":
-        if pragma[1].kind notin {nnkStrLit, nnkRStrLit, nnkTripleStrLit}:
-          error(
-            "transitionError must be a static string literal " &
-              "(no concatenation, no fmt)",
-            pragma[1],
-          )
-        return pragma[1].strVal
+        return getStaticStringValue(pragma[1])
     else:
       discard
 
