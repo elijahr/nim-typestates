@@ -41,10 +41,12 @@ typestate Resource:
     Idle -> Active
     Active -> Released
 
-proc `=destroy`(a: var Active)
-    {.destructorTransition: Active -> Released,
-      transitionError:
-        "Active Resource must transition to Released before destruction".} =
+proc `=destroy`(
+    a: var Active
+) {.
+    destructorTransition: Active -> Released,
+    transitionError: "Active Resource must transition to Released before destruction"
+.} =
   ## `{.destructorTransition.}` two-arg form combined with a sibling
   ## `transitionError:` pragma. The destination is pinned (Released)
   ## and the custom error string is held in reserve for the case where
@@ -52,9 +54,12 @@ proc `=destroy`(a: var Active)
   ## transition during future refactoring.
   echo "  [resource] destructor releasing handle ", a.ResourceData.handle
 
-proc acquire(r: Idle): Active
-    {.transition, transitionError:
-      "Resource must be Idle before acquire; check the lifecycle diagram".} =
+proc acquire(
+    r: Idle
+): Active {.
+    transition,
+    transitionError: "Resource must be Idle before acquire; check the lifecycle diagram"
+.} =
   ## `{.transition.}` with a pinned error message. The string is
   ## harvested at pragma-expansion time and surfaces only when the
   ## transition declaration is invalid (e.g., the source/destination

@@ -19,15 +19,20 @@ typestate Scope:
   consumeOnTransition = false
   strictTransitions = false
   states ActiveScope, Halfopen, ClosedScope
-  initial: ActiveScope
-  terminal: ClosedScope
+  initial:
+    ActiveScope
+  terminal:
+    ClosedScope
   transitions:
     ActiveScope -> Halfopen
     Halfopen -> ClosedScope
 
-proc `=destroy`(h: var Halfopen)
-    {.destructorTransition: Halfopen -> ClosedScope,
-      transitionError: "Halfopen scope must close before destruction".} =
+proc `=destroy`(
+    h: var Halfopen
+) {.
+    destructorTransition: Halfopen -> ClosedScope,
+    transitionError: "Halfopen scope must close before destruction"
+.} =
   discard
 
 verifyTypestates()

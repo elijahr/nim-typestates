@@ -22,13 +22,16 @@ type
 # and must fail at pragma-expansion with the custom message.
 typestate FileT:
   states ClosedFile, OpenFile, LockedFile, ReleasedFile
-  initial: ClosedFile
-  terminal: ReleasedFile
+  initial:
+    ClosedFile
+  terminal:
+    ReleasedFile
   transitions:
     ClosedFile -> OpenFile
     OpenFile -> ReleasedFile
     LockedFile -> ReleasedFile
 
-proc lockFile(f: OpenFile): LockedFile
-    {.transition, transitionError: "Cannot lock an open file".} =
+proc lockFile(
+    f: OpenFile
+): LockedFile {.transition, transitionError: "Cannot lock an open file".} =
   LockedFile(f)

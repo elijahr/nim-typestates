@@ -138,9 +138,7 @@ template transitionError*(msg: string) {.pragma.}
   ## diagnostics (not transition-validity); attachment-error
   ## customization is a separate feature, not included in v0.9.3.
 
-proc extractTransitionErrorPragma*(
-    pragmaNode: NimNode
-): string {.compileTime.} =
+proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} =
   ## Scan a proc's `nnkPragma` node for a sibling `transitionError: "msg"`
   ## pragma and return the literal string, or `""` if absent.
   ##
@@ -1128,8 +1126,8 @@ proc destructorTransitionCore(
             "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
               "`) does not match the attached object's initial state (`" &
               sourceStateName & "`); attached object type `" & paramTypeName &
-              "` is bound to typestate `" & graph.name &
-              "` with initial state `" & sourceStateName & "`.",
+              "` is bound to typestate `" & graph.name & "` with initial state `" &
+              sourceStateName & "`.",
             spec,
           )
       else:

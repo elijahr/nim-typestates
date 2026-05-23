@@ -20,8 +20,10 @@ type
 
 typestate FileT:
   states ClosedFile, OpenFile, LockedFile, ReleasedFile
-  initial: ClosedFile
-  terminal: ReleasedFile
+  initial:
+    ClosedFile
+  terminal:
+    ReleasedFile
   transitions:
     ClosedFile -> OpenFile
     OpenFile -> ReleasedFile

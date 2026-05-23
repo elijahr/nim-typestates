@@ -15,13 +15,16 @@ type
 
 typestate Pipe:
   states PipeOpen, PipeClosed
-  initial: PipeOpen
-  terminal: PipeClosed
+  initial:
+    PipeOpen
+  terminal:
+    PipeClosed
   transitions:
     PipeOpen -> PipeClosed
 
-proc closePipe(p: PipeOpen): PipeClosed
-    {.transition, transitionError: "Pipe must close exactly once".} =
+proc closePipe(
+    p: PipeOpen
+): PipeClosed {.transition, transitionError: "Pipe must close exactly once".} =
   PipeClosed(p)
 
 verifyTypestates()

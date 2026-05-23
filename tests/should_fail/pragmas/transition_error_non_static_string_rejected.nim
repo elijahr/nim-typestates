@@ -18,8 +18,10 @@ type
 
 typestate GadgetT:
   states GadgetIdle, GadgetReady, GadgetDone
-  initial: GadgetIdle
-  terminal: GadgetDone
+  initial:
+    GadgetIdle
+  terminal:
+    GadgetDone
   transitions:
     GadgetIdle -> GadgetReady
     GadgetReady -> GadgetDone
@@ -28,6 +30,7 @@ var someRuntimeString = "dynamic message"
 
 # `someRuntimeString` is a runtime `var`, not a string literal.
 # `extractTransitionErrorPragma` must fire its canonical error.
-proc ready(g: GadgetIdle): GadgetReady
-    {.transition, transitionError: someRuntimeString.} =
+proc ready(
+    g: GadgetIdle
+): GadgetReady {.transition, transitionError: someRuntimeString.} =
   GadgetReady(g)

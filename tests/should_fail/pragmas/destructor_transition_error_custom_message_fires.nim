@@ -18,7 +18,8 @@ typestate DoorT:
   consumeOnTransition = false
   strictTransitions = false
   states LockedDoor, UnlockedDoor, BrokenDoor, ClosedDoor
-  initial: LockedDoor
+  initial:
+    LockedDoor
   terminal:
     BrokenDoor
     ClosedDoor
@@ -30,7 +31,10 @@ typestate DoorT:
 # DT-011: UnlockedDoor is NOT a terminal state; the spec pins a non-terminal
 # destination. With `transitionError:`, the custom message replaces the
 # built-in DT-011 diagnostic.
-proc `=destroy`(d: var LockedDoor)
-    {.destructorTransition: LockedDoor -> UnlockedDoor,
-      transitionError: "Door cannot resolve to Unlocked at destruction".} =
+proc `=destroy`(
+    d: var LockedDoor
+) {.
+    destructorTransition: LockedDoor -> UnlockedDoor,
+    transitionError: "Door cannot resolve to Unlocked at destruction"
+.} =
   discard
