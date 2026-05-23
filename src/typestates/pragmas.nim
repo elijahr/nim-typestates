@@ -836,7 +836,7 @@ macro transition*(procDef: untyped): untyped =
       of nnkExprColonExpr:
         if pragma[0].kind in {nnkIdent, nnkSym}:
           pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if eqIdent(pragmaName, "raises"):
             hasRaises = true
             # Check if the raises list is non-empty
             if pragma[1].kind == nnkBracket and pragma[1].len > 0:
@@ -844,7 +844,7 @@ macro transition*(procDef: untyped): untyped =
       of nnkCall:
         if pragma[0].kind in {nnkIdent, nnkSym}:
           pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if eqIdent(pragmaName, "raises"):
             hasRaises = true
             # raises() or raises([...])
             if pragma.len > 1:
