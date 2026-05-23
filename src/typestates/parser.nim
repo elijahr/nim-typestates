@@ -641,7 +641,10 @@ proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
       # like `CC:\n  ccSingle\n  ccMulti` which is not a valid default.
       var nonEmptyChildren: seq[NimNode]
       for c in entry[1]:
-        if c.kind != nnkEmpty:
+        # Skip empty nodes and comments (doc `##` / line `#`) so a comment
+        # between a param name and its default expression does not count as a
+        # second expression. Mirrors the filter in codegen.nim.
+        if c.kind notin {nnkEmpty, nnkCommentStmt}:
           nonEmptyChildren.add c
       if nonEmptyChildren.len != 1:
         error(
