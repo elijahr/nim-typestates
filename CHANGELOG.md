@@ -120,15 +120,16 @@ compile and produce the same diagnostics as in v0.9.2.
   orthogonal sibling-pragma form instead. Rule: verify the parser path
   (compile-only a 3-line probe) before assuming a new pragma surface, and
   brief downstream consumers with the verified syntax verbatim.
-- **`pkUnmarked` external-module path finding (AGENTS.md).** Recorded a
-  finding that the `pkUnmarked` block in `verify.nim` (the external-module
-  diagnostic at `verify.nim:2069-2075`) appears unreachable: no call site
-  ever registers a proc with `kind: pkUnmarked`, and the live
+- **`pkUnmarked` dead-code excision (AGENTS.md).** A finding that the
+  `pkUnmarked` guard block in `verifyTypestatesImpl` (the external-module
+  and `strictTransitions` diagnostics) was structurally unreachable — no
+  call site ever registers a proc with `kind: pkUnmarked`, and the live
   cross-module-transition prohibition for `{.transition.}` procs is
-  enforced in `pragmas.nim` (since v0.4.0). Logged as an **open v0.10
-  candidate**, not a confirmed deletion — the remove-vs-keep decision is
-  deferred to a dedicated unreachability sweep, since the downstream probe
-  that surfaced it exercised only one cross-module case.
+  enforced in `pragmas.nim` (since v0.4.0). The unreachability sweep was
+  completed and the dead guard block was **removed in v0.9.3** (the
+  `pkUnmarked` `ProcKind` enum value is retained as a meaningful public-API
+  classification). Pure dead-code removal; the block never executed, so
+  behaviour is unchanged.
 - Internal documentation only. No behavioural changes; no public API
   changes.
 

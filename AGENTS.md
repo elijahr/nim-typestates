@@ -151,23 +151,24 @@ no functional issue — the F.3.5 substring assertion matches the user-visible
 message text, which is identical regardless of which path emitted it — but a
 future reader of that test would chase a stale reference.
 
-#### Open action (v0.10 candidate)
+#### Resolution (REMOVED in v0.9.3)
 
-This is recorded as a **finding**, not a confirmed deletion. The
-remove-vs-keep decision is deferred to v0.9.3 code review / v0.10:
+The sweep below was completed during v0.9.3 code review and the dead
+`pkUnmarked` guard block was **removed in v0.9.3** (Path A), not deferred
+to v0.10. The decision and its rationale:
 
-1. **Confirm true unreachability with a dedicated sweep** before removing.
-   Cross-reference the `pkUnmarked` block against every `registerProc`
-   call site and `RegisteredProc` constructor; insert a tracepoint /
-   assertion at `verify.nim:2054` and run the typestates suite plus
-   downstream consumers' suites. Zero invocations across the matrix →
-   safe to remove.
-2. **If removing (Path A):** delete the `pkUnmarked` guard and its
-   diagnostics (and prune the `pkUnmarked` enum value if no longer
-   referenced); note the cleanup in the CHANGELOG.
-3. **If keeping (Path B):** if any case does reach the block, add a comment
-   at `verify.nim:2054` naming the case it covers and why `pragmas.nim`
-   does not preempt it.
-4. **Cite hygiene:** when a brief or review references a typestates
+1. **Unreachability confirmed.** Cross-referencing the `pkUnmarked` block
+   against every `registerProc` call site and `RegisteredProc` constructor
+   showed only `kind: pkTransition` (`pragmas.nim:901`) and
+   `kind: pkDestructorTransition` (`pragmas.nim:1212`) producers; no call
+   site anywhere in `src/` or `tests/` constructs a `RegisteredProc` with
+   `kind: pkUnmarked`. The guard was therefore structurally unreachable.
+2. **Removed (Path A):** the `pkUnmarked` guard in `verifyTypestatesImpl`
+   and its two diagnostics were deleted. The `pkUnmarked` enum value
+   (`verify.nim:18`) was **kept** — it remains a meaningful `ProcKind`
+   classification ("No pragma specified") and is part of the exported
+   `ProcKind*` public API surface; pruning it would be a public-API change
+   beyond the dead-code excision.
+3. **Cite hygiene:** when a brief or review references a typestates
    surface location (`file:line`), verify the cite against the live path
    empirically (a `grep` + `git log -L`), not by recall.
