@@ -1,8 +1,12 @@
+# nph version is pinned to 0.7.0 to match CI (.github/workflows/ci.yml
+# installs `nph@0.7.0`). This hook uses `language: system`, so it runs
+# whatever `nph` is on PATH — install the matching version locally with
+# `nimble install -y nph@0.7.0` to avoid format-diff churn against CI.
 repos:
   - repo: local
     hooks:
       - id: nph
-        name: nph (Nim formatter)
+        name: nph (Nim formatter, pinned to 0.7.0 — see top-of-file note)
         entry: nph
         language: system
         types: [file]

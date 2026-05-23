@@ -84,6 +84,15 @@ compile and produce the same diagnostics as in v0.9.2.
   (one with typestate attached, one without) and select between them
   via a `when`-conditional type alias at the consumer call site.
 
+### Tooling
+
+- **Pinned `nph` to `0.7.0`** in CI (`nimble install -y nph@0.7.0`) and
+  documented the matching pin in `.pre-commit-config.yaml`. CI previously
+  floated on the latest `nph`, while local pre-commit ran whatever `nph`
+  was on PATH — version drift between the two produces spurious
+  format-diff churn. Mirrors the existing Nim-version pinning rationale
+  ("avoid silent drift from `stable`").
+
 ### Documentation
 
 - **Pragma surface ambiguity pattern signal (AGENTS.md).** Captured the
