@@ -84,6 +84,29 @@ compile and produce the same diagnostics as in v0.9.2.
   (one with typestate attached, one without) and select between them
   via a `when`-conditional type alias at the consumer call site.
 
+### Documentation
+
+- **Pragma surface ambiguity pattern signal (AGENTS.md).** Captured the
+  `{.kwarg: value.}` sibling form vs `{.pragma(spec).}` call form
+  ambiguity surfaced while adding `transitionError`. Folding the message
+  into the existing `{.destructorTransition: T -> U.}` colon-spec surface
+  looks idiomatic but does not work — that surface is a dedicated
+  transition-spec dispatcher, not a generic kwarg slot. v0.9.3 used the
+  orthogonal sibling-pragma form instead. Rule: verify the parser path
+  (compile-only a 3-line probe) before assuming a new pragma surface, and
+  brief downstream consumers with the verified syntax verbatim.
+- **`pkUnmarked` external-module path finding (AGENTS.md).** Recorded a
+  finding that the `pkUnmarked` block in `verify.nim` (the external-module
+  diagnostic at `verify.nim:2069-2075`) appears unreachable: no call site
+  ever registers a proc with `kind: pkUnmarked`, and the live
+  cross-module-transition prohibition for `{.transition.}` procs is
+  enforced in `pragmas.nim` (since v0.4.0). Logged as an **open v0.10
+  candidate**, not a confirmed deletion — the remove-vs-keep decision is
+  deferred to a dedicated unreachability sweep, since the downstream probe
+  that surfaced it exercised only one cross-module case.
+- Internal documentation only. No behavioural changes; no public API
+  changes.
+
 ## [0.9.2]
 
 ### Added
