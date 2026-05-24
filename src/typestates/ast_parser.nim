@@ -622,19 +622,59 @@ type ProcClass* = enum
   pcNotATransition ## Carries `{.notATransition.}` (and no transition marker).
   pcUnmarked ## Carries neither marker.
 
+const routineContainerKinds = {
+  # Statement lists (module body, and the implicit list inside every
+  # control-structure branch / block / pragma body).
+  nkStmtList,
+  nkStmtListExpr,
+  # `when` structure and its branches.
+  nkWhenStmt,
+  nkElifBranch,
+  nkElifExpr,
+  nkElse,
+  nkElseExpr,
+  # `if`/`case` structures and their branches. Branch bodies wrap routines in
+  # an inner `nkStmtList`, but the branch/selector node itself must be descended
+  # to reach that list (empirically confirmed: a `case`/`of` with a routine was
+  # silently skipped before `nkCaseStmt`/`nkOfBranch` were added).
+  nkIfStmt,
+  nkIfExpr,
+  nkCaseStmt,
+  nkOfBranch,
+  # `block` statements/expressions and `static`/`defer` bodies.
+  nkBlockStmt,
+  nkBlockExpr,
+  nkStaticStmt,
+  nkDefer,
+  # `try` structure and its branches.
+  nkTryStmt,
+  nkExceptBranch,
+  nkFinally,
+  # Block-pragma sections (`{.cast(gcsafe).}:`, `{.push.}:` block form): the
+  # routine is nested as `nkPragmaBlock -> nkStmtList -> routine`, so the
+  # outer `nkPragmaBlock` must be descended. NOTE: flat `{.push.}` / `{.pop.}`
+  # (the statement form) parse as `nkPragma` SIBLINGS of the routine inside the
+  # surrounding `nkStmtList` and are already handled by the normal sibling walk;
+  # no `nkPragma` handling is needed or added here.
+  nkPragmaBlock,
+}
+  ## Statement-container node kinds that can wrap a module-scope routine
+  ## definition at the SAME logical scope without being a routine body.
+  ## `collectRoutineDefs` descends exactly these. Named const so the full
+  ## audited set lives in one place and future omissions are less likely.
+
 proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
   ## Recursively collect `nkProcDef` and `nkFuncDef` nodes into `acc`.
   ##
-  ## Descends every *statement-container* node that can wrap a routine
-  ## definition at the SAME logical scope without being a routine body:
-  ## statement lists (`nkStmtList`/`nkStmtListExpr`), `when` and `if`
-  ## branches (`nkWhenStmt`/`nkIfStmt`/`nkElifBranch`/`nkElifExpr`/`nkElse`/
-  ## `nkElseExpr`), `block` statements/expressions (`nkBlockStmt`/
-  ## `nkBlockExpr`), `static`/`defer` bodies (`nkStaticStmt`/`nkDefer`), and
-  ## `try` structures (`nkTryStmt`/`nkExceptBranch`/`nkFinally`). This widening
-  ## (Gemini medium) closes the silent-skip gap: a typestate-parameter routine
-  ## defined inside e.g. `static:` / `block:` / `try:` was previously missed —
-  ## exactly the silent-skip class this AST rewrite exists to eliminate.
+  ## Descends every *statement-container* node in `routineContainerKinds` —
+  ## every node kind that can wrap a routine definition at the SAME logical
+  ## scope without being a routine body (statement lists, `when`/`if`/`case`
+  ## structures and their branches, `block`/`static`/`defer` bodies, `try`
+  ## structures, and block-pragma sections). This widening (Gemini medium)
+  ## closes the silent-skip gap: a typestate-parameter routine defined inside
+  ## e.g. `static:` / `block:` / `try:` / a `{.cast(gcsafe).}:` block or a
+  ## `case`/`of` branch was previously missed — exactly the silent-skip class
+  ## this AST rewrite exists to eliminate.
   ##
   ## Does NOT descend into routine bodies (`nkProcDef`/`nkFuncDef` children),
   ## so nested procs are not collected — preserving the module-scope intent and
@@ -648,9 +688,7 @@ proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
   of nkProcDef, nkFuncDef:
     acc.add node
     # Do not descend into the body: nested routines are out of scope.
-  of nkStmtList, nkStmtListExpr, nkWhenStmt, nkIfStmt, nkElifBranch, nkElifExpr, nkElse,
-      nkElseExpr, nkBlockStmt, nkBlockExpr, nkStaticStmt, nkDefer, nkTryStmt,
-      nkExceptBranch, nkFinally:
+  of routineContainerKinds:
     for child in node:
       collectRoutineDefs(child, acc)
   else:

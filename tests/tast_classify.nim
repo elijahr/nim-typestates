@@ -226,6 +226,68 @@ proc outer() =
     check acc.len == 1
     check nameOf(acc[0]) == "outer"
 
+  test "descends into block-pragma section (Gemini medium)":
+    # A routine inside a `{.cast(gcsafe).}:` block parses as
+    # `nkPragmaBlock -> nkStmtList -> proc`. Before adding `nkPragmaBlock` to
+    # the container set it was silently skipped (RED proven empirically).
+    let src = """
+{.cast(gcsafe).}:
+  proc bar() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "bar"
+
+  test "flat push/pop routine is collected via sibling walk (Gemini medium)":
+    # The statement form `{.push.}` / `{.pop.}` parses as `nkPragma` SIBLINGS of
+    # the routine in the surrounding `nkStmtList`; the routine is therefore
+    # already collected by the normal sibling walk, with NO `nkPragma` handling.
+    let src = """
+{.push raises: [].}
+proc foo() = discard
+{.pop.}
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "foo"
+
+  test "descends into case/of/else branches (Gemini medium)":
+    # `case`/`of`/`else` branches wrap routines in an inner `nkStmtList`, but the
+    # `nkCaseStmt`/`nkOfBranch` nodes themselves must be descended to reach it.
+    # Before adding them, routines in a `case` were silently skipped.
+    let src = """
+case 1
+of 1:
+  proc c1() = discard
+else:
+  proc c2() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 2
+    var names: seq[string]
+    for n in acc:
+      names.add nameOf(n)
+    check "c1" in names
+    check "c2" in names
+
+  test "still excludes proc nested inside a body when block-pragma-wrapped (Gemini medium)":
+    # Scoping invariant for the new `nkPragmaBlock` descent: a routine inside a
+    # block-pragma section that itself sits inside an outer proc body stays out
+    # of scope because descent stops at the outer proc body.
+    let src = """
+proc outer() =
+  {.cast(gcsafe).}:
+    proc inner() = discard
+  discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "outer"
+
   test "excludes templates and converters":
     let src = """
 proc a() = discard

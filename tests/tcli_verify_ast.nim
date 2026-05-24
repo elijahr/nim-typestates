@@ -144,6 +144,26 @@ suite "AST verify: GROUP C (robustness)":
     check errs.len == 2
     check errs.allIt(it.code == fcUnmarkedProcStrict)
 
+  test "block_pragma_wrapped: routine in {.cast(gcsafe).}: block -> ONE error":
+    # Gemini medium (RED before nkPragmaBlock descent). An unmarked
+    # typestate-param routine inside a block-pragma section parses as
+    # `nkPragmaBlock -> nkStmtList -> nkProcDef`; `collectRoutineDefs` did not
+    # descend `nkPragmaBlock`, so it was silently skipped. This is the real
+    # downstream shape (push/block-pragma sections) used by nim-debra /
+    # lockfreequeues. The fix makes the routine visible and flagged.
+    let errs = errorsFor(fixture("block_pragma_wrapped.nim"))
+    check errs.len == 1
+    check errs[0].code == fcUnmarkedProcStrict
+
+  test "case_branch_wrapped: routines in case/of/else branches -> TWO errors":
+    # Gemini medium (RED before nkCaseStmt/nkOfBranch descent). Two unmarked
+    # typestate-param routines wrapped in `case`/`of`/`else` branches were
+    # silently skipped because `collectRoutineDefs` did not descend the case
+    # structure. The widening makes both visible, so each is flagged.
+    let errs = errorsFor(fixture("case_branch_wrapped.nim"))
+    check errs.len == 2
+    check errs.allIt(it.code == fcUnmarkedProcStrict)
+
 suite "AST verify: GROUP D (peel-discriminator integration)":
   ## verify()-level assertions for the two peel-discriminator fixtures whose
   ## helper-level behavior is unit-tested in tests/tast_classify.nim. These
