@@ -94,6 +94,15 @@ suite "AST verify: GROUP B (must stay flagged / must not over-match)":
     check errs.len == 1
     check errs[0].code == fcUnmarkedProcStrict
 
+  test "unmarked_out_param: out <State> unmarked on strict -> ONE error":
+    # RED before the v0.10.0 modifier-node audit. `out T` parses as the dedicated
+    # nkOutTy node, which peelToBaseTypeName did NOT peel, so the param type
+    # resolved to the literal `out Open` (not in `states`) and nothing was
+    # emitted. The fix adds nkOutTy to peelableModifierTyKinds.
+    let errs = errorsFor(fixture("unmarked_out_param.nim"))
+    check errs.len == 1
+    check errs[0].code == fcUnmarkedProcStrict
+
   test "non_strict_warning: unmarked on non-strict typestate -> ONE warning":
     # GREEN control (severity routing). strictTransitions = false downgrades the
     # unmarked proc to a warning, not an error.

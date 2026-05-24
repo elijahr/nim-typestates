@@ -694,12 +694,45 @@ proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
   else:
     discard
 
+const peelableModifierTyKinds = {
+  # Dedicated single-child modifier *type* nodes that wrap a parameter type and
+  # carry no name of their own — peel straight into the wrapped child `[0]`.
+  #
+  # Empirically audited against the Nim 2.2.x compiler (treeRepr dumps of real
+  # parameter-position parses; see the v0.10.0 AST-verifier audit):
+  #   - `var T`  -> nkVarTy(T)
+  #   - `ptr T`  -> nkPtrTy(T)
+  #   - `ref T`  -> nkRefTy(T)
+  #   - `out T`  -> nkOutTy(T)   (was MISSED before this set: fell through to the
+  #                               render fallback and resolved to "out T")
+  # All four nest cleanly (`var ptr T` -> nkVarTy(nkPtrTy(T))) and recurse here.
+  #
+  # NOT in this set, by empirical finding (Gemini medium asked to add nkLentTy):
+  #   - `nkLentTy` does NOT EXIST in the Nim 2.2.x TNodeKind enum, and in
+  #     PARAMETER position `lent T` / `sink T` parse as
+  #     `nkCommand(nkIdent("lent"|"sink"), T)`, handled by the nkCommand branch
+  #     below — NOT as a dedicated type node. Adding `nkLentTy` here would fail
+  #     to compile. Do not reintroduce it.
+  #   - `nkDistinctTy` is intentionally never peeled (a distinct is a NEW type);
+  #     handled separately below.
+  nkVarTy,
+  nkRefTy,
+  nkPtrTy,
+  nkOutTy,
+}
+  ## Dedicated single-child modifier type-node kinds that `peelToBaseTypeName`
+  ## peels uniformly. Named const so the full audited set lives in one place and
+  ## future omissions are less likely (mirrors the `routineContainerKinds`
+  ## pattern).
+
 proc peelToBaseTypeName*(node: PNode): string =
   ## Peel parameter-passing wrappers and generic brackets to a base type name.
   ##
   ## Handles (recursively / idempotently regardless of ordering):
-  ## - `nkVarTy` / `nkRefTy` / `nkPtrTy` -> peel into the wrapped type
-  ## - `sink T` / `lent T` (parsed by the compiler as
+  ## - dedicated modifier type nodes in `peelableModifierTyKinds`
+  ##   (`nkVarTy` / `nkRefTy` / `nkPtrTy` / `nkOutTy`) -> peel into the wrapped
+  ##   type
+  ## - `sink T` / `lent T` (parsed by the compiler in parameter position as
   ##   `nkCommand(nkIdent("sink"|"lent"), T)`) -> peel to `T`
   ## - `nkBracketExpr` (generics like `Stage1[T]`, `PinnedScope[MT, CC]`)
   ##   -> recurse into the head `[0]` to get the base
@@ -713,7 +746,7 @@ proc peelToBaseTypeName*(node: PNode): string =
   if node == nil:
     return ""
   case node.kind
-  of nkVarTy, nkRefTy, nkPtrTy:
+  of peelableModifierTyKinds:
     # Single wrapped child; peel it. Idempotent for nested wrappers like
     # `var ptr T` (nkVarTy(nkPtrTy(T))).
     if node.len >= 1:

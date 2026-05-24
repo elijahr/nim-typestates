@@ -44,13 +44,29 @@ suite "peelToBaseTypeName":
     check peelParam("proc p(x: sink RetireReady[MT, CC]) = discard") == "RetireReady"
 
   test "lent T -> peeled (edge-flag 2a)":
+    # Empirical audit (Nim 2.2.x, parameter position): `lent T` parses as
+    # nkCommand(nkIdent("lent"), T) — NOT a dedicated nkLentTy node (which does
+    # not exist in this TNodeKind enum). The nkCommand branch peels it.
     check peelParam("proc p(x: lent Foo) = discard") == "Foo"
+
+  test "lent generic -> base name (nkCommand head over nkBracketExpr)":
+    # `lent T[int]` -> nkCommand(nkIdent("lent"), nkBracketExpr(T, int)).
+    check peelParam("proc p(x: lent Foo[int]) = discard") == "Foo"
 
   test "ref T -> peeled":
     check peelParam("proc p(x: ref Open) = discard") == "Open"
 
   test "ptr T -> peeled":
     check peelParam("proc p(x: ptr Open) = discard") == "Open"
+
+  test "out T -> peeled (nkOutTy, v0.10.0 modifier-node audit)":
+    # `out T` parses as the dedicated nkOutTy node. Before nkOutTy was added to
+    # peelableModifierTyKinds this fell through to the render fallback and
+    # returned the literal "out Open" — a real peel gap, now closed.
+    check peelParam("proc p(x: out Open) = discard") == "Open"
+
+  test "out generic -> head base (nkOutTy over nkBracketExpr)":
+    check peelParam("proc p(x: out Stage1[T]) = discard") == "Stage1"
 
   test "var ptr T -> multi-peel (edge-flag 2c)":
     check peelParam("proc p(x: var ptr Open) = discard") == "Open"
