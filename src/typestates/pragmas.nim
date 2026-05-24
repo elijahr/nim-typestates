@@ -177,14 +177,11 @@ proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} 
     return ""
   for pragma in pragmaNode:
     case pragma.kind
-    of nnkExprColonExpr:
-      if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
-          pragma[0].eqIdent("transitionError"):
-        return getStaticStringValue(pragma[1])
-    of nnkCall:
-      # Defensive: `transitionError("msg")` call form (not the canonical
-      # sibling-pragma syntax, but accept it so users who type the
-      # call-form get the same behavior rather than a silent miss).
+    of nnkExprColonExpr, nnkCall:
+      # Accept both the canonical sibling-pragma syntax
+      # (`transitionError: "msg"`, an `nnkExprColonExpr`) and the defensive
+      # call form (`transitionError("msg")`, an `nnkCall`) so users who type
+      # the call form get the same behavior rather than a silent miss.
       if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
           pragma[0].eqIdent("transitionError"):
         return getStaticStringValue(pragma[1])
