@@ -86,6 +86,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tolerance. (Plain `#` line comments were already accepted — the parser
   strips them before they reach the entry loop.)
 
+- **Graceful error for non-identifier section headers.** A malformed
+  `typestate` section header whose callee is not an identifier/symbol
+  (e.g. a parenthesized `(states)(Closed):`) now produces the clean
+  `Unknown section in typestate block:` diagnostic pointed at the user's
+  code, instead of an internal `node lacks field: strVal` compiler error
+  with a macro stack trace. The unguarded `child[0].strVal` is now
+  preceded by an `nnkIdent`/`nnkSym` kind-guard; a realistic
+  misspelled-but-identifier header (e.g. `staets:`) continues to produce
+  the same message unchanged.
+
 ### Migration
 
 None required. The `transitionError` sibling pragma is optional; every

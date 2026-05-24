@@ -968,6 +968,14 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     of nnkAsgn:
       parseFlag(result, child)
     of nnkCall, nnkCommand:
+      # Guard `.strVal` against a non-identifier section header (e.g. a
+      # parenthesized/complex callee like `(states)(Closed):`). Without this,
+      # `child[0].strVal` raises an internal `node lacks field: strVal` compiler
+      # error with a macro stack trace instead of a user-facing diagnostic.
+      # Route any non-ident/sym callee to the same `Unknown section` error,
+      # building the offending name from the kind-safe `.repr`.
+      if child[0].kind notin {nnkIdent, nnkSym}:
+        error("Unknown section in typestate block: " & child[0].repr, child)
       let sectionName = child[0].strVal
       # Dispatch on the section keyword with `eqIdent` (style-insensitive, per
       # Nim's identifier rules) so a non-canonical spelling (case/underscore
