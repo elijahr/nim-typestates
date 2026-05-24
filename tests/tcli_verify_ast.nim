@@ -133,3 +133,24 @@ suite "AST verify: GROUP C (robustness)":
     let res = verify(@[fixture("no_typestate_param.nim")])
     check res.errors.len == 0
     check res.warnings.len == 0
+
+suite "AST verify: GROUP D (peel-discriminator integration)":
+  ## verify()-level assertions for the two peel-discriminator fixtures whose
+  ## helper-level behavior is unit-tested in tests/tast_classify.nim. These
+  ## close the integration loop deferred in that file's TODOs: they confirm the
+  ## peel semantics survive end-to-end through verify().
+  test "distinct_guard: non-state distinct alias param -> ZERO findings":
+    # A `distinct int` alias used as a param must NOT over-peel to a state, so
+    # the only state proc (marked `{.transition.}`) is fine and the whole file
+    # is clean. A regression that peeled distinct through to its base would
+    # falsely flag `useToken`.
+    let res = verify(@[fixture("distinct_guard.nim")])
+    check res.errors.len == 0
+    check res.warnings.len == 0
+
+  test "multipeel_var_ptr: var ptr <State> unmarked on strict -> ONE error":
+    # The peel must traverse BOTH `var` and `ptr` wrappers to reach the state
+    # base, so the unmarked proc on a strict typestate is flagged.
+    let errs = errorsFor(fixture("multipeel_var_ptr.nim"))
+    check errs.len == 1
+    check errs[0].code == fcUnmarkedProcStrict

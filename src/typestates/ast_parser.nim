@@ -5,7 +5,7 @@
 ##
 ## Used by the CLI tool for project-wide verification.
 
-import std/[os, strutils, options, sets]
+import std/[os, strutils, options, sets, tables]
 
 import ./types # extractBaseName, used as final normalizer in peelToBaseTypeName
 
@@ -766,6 +766,59 @@ proc typestateParamBases*(
     if base.len > 0 and base in registeredBases:
       result.add base
 
+type ClassifiedProc* = object
+  ## A routine definition classified by the AST verifier.
+  ##
+  ## Carries the best-effort routine name, the 1-indexed definition line and
+  ## column (sourced from the `nkProcDef`/`nkFuncDef` node's `.info`), the
+  ## pragma-marker classification, and the base type names of the routine's
+  ## parameters that resolve to a registered typestate state. Only routines
+  ## with at least one typestate-state parameter are produced by
+  ## `classifyProcsInFile`; routines with no state parameter are irrelevant to
+  ## the verifier and omitted.
+  name*: string
+  line*: int
+  column*: int
+  class*: ProcClass
+  paramStateBases*: seq[string]
+
+proc routineName(procDef: PNode): string =
+  ## Best-effort routine name from `namePos`, handling exported (`nkPostfix`)
+  ## and bare (`nkIdent`/`nkSym`) forms via `extractIdent`.
+  if procDef == nil or procDef.len <= namePos:
+    return ""
+  extractIdent(procDef[namePos])
+
+proc classifyProcsInFile*(
+    tree: PNode, registeredBases: HashSet[string]
+): seq[ClassifiedProc] =
+  ## Classify every top-level routine in a parsed file tree that has at least
+  ## one parameter whose peeled base type is a registered typestate state.
+  ##
+  ## Collects routine defs via `collectRoutineDefs` (descending `nkStmtList`
+  ## and `when`-branches, NOT routine bodies), computes each routine's
+  ## typestate-state parameter bases via `typestateParamBases`, and — for
+  ## routines with at least one such base — emits a `ClassifiedProc` carrying
+  ## the routine name, 1-indexed def line/column (from the node's `.info`), the
+  ## pragma classification (`classifyByPragma`), and the matched state bases.
+  ##
+  ## Routines with no typestate-state parameter are skipped: they are not
+  ## subject to the transition-marking rule and would only add noise.
+  result = @[]
+  var defs: seq[PNode]
+  collectRoutineDefs(tree, defs)
+  for procDef in defs:
+    let bases = typestateParamBases(procDef, registeredBases)
+    if bases.len == 0:
+      continue
+    result.add ClassifiedProc(
+      name: routineName(procDef),
+      line: int(procDef.info.line),
+      column: int(procDef.info.col) + 1,
+      class: classifyByPragma(procDef),
+      paramStateBases: bases,
+    )
+
 proc parseStringToPNode*(
     source: string, cache: IdentCache, config: ConfigRef, filename = "<string>"
 ): PNode =
@@ -925,3 +978,67 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
             result.filesChecked += fileResult.filesChecked
           except ParseError as e:
             recordFailure(result, file, e)
+
+type ParsedProject* = object
+  ## Tier-B parse-sharing result: a `ParseResult` (typestates + per-file
+  ## failures + file count) PLUS the raw parsed `PNode` tree for every file
+  ## that parsed successfully, keyed by the path AS ENCOUNTERED (the literal
+  ## `.nim` argument for explicit files; the `walkDirRec` path for directory
+  ## entries). Keying by the as-encountered path lets downstream `Finding`s
+  ## carry the same path string the user supplied, preserving v0.9.3 output.
+  ##
+  ## A single parse per file feeds BOTH typestate extraction (Pass 1) and proc
+  ## classification (Pass 2). `PNode` consumption is read-only across all
+  ## consumers (see the "PNode immutability (Tier-B note)" comment above the
+  ## classification helpers), so sharing one parse is sound.
+  ##
+  ## Files that failed to parse appear only in `parse.failures` — they have no
+  ## entry in `nodes`, so a downstream classification pass naturally skips them
+  ## without re-parsing or double-reporting the parse error.
+  parse*: ParseResult
+  nodes*: Table[string, PNode]
+
+proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
+  ## Parse every `.nim` file under `paths` EXACTLY ONCE and return both the
+  ## extracted typestates (Pass-1 view) and the raw `PNode` trees (for Pass-2
+  ## proc classification), keyed by absolute path.
+  ##
+  ## Tier-B unification of `parseTypestatesAst`: instead of walking each file
+  ## for typestates and discarding the tree (which forced `verify()` to re-read
+  ## and re-scan each file in a second pass), this retains the parsed tree so a
+  ## single parse serves both passes. Per-file `ParseError`s are accumulated
+  ## into `result.parse.failures` (one per failed path) rather than aborting
+  ## the batch — identical failure semantics to `parseTypestatesAst`.
+  ##
+  ## `filesChecked` counts only successfully-parsed files (matching
+  ## `parseTypestatesAst`). A failed file contributes a `failures` entry, no
+  ## `nodes` entry, and no `filesChecked` increment.
+  result = ParsedProject(parse: ParseResult(), nodes: initTable[string, PNode]())
+
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+
+  proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError) =
+    let p = if e.path.len > 0: e.path else: fallbackPath
+    pr.failures.add ParseFailure(
+      path: p, line: e.line, column: e.column, message: e.msg
+    )
+
+  proc handleFile(project: var ParsedProject, file: string) =
+    try:
+      let tree = parsePNode(file, cache, config)
+      walkAst(tree, project.parse.typestates)
+      project.parse.filesChecked += 1
+      project.nodes[file] = tree
+    except ParseError as e:
+      recordFailure(project.parse, file, e)
+
+  for path in paths:
+    if path.endsWith(".nim"):
+      handleFile(result, path)
+    elif dirExists(path):
+      for file in walkDirRec(path):
+        if file.endsWith(".nim"):
+          handleFile(result, file)
