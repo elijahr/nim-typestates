@@ -48,7 +48,7 @@ proc use*[T](r: Acquired[T]): T {.notATransition.} =
 
 proc withResource*[T, R](
     r: Released[T], handle: T, body: proc(h: T): R
-): (R, Released[T]) =
+): (R, Released[T]) {.notATransition.} =
   ## RAII-style helper: acquire, use, release automatically.
   let acquired = r.acquire(handle)
   let res = body(acquired.use())

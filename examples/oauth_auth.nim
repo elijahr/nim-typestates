@@ -96,7 +96,7 @@ proc callApi(session: Authenticated, endpoint: string): string {.notATransition.
     session.OAuthSession.accessToken[0 .. 10], "..."
   result = """{"user": "alice", "email": "alice@example.com"}"""
 
-proc getAccessToken(session: Authenticated): string =
+proc getAccessToken(session: Authenticated): string {.notATransition.} =
   ## Get the current access token for manual use.
   session.OAuthSession.accessToken
 

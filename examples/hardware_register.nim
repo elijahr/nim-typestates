@@ -59,11 +59,11 @@ proc lock(reg: ptr Configured): ptr Locked {.transition.} =
   echo "  [REG 0x", reg[].Register.address.toHex, "] LOCKED"
   cast[ptr Locked](reg)
 
-proc read(reg: ptr Configured): uint32 =
+proc read(reg: ptr Configured): uint32 {.notATransition.} =
   ## Read value from configured register.
   Register(reg[]).value
 
-proc read(reg: ptr Locked): uint32 =
+proc read(reg: ptr Locked): uint32 {.notATransition.} =
   ## Read value from locked register.
   Register(reg[]).value
 
