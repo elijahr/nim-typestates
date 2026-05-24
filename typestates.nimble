@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.9.3"
+version       = "0.10.0"
 author        = "elijahr <elijahr+typestates@gmail.com>"
 description   = "Compile-time typestate validation for Nim"
 license       = "MIT"

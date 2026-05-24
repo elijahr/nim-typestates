@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-05-24
+
+### Changed
+
+- **`typestates verify` now uses the Nim compiler parser (AST) for
+  proc/pragma analysis.** Pass 2 (the proc-checking pass) previously
+  relied on a line-by-line text/substring scanner: it only inspected
+  single physical lines beginning with `proc ` / `func ` and matched
+  `{.notATransition.}` by literal substring. As a result it silently
+  skipped every multi-line proc header and could not detect the marker
+  inside a combined pragma block (e.g.
+  `{.discardable, raises: [], notATransition.}`). The scanner reported
+  success while being blind to most routines.
+
+  Pass 2 now parses each file once into a compiler AST — shared with the
+  existing AST-based state-extraction pass — and classifies routines by
+  walking proc-def and pragma nodes. Multi-line proc/func headers and
+  `{.notATransition.}` markers inside combined pragma blocks are now
+  correctly recognized.
+
+- **Parameter type matching is now base-name based.** Param types are
+  reduced to their base type name by peeling `var` / `sink` / `lent` /
+  `ptr` / `ref` modifiers and generic brackets before comparison.
+
+### Fixed
+
+- **Verifier no longer silently passes routines it never inspected.**
+  Prior to 0.10.0 the substring scanner could not see multi-line proc
+  headers or markers inside combined pragma blocks, so procs taking a
+  typestate parameter were skipped wholesale and `typestates verify`
+  reported success without enforcing the rule it claimed to enforce.
+
+### Breaking
+
+- **`typestates verify` may now correctly flag code that previously
+  passed.** Because the verifier now inspects routines it was previously
+  blind to, downstream code with typestate-parameter procs that lack a
+  `{.notATransition.}` marker may now be flagged. This is the verifier
+  finally enforcing what it always claimed; affected projects should add
+  explicit `{.notATransition.}` markers to genuine non-transition procs.
+
 ## [0.9.3]
 
 ### Added
