@@ -6,7 +6,7 @@
 ## - `verifyTypestates()` macro for in-module verification
 ## - CLI tool support for full-project verification
 
-import std/[macros, options, os, sets, strformat, strutils, tables]
+import std/[macros, options, os, sets, strutils, tables]
 import types, registry
 
 type
@@ -2043,36 +2043,6 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
   ## cross-module re-analysis cost.
 
   result = newStmtList()
-
-  # Check each registered proc. Round-2 Finding #3: scope this scan to the
-  # caller's module so each verifyTypestates() call only inspects its own
-  # procs. The original cross-module scan would, in a project with N
-  # imported modules, redundantly re-check every module's procs N times.
-  for procInfo in registeredProcs:
-    if procInfo.modulePath != callerFile:
-      continue
-    if procInfo.kind == pkUnmarked:
-      # Find the typestate for this state
-      let graphOpt = findTypestateForState(procInfo.sourceState)
-      if graphOpt.isSome:
-        let graph = graphOpt.get
-
-        # Check strictTransitions
-        if graph.strictTransitions:
-          error(
-            fmt"""Unmarked proc '{procInfo.name}' operates on state '{procInfo.sourceState}'.
-  Typestate '{graph.name}' has strictTransitions = true.
-  Add {{.transition.}} or {{.notATransition.}} pragma.
-  Declared at: {procInfo.declaredAt}"""
-          )
-
-        # Check for external procs
-        if procInfo.modulePath != graph.declaredInModule:
-          error(
-            fmt"""Unmarked proc '{procInfo.name}' on typestate '{graph.name}' from external module.
-  External modules must use {{.notATransition.}} for procs on typestate states.
-  Declared at: {procInfo.declaredAt}"""
-          )
 
   # F5: emit state-aware error decoy procs for transitions in this module.
   #

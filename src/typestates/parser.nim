@@ -538,6 +538,189 @@ proc parseTerminalBlock*(graph: var TypestateGraph, node: NimNode) =
   ## :param node: AST node of the terminal block
   graph.terminalStates = parseStateList(node)
 
+proc paramName(typeParam: NimNode): string =
+  ## Extract the name of a typeParam node.
+  ##
+  ## A typeParam is either a bare ident (`T`) or a constrained
+  ## `nnkExprColonExpr` (`T: SomeInteger`). For constrained shapes the name
+  ## is the first child; for bare idents the node itself carries the name.
+  case typeParam.kind
+  of nnkExprColonExpr:
+    if typeParam[0].kind in {nnkIdent, nnkSym}:
+      result = typeParam[0].strVal
+    else:
+      result = typeParam[0].repr
+  of nnkIdent, nnkSym:
+    result = typeParam.strVal
+  else:
+    result = typeParam.repr
+
+proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the optional `defaults:` body section.
+  ##
+  ## Captures default-value expressions for the typestate's bracket-head
+  ## generic parameters. Defaults flow through `buildGenericParams` into
+  ## every generated type and proc (state distincts, variant types, the
+  ## context type, `=copy` hooks, `state()` procs, `$` overloads, etc.).
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## typestate RegistrationContext[
+  ##     MaxThreads: static int,
+  ##     CC: static PinScopeCardinality]:
+  ##   defaults:
+  ##     CC: ccSingle
+  ##   states:
+  ##     Unregistered, Registered
+  ## ```
+  ##
+  ## Validation rules (each rule fires a macro-time `error`):
+  ##
+  ## - Each entry must reference a generic param declared in the bracket
+  ##   head; an unknown name is rejected with a clear message.
+  ## - Each entry references only the param's name (no constraint
+  ##   re-declaration). The constraint comes from the bracket head.
+  ## - Duplicate entries (same param named twice) are rejected.
+  ##
+  ## The default-value expression is captured as-is (`NimNode`) and emitted
+  ## verbatim at codegen; it is typed by the Nim compiler at the
+  ## type-instantiation site, mirroring native `proc foo[T = Default]`
+  ## semantics.
+  ##
+  ## :param graph: The typestate graph to populate
+  ## :param node: AST node of the `defaults` block (nnkCall with StmtList body)
+  if node.kind notin {nnkCall, nnkCommand}:
+    error("defaults: expected a block of `ParamName: DefaultExpr` entries", node)
+
+  # The body of a `defaults:` section is always a StmtList (the colon-block
+  # form). Inline forms like `defaults: CC: ccSingle` collapse to the same
+  # shape in Nim's AST: nnkCall(Ident "defaults", StmtList(...)).
+  var body: NimNode = nil
+  for i in 1 ..< node.len:
+    if node[i].kind == nnkStmtList:
+      body = node[i]
+      break
+  if body == nil:
+    error(
+      "defaults: section must use a colon-block body with " &
+        "`ParamName: DefaultExpr` entries (e.g. `defaults:\\n  CC: ccSingle`)",
+      node,
+    )
+
+  # Track the param names already given a default so duplicates are rejected.
+  # Membership is tested with `eqIdent` (style-insensitive, per Nim's
+  # identifier rules: first character case-sensitive, subsequent characters
+  # case- and underscore-insensitive) so e.g. `MaxThreads` and `Maxthreads`
+  # are treated as the same param rather than slipping through as two distinct
+  # entries.
+  var seenInDefaults: seq[NimNode]
+
+  # Inside a StmtList, an entry written as `Name: Expr` parses to
+  # `nnkCall(Ident "Name", StmtList(Expr))`, not `nnkExprColonExpr`. The
+  # `nnkExprColonExpr` shape only appears when the colon-expr is inline in
+  # an enclosing call (e.g. `defaults: CC: ccSingle` on a single line). Both
+  # forms are accepted so the DSL reads naturally in either layout.
+  for entry in body:
+    # Skip empty nodes and standalone comments. A doc comment (`##`) written on
+    # its own line inside the `defaults:` block survives parsing as a top-level
+    # `nnkCommentStmt` child of the body (plain `#` line comments are stripped by
+    # the parser and never reach here). Tolerate it rather than treating it as a
+    # malformed entry. Mirrors the per-entry comment filter at the entry's value
+    # StmtList below.
+    if entry.kind in {nnkEmpty, nnkCommentStmt}:
+      continue
+    var nameNode: NimNode
+    var defaultExpr: NimNode
+    case entry.kind
+    of nnkCall:
+      # `Name: Expr` inside a StmtList -> nnkCall(name, StmtList(expr))
+      if entry.len != 2 or entry[1].kind != nnkStmtList or entry[1].len == 0:
+        error(
+          "defaults: each entry must take the form `ParamName: DefaultExpr` " &
+            "(got malformed nnkCall body)",
+          entry,
+        )
+      nameNode = entry[0]
+      # A `Name: Expr` entry's StmtList holds exactly one expression node.
+      # Multiple statements under one name would mean the user wrote something
+      # like `CC:\n  ccSingle\n  ccMulti` which is not a valid default.
+      var nonEmptyChildren: seq[NimNode]
+      for c in entry[1]:
+        # Skip empty nodes and comments (doc `##` / line `#`) so a comment
+        # between a param name and its default expression does not count as a
+        # second expression. Mirrors the filter in codegen.nim.
+        if c.kind notin {nnkEmpty, nnkCommentStmt}:
+          nonEmptyChildren.add c
+      if nonEmptyChildren.len != 1:
+        error(
+          "defaults: each entry must hold exactly one default expression. " & "Got " &
+            $nonEmptyChildren.len & " expressions under '" & (
+            if entry[0].kind in {nnkIdent, nnkSym}: entry[0].strVal
+            else: entry[0].repr
+          ) & "'.",
+          entry,
+        )
+      defaultExpr = nonEmptyChildren[0]
+    of nnkExprColonExpr:
+      # Inline form `defaults: CC: ccSingle` on a single line.
+      if entry.len != 2:
+        error("defaults: each entry must take the form `ParamName: DefaultExpr`", entry)
+      nameNode = entry[0]
+      defaultExpr = entry[1]
+    else:
+      error(
+        "defaults: each entry must take the form `ParamName: DefaultExpr` " &
+          "(got node kind " & $entry.kind & ")",
+        entry,
+      )
+    if nameNode.kind notin {nnkIdent, nnkSym}:
+      error(
+        "defaults: left-hand side must be a bare param name " &
+          "(no constraint re-declaration; the constraint comes from the " &
+          "bracket head). Got node kind " & $nameNode.kind & ".",
+        nameNode,
+      )
+    let pname = nameNode.strVal
+    # Resolve the entry's param name against the bracket-head params with a
+    # style-insensitive linear scan (`eqIdent`), so a non-canonical spelling
+    # (case/underscore variant) still binds. N params is tiny; linear search
+    # is the idiomatic Nim-macro approach.
+    var idx = -1
+    for i, p in graph.typeParams:
+      if eqIdent(nameNode, paramName(p)):
+        idx = i
+        break
+    if idx < 0:
+      var declared: seq[string]
+      for p in graph.typeParams:
+        declared.add paramName(p)
+      let declaredStr =
+        if declared.len > 0:
+          declared.join(", ")
+        else:
+          "<none>"
+      error(
+        "defaults: '" & pname & "' does not match any generic param declared " &
+          "in the typestate bracket head. Declared params: " & declaredStr & ".",
+        nameNode,
+      )
+    # Duplicate detection is also style-insensitive: a second entry whose name
+    # is `eqIdent`-equal to an already-seen one is a duplicate.
+    var isDuplicate = false
+    for seen in seenInDefaults:
+      if eqIdent(seen, nameNode):
+        isDuplicate = true
+        break
+    if isDuplicate:
+      error(
+        "defaults: '" & pname & "' is listed more than once. Each generic " &
+          "param may have at most one default entry.",
+        nameNode,
+      )
+    seenInDefaults.add nameNode
+    graph.typeParamDefaults[idx] = defaultExpr.copyNimTree
+
 proc validateUniqueBaseNames(graph: TypestateGraph, declNode: NimNode) =
   ## Validate that all states have unique base names.
   ##
@@ -766,9 +949,16 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     # Simple: File
     baseName = extractBaseName(name)
 
+  # Initialize defaults slot parallel to typeParams. Defaults remain
+  # newEmptyNode() unless the typestate body contains a `defaults:` section.
+  var typeParamDefaults: seq[NimNode] = @[]
+  for _ in typeParams:
+    typeParamDefaults.add newEmptyNode()
+
   result = TypestateGraph(
     name: baseName,
     typeParams: typeParams,
+    typeParamDefaults: typeParamDefaults,
     declaredAt: name.lineInfoObj,
     declaredInModule: name.lineInfoObj.filename,
   )
@@ -778,18 +968,31 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     of nnkAsgn:
       parseFlag(result, child)
     of nnkCall, nnkCommand:
+      # Guard `.strVal` against a non-identifier section header (e.g. a
+      # parenthesized/complex callee like `(states)(Closed):`). Without this,
+      # `child[0].strVal` raises an internal `node lacks field: strVal` compiler
+      # error with a macro stack trace instead of a user-facing diagnostic.
+      # Route any non-ident/sym callee to the same `Unknown section` error,
+      # building the offending name from the kind-safe `.repr`.
+      if child[0].kind notin {nnkIdent, nnkSym}:
+        error("Unknown section in typestate block: " & child[0].repr, child)
       let sectionName = child[0].strVal
-      case sectionName
-      of "states":
+      # Dispatch on the section keyword with `eqIdent` (style-insensitive, per
+      # Nim's identifier rules) so a non-canonical spelling (case/underscore
+      # variant) still resolves. `sectionName` is retained for the unknown-
+      # section error message.
+      if child[0].eqIdent("states"):
         parseStates(result, child)
-      of "transitions":
+      elif child[0].eqIdent("transitions"):
         parseTransitionsBlock(result, child)
-      of "bridges":
+      elif child[0].eqIdent("bridges"):
         parseBridgesBlock(result, child)
-      of "initial":
+      elif child[0].eqIdent("initial"):
         parseInitialBlock(result, child)
-      of "terminal":
+      elif child[0].eqIdent("terminal"):
         parseTerminalBlock(result, child)
+      elif child[0].eqIdent("defaults"):
+        parseDefaultsBlock(result, child)
       else:
         error("Unknown section in typestate block: " & sectionName, child)
     else:

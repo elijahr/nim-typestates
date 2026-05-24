@@ -81,6 +81,113 @@ template transparentWrapper*() {.pragma.}
   ## type-level AST interactions simple and consistent with the
   ## `notATransition` marker pattern.
 
+template transitionError*(msg: string) {.pragma.}
+  ## Author-site diagnostic-string override for `{.transition.}` and
+  ## `{.destructorTransition.}` declaration-time errors.
+  ##
+  ## Use as a sibling pragma to pin a custom error message that the Nim
+  ## compiler emits (verbatim, with the standard file:line prefix) when a
+  ## transition declaration is invalid (e.g., the source/destination edge
+  ## is not in the typestate's transition graph, or the destructor's
+  ## terminal target is not declared).
+  ##
+  ## The pragma itself is a no-op marker — its EFFECT is realized by the
+  ## `transition` and `destructorTransitionCore` macros, which scan the
+  ## host proc's pragma list for a sibling `transitionError: "msg"` and,
+  ## when present, substitute the literal string for the built-in
+  ## diagnostic at every transition-validity `error(...)` site.
+  ##
+  ## **Static-literal only.** The right-hand side must be a string
+  ## literal (no concatenation, no `fmt`, no runtime `var`). All static
+  ## string-literal forms are accepted: plain (`nnkStrLit`), raw
+  ## (`r"..."`, `nnkRStrLit`), and triple-quoted multi-line
+  ## (`"""..."""`, `nnkTripleStrLit`). The extractor fires a compile-time
+  ## error if the rhs is none of these:
+  ## `transitionError must be a static string literal (no concatenation,
+  ## no fmt)`.
+  ##
+  ## **Backwards compatible.** Omitting `transitionError` preserves every
+  ## existing diagnostic byte-for-byte.
+  ##
+  ## **Author-site only.** This pragma customizes the declaration-time
+  ## error message emitted when the typestate author writes an invalid
+  ## transition. It does NOT customize the consumer-call-site CFG-001
+  ## diagnostic emitted from `verify.nim:validateExitEdge` when a caller
+  ## invokes a proc whose required entry state does not match the
+  ## current state of the typestate-attached value. Consumer-call-site
+  ## substitution would require CFG-analyzer changes and is out of scope
+  ## for v0.9.3.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc lock(f: Open): Locked {.transition, transitionError:
+  ##     "Cannot lock an open file: call close() first".} =
+  ##   Locked(f)
+  ##
+  ## proc `=destroy`(c: var Halfopen)
+  ##     {.destructorTransition: Halfopen -> Closed,
+  ##       transitionError: "Halfopen must close before destruction".} =
+  ##   discard
+  ## ```
+  ##
+  ## **v0.9.3 sibling-pragma sweep.** A search of `pragmas.nim` for other
+  ## macro/template decls that emit transition-validity diagnostics
+  ## found only `transition` and `destructorTransition` (via
+  ## `destructorTransitionCore`). The sibling pragmas
+  ## `transparentWrapper`, `skipCfgAnalysis`, and `notATransition` do
+  ## NOT emit transition-validity diagnostics and are out of scope.
+  ## `attachTypestateCore` emits TA-001..TA-004 attachment-validity
+  ## diagnostics (not transition-validity); attachment-error
+  ## customization is a separate feature, not included in v0.9.3.
+
+proc getStaticStringValue(node: NimNode): string {.compileTime.} =
+  ## Enforce static-string-literal rhs for a `transitionError:` sibling
+  ## pragma and return its value.
+  ##
+  ## Shared by the `nnkExprColonExpr` (canonical `transitionError: "msg"`)
+  ## and `nnkCall` (defensive `transitionError("msg")`) branches of
+  ## `extractTransitionErrorPragma`: both accept only string-literal forms
+  ## (`nnkStrLit`, `nnkRStrLit`, `nnkTripleStrLit`) and fire the same
+  ## compile-time error otherwise.
+  ##
+  ## :param node: The pragma rhs node (`pragma[1]`)
+  ## :returns: The literal string value of `node`
+  if node.kind notin {nnkStrLit, nnkRStrLit, nnkTripleStrLit}:
+    error(
+      "transitionError must be a static string literal " & "(no concatenation, no fmt)",
+      node,
+    )
+  return node.strVal
+
+proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} =
+  ## Scan a proc's `nnkPragma` node for a sibling `transitionError: "msg"`
+  ## pragma and return the literal string, or `""` if absent.
+  ##
+  ## Enforces static-literal: when the LHS is `transitionError` but the
+  ## RHS is not a string literal (`nnkStrLit`, `nnkRStrLit`, or
+  ## `nnkTripleStrLit`), fires a compile-time error.
+  ##
+  ## :param pragmaNode: The `procDef.pragma` node (kind `nnkPragma` or
+  ##                    `nnkEmpty` for procs with no pragmas)
+  ## :returns: The extracted string, or `""` if no `transitionError:`
+  ##           sibling is present.
+  result = ""
+  if pragmaNode.kind == nnkEmpty:
+    return ""
+  for pragma in pragmaNode:
+    case pragma.kind
+    of nnkExprColonExpr, nnkCall:
+      # Accept both the canonical sibling-pragma syntax
+      # (`transitionError: "msg"`, an `nnkExprColonExpr`) and the defensive
+      # call form (`transitionError("msg")`, an `nnkCall`) so users who type
+      # the call form get the same behavior rather than a silent miss.
+      if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].eqIdent("transitionError"):
+        return getStaticStringValue(pragma[1])
+    else:
+      discard
+
 proc registerTransparentWrapper*(name: string) {.compileTime.} =
   ## Register a generic wrapper type as transparent for `{.transition.}`
   ## return-type validation. Name may be a base name (`"MyResult"`) or a
@@ -539,11 +646,11 @@ proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
   for pragma in pragmaNode:
     case pragma.kind
     of nnkIdent, nnkSym:
-      if pragma.strVal == "skipCfgAnalysis":
+      if pragma.eqIdent("skipCfgAnalysis"):
         return true
     of nnkExprColonExpr, nnkCall:
       if pragma.len >= 1 and pragma[0].kind in {nnkIdent, nnkSym} and
-          pragma[0].strVal == "skipCfgAnalysis":
+          pragma[0].eqIdent("skipCfgAnalysis"):
         return true
     else:
       discard
@@ -577,6 +684,14 @@ macro transition*(procDef: untyped): untyped =
   ##   Hint: Add 'Open -> Locked' to the transitions block.
   ## ```
   result = procDef
+
+  # v0.9.3: validate `{.transitionError: "msg".}` sibling pragma upfront.
+  # Calling the extractor here (rather than inside the error branch
+  # below) ensures the static-string-literal check fires even on
+  # transitions that are otherwise valid — catching authoring mistakes
+  # at the declaration site instead of only when the transition is
+  # broken.
+  let customMsg = extractTransitionErrorPragma(procDef.pragma)
 
   # Extract signature info
   let params = procDef.params
@@ -692,7 +807,17 @@ macro transition*(procDef: untyped): untyped =
         )
 
   if allDiagnostics.len > 0:
-    error(allDiagnostics.join("\n"), procDef)
+    # v0.9.3: if the proc declares `{.transitionError: "msg".}` as a
+    # sibling pragma, replace the built-in diagnostic wholesale. The
+    # custom string surfaces verbatim with the compiler's standard
+    # file:line prefix. Absent / empty preserves the built-in
+    # diagnostic byte-for-byte. `customMsg` is harvested upfront (see
+    # the top of this macro) so the static-string-literal check fires
+    # even for transitions that are otherwise valid.
+    if customMsg.len > 0:
+      error(customMsg, procDef)
+    else:
+      error(allDiagnostics.join("\n"), procDef)
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false
@@ -701,22 +826,17 @@ macro transition*(procDef: untyped): untyped =
 
   if pragmaNode.kind != nnkEmpty:
     for pragma in pragmaNode:
-      var pragmaName = ""
       case pragma.kind
-      of nnkIdent, nnkSym:
-        pragmaName = pragma.strVal
       of nnkExprColonExpr:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # Check if the raises list is non-empty
             if pragma[1].kind == nnkBracket and pragma[1].len > 0:
               raisesIsEmpty = false
       of nnkCall:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # raises() or raises([...])
             if pragma.len > 1:
@@ -842,6 +962,26 @@ proc destructorTransitionCore(
   result = destrDef
   let hasSpec = spec != nil
 
+  # v0.9.3: extract `{.transitionError: "msg".}` sibling pragma once and
+  # thread it into every transition-validity diagnostic below. Empty
+  # string means "no override; preserve the built-in message". The
+  # extractor enforces static-string-literal rhs.
+  #
+  # Triage of `error(...)` sites inside this proc:
+  #   - DT-006, DT-007, DT-008, DT-010, DT-011, DT-013: transition-validity
+  #     (the declaration's relationship to the typestate's state graph is
+  #     invalid) — these substitute `customMsg` when non-empty.
+  #   - DT-001 (not proc def), DT-002 (wrong name), DT-003 (wrong arity),
+  #     DT-004 (not var), DT-005 (non-empty raises), DT-009 (spec
+  #     malformed): shape errors (the destructor declaration is
+  #     syntactically wrong). Keep built-in defaults.
+  #   - "internal:" prefixed errors: invariant violations, not user-facing
+  #     transition-validity. Keep defaults.
+  #
+  # DT-001 fires before we can safely read `destrDef.pragma`, so the
+  # extraction is deferred until after the proc-def shape check.
+  var customMsg = ""
+
   # Phase 0: Two-arg form — parse spec eagerly so spec-shape errors precede
   # proc-shape errors when both are present.
   var parsedSrcStateName, parsedDstStateName: string
@@ -859,6 +999,11 @@ proc destructorTransitionCore(
   # Phase 1: Shape validation
   if destrDef.kind != nnkProcDef:
     error("`destructorTransition` may only be applied to a proc definition", destrDef)
+
+  # v0.9.3: now that we know destrDef is a proc def, safely harvest the
+  # `transitionError:` sibling pragma (if any) for downstream
+  # transition-validity diagnostic substitution.
+  customMsg = extractTransitionErrorPragma(destrDef.pragma)
 
   # Unwrap precedence mirrors `extractTypeDeclName`: `nnkPragmaExpr` wraps
   # the export/name node when extra pragmas sit on the proc decl alongside
@@ -929,12 +1074,15 @@ proc destructorTransitionCore(
     let attOpt = findAttachmentForType(paramTypeName)
     if attOpt.isNone:
       # DT-006: both lookups failed.
-      error(
-        "`destructorTransition` parameter type `" & paramTypeName &
-          "` is not part of any registered typestate AND no " &
-          "typestate-attachment pragma (§3.7) was found for it.",
-        paramTypeNode,
-      )
+      if customMsg.len > 0:
+        error(customMsg, paramTypeNode)
+      else:
+        error(
+          "`destructorTransition` parameter type `" & paramTypeName &
+            "` is not part of any registered typestate AND no " &
+            "typestate-attachment pragma (§3.7) was found for it.",
+          paramTypeNode,
+        )
     let att = attOpt.get
     if att.typestateName notin typestateRegistry:
       error(
@@ -948,19 +1096,25 @@ proc destructorTransitionCore(
 
   # Phase 3: Terminal-state sanity (DT-007, DT-008)
   if graph.terminalStates.len == 0:
-    error(
-      "`destructorTransition` requires the typestate `" & graph.name &
-        "` to declare at least one terminal state via `terminal:`; " &
-        "destructors model terminal transitions and need an explicit terminal.",
-      destrDef,
-    )
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` requires the typestate `" & graph.name &
+          "` to declare at least one terminal state via `terminal:`; " &
+          "destructors model terminal transitions and need an explicit terminal.",
+        destrDef,
+      )
   if graph.isTerminalState(sourceStateName):
-    error(
-      "`destructorTransition` source type `" & sourceStateName &
-        "` is already a terminal state of typestate `" & graph.name &
-        "`; destructor cannot perform a transition",
-      destrDef,
-    )
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` source type `" & sourceStateName &
+          "` is already a terminal state of typestate `" & graph.name &
+          "`; destructor cannot perform a transition",
+        destrDef,
+      )
 
   # Phase 4: Two-arg form cross-check (DT-010, DT-011, DT-013)
   if hasSpec:
@@ -968,28 +1122,49 @@ proc destructorTransitionCore(
     if not srcMatches:
       if attachedObjectTypeNameOpt.isSome:
         # DT-013: attached-object-param SrcState mismatch.
-        error(
-          "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
-            "`) does not match the attached object's initial state (`" & sourceStateName &
-            "`); attached object type `" & paramTypeName & "` is bound to typestate `" &
-            graph.name & "` with initial state `" & sourceStateName & "`.",
-          spec,
-        )
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
+              "`) does not match the attached object's initial state (`" &
+              sourceStateName & "`); attached object type `" & paramTypeName &
+              "` is bound to typestate `" & graph.name & "` with initial state `" &
+              sourceStateName & "`.",
+            spec,
+          )
       else:
         # DT-010: state-typed-param mismatch.
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "`destructorTransition` spec SrcState `" & parsedSrcStateName &
+              "` does not match destructor parameter type `" & paramTypeName & "`",
+            spec,
+          )
+    # Normalize both sides to bare names before comparing: parser stores
+    # terminal state reprs verbatim (e.g. "Closed[N, T]" for generic
+    # terminals), while `parsedDstStateName` comes from `extractTypeName`
+    # which already strips brackets. Without this normalization, the
+    # membership check rejects any generic-state terminal target.
+    let parsedDstBare = extractBaseName(parsedDstStateName)
+    var dstIsTerminal = false
+    for t in graph.terminalStates:
+      if extractBaseName(t) == parsedDstBare:
+        dstIsTerminal = true
+        break
+    if not dstIsTerminal:
+      let terminals = graph.terminalStates.join(", ")
+      if customMsg.len > 0:
+        error(customMsg, spec)
+      else:
         error(
-          "`destructorTransition` spec SrcState `" & parsedSrcStateName &
-            "` does not match destructor parameter type `" & paramTypeName & "`",
+          "`destructorTransition` spec DstState `" & parsedDstStateName &
+            "` is not a terminal state of typestate `" & graph.name &
+            "`; declared terminals: " & terminals,
           spec,
         )
-    if parsedDstStateName notin graph.terminalStates:
-      let terminals = graph.terminalStates.join(", ")
-      error(
-        "`destructorTransition` spec DstState `" & parsedDstStateName &
-          "` is not a terminal state of typestate `" & graph.name &
-          "`; declared terminals: " & terminals,
-        spec,
-      )
 
   # Phase 5: raises validation + auto-injection (mirrors transition* logic)
   var hasRaises = false
@@ -1001,12 +1176,12 @@ proc destructorTransitionCore(
       of nnkIdent, nnkSym:
         discard
       of nnkExprColonExpr:
-        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
           hasRaises = true
           if pragma[1].kind == nnkBracket and pragma[1].len > 0:
             raisesIsEmpty = false
       of nnkCall:
-        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].strVal == "raises":
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
           hasRaises = true
           if pragma.len > 1:
             let arg = pragma[1]

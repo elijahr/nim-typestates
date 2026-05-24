@@ -16,6 +16,22 @@ var results: seq[TestResult] = @[]
 var totalPassed = 0
 var totalFailed = 0
 
+proc parseQuotedDirective(line, keyword: string): string =
+  ## Try to parse a single `# <keyword>: "<substring>"` directive from
+  ## `line`. Returns the unquoted substring on success, `""` on no match
+  ## or on an empty-quoted body (which is rejected to avoid silently
+  ## matching every compiler output).
+  let stripped = line.strip()
+  if not stripped.startsWith("#"):
+    return ""
+  let body = stripped[1 ..^ 1].strip()
+  if not body.startsWith(keyword & ":"):
+    return ""
+  let after = body[(keyword.len + 1) ..^ 1].strip()
+  if after.len <= 2 or after[0] != '"' or after[^1] != '"':
+    return ""
+  result = after[1 ..^ 2]
+
 proc parseExpectsDirectives(path: string): seq[string] =
   ## Parse `# expects: "<substring>"` directives from a test source file.
   ##
@@ -27,18 +43,25 @@ proc parseExpectsDirectives(path: string): seq[string] =
   ## :returns: List of substrings expected to appear in the compiler output
   result = @[]
   for rawLine in lines(path):
-    let line = rawLine.strip()
-    if not line.startsWith("#"):
-      continue
-    let body = line[1 ..^ 1].strip()
-    if not body.startsWith("expects:"):
-      continue
-    let after = body["expects:".len ..^ 1].strip()
-    # Require at least one character between the quotes: `# expects: ""` is
-    # rejected so an empty body cannot silently match every compiler output.
-    if after.len <= 2 or after[0] != '"' or after[^1] != '"':
-      continue
-    result.add(after[1 ..^ 2])
+    let s = parseQuotedDirective(rawLine, "expects")
+    if s.len > 0:
+      result.add s
+
+proc parseRejectsDirectives(path: string): seq[string] =
+  ## Parse `# rejects: "<substring>"` directives from a test source file.
+  ##
+  ## Mirrors `parseExpectsDirectives` but for substrings that MUST NOT
+  ## appear in the compiler output. Useful for regression assertions
+  ## like "the custom error message fully replaces the built-in
+  ## `Undeclared transition` diagnostic" (v0.9.3 transitionError).
+  ##
+  ## :param path: Absolute or relative path to the .nim test file
+  ## :returns: List of substrings forbidden in the compiler output
+  result = @[]
+  for rawLine in lines(path):
+    let s = parseQuotedDirective(rawLine, "rejects")
+    if s.len > 0:
+      result.add s
 
 proc runShouldFailTest(path: string): TestResult =
   ## Test that a file fails to compile.
@@ -66,6 +89,15 @@ proc runShouldFailTest(path: string): TestResult =
       result.passed = false
       result.output =
         "ERROR: expected substring not found in compiler output: " & substr.escape &
+        "\n--- compiler output ---\n" & output
+      return
+
+  let rejects = parseRejectsDirectives(path)
+  for substr in rejects:
+    if substr in output:
+      result.passed = false
+      result.output =
+        "ERROR: forbidden substring found in compiler output: " & substr.escape &
         "\n--- compiler output ---\n" & output
       return
 

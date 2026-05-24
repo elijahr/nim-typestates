@@ -7,6 +7,204 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3]
+
+### Added
+
+- **`{.transitionError: "msg".}` sibling pragma** for author-site
+  diagnostic-string override on `{.transition.}` and
+  `{.destructorTransition.}`. Use as a sibling pragma to pin a custom
+  error message that the Nim compiler emits verbatim (with the standard
+  file:line prefix) when a transition declaration is invalid.
+
+  The custom string fully replaces the built-in
+  `Undeclared transition: ...` (transition) or DT-006/DT-007/DT-008/
+  DT-010/DT-011/DT-013 (destructorTransition) diagnostic. Omitting the
+  pragma preserves every existing message byte-for-byte, so the change
+  is fully backwards compatible.
+
+  The rhs must be a static string literal (no concatenation, no `fmt`,
+  no runtime `var`). Non-literal forms fire the canonical compile-time
+  error: `transitionError must be a static string literal (no
+  concatenation, no fmt)`.
+
+  **Author-site only.** This pragma customizes the declaration-time
+  diagnostic emitted when the typestate author writes an invalid
+  transition. It does NOT customize the consumer-call-site CFG-001
+  diagnostic emitted from `verify.nim:validateExitEdge` when a caller
+  invokes a proc whose required entry state does not match the current
+  state of the typestate-attached value. Consumer-call-site
+  substitution would require CFG-analyzer changes and is deferred.
+
+  Example — `{.transition.}`:
+
+  ```nim
+  proc lock(f: Open): Locked
+      {.transition, transitionError:
+        "Cannot lock an open file: call close() first".} =
+    Locked(f)
+  ```
+
+  Example — `{.destructorTransition.}`:
+
+  ```nim
+  proc `=destroy`(h: var Halfopen)
+      {.destructorTransition: Halfopen -> Closed,
+        transitionError: "Halfopen must close before destruction".} =
+    discard
+  ```
+
+- **`# rejects: "<substring>"` directive** in the comprehensive test
+  runner (`tests/tcomprehensive_runner.nim`). Mirrors the existing
+  `# expects: "..."` directive but asserts the substring does NOT
+  appear in compiler output. Required to verify v0.9.3's wholesale
+  diagnostic substitution (built-in message must not leak through when
+  a custom `transitionError` is provided).
+
+### Fixed
+
+- **Style-insensitive identifier matching** for custom pragmas
+  (`transitionError`, `skipCfgAnalysis`, `raises`) and the typestate DSL
+  (the `defaults:` section keyword, all six section keywords, and
+  `defaults:` generic-param names). Matching now follows Nim's identifier
+  rules (case- and underscore-insensitive after the first character),
+  replacing case-sensitive `strVal ==` comparisons with `eqIdent`.
+  Previously a non-canonical spelling (case/underscore variant) was
+  silently ignored — a variant-spelled `transitionError` lost its custom
+  message and fell back to the built-in diagnostic — or rejected — a
+  variant-spelled section keyword or `defaults:` param name produced an
+  "Unknown section" / "does not match any generic param" error. Every
+  error-message string is unchanged; only the matching became
+  style-insensitive.
+
+- **Standalone comments in the `defaults:` block.** A doc comment (`##`)
+  written on its own line inside a `defaults:` block (before or between
+  entries) now compiles. Such comments survive parsing as top-level
+  `nnkCommentStmt` children of the defaults body and were previously
+  rejected with "got node kind nnkCommentStmt"; they are now skipped
+  alongside empty nodes, mirroring the existing per-entry comment
+  tolerance. (Plain `#` line comments were already accepted — the parser
+  strips them before they reach the entry loop.)
+
+- **Graceful error for non-identifier section headers.** A malformed
+  `typestate` section header whose callee is not an identifier/symbol
+  (e.g. a parenthesized `(states)(Closed):`) now produces the clean
+  `Unknown section in typestate block:` diagnostic pointed at the user's
+  code, instead of an internal `node lacks field: strVal` compiler error
+  with a macro stack trace. The unguarded `child[0].strVal` is now
+  preceded by an `nnkIdent`/`nnkSym` kind-guard; a realistic
+  misspelled-but-identifier header (e.g. `staets:`) continues to produce
+  the same message unchanged.
+
+### Migration
+
+None required. The `transitionError` sibling pragma is optional; every
+existing transition / destructorTransition declaration continues to
+compile and produce the same diagnostics as in v0.9.2.
+
+### Compatibility
+
+- Nim >= 2.2.0 (unchanged from v0.9.2).
+- No new dependencies.
+- CFG analyzer (`verify.nim`, `reachability.nim`, `analyzer.nim`)
+  untouched — the feature is purely additive at the pragma-macro layer.
+- **Conditional typestate attachment (`when` predicate) is NOT
+  available in this release.** A sweep of `pragmas.nim`, `codegen.nim`,
+  and the v0.9.0/v0.9.1/v0.9.2 CHANGELOG entries confirmed the
+  attachment-pragma macro signature is unconditional
+  (`<TypestateName>(initial, typeDef)`, no `when` slot). Downstream
+  consumers that need conditional attachment (e.g., attaching a
+  typestate only when a generic parameter takes a specific value) must
+  use the two-type dispatch alias pattern: declare two distinct types
+  (one with typestate attached, one without) and select between them
+  via a `when`-conditional type alias at the consumer call site.
+
+### Tooling
+
+- **Pinned `nph` to `0.7.0`** in CI (`nimble install -y nph@0.7.0`) and
+  documented the matching pin in `.pre-commit-config.yaml`. CI previously
+  floated on the latest `nph`, while local pre-commit ran whatever `nph`
+  was on PATH — version drift between the two produces spurious
+  format-diff churn. Mirrors the existing Nim-version pinning rationale
+  ("avoid silent drift from `stable`").
+
+### Documentation
+
+- **Pragma surface ambiguity pattern signal (AGENTS.md).** Captured the
+  `{.kwarg: value.}` sibling form vs `{.pragma(spec).}` call form
+  ambiguity surfaced while adding `transitionError`. Folding the message
+  into the existing `{.destructorTransition: T -> U.}` colon-spec surface
+  looks idiomatic but does not work — that surface is a dedicated
+  transition-spec dispatcher, not a generic kwarg slot. v0.9.3 used the
+  orthogonal sibling-pragma form instead. Rule: verify the parser path
+  (compile-only a 3-line probe) before assuming a new pragma surface, and
+  brief downstream consumers with the verified syntax verbatim.
+- **`pkUnmarked` dead-code excision (AGENTS.md).** A finding that the
+  `pkUnmarked` guard block in `verifyTypestatesImpl` (the external-module
+  and `strictTransitions` diagnostics) was structurally unreachable — no
+  call site ever registers a proc with `kind: pkUnmarked`, and the live
+  cross-module-transition prohibition for `{.transition.}` procs is
+  enforced in `pragmas.nim` (since v0.4.0). The unreachability sweep was
+  completed and the dead guard block was **removed in v0.9.3** (the
+  `pkUnmarked` `ProcKind` enum value is retained as a meaningful public-API
+  classification). Pure dead-code removal; the block never executed, so
+  behaviour is unchanged.
+- Internal documentation only. No behavioural changes; no public API
+  changes.
+
+## [0.9.2]
+
+### Added
+
+- **`defaults:` body section on `typestate` decls.** A new optional
+  `defaults:` section inside the typestate body captures default-value
+  expressions for generic params declared in the bracket head, so
+  consumers can elide a defaulted param at instantiation time. Defaults
+  propagate through every macro-generated type and proc (variant types,
+  state procs, `=copy` hooks, branch constructors, branch operators,
+  `$` overloads, `match` macros, attachment marker) via
+  `buildGenericParams`. Existing typestates without a `defaults:` section
+  continue to work unchanged.
+
+  Example:
+
+  ```nim
+  typestate RegistrationContext[
+      MaxThreads: static int, CC: static PinScopeCardinality]:
+    defaults:
+      CC: ccSingle
+    states:
+      Unregistered[MaxThreads, CC]
+      Registered[MaxThreads, CC]
+    transitions:
+      Unregistered[MaxThreads, CC] ->
+        (Registered[MaxThreads, CC]) as RegisterResult[MaxThreads, CC]
+  ```
+
+  Consumers can then write `RegisterResult[4]` and Nim binds `CC` to
+  the captured `ccSingle` default. The DSL form was chosen over the
+  inline `[CC: static PinScopeCardinality = ccSingle]` shape because
+  Nim's grammar disallows `=` inside `[...]` macro-arg context.
+
+### Validation
+
+- Each `defaults:` entry must reference a generic param declared in the
+  bracket head; otherwise a macro-time error lists the declared params.
+- The left-hand side of an entry must be a bare param name (no constraint
+  re-declaration — the constraint comes from the bracket head).
+- Duplicate entries (same param named twice) are rejected at macro time.
+
+### Fixed
+
+- **`destructorTransition` two-arg spec accepts generic terminal states.**
+  Parser stored terminal state reprs verbatim (e.g. `"Closed[N, T]"`)
+  while `pragmas.nim` membership check compared against `extractTypeName`
+  output (bare `"Closed"`). The asymmetry rejected every two-arg
+  `{.destructorTransition: Src -> Dst.}` whose `Dst` was a generic
+  terminal. Comparison now normalizes both sides via `extractBaseName`.
+  Regression fixture:
+  `tests/should_compile/pragmas/destructor_transition_generic_state_spec.nim`.
+
 ## [0.9.1] - 2026-05-19
 
 ### Documentation
