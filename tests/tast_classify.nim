@@ -219,13 +219,13 @@ suite "style-insensitivity (Nim identifier rules)":
 
   test "classifyByPragma: style-variant notATransition marker recognized":
     # `not_a_transition` is the same marker as `notATransition`.
-    check classifyByPragma(firstRoutine("proc p(x: int) {.not_a_transition.} = discard")) ==
-      pcNotATransition
+    check classifyByPragma(
+      firstRoutine("proc p(x: int) {.not_a_transition.} = discard")
+    ) == pcNotATransition
 
   test "markerNameOf: style-variant marker normalizes to canonical form":
-    let pragmaNode = firstRoutine("proc p(x: int) {.not_a_transition.} = discard")[
-      pragmasPos
-    ]
+    let pragmaNode =
+      firstRoutine("proc p(x: int) {.not_a_transition.} = discard")[pragmasPos]
     doAssert pragmaNode.kind == nkPragma
     # The returned marker name must compare equal to the canonical marker after
     # normalization. We assert the normalized form directly here.
