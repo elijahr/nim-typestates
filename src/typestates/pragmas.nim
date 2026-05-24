@@ -829,22 +829,17 @@ macro transition*(procDef: untyped): untyped =
 
   if pragmaNode.kind != nnkEmpty:
     for pragma in pragmaNode:
-      var pragmaName = ""
       case pragma.kind
-      of nnkIdent, nnkSym:
-        pragmaName = pragma.strVal
       of nnkExprColonExpr:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if eqIdent(pragmaName, "raises"):
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # Check if the raises list is non-empty
             if pragma[1].kind == nnkBracket and pragma[1].len > 0:
               raisesIsEmpty = false
       of nnkCall:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if eqIdent(pragmaName, "raises"):
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # raises() or raises([...])
             if pragma.len > 1:
