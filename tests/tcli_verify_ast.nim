@@ -154,3 +154,32 @@ suite "AST verify: GROUP D (peel-discriminator integration)":
     let errs = errorsFor(fixture("multipeel_var_ptr.nim"))
     check errs.len == 1
     check errs[0].code == fcUnmarkedProcStrict
+
+suite "AST verify: GROUP E (style-insensitive identifier matching)":
+  ## Nim identifiers are style-insensitive (first char case-sensitive; the rest
+  ## case-insensitive with underscores ignored). The verifier must match
+  ## typestate state names and pragma markers under that rule, consistently with
+  ## how the registration side normalizes.
+
+  test "style_variant_type: My_State param == registered MyState -> ONE error":
+    # The unmarked `touch(s: var My_State)` must be recognized as operating on
+    # the registered `MyState` base (style variant) and flagged on a strict
+    # typestate. The `ignore(s: var my_state)` proc differs in first-letter case
+    # (a distinct identifier) and must NOT be flagged. Net: exactly ONE error.
+    let errs = errorsFor(fixture("style_variant_type.nim"))
+    check errs.len == 1
+    check errs[0].code == fcUnmarkedProcStrict
+
+  test "style_variant_marker: not_a_transition recognized as marker -> NO finding":
+    # `not_a_transition` is the same marker as `notATransition`; the proc IS
+    # marked, so the file must be clean.
+    let res = verify(@[fixture("style_variant_marker.nim")])
+    check res.errors.len == 0
+    check res.warnings.len == 0
+
+  test "operator_routine: unmarked operator proc on strict -> ONE error":
+    # An unmarked backticked-operator routine on a strict typestate state param
+    # must still be flagged (the nkAccQuoted name must not break classification).
+    let errs = errorsFor(fixture("operator_routine.nim"))
+    check errs.len == 1
+    check errs[0].code == fcUnmarkedProcStrict

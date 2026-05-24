@@ -685,24 +685,35 @@ proc peelToBaseTypeName*(node: PNode): string =
 
 proc markerNameOf*(pragmaChild: PNode): string =
   ## Return the marker identifier name carried by one child of an `nkPragma`
-  ## node, or "" when the shape is not an identifier-bearing pragma.
+  ## node, NORMALIZED per Nim's identifier rules (`nimIdentNormalize`), or ""
+  ## when the shape is not an identifier-bearing pragma.
   ##
   ## Handles the bare form (`nkIdent`/`nkSym`, e.g. `transition`,
   ## `notATransition`) and the call/colon forms whose first child is the marker
   ## ident (`nkExprColonExpr` for `transitionError: "msg"`, `nkCall` for
   ## `transition(A, B)`).
+  ##
+  ## The result is style-normalized so a marker written in any valid Nim style
+  ## (e.g. `not_a_transition`, `notatransition`) is recognized as the same
+  ## marker. Pragma identifiers are style-insensitive in Nim, so this matches
+  ## the compiler's own treatment. Callers in `classifyByPragma` compare against
+  ## the normalized canonical spelling of each marker.
+  var raw = ""
   if pragmaChild == nil:
     return ""
   case pragmaChild.kind
   of nkIdent:
-    result = pragmaChild.ident.s
+    raw = pragmaChild.ident.s
   of nkSym:
-    result = pragmaChild.sym.name.s
+    raw = pragmaChild.sym.name.s
   of nkExprColonExpr, nkCall, nkCommand:
     if pragmaChild.len >= 1:
-      result = extractIdent(pragmaChild[0])
+      raw = extractIdent(pragmaChild[0])
   else:
-    result = ""
+    raw = ""
+  if raw.len == 0:
+    return ""
+  result = nimIdentNormalize(raw)
 
 proc classifyByPragma*(procDef: PNode): ProcClass =
   ## Classify a routine by its pragma markers.
@@ -727,13 +738,22 @@ proc classifyByPragma*(procDef: PNode): ProcClass =
     return
   if pragmaNode.kind != nkPragma:
     return
+  # `markerNameOf` returns the marker identifier NORMALIZED via
+  # `nimIdentNormalize`, so the comparisons below use the canonical markers'
+  # normalized spellings (first char preserved, rest lowercased, underscores
+  # removed). This keeps marker SEMANTICS identical for canonical spellings
+  # while also recognizing valid style variants (`not_a_transition`, etc.).
+  const
+    nTransition = nimIdentNormalize("transition")
+    nDestructorTransition = nimIdentNormalize("destructorTransition")
+    nNotATransition = nimIdentNormalize("notATransition")
   var hasTransition = false
   var hasNot = false
   for child in pragmaNode:
     case markerNameOf(child)
-    of "transition", "destructorTransition":
+    of nTransition, nDestructorTransition:
       hasTransition = true
-    of "notATransition":
+    of nNotATransition:
       hasNot = true
     else:
       discard
@@ -755,6 +775,14 @@ proc typestateParamBases*(
   ## `idef[^2]`), peels the type via `peelToBaseTypeName`, and collects bases
   ## that are members of `registeredBases`. Grouped parameter names share a
   ## single type node and contribute one base per `nkIdentDefs`.
+  ##
+  ## Membership is tested style-insensitively per Nim's identifier rules
+  ## (`nimIdentNormalize`): the first character is case-sensitive; the rest are
+  ## case-insensitive and underscores are ignored. `registeredBases` MUST be
+  ## supplied already normalized via `nimIdentNormalize` (the registration side
+  ## in `cli.verify()` does this) so a state declared `MyState` matches a param
+  ## typed `My_State`. The RETURNED base preserves the param's own (readable)
+  ## spelling for use in user-facing findings.
   result = @[]
   if procDef == nil or procDef.len <= paramsPos:
     return
@@ -771,7 +799,7 @@ proc typestateParamBases*(
       continue
     let typeNode = child[^2]
     let base = peelToBaseTypeName(typeNode)
-    if base.len > 0 and base in registeredBases:
+    if base.len > 0 and nimIdentNormalize(base) in registeredBases:
       result.add base
 
 type ClassifiedProc* = object
@@ -793,9 +821,17 @@ type ClassifiedProc* = object
 proc routineName(procDef: PNode): string =
   ## Best-effort routine name from `namePos`, handling exported (`nkPostfix`)
   ## and bare (`nkIdent`/`nkSym`) forms via `extractIdent`.
+  ##
+  ## Backticked / operator names (`` proc `[]` ``, `` proc `==` ``) parse as
+  ## `nkAccQuoted`, which `extractIdent` does not handle and would otherwise
+  ## render as an empty (anonymous) name in findings. Fall back to `renderTree`
+  ## for that shape so the operator symbol (e.g. `` `[]` ``) is reported.
   if procDef == nil or procDef.len <= namePos:
     return ""
-  extractIdent(procDef[namePos])
+  let nameNode = procDef[namePos]
+  if nameNode != nil and nameNode.kind == nkAccQuoted:
+    return renderTree(nameNode, {})
+  extractIdent(nameNode)
 
 proc classifyProcsInFile*(
     tree: PNode, registeredBases: HashSet[string]

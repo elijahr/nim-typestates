@@ -524,9 +524,12 @@ proc verifyFile(
   ##
   ## :param path: Source file path (used only for `Finding.path`).
   ## :param tree: The file's parsed compiler AST (read-only).
-  ## :param registeredStateBases: Base names of every typestate state.
+  ## :param registeredStateBases: Base names of every typestate state, keyed by
+  ##   the NORMALIZED identifier (`nimIdentNormalize`) for style-insensitive
+  ##   matching.
   ## :param stateBaseStrict: Per-state-base strictTransitions flag (default
-  ##   `true` when a base is absent), used to route severity.
+  ##   `true` when a base is absent), keyed by the NORMALIZED base, used to
+  ##   route severity.
   ## :returns: Verification results with structured findings.
   result = VerifyResult()
   result.filesChecked = 1
@@ -539,9 +542,12 @@ proc verifyFile(
       result.transitionsChecked += 1
     of pcUnmarked:
       # Anchor the finding to the first matched state base, mirroring the
-      # old scanner's "first typestate param type" reporting.
+      # old scanner's "first typestate param type" reporting. `base` preserves
+      # the param's readable spelling for the user-facing message, but the
+      # strictness lookup keys on the NORMALIZED base to match how
+      # `stateBaseStrict` was populated (style-insensitive per Nim's rules).
       let base = cp.paramStateBases[0]
-      if stateBaseStrict.getOrDefault(base, true):
+      if stateBaseStrict.getOrDefault(nimIdentNormalize(base), true):
         result.findings.add mkError(
           fcUnmarkedProcStrict,
           path,
@@ -637,11 +643,18 @@ proc verify*(paths: seq[string]): VerifyResult =
   #  - `stateBaseStrict`: per-state-base strictTransitions flag. On a base-name
   #    collision across typestates, prefer flagging if ANY owner is strict
   #    (preserves the old default-strict spirit). Absent base => default true.
+  #
+  # Both views are keyed by the NORMALIZED base name (`nimIdentNormalize`) so
+  # membership/strictness lookups are style-insensitive per Nim's identifier
+  # rules. The classification side (`typestateParamBases`) and the strictness
+  # lookup below MUST normalize the candidate base identically so a state
+  # declared `MyState` matches a param typed `My_State` (same identifier under
+  # Nim's rules), while `myState` (first-letter-case difference) stays distinct.
   var registeredStateBases = initHashSet[string]()
   var stateBaseStrict = initTable[string, bool]()
   for ts in parseResult.typestates:
     for state in ts.states:
-      let base = extractBaseName(state)
+      let base = nimIdentNormalize(extractBaseName(state))
       registeredStateBases.incl(base)
       if base in stateBaseStrict:
         stateBaseStrict[base] = stateBaseStrict[base] or ts.strictTransitions

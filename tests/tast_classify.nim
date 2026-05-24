@@ -7,7 +7,7 @@
 ## via `parseStringToPNode`, which reuses the same parse path as `parsePNode`).
 ## They do NOT go through `verify()` — that wiring is the next step.
 
-import std/[unittest, sets, os]
+import std/[unittest, sets, os, strutils]
 
 import compiler/[ast, idents, options as compiler_options]
 
@@ -109,22 +109,25 @@ suite "markerNameOf":
     for c in pragmaNode:
       result.add c
 
+  # `markerNameOf` returns the marker identifier NORMALIZED per Nim's rules
+  # (`nimIdentNormalize`): first char preserved, rest lowercased, underscores
+  # removed. The expected values below are the normalized canonical spellings.
   test "bare ident child -> name":
     let kids = pragmaChildren("proc p(x: int) {.notATransition.} = discard")
-    check markerNameOf(kids[0]) == "notATransition"
+    check markerNameOf(kids[0]) == nimIdentNormalize("notATransition")
 
   test "ExprColonExpr child -> first-ident name":
     let kids = pragmaChildren("proc p(x: int) {.raises: [].} = discard")
-    check markerNameOf(kids[0]) == "raises"
+    check markerNameOf(kids[0]) == nimIdentNormalize("raises")
 
   test "combined block mixed children":
     let kids = pragmaChildren(
       "proc p(x: int): int {.discardable, raises: [], notATransition.} = 0"
     )
     check kids.len == 3
-    check markerNameOf(kids[0]) == "discardable"
-    check markerNameOf(kids[1]) == "raises"
-    check markerNameOf(kids[2]) == "notATransition"
+    check markerNameOf(kids[0]) == nimIdentNormalize("discardable")
+    check markerNameOf(kids[1]) == nimIdentNormalize("raises")
+    check markerNameOf(kids[2]) == nimIdentNormalize("notATransition")
 
 suite "collectRoutineDefs":
   proc nameOf(n: PNode): string =
@@ -189,6 +192,68 @@ suite "typestateParamBases":
     let procDef = firstRoutine("proc p(a: int, b: string) = discard")
     let registered = ["Open"].toHashSet
     check typestateParamBases(procDef, registered).len == 0
+
+suite "style-insensitivity (Nim identifier rules)":
+  ## Nim identifiers are style-insensitive: the FIRST character is
+  ## case-sensitive; the rest are case-insensitive AND underscores are ignored.
+  ## The AST helpers must normalize identifiers consistently with the
+  ## registration side so style variants of a state name / pragma marker match,
+  ## while a first-letter-case difference (a genuinely distinct identifier) does
+  ## NOT match.
+
+  test "typestateParamBases: My_State matches registered MyState":
+    # `My_State` == `MyState` (same first letter, underscore ignored, rest
+    # case-folded), so it must resolve to the registered base. The registered
+    # set is normalized exactly as the production registration side does.
+    let procDef = firstRoutine("proc p(s: var My_State) = discard")
+    let registered = [nimIdentNormalize("MyState")].toHashSet
+    # The returned base preserves the param's own readable spelling.
+    check typestateParamBases(procDef, registered) == @["My_State"]
+
+  test "typestateParamBases: first-letter-case difference does NOT match":
+    # `my_state` differs from `MyState` in the first letter (`m` vs `M`); under
+    # Nim's rules these are DISTINCT identifiers and must not match.
+    let procDef = firstRoutine("proc p(s: var my_state) = discard")
+    let registered = [nimIdentNormalize("MyState")].toHashSet
+    check typestateParamBases(procDef, registered).len == 0
+
+  test "classifyByPragma: style-variant notATransition marker recognized":
+    # `not_a_transition` is the same marker as `notATransition`.
+    check classifyByPragma(firstRoutine("proc p(x: int) {.not_a_transition.} = discard")) ==
+      pcNotATransition
+
+  test "markerNameOf: style-variant marker normalizes to canonical form":
+    let pragmaNode = firstRoutine("proc p(x: int) {.not_a_transition.} = discard")[
+      pragmasPos
+    ]
+    doAssert pragmaNode.kind == nkPragma
+    # The returned marker name must compare equal to the canonical marker after
+    # normalization. We assert the normalized form directly here.
+    check nimIdentNormalize(markerNameOf(pragmaNode[0])) ==
+      nimIdentNormalize("notATransition")
+
+suite "nkAccQuoted routine names":
+  ## Backticked / operator routine names parse as `nkAccQuoted`. The routine
+  ## name extractor must render them to a sensible symbol, not an empty string.
+
+  test "classifyProcsInFile: operator routine carries a non-empty name":
+    let src = """
+proc `[]`(s: var Open; i: int) = discard
+"""
+    let registered = ["Open"].toHashSet
+    let classified = classifyProcsInFile(parseOne(src), registered)
+    check classified.len == 1
+    check classified[0].name.len > 0
+    check "[]" in classified[0].name
+
+  test "classifyProcsInFile: == operator routine carries a sensible name":
+    let src = """
+proc `==`(a, b: Open): bool = true
+"""
+    let registered = ["Open"].toHashSet
+    let classified = classifyProcsInFile(parseOne(src), registered)
+    check classified.len == 1
+    check "==" in classified[0].name
 
 suite "discriminative fixtures (helper-level)":
   ## Helper-level assertions for the two added discriminative fixtures. The
