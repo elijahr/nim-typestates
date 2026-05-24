@@ -7,7 +7,7 @@
 ## via `parseStringToPNode`, which reuses the same parse path as `parsePNode`).
 ## They do NOT go through `verify()` — that wiring is the next step.
 
-import std/[unittest, sets, os, strutils]
+import std/[unittest, sets, os, strutils, tables]
 
 import compiler/[ast, idents, options as compiler_options]
 
@@ -254,6 +254,70 @@ proc `==`(a, b: Open): bool = true
     let classified = classifyProcsInFile(parseOne(src), registered)
     check classified.len == 1
     check "==" in classified[0].name
+
+  test "classifyProcsInFile: EXPORTED operator routine carries a non-empty name":
+    # Exported backticked names parse as `nkPostfix[nkIdent("*"), nkAccQuoted]`.
+    # The name extractor must peel the `nkPostfix` AND render the nested
+    # `nkAccQuoted`, not stop at the postfix and yield an empty/anonymous name.
+    let src = """
+proc `[]`*(s: var Open; i: int) = discard
+"""
+    let registered = ["Open"].toHashSet
+    let classified = classifyProcsInFile(parseOne(src), registered)
+    check classified.len == 1
+    check classified[0].name.len > 0
+    check "[]" in classified[0].name
+
+  test "classifyProcsInFile: EXPORTED == operator routine carries a sensible name":
+    let src = """
+proc `==`*(a, b: Open): bool = true
+"""
+    let registered = ["Open"].toHashSet
+    let classified = classifyProcsInFile(parseOne(src), registered)
+    check classified.len == 1
+    check classified[0].name.len > 0
+    check "==" in classified[0].name
+
+suite "deterministic node iteration order":
+  ## `ParsedProject.nodes` is an `OrderedTable`, so iterating it follows the
+  ## order paths were processed (insertion order), not hash order. This makes
+  ## the verify finding report order deterministic across runs for the same
+  ## inputs.
+  const FixDir = "tests/fixtures/ast_verify"
+
+  test "nodes iteration order equals explicit path argument order":
+    # An explicit `.nim` path list is processed in argument order, so the
+    # `nodes` keys must come out in exactly that order.
+    let paths = @[
+      FixDir / "operator_routine.nim",
+      FixDir / "non_exported.nim",
+      FixDir / "overloaded.nim",
+      FixDir / "ref_ptr_param.nim",
+      FixDir / "comment_literal.nim",
+    ]
+    let project = parseTypestatesAstWithNodes(paths)
+    var encountered: seq[string]
+    for filePath, _ in project.nodes:
+      encountered.add filePath
+    check encountered == paths
+
+  test "nodes iteration order is stable across repeated parses":
+    # Same inputs -> same iteration order on every run (the property that fixes
+    # non-deterministic finding report order).
+    let paths = @[
+      FixDir / "overloaded.nim",
+      FixDir / "operator_routine.nim",
+      FixDir / "comment_literal.nim",
+      FixDir / "non_exported.nim",
+    ]
+    var firstOrder: seq[string]
+    for filePath, _ in parseTypestatesAstWithNodes(paths).nodes:
+      firstOrder.add filePath
+    var secondOrder: seq[string]
+    for filePath, _ in parseTypestatesAstWithNodes(paths).nodes:
+      secondOrder.add filePath
+    check firstOrder == paths
+    check secondOrder == paths
 
 suite "discriminative fixtures (helper-level)":
   ## Helper-level assertions for the two added discriminative fixtures. The

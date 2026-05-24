@@ -139,6 +139,16 @@ proc extractIdent(node: PNode): string =
     # Handle exported idents like `*ident`
     if node.len >= 2:
       result = extractIdent(node[1])
+  of nkAccQuoted:
+    # Backticked / operator names (`` `[]` ``, `` `==` ``) parse as
+    # `nkAccQuoted`. Render to the operator/identifier text so callers (notably
+    # `routineName`) get a sensible symbol instead of an empty string. Because
+    # `nkPostfix` recurses here, this also covers the EXPORTED backticked shape
+    # (`nkPostfix[nkIdent("*"), nkAccQuoted]`) that the prior cycle's
+    # top-level-only check missed. Other `extractIdent` callers (type names,
+    # pragma markers) never see `nkAccQuoted` — those node shapes are never
+    # backticked — so this branch is inert for them.
+    result = renderTree(node, {})
   else:
     result = ""
 
@@ -819,19 +829,19 @@ type ClassifiedProc* = object
   paramStateBases*: seq[string]
 
 proc routineName(procDef: PNode): string =
-  ## Best-effort routine name from `namePos`, handling exported (`nkPostfix`)
-  ## and bare (`nkIdent`/`nkSym`) forms via `extractIdent`.
+  ## Best-effort routine name from `namePos` via `extractIdent`, which peels the
+  ## exported (`nkPostfix`) and bare (`nkIdent`/`nkSym`) forms and renders
+  ## backticked / operator names (`` proc `[]` ``, `` proc `==` ``,
+  ## `` proc `[]`* ``) from their `nkAccQuoted` shape.
   ##
-  ## Backticked / operator names (`` proc `[]` ``, `` proc `==` ``) parse as
-  ## `nkAccQuoted`, which `extractIdent` does not handle and would otherwise
-  ## render as an empty (anonymous) name in findings. Fall back to `renderTree`
-  ## for that shape so the operator symbol (e.g. `` `[]` ``) is reported.
+  ## Because `extractIdent` recurses through `nkPostfix` into `nkAccQuoted`, both
+  ## the non-exported (`nkAccQuoted`) and EXPORTED
+  ## (`nkPostfix[nkIdent("*"), nkAccQuoted]`) backticked forms yield the operator
+  ## symbol; the prior cycle's top-level-only `nkAccQuoted` check missed the
+  ## exported case.
   if procDef == nil or procDef.len <= namePos:
     return ""
-  let nameNode = procDef[namePos]
-  if nameNode != nil and nameNode.kind == nkAccQuoted:
-    return renderTree(nameNode, {})
-  extractIdent(nameNode)
+  extractIdent(procDef[namePos])
 
 proc classifyProcsInFile*(
     tree: PNode, registeredBases: HashSet[string]
@@ -1040,7 +1050,11 @@ type ParsedProject* = object
   ## entry in `nodes`, so a downstream classification pass naturally skips them
   ## without re-parsing or double-reporting the parse error.
   parse*: ParseResult
-  nodes*: Table[string, PNode]
+  nodes*: OrderedTable[string, PNode]
+    ## Keyed by the as-encountered path. An `OrderedTable` (not a plain `Table`)
+    ## so Pass-2 iteration follows insertion order — the order `paths` are
+    ## processed — making finding report order deterministic across runs for the
+    ## same inputs (a plain `Table` iterates in hash order).
 
 proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
   ## Parse every `.nim` file under `paths` EXACTLY ONCE and return both the
@@ -1057,7 +1071,7 @@ proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
   ## `filesChecked` counts only successfully-parsed files (matching
   ## `parseTypestatesAst`). A failed file contributes a `failures` entry, no
   ## `nodes` entry, and no `filesChecked` increment.
-  result = ParsedProject(parse: ParseResult(), nodes: initTable[string, PNode]())
+  result = ParsedProject(parse: ParseResult(), nodes: initOrderedTable[string, PNode]())
 
   let cache = newIdentCache()
   let config = newConfigRef()
