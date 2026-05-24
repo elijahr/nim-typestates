@@ -657,7 +657,7 @@ proc peelToBaseTypeName*(node: PNode): string =
     # to the bare modifier name; this also avoids assuming the head is a plain
     # ident. For the normal `nkIdent("sink")` case `extractBaseName` is a no-op.
     if node.len >= 2:
-      let head = extractBaseName(renderTree(node[0], {}))
+      let head = nimIdentNormalize(extractBaseName(renderTree(node[0], {})))
       if head in ["sink", "lent"]:
         return peelToBaseTypeName(node[^1])
     # Unknown command shape: fall back to repr normalization below.
