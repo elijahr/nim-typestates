@@ -5,7 +5,9 @@
 ##
 ## Used by the CLI tool for project-wide verification.
 
-import std/[os, strutils, options]
+import std/[os, strutils, options, sets]
+
+import ./types # extractBaseName, used as final normalizer in peelToBaseTypeName
 
 # Compiler imports - requires Nim compiler source
 import
@@ -580,6 +582,223 @@ proc walkAst(node: PNode, typestates: var seq[ParsedTypestate]) =
   # Recurse into children
   for child in node:
     walkAst(child, typestates)
+
+# ---------------------------------------------------------------------------
+# Pure PNode classification helpers (v0.9.4 AST verifier building blocks)
+#
+# These operate on raw compiler `PNode` trees (the `compiler/ast` API), NOT
+# `std/macros` `NimNode`. They are the read-only classification primitives the
+# AST-based verifier rewrite will use to categorize routines as transitions,
+# non-transitions, or unmarked, and to resolve typestate parameter base types.
+#
+# PNode immutability (Tier-B note): every helper below only READS the tree
+# (field access, `len`, indexing, iteration via `items`). None mutate `PNode`
+# in place, so a single parse can be shared across all consumers safely.
+# ---------------------------------------------------------------------------
+
+type ProcClass* = enum
+  ## Classification of a routine definition by its typestate marker pragmas.
+  pcTransition ## Carries `{.transition.}` or `{.destructorTransition.}`.
+  pcNotATransition ## Carries `{.notATransition.}` (and no transition marker).
+  pcUnmarked ## Carries neither marker.
+
+proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
+  ## Recursively collect `nkProcDef` and `nkFuncDef` nodes into `acc`.
+  ##
+  ## Descends `nkStmtList` and `when`-statement branches
+  ## (`nkWhenStmt`/`nkElifBranch`/`nkElse`) so platform-gated and otherwise
+  ## conditionally-compiled routines are seen. Does NOT descend into routine
+  ## bodies, so nested procs are not collected (matches the prior text-scanner
+  ## behavior). Methods, converters, templates, and macros are intentionally
+  ## out of scope and are not collected.
+  if node == nil:
+    return
+  case node.kind
+  of nkProcDef, nkFuncDef:
+    acc.add node
+    # Do not descend into the body: nested routines are out of scope.
+  of nkStmtList, nkStmtListExpr, nkWhenStmt, nkElifBranch, nkElifExpr, nkElse,
+      nkElseExpr:
+    for child in node:
+      collectRoutineDefs(child, acc)
+  else:
+    discard
+
+proc peelToBaseTypeName*(node: PNode): string =
+  ## Peel parameter-passing wrappers and generic brackets to a base type name.
+  ##
+  ## Handles (recursively / idempotently regardless of ordering):
+  ## - `nkVarTy` / `nkRefTy` / `nkPtrTy` -> peel into the wrapped type
+  ## - `sink T` / `lent T` (parsed by the compiler as
+  ##   `nkCommand(nkIdent("sink"|"lent"), T)`) -> peel to `T`
+  ## - `nkBracketExpr` (generics like `Stage1[T]`, `PinnedScope[MT, CC]`)
+  ##   -> recurse into the head `[0]` to get the base
+  ## - `nkIdent` -> the identifier string
+  ## - `nkDotExpr` (e.g. `module.State`) -> the last (rightmost) component
+  ##
+  ## Distinct types are NOT peeled: a `distinct T` is a NEW type. A bare inline
+  ## `nkDistinctTy` has no name of its own, so this returns "" for it rather
+  ## than transitively peeling to the underlying `T`. (A named distinct alias is
+  ## referenced by its alias name, which arrives here as an `nkIdent`.)
+  if node == nil:
+    return ""
+  case node.kind
+  of nkVarTy, nkRefTy, nkPtrTy:
+    # Single wrapped child; peel it. Idempotent for nested wrappers like
+    # `var ptr T` (nkVarTy(nkPtrTy(T))).
+    if node.len >= 1:
+      return peelToBaseTypeName(node[0])
+    return ""
+  of nkCommand:
+    # `sink T` / `lent T` parse as nkCommand(nkIdent("sink"|"lent"), T).
+    if node.len >= 2:
+      let head = extractIdent(node[0])
+      if head in ["sink", "lent"]:
+        return peelToBaseTypeName(node[^1])
+    # Unknown command shape: fall back to repr normalization below.
+  of nkBracketExpr:
+    # Generic: peel to the head's base name.
+    if node.len >= 1:
+      return peelToBaseTypeName(node[0])
+    return ""
+  of nkIdent:
+    return node.ident.s
+  of nkSym:
+    return node.sym.name.s
+  of nkDotExpr:
+    # `module.State` (or deeper) -> rightmost component is the base name.
+    if node.len >= 2:
+      return peelToBaseTypeName(node[^1])
+    return ""
+  of nkDistinctTy:
+    # Do NOT peel through distinct: a bare inline distinct has no own name.
+    return ""
+  else:
+    discard
+  # Fallback: normalize the rendered repr (strips brackets/ref/ptr/module-qual).
+  result = extractBaseName(renderTree(node, {}))
+
+proc markerNameOf*(pragmaChild: PNode): string =
+  ## Return the marker identifier name carried by one child of an `nkPragma`
+  ## node, or "" when the shape is not an identifier-bearing pragma.
+  ##
+  ## Handles the bare form (`nkIdent`/`nkSym`, e.g. `transition`,
+  ## `notATransition`) and the call/colon forms whose first child is the marker
+  ## ident (`nkExprColonExpr` for `transitionError: "msg"`, `nkCall` for
+  ## `transition(A, B)`).
+  if pragmaChild == nil:
+    return ""
+  case pragmaChild.kind
+  of nkIdent:
+    result = pragmaChild.ident.s
+  of nkSym:
+    result = pragmaChild.sym.name.s
+  of nkExprColonExpr, nkCall, nkCommand:
+    if pragmaChild.len >= 1:
+      result = extractIdent(pragmaChild[0])
+  else:
+    result = ""
+
+proc classifyByPragma*(procDef: PNode): ProcClass =
+  ## Classify a routine by its pragma markers.
+  ##
+  ## Reads the routine's `nkPragma` node at `pragmasPos` (`nkEmpty` means no
+  ## pragmas) and walks its children via `markerNameOf`. Recognizes
+  ## `transition` / `destructorTransition` (=> has-transition) and
+  ## `notATransition` (=> has-not). All other pragmas (`discardable`, `raises`,
+  ## `skipCfgAnalysis`, `transitionError`, `inline`, ...) are ignored.
+  ##
+  ## This is the key correctness fix over the old substring scanner: because it
+  ## inspects each pragma child node individually, it detects markers embedded
+  ## in a COMBINED block such as `{.discardable, raises: [], notATransition.}`.
+  ##
+  ## Returns `pcTransition` if a transition marker is present, else
+  ## `pcNotATransition` if `notATransition` is present, else `pcUnmarked`.
+  result = pcUnmarked
+  if procDef == nil or procDef.len <= pragmasPos:
+    return
+  let pragmaNode = procDef[pragmasPos]
+  if pragmaNode == nil or pragmaNode.kind == nkEmpty:
+    return
+  if pragmaNode.kind != nkPragma:
+    return
+  var hasTransition = false
+  var hasNot = false
+  for child in pragmaNode:
+    case markerNameOf(child)
+    of "transition", "destructorTransition":
+      hasTransition = true
+    of "notATransition":
+      hasNot = true
+    else:
+      discard
+  if hasTransition:
+    result = pcTransition
+  elif hasNot:
+    result = pcNotATransition
+  else:
+    result = pcUnmarked
+
+proc typestateParamBases*(
+    procDef: PNode, registeredBases: HashSet[string]
+): seq[string] =
+  ## Return the base type names of the routine's parameters whose peeled base
+  ## type is a registered typestate base.
+  ##
+  ## Reads the routine's `nkFormalParams` node at `paramsPos`, iterates each
+  ## `nkIdentDefs` (shape: `[name1, name2, ..., type, default]`, so the type is
+  ## `idef[^2]`), peels the type via `peelToBaseTypeName`, and collects bases
+  ## that are members of `registeredBases`. Grouped parameter names share a
+  ## single type node and contribute one base per `nkIdentDefs`.
+  result = @[]
+  if procDef == nil or procDef.len <= paramsPos:
+    return
+  let formalParams = procDef[paramsPos]
+  if formalParams == nil or formalParams.kind != nkFormalParams:
+    return
+  for child in formalParams:
+    if child.kind != nkIdentDefs:
+      continue
+    if child.len < 2:
+      continue
+    let typeNode = child[^2]
+    let base = peelToBaseTypeName(typeNode)
+    if base.len > 0 and base in registeredBases:
+      result.add base
+
+proc parseStringToPNode*(
+    source: string, cache: IdentCache, config: ConfigRef, filename = "<string>"
+): PNode =
+  ## Parse an in-memory Nim source string into a raw `PNode`.
+  ##
+  ## Test hook mirroring `parsePNode`'s parse path (same `raisingErrorHandler`
+  ## installation, same `openParser`/`parseAll`/`closeParser` sequence) but
+  ## reading from a string instead of a file. Used by unit tests to exercise
+  ## the classification helpers on small snippets. Raises `ParseError` on
+  ## failure.
+  var p: Parser
+  let stream = llStreamOpen(source)
+  if stream == nil:
+    raise newParseError("Failed to open stream for: " & filename)
+  p.lex.errorHandler = raisingErrorHandler
+  openParser(p, AbsoluteFile(filename), stream, cache, config)
+  try:
+    result = parseAll(p)
+  except ParseError:
+    raise
+  except Exception as e:
+    raise newParseError("Parse error in " & filename & ": " & e.msg)
+  finally:
+    closeParser(p)
+
+proc parseStringToPNode*(source: string, filename = "<string>"): PNode =
+  ## Convenience overload of `parseStringToPNode` that constructs fresh
+  ## compiler infrastructure per call. Prefer the cache/config form in loops.
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+  parseStringToPNode(source, cache, config, filename)
 
 proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   ## Parse a Nim source file into a raw `PNode` using a shared compiler
