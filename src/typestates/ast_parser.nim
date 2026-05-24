@@ -651,8 +651,13 @@ proc peelToBaseTypeName*(node: PNode): string =
     return ""
   of nkCommand:
     # `sink T` / `lent T` parse as nkCommand(nkIdent("sink"|"lent"), T).
+    # The modifier head is normally a plain `nkIdent`, but may arrive in a
+    # module-qualified shape (e.g. `system.sink T` -> nkDotExpr head). Render
+    # the head and run it through `extractBaseName` so qualified forms degrade
+    # to the bare modifier name; this also avoids assuming the head is a plain
+    # ident. For the normal `nkIdent("sink")` case `extractBaseName` is a no-op.
     if node.len >= 2:
-      let head = extractIdent(node[0])
+      let head = extractBaseName(renderTree(node[0], {}))
       if head in ["sink", "lent"]:
         return peelToBaseTypeName(node[^1])
     # Unknown command shape: fall back to repr normalization below.
@@ -759,7 +764,10 @@ proc typestateParamBases*(
   for child in formalParams:
     if child.kind != nkIdentDefs:
       continue
-    if child.len < 2:
+    # A typed routine parameter is `[name1, ..., type, default]`, so the
+    # minimum valid shape (single name) is `[name, type, default]` = 3 children.
+    # Anything shorter has no extractable type at `^2`; skip it.
+    if child.len < 3:
       continue
     let typeNode = child[^2]
     let base = peelToBaseTypeName(typeNode)
