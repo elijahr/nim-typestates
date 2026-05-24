@@ -1229,6 +1229,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#parseDefaultsBlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseDefaultsBlock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parseTypestateBody" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1465,6 +1476,28 @@
     <span class="md-ellipsis">
       
         transparentWrapper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transitionError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transitionError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extractTransitionErrorPragma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractTransitionErrorPragma
       
     </span>
   </a>
@@ -2389,6 +2422,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#parseDefaultsBlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseDefaultsBlock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parseTypestateBody" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2625,6 +2669,28 @@
     <span class="md-ellipsis">
       
         transparentWrapper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transitionError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transitionError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extractTransitionErrorPragma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extractTransitionErrorPragma
       
     </span>
   </a>
@@ -3888,6 +3954,18 @@ and stored in the compile-time registry for later validation.</p>
           </li>
           
           <li class="doc-field">
+            <code class="doc-field-name">typeParamDefaults</code>
+            <code class="doc-field-type">seq[NimNode]</code>
+            
+            
+            <span class="doc-field-description"> – Default-value expressions, parallel to `typeParams`. Each entry is
+`newEmptyNode()` for params without a default, or a captured AST
+node for the default expression supplied in the `defaults:` body
+section. Always the same length as `typeParams` once parsing
+completes.</span>
+          </li>
+          
+          <li class="doc-field">
             <code class="doc-field-name">states</code>
             <code class="doc-field-type">Table[string, State]</code>
             
@@ -4060,8 +4138,8 @@ is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L187" target="_blank" rel="noopener">
-            src/typestates/types.nim:187
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L197" target="_blank" rel="noopener">
+            src/typestates/types.nim:197
           </a>
         
       </div>
@@ -4134,8 +4212,8 @@ The declaration location is not considered for equality.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L200" target="_blank" rel="noopener">
-            src/typestates/types.nim:200
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L210" target="_blank" rel="noopener">
+            src/typestates/types.nim:210
           </a>
         
       </div>
@@ -4223,8 +4301,8 @@ A transition is valid if there's an explicit transition
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L213" target="_blank" rel="noopener">
-            src/typestates/types.nim:213
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L223" target="_blank" rel="noopener">
+            src/typestates/types.nim:223
           </a>
         
       </div>
@@ -4303,8 +4381,8 @@ Returns base names for clearer error messages.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L247" target="_blank" rel="noopener">
-            src/typestates/types.nim:247
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L257" target="_blank" rel="noopener">
+            src/typestates/types.nim:257
           </a>
         
       </div>
@@ -4402,8 +4480,8 @@ Module matching: both empty = match, both non-empty and equal = match.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L277" target="_blank" rel="noopener">
-            src/typestates/types.nim:277
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L287" target="_blank" rel="noopener">
+            src/typestates/types.nim:287
           </a>
         
       </div>
@@ -4495,8 +4573,8 @@ for validation where we only know the destination typestate and state.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L326" target="_blank" rel="noopener">
-            src/typestates/types.nim:326
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L336" target="_blank" rel="noopener">
+            src/typestates/types.nim:336
           </a>
         
       </div>
@@ -4572,8 +4650,8 @@ for validation where we only know the destination typestate and state.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L359" target="_blank" rel="noopener">
-            src/typestates/types.nim:359
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L369" target="_blank" rel="noopener">
+            src/typestates/types.nim:369
           </a>
         
       </div>
@@ -4650,8 +4728,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L387" target="_blank" rel="noopener">
-            src/typestates/types.nim:387
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L397" target="_blank" rel="noopener">
+            src/typestates/types.nim:397
           </a>
         
       </div>
@@ -4728,8 +4806,8 @@ Comparisons use base names to support generic types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L410" target="_blank" rel="noopener">
-            src/typestates/types.nim:410
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/types.nim#L420" target="_blank" rel="noopener">
+            src/typestates/types.nim:420
           </a>
         
       </div>
@@ -5201,6 +5279,97 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
   
 
   
+    <h4 id="parseDefaultsBlock" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">parseDefaultsBlock</span>
+      
+    <a href="#parseDefaultsBlock" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">parseDefaultsBlock</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">TypestateGraph</span><span class="p">;</span><span class="w"> </span><span class="n">node</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">)</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Parse the optional <code>defaults:</code> body section.</p>
+<p>Captures default-value expressions for the typestate's bracket-head
+generic parameters. Defaults flow through <code>buildGenericParams</code> into
+every generated type and proc (state distincts, variant types, the
+context type, <code>=copy</code> hooks, <code>state()</code> procs, <code>$</code> overloads, etc.).</p>
+<p>Example input:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">RegistrationContext</span><span class="o">[</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">MaxThreads</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">PinScopeCardinality</span><span class="o">]</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">defaults</span><span class="p">:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="n">ccSingle</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">states</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">Unregistered</span><span class="p">,</span><span class="w"> </span><span class="n">Registered</span>
+</code></pre></div>
+<p>Validation rules (each rule fires a macro-time <code>error</code>):</p>
+<ul>
+<li>Each entry must reference a generic param declared in the bracket
+  head; an unknown name is rejected with a clear message.</li>
+<li>Each entry references only the param's name (no constraint
+  re-declaration). The constraint comes from the bracket head.</li>
+<li>Duplicate entries (same param named twice) are rejected.</li>
+</ul>
+<p>The default-value expression is captured as-is (<code>NimNode</code>) and emitted
+verbatim at codegen; it is typed by the Nim compiler at the
+type-instantiation site, mirroring native <code>proc foo[T = Default]</code>
+semantics.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>graph</code>
+              (<code>var TypestateGraph</code>)
+               – The typestate graph to populate
+            </li>
+          
+            <li>
+              <code>node</code>
+              (<code>NimNode</code>)
+               – AST node of the `defaults` block (nnkCall with StmtList body)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L558" target="_blank" rel="noopener">
+            src/typestates/parser.nim:558
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
     <h4 id="parseTypestateBody" class="doc doc-heading">
       
       <span class="doc doc-object-name doc-proc-name">parseTypestateBody</span>
@@ -5274,8 +5443,8 @@ body of a <code>typestate</code> macro invocation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L726" target="_blank" rel="noopener">
-            src/typestates/parser.nim:726
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/parser.nim#L909" target="_blank" rel="noopener">
+            src/typestates/parser.nim:909
           </a>
         
       </div>
@@ -6416,6 +6585,193 @@ type-level AST interactions simple and consistent with the
     
       
       
+        <div class="doc doc-object doc-template">
+  
+
+  
+    <h4 id="transitionError" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-template-name">transitionError</span>
+      
+        
+          <span class="doc-label" data-label="pragma">pragma</span>
+        
+      
+    <a href="#transitionError" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">template</span><span class="w"> </span><span class="nf">transitionError</span><span class="p">(</span><span class="n">msg</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Author-site diagnostic-string override for <code>{.transition.}</code> and</p>
+<p><code>{.destructorTransition.}</code> declaration-time errors.</p>
+<p>Use as a sibling pragma to pin a custom error message that the Nim
+compiler emits (verbatim, with the standard file:line prefix) when a
+transition declaration is invalid (e.g., the source/destination edge
+is not in the typestate's transition graph, or the destructor's
+terminal target is not declared).</p>
+<p>The pragma itself is a no-op marker — its EFFECT is realized by the
+<code>transition</code> and <code>destructorTransitionCore</code> macros, which scan the
+host proc's pragma list for a sibling <code>transitionError: "msg"</code> and,
+when present, substitute the literal string for the built-in
+diagnostic at every transition-validity <code>error(...)</code> site.</p>
+<p><strong>Static-literal only.</strong> The right-hand side must be a string
+literal (no concatenation, no <code>fmt</code>, no runtime <code>var</code>). All static
+string-literal forms are accepted: plain (<code>nnkStrLit</code>), raw
+(<code>r"..."</code>, <code>nnkRStrLit</code>), and triple-quoted multi-line
+(<code>"""..."""</code>, <code>nnkTripleStrLit</code>). The extractor fires a compile-time
+error if the rhs is none of these:
+<code>transitionError must be a static string literal (no concatenation,
+no fmt)</code>.</p>
+<p><strong>Backwards compatible.</strong> Omitting <code>transitionError</code> preserves every
+existing diagnostic byte-for-byte.</p>
+<p><strong>Author-site only.</strong> This pragma customizes the declaration-time
+error message emitted when the typestate author writes an invalid
+transition. It does NOT customize the consumer-call-site CFG-001
+diagnostic emitted from <code>verify.nim:validateExitEdge</code> when a caller
+invokes a proc whose required entry state does not match the
+current state of the typestate-attached value. Consumer-call-site
+substitution would require CFG-analyzer changes and is out of scope
+for v0.9.3.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">lock</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Locked</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">transitionError</span>:
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sx">"Cannot</span><span class="w"> </span><span class="sx">lock</span><span class="w"> </span><span class="sx">an</span><span class="w"> </span><span class="sx">open</span><span class="w"> </span><span class="sx">file</span>:<span class="w"> </span><span class="sx">call</span><span class="w"> </span><span class="sx">close() first".} =</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sx">  Locked(f)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">`=destroy`(c</span>:<span class="w"> </span><span class="sx">var</span><span class="w"> </span><span class="sx">Halfopen)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sx">    {.destructorTransition</span>:<span class="w"> </span><span class="sx">Halfopen</span><span class="w"> </span><span class="sx">-&gt; Closed</span>,
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="sx">transitionError</span>:<span class="w"> </span><span class="sx">"Halfopen</span><span class="w"> </span><span class="sx">must</span><span class="w"> </span><span class="sx">close</span><span class="w"> </span><span class="sx">before</span><span class="w"> </span><span class="sx">destruction".} =</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sx">  discard</span>
+</code></pre></div>
+<p><strong>v0.9.3 sibling-pragma sweep.</strong> A search of <code>pragmas.nim</code> for other
+macro/template decls that emit transition-validity diagnostics
+found only <code>transition</code> and <code>destructorTransition</code> (via
+<code>destructorTransitionCore</code>). The sibling pragmas
+<code>transparentWrapper</code>, <code>skipCfgAnalysis</code>, and <code>notATransition</code> do
+NOT emit transition-validity diagnostics and are out of scope.
+<code>attachTypestateCore</code> emits TA-001..TA-004 attachment-validity
+diagnostics (not transition-validity); attachment-error
+customization is a separate feature, not included in v0.9.3.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>msg</code>
+              (<code>string</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L84" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:84
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="extractTransitionErrorPragma" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">extractTransitionErrorPragma</span>
+      
+        
+          <span class="doc-label" data-label="compileTime">compileTime</span>
+        
+      
+    <a href="#extractTransitionErrorPragma" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">extractTransitionErrorPragma</span><span class="p">(</span><span class="n">pragmaNode</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Scan a proc's <code>nnkPragma</code> node for a sibling <code>transitionError: "msg"</code></p>
+<p>pragma and return the literal string, or <code>""</code> if absent.</p>
+<p>Enforces static-literal: when the LHS is <code>transitionError</code> but the
+RHS is not a string literal (<code>nnkStrLit</code>, <code>nnkRStrLit</code>, or
+<code>nnkTripleStrLit</code>), fires a compile-time error.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>pragmaNode</code>
+              (<code>NimNode</code>)
+               – The `procDef.pragma` node (kind `nnkPragma` or
+`nnkEmpty` for procs with no pragmas)
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>string</code> – The extracted string, or `""` if no `transitionError:`
+sibling is present.</p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L163" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:163
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
         <div class="doc doc-object doc-proc">
   
 
@@ -6471,8 +6827,8 @@ forms via <code>isTransparentWrapper</code>.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L84" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:84
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L191" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:191
           </a>
         
       </div>
@@ -6539,8 +6895,8 @@ typestate declaration, before the <code>{.transition.}</code> procs that use it.
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L91" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:91
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L198" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:198
           </a>
         
       </div>
@@ -6611,8 +6967,8 @@ both hit the registry.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L99" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:99
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L206" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:206
           </a>
         
       </div>
@@ -6698,8 +7054,8 @@ deeper; round-18 defensive consistency.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L109" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:109
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L216" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:216
           </a>
         
       </div>
@@ -6773,8 +7129,8 @@ Ident/Sym children are present.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L140" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:140
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L247" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:247
           </a>
         
       </div>
@@ -6894,8 +7250,8 @@ Non-typestate-bearing params are skipped.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L352" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:352
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L459" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:459
           </a>
         
       </div>
@@ -6977,8 +7333,8 @@ transitions can be implemented.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L551" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:551
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L658" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:658
           </a>
         
       </div>
@@ -7045,8 +7401,8 @@ substring scan, which would mis-handle combined pragmas like
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L793" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:793
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L913" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:913
           </a>
         
       </div>
@@ -7124,8 +7480,8 @@ inferred as the typestate's <code>terminalStates</code> set.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1050" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1050
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1225" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1225
           </a>
         
       </div>
@@ -7204,8 +7560,8 @@ mirrors <code>{.transition: A -&gt; B.}</code> for visual symmetry.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1073" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1073
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1248" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1248
           </a>
         
       </div>
@@ -7283,8 +7639,8 @@ TypeDef without prior unwrapping.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1091" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1091
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1266" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1266
           </a>
         
       </div>
@@ -7375,8 +7731,8 @@ mutated.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1146" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1146
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1321" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1321
           </a>
         
       </div>
@@ -7443,8 +7799,8 @@ enabled on the typestate.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1233" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1233
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1408" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1408
           </a>
         
       </div>
@@ -7514,7 +7870,7 @@ easier to use at runtime:</p>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildGenericParams</span><span class="p">(</span><span class="n">typeParams</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildGenericParams</span><span class="p">(</span><span class="n">typeParams</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="n">defaults</span><span class="p">:</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="n">NimNode</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">@[]</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
 </code></pre>
     </div>
   
@@ -7528,6 +7884,12 @@ For <code>@[K, V]</code>, generates: <code>[K, V]</code>
 For <code>@[N: static int]</code>, generates: <code>[N: static int]</code>
 For <code>@[T: SomeInteger]</code>, generates: <code>[T: SomeInteger]</code>
 For <code>@[]</code>, returns empty node (non-generic)</p>
+<p>When <code>defaults</code> is non-empty it must be the same length as <code>typeParams</code>.
+Each entry is either <code>newEmptyNode()</code> (no default for that param) or a
+captured AST node for the default expression. The default is emitted
+into the <code>nnkIdentDefs</code> default-value slot for that param, mirroring
+native Nim <code>proc foo[T = Default]</code> semantics. The Nim compiler types
+the default expression at type-instantiation time.</p>
       </div>
     
 
@@ -7540,6 +7902,13 @@ For <code>@[]</code>, returns empty node (non-generic)</p>
               <code>typeParams</code>
               (<code>seq[NimNode]</code>)
                – Sequence of type parameter nodes
+            </li>
+          
+            <li>
+              <code>defaults</code>
+              (<code>seq[NimNode]</code>)
+               – Optional parallel sequence of default expressions.
+Empty seq means "no defaults for any param" (back-compat).
             </li>
           
         </ul>
@@ -7627,8 +7996,8 @@ For <code>Simple</code>, returns <code>@[]</code></p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L45" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:45
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L63" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:63
           </a>
         
       </div>
@@ -7702,8 +8071,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L59" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:59
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L77" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:77
           </a>
         
       </div>
@@ -7775,8 +8144,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L95" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:95
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L113" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:113
           </a>
         
       </div>
@@ -7848,8 +8217,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L143" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:143
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L161" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:161
           </a>
         
       </div>
@@ -7923,8 +8292,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L191" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:191
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L209" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:209
           </a>
         
       </div>
@@ -7988,8 +8357,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L262" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:262
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L280" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:280
           </a>
         
       </div>
@@ -8055,8 +8424,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L269" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:269
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L287" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:287
           </a>
         
       </div>
@@ -8139,8 +8508,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L291" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:291
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L309" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:309
           </a>
         
       </div>
@@ -8215,8 +8584,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L392" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:392
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L413" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:413
           </a>
         
       </div>
@@ -8284,8 +8653,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L467" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:467
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L491" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:491
           </a>
         
       </div>
@@ -8352,8 +8721,8 @@ and any memory manager using hooks.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L509" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:509
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L533" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:533
           </a>
         
       </div>
@@ -8427,8 +8796,8 @@ See: https://github.com/nim-lang/Nim/issues/25341</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L527" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:527
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L551" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:551
           </a>
         
       </div>
@@ -8512,8 +8881,8 @@ in multiple branch types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L548" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:548
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L572" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:572
           </a>
         
       </div>
@@ -8586,8 +8955,8 @@ parameters so the proc binds correctly under generic instantiation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L636" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:636
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L663" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:663
           </a>
         
       </div>
@@ -8684,8 +9053,8 @@ resulting AST is sema-checked.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L694" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:694
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L721" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:721
           </a>
         
       </div>
@@ -8802,8 +9171,8 @@ mismatch.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L774" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:774
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L801" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:801
           </a>
         
       </div>
@@ -8893,8 +9262,8 @@ F4.A0 probe).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L906" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:906
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L933" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:933
           </a>
         
       </div>
@@ -8980,8 +9349,8 @@ wrapper type.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1025" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1025
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1052" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1052
           </a>
         
       </div>
@@ -9067,8 +9436,8 @@ doc comment for the unreachable-defense rationale).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1106" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1106
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1133" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1133
           </a>
         
       </div>
@@ -9148,8 +9517,8 @@ and procs include proper type parameters.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1162" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1162
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1189" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1189
           </a>
         
       </div>
