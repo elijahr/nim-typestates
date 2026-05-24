@@ -77,6 +77,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   error-message string is unchanged; only the matching became
   style-insensitive.
 
+- **Standalone comments in the `defaults:` block.** A doc comment (`##`)
+  written on its own line inside a `defaults:` block (before or between
+  entries) now compiles. Such comments survive parsing as top-level
+  `nnkCommentStmt` children of the defaults body and were previously
+  rejected with "got node kind nnkCommentStmt"; they are now skipped
+  alongside empty nodes, mirroring the existing per-entry comment
+  tolerance. (Plain `#` line comments were already accepted — the parser
+  strips them before they reach the entry loop.)
+
 ### Migration
 
 None required. The `transitionError` sibling pragma is optional; every

@@ -622,7 +622,13 @@ proc parseDefaultsBlock*(graph: var TypestateGraph, node: NimNode) =
   # an enclosing call (e.g. `defaults: CC: ccSingle` on a single line). Both
   # forms are accepted so the DSL reads naturally in either layout.
   for entry in body:
-    if entry.kind == nnkEmpty:
+    # Skip empty nodes and standalone comments. A doc comment (`##`) written on
+    # its own line inside the `defaults:` block survives parsing as a top-level
+    # `nnkCommentStmt` child of the body (plain `#` line comments are stripped by
+    # the parser and never reach here). Tolerate it rather than treating it as a
+    # malformed entry. Mirrors the per-entry comment filter at the entry's value
+    # StmtList below.
+    if entry.kind in {nnkEmpty, nnkCommentStmt}:
       continue
     var nameNode: NimNode
     var defaultExpr: NimNode
