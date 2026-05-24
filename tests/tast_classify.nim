@@ -9,7 +9,7 @@
 
 import std/[unittest, sets, os, strutils, tables]
 
-import compiler/[ast, idents, options as compiler_options]
+import compiler/[ast, idents, lineinfos, options as compiler_options]
 
 import ../src/typestates/ast_parser
 
@@ -91,6 +91,36 @@ proc p(x: MyAlias) = discard
   test "bare inline distinct -> empty (never over-peel through distinct)":
     let src = "proc p(x: distinct Base) = discard"
     check peelToBaseTypeName(paramTypeNode(firstRoutine(src))) == ""
+
+  test "out-of-shape sink nkCommand (3 children) is NOT mis-peeled (Gemini medium)":
+    # The parser only ever produces `nkCommand(nkIdent("sink"|"lent"), T)` —
+    # exactly 2 children — for the sink/lent parameter form. The peel guards on
+    # that expected 2-child shape before reading the type child. If an
+    # unexpected `nkCommand` with a sink/lent head and EXTRA children ever
+    # arrives, the old `node[^1]` peel would have returned the wrong (last)
+    # child. Build that out-of-shape node synthetically and prove the guard
+    # rejects it: the result must NOT be the trailing child's name. It falls
+    # through to the repr fallback instead.
+    let cache = newIdentCache()
+    let outOfShape = newTree(
+      nkCommand,
+      newIdentNode(cache.getIdent("sink"), unknownLineInfo),
+      newIdentNode(cache.getIdent("RealType"), unknownLineInfo),
+      newIdentNode(cache.getIdent("WrongTrailingType"), unknownLineInfo),
+    )
+    check peelToBaseTypeName(outOfShape) != "WrongTrailingType"
+
+  test "well-formed sink nkCommand (2 children) still peels the type child":
+    # Positive companion to the guard test: the normal 2-child shape continues
+    # to peel to the type child. Built synthetically to mirror the parser's
+    # `nkCommand(nkIdent("sink"), T)` shape exactly.
+    let cache = newIdentCache()
+    let wellFormed = newTree(
+      nkCommand,
+      newIdentNode(cache.getIdent("sink"), unknownLineInfo),
+      newIdentNode(cache.getIdent("RealType"), unknownLineInfo),
+    )
+    check peelToBaseTypeName(wellFormed) == "RealType"
 
 suite "classifyByPragma":
   template cls(src: string): ProcClass =

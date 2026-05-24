@@ -763,7 +763,14 @@ proc peelToBaseTypeName*(node: PNode): string =
     # (notably the qualified `nkDotExpr` form), where `extractBaseName` degrades
     # the qualified spelling to the bare modifier name. Both paths apply
     # `nimIdentNormalize` and yield IDENTICAL results.
-    if node.len >= 2:
+    # The `sink T` / `lent T` form the parser produces is EXACTLY
+    # `nkCommand(nkIdent("sink"|"lent"), T)` — a 2-child node. Guard on the
+    # expected child count (Gemini medium): only peel `node[1]` (the type
+    # child) when the head is the sink/lent modifier AND the node has exactly
+    # the expected 2-child shape. For the normal case `node[1] == node[^1]`, so
+    # behavior is unchanged; an out-of-shape command (e.g. 3+ children) falls
+    # through to the repr fallback below instead of peeling the wrong last child.
+    if node.len == 2:
       let headNode = node[0]
       let head =
         case headNode.kind
@@ -774,7 +781,7 @@ proc peelToBaseTypeName*(node: PNode): string =
         else:
           nimIdentNormalize(extractBaseName(renderTree(headNode, {})))
       if head in ["sink", "lent"]:
-        return peelToBaseTypeName(node[^1])
+        return peelToBaseTypeName(node[1])
     # Unknown command shape: fall back to repr normalization below.
   of nkBracketExpr:
     # Generic: peel to the head's base name.
