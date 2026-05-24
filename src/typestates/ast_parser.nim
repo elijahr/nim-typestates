@@ -97,6 +97,16 @@ proc newParseError(
   result.line = line
   result.column = column
 
+proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError) =
+  ## Append a `ParseFailure` for one failed file to `pr.failures`.
+  ##
+  ## Hoisted (Gemini medium) from two byte-identical nested copies that lived
+  ## inside `parseTypestatesAst` and `parseTypestatesAstWithNodes`. Prefers the
+  ## structured `e.path` and falls back to the as-encountered `fallbackPath`
+  ## when the error carries no path (e.g. a file-not-found raised before parse).
+  let p = if e.path.len > 0: e.path else: fallbackPath
+  pr.failures.add ParseFailure(path: p, line: e.line, column: e.column, message: e.msg)
+
 proc raisingErrorHandler(
     conf: ConfigRef, info: TLineInfo, msg: TMsgKind, arg: string
 ) {.gcsafe.} =
@@ -615,20 +625,32 @@ type ProcClass* = enum
 proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
   ## Recursively collect `nkProcDef` and `nkFuncDef` nodes into `acc`.
   ##
-  ## Descends `nkStmtList` and `when`-statement branches
-  ## (`nkWhenStmt`/`nkElifBranch`/`nkElse`) so platform-gated and otherwise
-  ## conditionally-compiled routines are seen. Does NOT descend into routine
-  ## bodies, so nested procs are not collected (matches the prior text-scanner
-  ## behavior). Methods, converters, templates, and macros are intentionally
-  ## out of scope and are not collected.
+  ## Descends every *statement-container* node that can wrap a routine
+  ## definition at the SAME logical scope without being a routine body:
+  ## statement lists (`nkStmtList`/`nkStmtListExpr`), `when` and `if`
+  ## branches (`nkWhenStmt`/`nkIfStmt`/`nkElifBranch`/`nkElifExpr`/`nkElse`/
+  ## `nkElseExpr`), `block` statements/expressions (`nkBlockStmt`/
+  ## `nkBlockExpr`), `static`/`defer` bodies (`nkStaticStmt`/`nkDefer`), and
+  ## `try` structures (`nkTryStmt`/`nkExceptBranch`/`nkFinally`). This widening
+  ## (Gemini medium) closes the silent-skip gap: a typestate-parameter routine
+  ## defined inside e.g. `static:` / `block:` / `try:` was previously missed —
+  ## exactly the silent-skip class this AST rewrite exists to eliminate.
+  ##
+  ## Does NOT descend into routine bodies (`nkProcDef`/`nkFuncDef` children),
+  ## so nested procs are not collected — preserving the module-scope intent and
+  ## matching the prior text scanner, which saw routine HEADERS regardless of
+  ## the control structure wrapping them but did not pull out procs nested
+  ## inside another proc's body. Methods, converters, templates, and macros are
+  ## intentionally out of scope and are not collected.
   if node == nil:
     return
   case node.kind
   of nkProcDef, nkFuncDef:
     acc.add node
     # Do not descend into the body: nested routines are out of scope.
-  of nkStmtList, nkStmtListExpr, nkWhenStmt, nkElifBranch, nkElifExpr, nkElse,
-      nkElseExpr:
+  of nkStmtList, nkStmtListExpr, nkWhenStmt, nkIfStmt, nkElifBranch, nkElifExpr, nkElse,
+      nkElseExpr, nkBlockStmt, nkBlockExpr, nkStaticStmt, nkDefer, nkTryStmt,
+      nkExceptBranch, nkFinally:
     for child in node:
       collectRoutineDefs(child, acc)
   else:
@@ -661,13 +683,25 @@ proc peelToBaseTypeName*(node: PNode): string =
     return ""
   of nkCommand:
     # `sink T` / `lent T` parse as nkCommand(nkIdent("sink"|"lent"), T).
-    # The modifier head is normally a plain `nkIdent`, but may arrive in a
-    # module-qualified shape (e.g. `system.sink T` -> nkDotExpr head). Render
-    # the head and run it through `extractBaseName` so qualified forms degrade
-    # to the bare modifier name; this also avoids assuming the head is a plain
-    # ident. For the normal `nkIdent("sink")` case `extractBaseName` is a no-op.
+    # The modifier head is normally a plain `nkIdent`/`nkSym`, but may arrive in
+    # a module-qualified shape (e.g. `system.sink T` -> nkDotExpr head).
+    #
+    # Fast path (Gemini medium): for the common `nkIdent`/`nkSym` head, read the
+    # identifier text directly instead of paying for `renderTree` +
+    # `extractBaseName`. Fall back to the render path only for other head shapes
+    # (notably the qualified `nkDotExpr` form), where `extractBaseName` degrades
+    # the qualified spelling to the bare modifier name. Both paths apply
+    # `nimIdentNormalize` and yield IDENTICAL results.
     if node.len >= 2:
-      let head = nimIdentNormalize(extractBaseName(renderTree(node[0], {})))
+      let headNode = node[0]
+      let head =
+        case headNode.kind
+        of nkIdent:
+          nimIdentNormalize(headNode.ident.s)
+        of nkSym:
+          nimIdentNormalize(headNode.sym.name.s)
+        else:
+          nimIdentNormalize(extractBaseName(renderTree(headNode, {})))
       if head in ["sink", "lent"]:
         return peelToBaseTypeName(node[^1])
     # Unknown command shape: fall back to repr normalization below.
@@ -1009,12 +1043,6 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   config.notes = {}
   config.foreignPackageNotes = {}
 
-  proc recordFailure(result: var ParseResult, fallbackPath: string, e: ref ParseError) =
-    let p = if e.path.len > 0: e.path else: fallbackPath
-    result.failures.add ParseFailure(
-      path: p, line: e.line, column: e.column, message: e.msg
-    )
-
   for path in paths:
     if path.endsWith(".nim"):
       try:
@@ -1077,12 +1105,6 @@ proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
   let config = newConfigRef()
   config.notes = {}
   config.foreignPackageNotes = {}
-
-  proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError) =
-    let p = if e.path.len > 0: e.path else: fallbackPath
-    pr.failures.add ParseFailure(
-      path: p, line: e.line, column: e.column, message: e.msg
-    )
 
   proc handleFile(project: var ParsedProject, file: string) =
     try:

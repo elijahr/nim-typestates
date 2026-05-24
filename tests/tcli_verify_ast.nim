@@ -134,6 +134,16 @@ suite "AST verify: GROUP C (robustness)":
     check res.errors.len == 0
     check res.warnings.len == 0
 
+  test "block_static_wrapped: routines in static:/block: are flagged -> TWO errors":
+    # FINDING 1 (RED before container-coverage widening). Two unmarked
+    # typestate-param routines wrapped in a `static:` block and a `block:`
+    # statement were silently skipped by `collectRoutineDefs` (it only descended
+    # nkStmtList / when-branches). The widening makes both visible, so each is
+    # flagged on the strict typestate.
+    let errs = errorsFor(fixture("block_static_wrapped.nim"))
+    check errs.len == 2
+    check errs.allIt(it.code == fcUnmarkedProcStrict)
+
 suite "AST verify: GROUP D (peel-discriminator integration)":
   ## verify()-level assertions for the two peel-discriminator fixtures whose
   ## helper-level behavior is unit-tested in tests/tast_classify.nim. These

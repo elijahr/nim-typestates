@@ -159,6 +159,73 @@ proc outer() =
     check acc.len == 1
     check nameOf(acc[0]) == "outer"
 
+  test "descends into static block (FINDING 1)":
+    # A routine wrapped in a module-level `static:` block was silently skipped
+    # before the container-coverage widening.
+    let src = """
+static:
+  proc s() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "s"
+
+  test "descends into block statement (FINDING 1)":
+    let src = """
+block:
+  proc b() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "b"
+
+  test "descends into try/except/finally (FINDING 1)":
+    let src = """
+try:
+  proc t() = discard
+except:
+  proc e() = discard
+finally:
+  proc f() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 3
+    var names: seq[string]
+    for n in acc:
+      names.add nameOf(n)
+    check "t" in names
+    check "e" in names
+    check "f" in names
+
+  test "descends into if/else branches (FINDING 1)":
+    let src = """
+if true:
+  proc i() = discard
+else:
+  proc el() = discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 2
+
+  test "still excludes proc nested inside a body even when block-wrapped (FINDING 1)":
+    # The widening must NOT start collecting genuinely nested routines: a proc
+    # inside a `block:` that itself sits inside an outer proc body stays out of
+    # scope because descent stops at the outer proc body.
+    let src = """
+proc outer() =
+  block:
+    proc inner() = discard
+  discard
+"""
+    var acc: seq[PNode]
+    collectRoutineDefs(parseOne(src), acc)
+    check acc.len == 1
+    check nameOf(acc[0]) == "outer"
+
   test "excludes templates and converters":
     let src = """
 proc a() = discard
