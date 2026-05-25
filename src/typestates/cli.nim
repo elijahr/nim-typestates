@@ -14,6 +14,7 @@
 ## to fail loudly with a clear error message.
 
 import std/[os, sequtils, sets, strutils, tables, strformat]
+import compiler/ast
 import ast_parser
 import types
 import reachability
@@ -502,58 +503,66 @@ proc generateCodeForAll*(typestates: seq[ParsedTypestate]): string =
 
 proc verifyFile(
     path: string,
-    typestateStates: Table[string, seq[string]],
-    typestateStrict: Table[string, bool],
+    tree: PNode,
+    registeredStateBases: HashSet[string],
+    stateBaseStrict: Table[string, bool],
 ): VerifyResult =
-  ## Verify procs in a file against known typestates.
+  ## Verify the routines of a single already-parsed file against the registered
+  ## typestate states using compiler-AST classification.
   ##
-  ## :param path: Path to the Nim source file
-  ## :param typestateStates: Map of typestate name to state names
-  ## :param typestateStrict: Map of typestate name to strictTransitions flag
+  ## Tier-B: the caller (`verify()`) supplies the file's parsed `PNode` tree
+  ## (shared with Pass 1) so this proc never re-reads or re-parses the file.
+  ## `classifyProcsInFile` collects every routine with at least one
+  ## typestate-state parameter; for each such routine we either flag an unmarked
+  ## proc (error on strict, warning otherwise) or, when it carries a
+  ## `{.transition.}` / `{.notATransition.}` marker, count it once toward
+  ## `transitionsChecked`.
+  ##
+  ## Replaces the v0.9.3 line-based substring scanner, which silently missed
+  ## multi-line proc headers, combined pragma blocks, and `var`/`sink`/`ptr`/
+  ## `ref`/generic parameter types.
+  ##
+  ## :param path: Source file path (used only for `Finding.path`).
+  ## :param tree: The file's parsed compiler AST (read-only).
+  ## :param registeredStateBases: Base names of every typestate state, keyed by
+  ##   the NORMALIZED identifier (`nimIdentNormalize`) for style-insensitive
+  ##   matching.
+  ## :param stateBaseStrict: Per-state-base strictTransitions flag (default
+  ##   `true` when a base is absent), keyed by the NORMALIZED base, used to
+  ##   route severity.
   ## :returns: Verification results with structured findings.
   result = VerifyResult()
   result.filesChecked = 1
 
-  if not fileExists(path):
-    result.findings.add mkError(fcFileNotFound, path, 0, "File not found: " & path)
-    return
-
-  let content = readFile(path)
-  let lines = content.splitLines()
-
-  for i, line in lines:
-    let trimmed = line.strip()
-
-    if trimmed.startsWith("proc ") or trimmed.startsWith("func "):
-      let hasTransition = "{.transition.}" in trimmed or "{. transition .}" in trimmed
-      let hasNotATransition =
-        "{.notATransition.}" in trimmed or "{. notATransition .}" in trimmed
-
-      if "(" in trimmed and ":" in trimmed:
-        let paramsPart = trimmed.split("(")[1].split(")")[0]
-        if ":" in paramsPart:
-          let firstParamType =
-            paramsPart.split(":")[1].split(",")[0].split(")")[0].strip()
-
-          for tsName, states in typestateStates:
-            if firstParamType in states:
-              if not hasTransition and not hasNotATransition:
-                if typestateStrict.getOrDefault(tsName, true):
-                  result.findings.add mkError(
-                    fcUnmarkedProcStrict,
-                    path,
-                    i + 1,
-                    fmt"Unmarked proc on state '{firstParamType}' (strictTransitions enabled)",
-                  )
-                else:
-                  result.findings.add mkWarning(
-                    fcUnmarkedProc,
-                    path,
-                    i + 1,
-                    fmt"Unmarked proc on state '{firstParamType}'",
-                  )
-              else:
-                result.transitionsChecked += 1
+  for cp in classifyProcsInFile(tree, registeredStateBases):
+    case cp.class
+    of pcTransition, pcNotATransition:
+      # Marked routine: count once per proc, regardless of how many state
+      # params it carries (count-once-per-proc semantics).
+      result.transitionsChecked += 1
+    of pcUnmarked:
+      # Anchor the finding to the first matched state base, mirroring the
+      # old scanner's "first typestate param type" reporting. `base` preserves
+      # the param's readable spelling for the user-facing message, but the
+      # strictness lookup keys on the NORMALIZED base to match how
+      # `stateBaseStrict` was populated (style-insensitive per Nim's rules).
+      let base = cp.paramStateBases[0]
+      if stateBaseStrict.getOrDefault(nimIdentNormalize(base), true):
+        result.findings.add mkError(
+          fcUnmarkedProcStrict,
+          path,
+          cp.line,
+          fmt"Unmarked proc on state '{base}' (strictTransitions enabled)",
+          column = cp.column,
+        )
+      else:
+        result.findings.add mkWarning(
+          fcUnmarkedProc,
+          path,
+          cp.line,
+          fmt"Unmarked proc on state '{base}'",
+          column = cp.column,
+        )
 
 proc parsedToReachabilityInput(pt: ParsedTypestate): ReachabilityInput =
   ## Project a CLI-parsed typestate into the runtime-friendly graph view
@@ -594,29 +603,63 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## :returns: Verification results with structured findings and counts
   result = VerifyResult()
 
-  # First pass: collect all typestates using AST parser. Per-file parse
-  # errors are accumulated by `parseTypestatesAst` into
-  # `parseResult.failures` rather than raised; convert each one to an
-  # `fcParseError` Finding here so `--format=github`/`--format=json`
-  # consumers still receive structured output for every malformed input.
-  let parseResult = parseTypestates(paths)
+  # File-not-found (RC-2): an explicit `.nim` path that does not exist is a
+  # distinct, user-actionable error code (`fcFileNotFound`), not a parse
+  # error. Detect these BEFORE parsing so the dedicated code/message is
+  # preserved and the missing file is excluded from the shared parse (whose
+  # `parsePNode` would otherwise record it as a generic `fcParseError`).
+  var notFoundPaths = initHashSet[string]()
+  for path in paths:
+    if path.endsWith(".nim") and not fileExists(path):
+      result.findings.add mkError(fcFileNotFound, path, 0, "File not found: " & path)
+      notFoundPaths.incl(absolutePath(path))
+
+  # First pass (Tier B): parse every file EXACTLY ONCE. The parsed `PNode`
+  # trees are retained in `project.nodes` (keyed by absolute path) so the
+  # proc-classification pass below reuses them instead of re-reading and
+  # re-parsing. Per-file parse errors are accumulated into
+  # `project.parse.failures` rather than raised; convert each one to an
+  # `fcParseError` Finding so `--format=github`/`--format=json` consumers
+  # still receive structured output for every malformed input.
+  let project = parseTypestatesAstWithNodes(paths)
+  let parseResult = project.parse
   var failedPaths = initHashSet[string]()
   for f in parseResult.failures:
+    # Skip failures for paths already reported as file-not-found above so the
+    # missing file is reported once, with the dedicated code.
+    if f.path.len > 0 and absolutePath(f.path) in notFoundPaths:
+      continue
     result.findings.add mkError(
       fcParseError, f.path, f.line, f.message, column = f.column
     )
-    # Track absolute path so pass 2 / pass 3 can skip the same file
-    # without emitting duplicate parse-error findings or noise from
-    # text-scanning a malformed source.
+    # Track absolute path so pass 3 (opaque-states lint) can skip the same
+    # file without emitting duplicate parse-error findings.
     if f.path.len > 0:
       failedPaths.incl(absolutePath(f.path))
 
-  var typestateStates: Table[string, seq[string]]
-  var typestateStrict: Table[string, bool]
-
+  # Build the registered-state view shared by the classification pass:
+  #  - `registeredStateBases`: base names of every typestate state, so a proc
+  #    param resolves to a state regardless of generics/var/ptr/ref wrapping.
+  #  - `stateBaseStrict`: per-state-base strictTransitions flag. On a base-name
+  #    collision across typestates, prefer flagging if ANY owner is strict
+  #    (preserves the old default-strict spirit). Absent base => default true.
+  #
+  # Both views are keyed by the NORMALIZED base name (`nimIdentNormalize`) so
+  # membership/strictness lookups are style-insensitive per Nim's identifier
+  # rules. The classification side (`typestateParamBases`) and the strictness
+  # lookup below MUST normalize the candidate base identically so a state
+  # declared `MyState` matches a param typed `My_State` (same identifier under
+  # Nim's rules), while `myState` (first-letter-case difference) stays distinct.
+  var registeredStateBases = initHashSet[string]()
+  var stateBaseStrict = initTable[string, bool]()
   for ts in parseResult.typestates:
-    typestateStates[ts.name] = ts.states
-    typestateStrict[ts.name] = ts.strictTransitions
+    for state in ts.states:
+      let base = nimIdentNormalize(extractBaseName(state))
+      registeredStateBases.incl(base)
+      if base in stateBaseStrict:
+        stateBaseStrict[base] = stateBaseStrict[base] or ts.strictTransitions
+      else:
+        stateBaseStrict[base] = ts.strictTransitions
 
   # Reachability/liveness pass: gated on initial:/terminal: declarations to
   # mirror macro-side semantics (no warnings for typestates that haven't
@@ -630,29 +673,15 @@ proc verify*(paths: seq[string]): VerifyResult =
           f, report.initialStatesUsed, report.terminalStatesUsed
         )
 
-  # Second pass: verify procs. Skip files that already failed pass 1 —
-  # text-scanning a syntactically broken file would produce noise and a
-  # parse-error Finding has already been emitted for it.
-  proc shouldSkipFailed(path: string): bool =
-    failedPaths.contains(absolutePath(path))
-
-  for path in paths:
-    if path.endsWith(".nim"):
-      if shouldSkipFailed(path):
-        continue
-      let fileResult = verifyFile(path, typestateStates, typestateStrict)
-      result.findings.add fileResult.findings
-      result.transitionsChecked += fileResult.transitionsChecked
-      result.filesChecked += fileResult.filesChecked
-    elif dirExists(path):
-      for file in walkDirRec(path):
-        if file.endsWith(".nim"):
-          if shouldSkipFailed(file):
-            continue
-          let fileResult = verifyFile(file, typestateStates, typestateStrict)
-          result.findings.add fileResult.findings
-          result.transitionsChecked += fileResult.transitionsChecked
-          result.filesChecked += fileResult.filesChecked
+  # Second pass: classify procs over the shared parse trees. Files that failed
+  # to parse have no entry in `project.nodes`, so they are naturally skipped
+  # (their `fcParseError` Finding was already emitted above) without a second
+  # parse or a duplicate error.
+  for filePath, tree in project.nodes:
+    let fileResult = verifyFile(filePath, tree, registeredStateBases, stateBaseStrict)
+    result.findings.add fileResult.findings
+    result.transitionsChecked += fileResult.transitionsChecked
+    result.filesChecked += fileResult.filesChecked
 
   # Pass 3: opaqueStates lint (CLI-side cast-bypass detection). Pass the
   # set of pass-1 failed paths so the lint can skip them without

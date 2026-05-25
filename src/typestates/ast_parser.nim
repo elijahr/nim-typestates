@@ -5,7 +5,9 @@
 ##
 ## Used by the CLI tool for project-wide verification.
 
-import std/[os, strutils, options]
+import std/[os, strutils, options, sets, tables]
+
+import ./types # extractBaseName, used as final normalizer in peelToBaseTypeName
 
 # Compiler imports - requires Nim compiler source
 import
@@ -95,6 +97,16 @@ proc newParseError(
   result.line = line
   result.column = column
 
+proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError) =
+  ## Append a `ParseFailure` for one failed file to `pr.failures`.
+  ##
+  ## Hoisted (Gemini medium) from two byte-identical nested copies that lived
+  ## inside `parseTypestatesAst` and `parseTypestatesAstWithNodes`. Prefers the
+  ## structured `e.path` and falls back to the as-encountered `fallbackPath`
+  ## when the error carries no path (e.g. a file-not-found raised before parse).
+  let p = if e.path.len > 0: e.path else: fallbackPath
+  pr.failures.add ParseFailure(path: p, line: e.line, column: e.column, message: e.msg)
+
 proc raisingErrorHandler(
     conf: ConfigRef, info: TLineInfo, msg: TMsgKind, arg: string
 ) {.gcsafe.} =
@@ -137,6 +149,16 @@ proc extractIdent(node: PNode): string =
     # Handle exported idents like `*ident`
     if node.len >= 2:
       result = extractIdent(node[1])
+  of nkAccQuoted:
+    # Backticked / operator names (`` `[]` ``, `` `==` ``) parse as
+    # `nkAccQuoted`. Render to the operator/identifier text so callers (notably
+    # `routineName`) get a sensible symbol instead of an empty string. Because
+    # `nkPostfix` recurses here, this also covers the EXPORTED backticked shape
+    # (`nkPostfix[nkIdent("*"), nkAccQuoted]`) that the prior cycle's
+    # top-level-only check missed. Other `extractIdent` callers (type names,
+    # pragma markers) never see `nkAccQuoted` — those node shapes are never
+    # backticked — so this branch is inert for them.
+    result = renderTree(node, {})
   else:
     result = ""
 
@@ -581,6 +603,422 @@ proc walkAst(node: PNode, typestates: var seq[ParsedTypestate]) =
   for child in node:
     walkAst(child, typestates)
 
+# ---------------------------------------------------------------------------
+# Pure PNode classification helpers (v0.9.4 AST verifier building blocks)
+#
+# These operate on raw compiler `PNode` trees (the `compiler/ast` API), NOT
+# `std/macros` `NimNode`. They are the read-only classification primitives the
+# AST-based verifier rewrite will use to categorize routines as transitions,
+# non-transitions, or unmarked, and to resolve typestate parameter base types.
+#
+# PNode immutability (Tier-B note): every helper below only READS the tree
+# (field access, `len`, indexing, iteration via `items`). None mutate `PNode`
+# in place, so a single parse can be shared across all consumers safely.
+# ---------------------------------------------------------------------------
+
+type ProcClass* = enum
+  ## Classification of a routine definition by its typestate marker pragmas.
+  pcTransition ## Carries `{.transition.}` or `{.destructorTransition.}`.
+  pcNotATransition ## Carries `{.notATransition.}` (and no transition marker).
+  pcUnmarked ## Carries neither marker.
+
+const routineContainerKinds = {
+  # Statement lists (module body, and the implicit list inside every
+  # control-structure branch / block / pragma body).
+  nkStmtList,
+  nkStmtListExpr,
+  # `when` structure and its branches.
+  nkWhenStmt,
+  nkElifBranch,
+  nkElifExpr,
+  nkElse,
+  nkElseExpr,
+  # `if`/`case` structures and their branches. Branch bodies wrap routines in
+  # an inner `nkStmtList`, but the branch/selector node itself must be descended
+  # to reach that list (empirically confirmed: a `case`/`of` with a routine was
+  # silently skipped before `nkCaseStmt`/`nkOfBranch` were added).
+  nkIfStmt,
+  nkIfExpr,
+  nkCaseStmt,
+  nkOfBranch,
+  # `block` statements/expressions and `static`/`defer` bodies.
+  nkBlockStmt,
+  nkBlockExpr,
+  nkStaticStmt,
+  nkDefer,
+  # `try` structure and its branches.
+  nkTryStmt,
+  nkExceptBranch,
+  nkFinally,
+  # Block-pragma sections (`{.cast(gcsafe).}:`, `{.push.}:` block form): the
+  # routine is nested as `nkPragmaBlock -> nkStmtList -> routine`, so the
+  # outer `nkPragmaBlock` must be descended. NOTE: flat `{.push.}` / `{.pop.}`
+  # (the statement form) parse as `nkPragma` SIBLINGS of the routine inside the
+  # surrounding `nkStmtList` and are already handled by the normal sibling walk;
+  # no `nkPragma` handling is needed or added here.
+  nkPragmaBlock,
+}
+  ## Statement-container node kinds that can wrap a module-scope routine
+  ## definition at the SAME logical scope without being a routine body.
+  ## `collectRoutineDefs` descends exactly these. Named const so the full
+  ## audited set lives in one place and future omissions are less likely.
+
+proc collectRoutineDefs*(node: PNode, acc: var seq[PNode]) =
+  ## Recursively collect `nkProcDef` and `nkFuncDef` nodes into `acc`.
+  ##
+  ## Descends every *statement-container* node in `routineContainerKinds` —
+  ## every node kind that can wrap a routine definition at the SAME logical
+  ## scope without being a routine body (statement lists, `when`/`if`/`case`
+  ## structures and their branches, `block`/`static`/`defer` bodies, `try`
+  ## structures, and block-pragma sections). This widening (Gemini medium)
+  ## closes the silent-skip gap: a typestate-parameter routine defined inside
+  ## e.g. `static:` / `block:` / `try:` / a `{.cast(gcsafe).}:` block or a
+  ## `case`/`of` branch was previously missed — exactly the silent-skip class
+  ## this AST rewrite exists to eliminate.
+  ##
+  ## Does NOT descend into routine bodies (`nkProcDef`/`nkFuncDef` children),
+  ## so nested procs are not collected — preserving the module-scope intent and
+  ## matching the prior text scanner, which saw routine HEADERS regardless of
+  ## the control structure wrapping them but did not pull out procs nested
+  ## inside another proc's body. Methods, converters, templates, and macros are
+  ## intentionally out of scope and are not collected.
+  if node == nil:
+    return
+  case node.kind
+  of nkProcDef, nkFuncDef:
+    acc.add node
+    # Do not descend into the body: nested routines are out of scope.
+  of routineContainerKinds:
+    for child in node:
+      collectRoutineDefs(child, acc)
+  else:
+    discard
+
+const peelableModifierTyKinds = {
+  # Dedicated single-child modifier *type* nodes that wrap a parameter type and
+  # carry no name of their own — peel straight into the wrapped child `[0]`.
+  #
+  # Empirically audited against the Nim 2.2.x compiler (treeRepr dumps of real
+  # parameter-position parses; see the v0.10.0 AST-verifier audit):
+  #   - `var T`  -> nkVarTy(T)
+  #   - `ptr T`  -> nkPtrTy(T)
+  #   - `ref T`  -> nkRefTy(T)
+  #   - `out T`  -> nkOutTy(T)   (was MISSED before this set: fell through to the
+  #                               render fallback and resolved to "out T")
+  # All four nest cleanly (`var ptr T` -> nkVarTy(nkPtrTy(T))) and recurse here.
+  #
+  # NOT in this set, by empirical finding (Gemini medium asked to add nkLentTy):
+  #   - `nkLentTy` does NOT EXIST in the Nim 2.2.x TNodeKind enum, and in
+  #     PARAMETER position `lent T` / `sink T` parse as
+  #     `nkCommand(nkIdent("lent"|"sink"), T)`, handled by the nkCommand branch
+  #     below — NOT as a dedicated type node. Adding `nkLentTy` here would fail
+  #     to compile. Do not reintroduce it.
+  #   - `nkDistinctTy` is intentionally never peeled (a distinct is a NEW type);
+  #     handled separately below.
+  nkVarTy,
+  nkRefTy,
+  nkPtrTy,
+  nkOutTy,
+}
+  ## Dedicated single-child modifier type-node kinds that `peelToBaseTypeName`
+  ## peels uniformly. Named const so the full audited set lives in one place and
+  ## future omissions are less likely (mirrors the `routineContainerKinds`
+  ## pattern).
+
+proc peelToBaseTypeName*(node: PNode): string =
+  ## Peel parameter-passing wrappers and generic brackets to a base type name.
+  ##
+  ## Handles (recursively / idempotently regardless of ordering):
+  ## - dedicated modifier type nodes in `peelableModifierTyKinds`
+  ##   (`nkVarTy` / `nkRefTy` / `nkPtrTy` / `nkOutTy`) -> peel into the wrapped
+  ##   type
+  ## - `sink T` / `lent T` (parsed by the compiler in parameter position as
+  ##   `nkCommand(nkIdent("sink"|"lent"), T)`) -> peel to `T`
+  ## - `nkBracketExpr` (generics like `Stage1[T]`, `PinnedScope[MT, CC]`)
+  ##   -> recurse into the head `[0]` to get the base
+  ## - `nkIdent` -> the identifier string
+  ## - `nkDotExpr` (e.g. `module.State`) -> the last (rightmost) component
+  ##
+  ## Distinct types are NOT peeled: a `distinct T` is a NEW type. A bare inline
+  ## `nkDistinctTy` has no name of its own, so this returns "" for it rather
+  ## than transitively peeling to the underlying `T`. (A named distinct alias is
+  ## referenced by its alias name, which arrives here as an `nkIdent`.)
+  if node == nil:
+    return ""
+  case node.kind
+  of peelableModifierTyKinds:
+    # Single wrapped child; peel it. Idempotent for nested wrappers like
+    # `var ptr T` (nkVarTy(nkPtrTy(T))).
+    if node.len >= 1:
+      return peelToBaseTypeName(node[0])
+    return ""
+  of nkCommand:
+    # `sink T` / `lent T` parse as nkCommand(nkIdent("sink"|"lent"), T).
+    # The modifier head is normally a plain `nkIdent`/`nkSym`, but may arrive in
+    # a module-qualified shape (e.g. `system.sink T` -> nkDotExpr head).
+    #
+    # Fast path (Gemini medium): for the common `nkIdent`/`nkSym` head, read the
+    # identifier text directly instead of paying for `renderTree` +
+    # `extractBaseName`. Fall back to the render path only for other head shapes
+    # (notably the qualified `nkDotExpr` form), where `extractBaseName` degrades
+    # the qualified spelling to the bare modifier name. Both paths apply
+    # `nimIdentNormalize` and yield IDENTICAL results.
+    # The `sink T` / `lent T` form the parser produces is EXACTLY
+    # `nkCommand(nkIdent("sink"|"lent"), T)` — a 2-child node. Guard on the
+    # expected child count (Gemini medium): only peel `node[1]` (the type
+    # child) when the head is the sink/lent modifier AND the node has exactly
+    # the expected 2-child shape. For the normal case `node[1] == node[^1]`, so
+    # behavior is unchanged; an out-of-shape command (e.g. 3+ children) falls
+    # through to the repr fallback below instead of peeling the wrong last child.
+    if node.len == 2:
+      let headNode = node[0]
+      let head =
+        case headNode.kind
+        of nkIdent:
+          nimIdentNormalize(headNode.ident.s)
+        of nkSym:
+          nimIdentNormalize(headNode.sym.name.s)
+        else:
+          nimIdentNormalize(extractBaseName(renderTree(headNode, {})))
+      if head in ["sink", "lent"]:
+        return peelToBaseTypeName(node[1])
+    # Unknown command shape: fall back to repr normalization below.
+  of nkBracketExpr:
+    # Generic: peel to the head's base name.
+    if node.len >= 1:
+      return peelToBaseTypeName(node[0])
+    return ""
+  of nkIdent:
+    return node.ident.s
+  of nkSym:
+    return node.sym.name.s
+  of nkDotExpr:
+    # `module.State` (or deeper) -> rightmost component is the base name.
+    if node.len >= 2:
+      return peelToBaseTypeName(node[^1])
+    return ""
+  of nkDistinctTy:
+    # Do NOT peel through distinct: a bare inline distinct has no own name.
+    return ""
+  else:
+    discard
+  # Fallback: normalize the rendered repr (strips brackets/ref/ptr/module-qual).
+  result = extractBaseName(renderTree(node, {}))
+
+proc markerNameOf*(pragmaChild: PNode): string =
+  ## Return the marker identifier name carried by one child of an `nkPragma`
+  ## node, NORMALIZED per Nim's identifier rules (`nimIdentNormalize`), or ""
+  ## when the shape is not an identifier-bearing pragma.
+  ##
+  ## Handles the bare form (`nkIdent`/`nkSym`, e.g. `transition`,
+  ## `notATransition`) and the call/colon forms whose first child is the marker
+  ## ident (`nkExprColonExpr` for `transitionError: "msg"`, `nkCall` for
+  ## `transition(A, B)`).
+  ##
+  ## The result is style-normalized so a marker written in any valid Nim style
+  ## (e.g. `not_a_transition`, `notatransition`) is recognized as the same
+  ## marker. Pragma identifiers are style-insensitive in Nim, so this matches
+  ## the compiler's own treatment. Callers in `classifyByPragma` compare against
+  ## the normalized canonical spelling of each marker.
+  var raw = ""
+  if pragmaChild == nil:
+    return ""
+  case pragmaChild.kind
+  of nkIdent:
+    raw = pragmaChild.ident.s
+  of nkSym:
+    raw = pragmaChild.sym.name.s
+  of nkExprColonExpr, nkCall, nkCommand:
+    if pragmaChild.len >= 1:
+      raw = extractIdent(pragmaChild[0])
+  else:
+    raw = ""
+  if raw.len == 0:
+    return ""
+  result = nimIdentNormalize(raw)
+
+proc classifyByPragma*(procDef: PNode): ProcClass =
+  ## Classify a routine by its pragma markers.
+  ##
+  ## Reads the routine's `nkPragma` node at `pragmasPos` (`nkEmpty` means no
+  ## pragmas) and walks its children via `markerNameOf`. Recognizes
+  ## `transition` / `destructorTransition` (=> has-transition) and
+  ## `notATransition` (=> has-not). All other pragmas (`discardable`, `raises`,
+  ## `skipCfgAnalysis`, `transitionError`, `inline`, ...) are ignored.
+  ##
+  ## This is the key correctness fix over the old substring scanner: because it
+  ## inspects each pragma child node individually, it detects markers embedded
+  ## in a COMBINED block such as `{.discardable, raises: [], notATransition.}`.
+  ##
+  ## Returns `pcTransition` if a transition marker is present, else
+  ## `pcNotATransition` if `notATransition` is present, else `pcUnmarked`.
+  result = pcUnmarked
+  if procDef == nil or procDef.len <= pragmasPos:
+    return
+  let pragmaNode = procDef[pragmasPos]
+  if pragmaNode == nil or pragmaNode.kind == nkEmpty:
+    return
+  if pragmaNode.kind != nkPragma:
+    return
+  # `markerNameOf` returns the marker identifier NORMALIZED via
+  # `nimIdentNormalize`, so the comparisons below use the canonical markers'
+  # normalized spellings (first char preserved, rest lowercased, underscores
+  # removed). This keeps marker SEMANTICS identical for canonical spellings
+  # while also recognizing valid style variants (`not_a_transition`, etc.).
+  const
+    nTransition = nimIdentNormalize("transition")
+    nDestructorTransition = nimIdentNormalize("destructorTransition")
+    nNotATransition = nimIdentNormalize("notATransition")
+  var hasTransition = false
+  var hasNot = false
+  for child in pragmaNode:
+    case markerNameOf(child)
+    of nTransition, nDestructorTransition:
+      hasTransition = true
+    of nNotATransition:
+      hasNot = true
+    else:
+      discard
+  if hasTransition:
+    result = pcTransition
+  elif hasNot:
+    result = pcNotATransition
+  else:
+    result = pcUnmarked
+
+proc typestateParamBases*(
+    procDef: PNode, registeredBases: HashSet[string]
+): seq[string] =
+  ## Return the base type names of the routine's parameters whose peeled base
+  ## type is a registered typestate base.
+  ##
+  ## Reads the routine's `nkFormalParams` node at `paramsPos`, iterates each
+  ## `nkIdentDefs` (shape: `[name1, name2, ..., type, default]`, so the type is
+  ## `idef[^2]`), peels the type via `peelToBaseTypeName`, and collects bases
+  ## that are members of `registeredBases`. Grouped parameter names share a
+  ## single type node and contribute one base per `nkIdentDefs`.
+  ##
+  ## Membership is tested style-insensitively per Nim's identifier rules
+  ## (`nimIdentNormalize`): the first character is case-sensitive; the rest are
+  ## case-insensitive and underscores are ignored. `registeredBases` MUST be
+  ## supplied already normalized via `nimIdentNormalize` (the registration side
+  ## in `cli.verify()` does this) so a state declared `MyState` matches a param
+  ## typed `My_State`. The RETURNED base preserves the param's own (readable)
+  ## spelling for use in user-facing findings.
+  result = @[]
+  if procDef == nil or procDef.len <= paramsPos:
+    return
+  let formalParams = procDef[paramsPos]
+  if formalParams == nil or formalParams.kind != nkFormalParams:
+    return
+  for child in formalParams:
+    if child.kind != nkIdentDefs:
+      continue
+    # A typed routine parameter is `[name1, ..., type, default]`, so the
+    # minimum valid shape (single name) is `[name, type, default]` = 3 children.
+    # Anything shorter has no extractable type at `^2`; skip it.
+    if child.len < 3:
+      continue
+    let typeNode = child[^2]
+    let base = peelToBaseTypeName(typeNode)
+    if base.len > 0 and nimIdentNormalize(base) in registeredBases:
+      result.add base
+
+type ClassifiedProc* = object
+  ## A routine definition classified by the AST verifier.
+  ##
+  ## Carries the best-effort routine name, the 1-indexed definition line and
+  ## column (sourced from the `nkProcDef`/`nkFuncDef` node's `.info`), the
+  ## pragma-marker classification, and the base type names of the routine's
+  ## parameters that resolve to a registered typestate state. Only routines
+  ## with at least one typestate-state parameter are produced by
+  ## `classifyProcsInFile`; routines with no state parameter are irrelevant to
+  ## the verifier and omitted.
+  name*: string
+  line*: int
+  column*: int
+  class*: ProcClass
+  paramStateBases*: seq[string]
+
+proc routineName(procDef: PNode): string =
+  ## Best-effort routine name from `namePos` via `extractIdent`, which peels the
+  ## exported (`nkPostfix`) and bare (`nkIdent`/`nkSym`) forms and renders
+  ## backticked / operator names (`` proc `[]` ``, `` proc `==` ``,
+  ## `` proc `[]`* ``) from their `nkAccQuoted` shape.
+  ##
+  ## Because `extractIdent` recurses through `nkPostfix` into `nkAccQuoted`, both
+  ## the non-exported (`nkAccQuoted`) and EXPORTED
+  ## (`nkPostfix[nkIdent("*"), nkAccQuoted]`) backticked forms yield the operator
+  ## symbol; the prior cycle's top-level-only `nkAccQuoted` check missed the
+  ## exported case.
+  if procDef == nil or procDef.len <= namePos:
+    return ""
+  extractIdent(procDef[namePos])
+
+proc classifyProcsInFile*(
+    tree: PNode, registeredBases: HashSet[string]
+): seq[ClassifiedProc] =
+  ## Classify every top-level routine in a parsed file tree that has at least
+  ## one parameter whose peeled base type is a registered typestate state.
+  ##
+  ## Collects routine defs via `collectRoutineDefs` (descending `nkStmtList`
+  ## and `when`-branches, NOT routine bodies), computes each routine's
+  ## typestate-state parameter bases via `typestateParamBases`, and — for
+  ## routines with at least one such base — emits a `ClassifiedProc` carrying
+  ## the routine name, 1-indexed def line/column (from the node's `.info`), the
+  ## pragma classification (`classifyByPragma`), and the matched state bases.
+  ##
+  ## Routines with no typestate-state parameter are skipped: they are not
+  ## subject to the transition-marking rule and would only add noise.
+  result = @[]
+  var defs: seq[PNode]
+  collectRoutineDefs(tree, defs)
+  for procDef in defs:
+    let bases = typestateParamBases(procDef, registeredBases)
+    if bases.len == 0:
+      continue
+    result.add ClassifiedProc(
+      name: routineName(procDef),
+      line: int(procDef.info.line),
+      column: int(procDef.info.col) + 1,
+      class: classifyByPragma(procDef),
+      paramStateBases: bases,
+    )
+
+proc parseStringToPNode*(
+    source: string, cache: IdentCache, config: ConfigRef, filename = "<string>"
+): PNode =
+  ## Parse an in-memory Nim source string into a raw `PNode`.
+  ##
+  ## Test hook mirroring `parsePNode`'s parse path (same `raisingErrorHandler`
+  ## installation, same `openParser`/`parseAll`/`closeParser` sequence) but
+  ## reading from a string instead of a file. Used by unit tests to exercise
+  ## the classification helpers on small snippets. Raises `ParseError` on
+  ## failure.
+  var p: Parser
+  let stream = llStreamOpen(source)
+  if stream == nil:
+    raise newParseError("Failed to open stream for: " & filename)
+  p.lex.errorHandler = raisingErrorHandler
+  openParser(p, AbsoluteFile(filename), stream, cache, config)
+  try:
+    result = parseAll(p)
+  except ParseError:
+    raise
+  except Exception as e:
+    raise newParseError("Parse error in " & filename & ": " & e.msg)
+  finally:
+    closeParser(p)
+
+proc parseStringToPNode*(source: string, filename = "<string>"): PNode =
+  ## Convenience overload of `parseStringToPNode` that constructs fresh
+  ## compiler infrastructure per call. Prefer the cache/config form in loops.
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+  parseStringToPNode(source, cache, config, filename)
+
 proc parsePNode*(path: string, cache: IdentCache, config: ConfigRef): PNode =
   ## Parse a Nim source file into a raw `PNode` using a shared compiler
   ## `IdentCache` and `ConfigRef`.
@@ -683,12 +1121,6 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
   config.notes = {}
   config.foreignPackageNotes = {}
 
-  proc recordFailure(result: var ParseResult, fallbackPath: string, e: ref ParseError) =
-    let p = if e.path.len > 0: e.path else: fallbackPath
-    result.failures.add ParseFailure(
-      path: p, line: e.line, column: e.column, message: e.msg
-    )
-
   for path in paths:
     if path.endsWith(".nim"):
       try:
@@ -706,3 +1138,65 @@ proc parseTypestatesAst*(paths: seq[string]): ParseResult =
             result.filesChecked += fileResult.filesChecked
           except ParseError as e:
             recordFailure(result, file, e)
+
+type ParsedProject* = object
+  ## Tier-B parse-sharing result: a `ParseResult` (typestates + per-file
+  ## failures + file count) PLUS the raw parsed `PNode` tree for every file
+  ## that parsed successfully, keyed by the path AS ENCOUNTERED (the literal
+  ## `.nim` argument for explicit files; the `walkDirRec` path for directory
+  ## entries). Keying by the as-encountered path lets downstream `Finding`s
+  ## carry the same path string the user supplied, preserving v0.9.3 output.
+  ##
+  ## A single parse per file feeds BOTH typestate extraction (Pass 1) and proc
+  ## classification (Pass 2). `PNode` consumption is read-only across all
+  ## consumers (see the "PNode immutability (Tier-B note)" comment above the
+  ## classification helpers), so sharing one parse is sound.
+  ##
+  ## Files that failed to parse appear only in `parse.failures` — they have no
+  ## entry in `nodes`, so a downstream classification pass naturally skips them
+  ## without re-parsing or double-reporting the parse error.
+  parse*: ParseResult
+  nodes*: OrderedTable[string, PNode]
+    ## Keyed by the as-encountered path. An `OrderedTable` (not a plain `Table`)
+    ## so Pass-2 iteration follows insertion order — the order `paths` are
+    ## processed — making finding report order deterministic across runs for the
+    ## same inputs (a plain `Table` iterates in hash order).
+
+proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
+  ## Parse every `.nim` file under `paths` EXACTLY ONCE and return both the
+  ## extracted typestates (Pass-1 view) and the raw `PNode` trees (for Pass-2
+  ## proc classification), keyed by absolute path.
+  ##
+  ## Tier-B unification of `parseTypestatesAst`: instead of walking each file
+  ## for typestates and discarding the tree (which forced `verify()` to re-read
+  ## and re-scan each file in a second pass), this retains the parsed tree so a
+  ## single parse serves both passes. Per-file `ParseError`s are accumulated
+  ## into `result.parse.failures` (one per failed path) rather than aborting
+  ## the batch — identical failure semantics to `parseTypestatesAst`.
+  ##
+  ## `filesChecked` counts only successfully-parsed files (matching
+  ## `parseTypestatesAst`). A failed file contributes a `failures` entry, no
+  ## `nodes` entry, and no `filesChecked` increment.
+  result = ParsedProject(parse: ParseResult(), nodes: initOrderedTable[string, PNode]())
+
+  let cache = newIdentCache()
+  let config = newConfigRef()
+  config.notes = {}
+  config.foreignPackageNotes = {}
+
+  proc handleFile(project: var ParsedProject, file: string) =
+    try:
+      let tree = parsePNode(file, cache, config)
+      walkAst(tree, project.parse.typestates)
+      project.parse.filesChecked += 1
+      project.nodes[file] = tree
+    except ParseError as e:
+      recordFailure(project.parse, file, e)
+
+  for path in paths:
+    if path.endsWith(".nim"):
+      handleFile(result, path)
+    elif dirExists(path):
+      for file in walkDirRec(path):
+        if file.endsWith(".nim"):
+          handleFile(result, file)

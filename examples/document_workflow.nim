@@ -149,7 +149,7 @@ func author(doc: DocumentStates): string =
 func version(doc: DocumentStates): int =
   doc.Document.version
 
-func isPublished(doc: Published): bool =
+func isPublished(doc: Published): bool {.notATransition.} =
   true
 
 # ============================================================================

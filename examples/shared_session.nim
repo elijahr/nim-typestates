@@ -57,18 +57,18 @@ proc expire(session: ref Authenticated): ref Expired {.transition.} =
   result[] = Expired(Session(session[]))
   echo "  [SESSION] Expired"
 
-proc setData(session: ref Authenticated, data: string) =
+proc setData(session: ref Authenticated, data: string) {.notATransition.} =
   ## Modify session data (only when authenticated).
   var s = Session(session[])
   s.data = data
   session[] = Authenticated(s)
   echo "  [SESSION] Data set: ", data
 
-proc getData(session: ref Authenticated): string =
+proc getData(session: ref Authenticated): string {.notATransition.} =
   ## Read session data.
   Session(session[]).data
 
-proc getUserId(session: ref Authenticated): int =
+proc getUserId(session: ref Authenticated): int {.notATransition.} =
   ## Get the authenticated user ID.
   Session(session[]).userId
 

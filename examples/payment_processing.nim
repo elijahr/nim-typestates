@@ -122,11 +122,11 @@ func amount(p: PaymentStates): int =
   ## Get the payment amount in cents.
   p.Payment.amount
 
-func refundedAmount(p: PartiallyRefunded): int =
+func refundedAmount(p: PartiallyRefunded): int {.notATransition.} =
   ## How much has been refunded so far?
   p.Payment.refundedAmount
 
-func remainingAmount(p: PartiallyRefunded): int =
+func remainingAmount(p: PartiallyRefunded): int {.notATransition.} =
   ## How much can still be refunded?
   p.Payment.amount - p.Payment.refundedAmount
 

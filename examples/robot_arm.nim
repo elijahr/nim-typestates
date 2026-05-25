@@ -129,7 +129,7 @@ proc emergencyStop(arm: Moving, reason: string): EmergencyStop {.transition.} =
 # Status and Configuration (no state change)
 # ============================================================================
 
-func position(arm: Ready): tuple[x, y, z: float] =
+func position(arm: Ready): tuple[x, y, z: float] {.notATransition.} =
   ## Get current position (only valid when Ready).
   (arm.RobotArm.x, arm.RobotArm.y, arm.RobotArm.z)
 

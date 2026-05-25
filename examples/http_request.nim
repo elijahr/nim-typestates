@@ -88,15 +88,15 @@ proc awaitResponse(req: RequestSent): ResponseReceived {.transition.} =
   echo "  [HTTP] <<< Response: ", r.responseCode
   result = ResponseReceived(r)
 
-func statusCode(resp: ResponseReceived): int =
+func statusCode(resp: ResponseReceived): int {.notATransition.} =
   ## Get the HTTP status code.
   resp.HttpRequest.responseCode
 
-func body(resp: ResponseReceived): string =
+func body(resp: ResponseReceived): string {.notATransition.} =
   ## Get the response body.
   resp.HttpRequest.responseBody
 
-func isSuccess(resp: ResponseReceived): bool =
+func isSuccess(resp: ResponseReceived): bool {.notATransition.} =
   ## Check if response indicates success (2xx).
   let code = resp.HttpRequest.responseCode
   code >= 200 and code < 300
