@@ -7,7 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.0] - 2026-05-29
+## [0.12.0] - 2026-05-29
+
+Defensive fixes on top of v0.11.0. No new public API; semver-minor bump for
+clarity over a patch. v0.11.0 remains frozen at commit `8412986`; the
+additional Gemini-round-6/7/8 fixes ship as v0.12.0.
+
+### Fixed
+
+- Tightened `nnkDotExpr` defensive guard from `entry.len == 0` to
+  `entry.len < 2`. A valid dot-access expression has at least two
+  children (LHS + RHS); a single-child node would have caused
+  `entry[^1]` to resolve to the LHS rather than the rightmost
+  identifier, producing a false idempotency match. (Gemini round-6
+  on PR #15.)
+- Widened qualified-form idempotency check to recognize the RHS of
+  `nnkDotExpr` when it is itself `nnkAccQuoted` (e.g.,
+  `` pragmas.`TypestateOp` ``). Previously, only bare ident/sym RHS
+  was matched, so a backticked qualified form would have produced a
+  duplicate `TypestateOp` entry. (Gemini round-7 on PR #15.)
+- Cross-platform fix: `tests/thandleFile_io_error.nim` no longer
+  imports `std/posix` unconditionally (the module is unavailable on
+  Windows). The import is now gated by `when not defined(windows):`;
+  the test itself was already Windows-skipped at runtime. (Gemini
+  round-8 HIGH on PR #15.)
+- Reordered `nnkCall` guard in `transition` macro to check
+  `child.len > 1` before `child[0]` to prevent compile-time index
+  out-of-bounds on macro-generated empty `nnkCall` nodes. (Gemini
+  round-8 MEDIUM on PR #15.)
+
+## [0.11.0] - 2026-05-28
 
 ### Fixed
 
@@ -68,26 +97,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defensive guard against empty `nnkDotExpr`/`nnkAccQuoted` AST nodes
   in TypestateOp idempotency check (prevents potential compiler crash
   on macro-generated malformed AST). (Gemini round-4 on PR #15.)
-- Tightened `nnkDotExpr` defensive guard from `entry.len == 0` to
-  `entry.len < 2`. A valid dot-access expression has at least two
-  children (LHS + RHS); a single-child node would have caused
-  `entry[^1]` to resolve to the LHS rather than the rightmost
-  identifier, producing a false idempotency match. (Gemini round-6
-  on PR #15.)
-- Widened qualified-form idempotency check to recognize the RHS of
-  `nnkDotExpr` when it is itself `nnkAccQuoted` (e.g.,
-  `` pragmas.`TypestateOp` ``). Previously, only bare ident/sym RHS
-  was matched, so a backticked qualified form would have produced a
-  duplicate `TypestateOp` entry. (Gemini round-7 on PR #15.)
-- Cross-platform fix: `tests/thandleFile_io_error.nim` no longer
-  imports `std/posix` unconditionally (the module is unavailable on
-  Windows). The import is now gated by `when not defined(windows):`;
-  the test itself was already Windows-skipped at runtime. (Gemini
-  round-8 HIGH on PR #15.)
-- Reordered `nnkCall` guard in `transition` macro to check
-  `child.len > 1` before `child[0]` to prevent compile-time index
-  out-of-bounds on macro-generated empty `nnkCall` nodes. (Gemini
-  round-8 MEDIUM on PR #15.)
 
 ### Added
 
