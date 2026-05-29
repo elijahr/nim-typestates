@@ -114,8 +114,10 @@ proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError)
   ## diagnostic.
   if e == nil:
     pr.failures.add ParseFailure(
-      path: fallbackPath, line: 0, column: 0,
-      message: "internal error: recordFailure called with nil exception"
+      path: fallbackPath,
+      line: 0,
+      column: 0,
+      message: "internal error: recordFailure called with nil exception",
     )
     return
   let p = if e.path.len > 0: e.path else: fallbackPath

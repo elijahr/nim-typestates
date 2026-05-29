@@ -37,14 +37,16 @@ typestate Endpoint:
 # Qualified form. Pre-fix: macro fails to detect `pragmasMod.TypestateOp`
 # as TypestateOp and appends a duplicate `TypestateOp` to the same
 # bracket.
-proc bindQualified(u: Unbound): Bound
-    {.transition, tags: [pragmasMod.TypestateOp, RootEffect].} =
+proc bindQualified(
+    u: Unbound
+): Bound {.transition, tags: [pragmasMod.TypestateOp, RootEffect].} =
   Bound(EndpointBase(u))
 
 # AccQuoted form. Pre-fix: macro fails to detect `` `TypestateOp` ``
 # as TypestateOp and appends a duplicate.
-proc bindAccQuoted(u: Unbound): Bound
-    {.transition, tags: [`TypestateOp`, RootEffect].} =
+proc bindAccQuoted(
+    u: Unbound
+): Bound {.transition, tags: [`TypestateOp`, RootEffect].} =
   Bound(EndpointBase(u))
 
 verifyTypestates()

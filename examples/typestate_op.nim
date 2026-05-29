@@ -31,6 +31,7 @@ import ../src/typestates
 type
   Connection = object
     id: int
+
   # Three connection states. The typestate FSM permits
   # Unbound -> Bound -> Closed (a typical resource lifecycle).
   Unbound = distinct Connection
@@ -96,10 +97,11 @@ when isMainModule:
       proc auditedRegionBad() {.forbids: [TypestateOp], tags: [RootEffect].} =
         let u = Unbound(Connection(id: 99))
         discard bindIt(u)
+
       auditedRegionBad()
   )
   echo "\nCompile-time check: forbids: [TypestateOp] rejects bindIt() call? ",
-       forbiddenCallRejected
+    forbiddenCallRejected
   doAssert forbiddenCallRejected,
     "Expected forbids: [TypestateOp] to reject a transition call"
 
