@@ -759,7 +759,13 @@ proc peelToBaseTypeName*(node: PNode): string =
   ## `nkDistinctTy` has no name of its own, so this returns "" for it rather
   ## than transitively peeling to the underlying `T`. (A named distinct alias is
   ## referenced by its alias name, which arrives here as an `nkIdent`.)
-  if node == nil:
+  if node == nil or node.kind == nkEmpty:
+    # Gemini round-3 MEDIUM: tighten the defensive guard. A bare `nil` was
+    # already covered, but an `nkEmpty` node (which the parser produces for
+    # missing type slots, e.g. an inferred-type parameter) would fall through
+    # to the `else` branch and pay for a `renderTree` that returns "" anyway.
+    # Treat them identically up front to avoid pointless work and to make the
+    # "no usable type name" precondition explicit at the proc entry.
     return ""
   case node.kind
   of peelableModifierTyKinds:
