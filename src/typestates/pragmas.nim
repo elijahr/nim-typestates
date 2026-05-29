@@ -981,6 +981,11 @@ macro transition*(procDef: untyped): untyped =
           break
       of nnkDotExpr:
         # Rightmost component of `a.b.TypestateOp` is the bare identifier.
+        # Round-4 (Gemini): guard against empty nnkDotExpr nodes that may
+        # arise from macro-generated or malformed AST; treat as non-match
+        # rather than indexing out-of-bounds and crashing the compiler.
+        if entry.len == 0:
+          continue
         let rhs = entry[^1]
         if rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp"):
           alreadyPresent = true
