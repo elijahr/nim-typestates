@@ -68,6 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defensive guard against empty `nnkDotExpr`/`nnkAccQuoted` AST nodes
   in TypestateOp idempotency check (prevents potential compiler crash
   on macro-generated malformed AST). (Gemini round-4 on PR #15.)
+- Tightened `nnkDotExpr` defensive guard from `entry.len == 0` to
+  `entry.len < 2`. A valid dot-access expression has at least two
+  children (LHS + RHS); a single-child node would have caused
+  `entry[^1]` to resolve to the LHS rather than the rightmost
+  identifier, producing a false idempotency match. (Gemini round-6
+  on PR #15.)
 
 ### Added
 

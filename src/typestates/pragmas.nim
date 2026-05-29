@@ -984,7 +984,11 @@ macro transition*(procDef: untyped): untyped =
         # Round-4 (Gemini): guard against empty nnkDotExpr nodes that may
         # arise from macro-generated or malformed AST; treat as non-match
         # rather than indexing out-of-bounds and crashing the compiler.
-        if entry.len == 0:
+        # Round-6 tightening (Gemini): a valid `nnkDotExpr` has >= 2 children
+        # (LHS + RHS); a 1-child form would resolve `entry[^1]` to the LHS,
+        # producing a false match. Reject anything narrower than the canonical
+        # `a.b` shape.
+        if entry.len < 2:
           continue
         let rhs = entry[^1]
         if rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp"):
