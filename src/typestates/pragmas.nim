@@ -903,17 +903,43 @@ macro transition*(procDef: untyped): untyped =
   var tagsNode: NimNode = nil
   let resultPragma = result.pragma
   if resultPragma.kind != nnkEmpty:
+    # Walk the pragma list looking for an existing `tags:` entry. Two
+    # surface forms exist that we must merge into:
+    #   * bracketed   — `{.tags: [A, B].}`   (child[1] is nnkBracket)
+    #   * bracketless — `{.tags: A.}`        (child[1] is nnkIdent/nnkSym)
+    # Pre-v0.11.0 the bracketless form was missed by this scanner, which
+    # caused the macro to append a SECOND `tags:` pragma; under Nim's
+    # effect tracking only the last `tags:` survives, silently dropping
+    # the user's single tag (Gemini Finding 2). The fix below normalizes
+    # the bracketless form into a bracket in-place so the merge logic
+    # downstream can append TypestateOp idempotently regardless of which
+    # syntactic form the user wrote.
     for child in resultPragma:
       case child.kind
       of nnkExprColonExpr:
-        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags") and
-            child[1].kind == nnkBracket:
-          tagsNode = child[1]
+        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags"):
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            # Bracketless: wrap the single tag into a fresh nnkBracket so
+            # the rest of this pass (and any future passes) treat it
+            # uniformly. Mutating child[1] preserves the user's original
+            # tag identity and source location.
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
           break
       of nnkCall:
         if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags") and
-            child.len > 1 and child[1].kind == nnkBracket:
-          tagsNode = child[1]
+            child.len > 1:
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
           break
       else:
         discard
