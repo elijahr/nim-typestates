@@ -21,13 +21,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   any `{.forbids: [...].}` regions that depended on it. The macro now
   normalizes the bracketless form into a bracket node in-place and
   merges `TypestateOp` into it idempotently, preserving the user's
-  original tag and source location. (Gemini Finding 2 on PR #15.)
+  original tag and source location. (Gemini round-1 Finding 2 on PR #15.)
 - **CLI `typestates verify` path validation** now correctly flags any
   non-existent path or directory with the dedicated `fcFileNotFound`
   diagnostic, not only paths ending in `.nim`. Previously a missing
   directory (`src/missing/`) or an extensionless path was silently
   dropped into the parser and surfaced as a generic parse error,
-  obscuring the actual problem. (Gemini Finding 1 on PR #15.)
+  obscuring the actual problem. (Gemini round-1 Finding 1 on PR #15.)
+- **`TypestateOp` idempotency check widened to module-qualified and
+  backtick-quoted forms.** The "already-listed `TypestateOp`" dedup
+  inside the `{.transition.}` macro previously recognized only
+  `nnkIdent` / `nnkSym` entries. A user who wrote
+  `{.tags: [pragmas.TypestateOp].}` (`nnkDotExpr`) or
+  ``{.tags: [`TypestateOp`].}`` (`nnkAccQuoted`) bypassed the dedup,
+  and the macro appended a redundant `TypestateOp` to the same bracket.
+  Behavior was correct (Nim de-duplicates at the effect-set layer) but
+  the AST carried a redundant node. The check now compares the
+  rightmost component of `nnkDotExpr` and the inner ident of
+  `nnkAccQuoted`. (Gemini round-2 Finding 1 on PR #15.)
+- **Defensive nil guard on `recordFailure`'s exception parameter** in
+  `src/typestates/ast_parser.nim`. No current call site passes `nil`,
+  but a future `except CatchableError` branch that forgets to construct
+  a `ParseError` would dereference nil and crash with a hard SIGSEGV.
+  The proc now synthesizes a placeholder `ParseFailure` describing the
+  missing exception so callers continue to receive a structured
+  diagnostic. (Gemini round-2 Finding 2 on PR #15.)
 
 ### Added
 
@@ -43,6 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   user has already listed it). Outside `strictEffects` Nim performs no
   tag propagation, so existing callers see zero behaviour change. See
   the "TypestateOp implicit effect" section of the README.
+- **Runnable example: `examples/typestate_op.nim`.** Demonstrates a
+  minimal Unbound -> Bound -> Closed FSM with `{.transition.}` procs,
+  a `{.tags: [TypestateOp, RootEffect].}` driver region that permits
+  transitions, and a `{.forbids: [TypestateOp].}` audited region that
+  statically rejects them. Includes a `compiles()` witness proving the
+  forbids: form actually rejects a transition call. Runs with
+  `nim c -r examples/typestate_op.nim`.
 
 ### Design notes
 
@@ -61,19 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   effects, the user must add `RootEffect` to their tag list themselves.
   This is documented in the README's "Note: user-supplied tags become an
   upper bound" subsection.
-
-### Known issues for 0.11.0
-
-- **Idempotency check is identifier-based for qualified forms.** The
-  "already-listed `TypestateOp`" check uses `eqIdent` on `nnkIdent` /
-  `nnkSym` entries inside the bracketed tag list. Module-qualified
-  forms (`pragmas.TypestateOp`, an `nnkDotExpr`) and backtick-quoted
-  forms (`` `TypestateOp` ``, an `nnkAccQuoted`) bypass the dedup and
-  produce a harmless duplicate entry inside the same bracket; Nim's
-  semantic layer de-duplicates them, so behaviour is correct but the
-  AST has a redundant node. To be widened in a follow-up release. (The
-  bracketless surface form `{.tags: SingleTag.}` is correctly handled
-  as of the v0.11.0 fix above.)
 
 ### Withdrawn (2026-05-28)
 
