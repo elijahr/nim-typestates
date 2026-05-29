@@ -288,7 +288,7 @@ Fork, create a branch, run `nimble test` and `nimble compileExamples` before ope
 ## Prior art
 
 - [Typestate pattern in Rust](https://cliffle.com/blog/rust-typestate/) (Cliff Biffle)
-- [`typestate` crate for Rust](https://github.com/rustype/typestate)
+- [`typestate` crate for Rust](https://github.com/rustype/typestate-rs)
 - [Plaid](http://www.cs.cmu.edu/~aldrich/plaid/), a research language with first-class typestate
 - Strom & Yemini, ["Typestate: A programming language concept for enhancing software reliability"](https://doi.org/10.1109/TSE.1986.6312929) (1986) — the original paper
 
