@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-28
+
+### Added
+
+- **Implicit `TypestateOp` effect tag** injected by the `{.transition.}`
+  macro on every transition proc. `TypestateOp` is a new
+  `object of RootEffect` exported from `typestates/pragmas`. Under
+  `{.experimental: "strictEffects".}` callers can declare
+  `{.forbids: [TypestateOp].}` on a region to statically assert that no
+  typestate transition is reachable — directly or transitively through
+  an untagged intermediate caller. The injection is **additive** (merges
+  into any user-supplied `tags: [...]` list, preserving existing
+  entries) and **idempotent** (no second `TypestateOp` entry when the
+  user has already listed it). Outside `strictEffects` Nim performs no
+  tag propagation, so existing callers see zero behaviour change. See
+  the "TypestateOp implicit effect" section of the README.
+
+### Design notes
+
+- **`RootEffect` co-injection on bare `{.transition.}` procs.** When the
+  user supplies no `tags:` pragma, the macro synthesises
+  `{.tags: [TypestateOp, RootEffect].}`. Nim's `tags:` is an upper bound
+  on the proc's effect set, so a bare `{.tags: [TypestateOp].}` would
+  reject any transition body that exercises additional effects
+  (allocation, IO, `chronos.async` wrappers, etc.). `RootEffect`
+  re-admits the universal supertype without weakening the
+  `{.forbids: [TypestateOp].}` check, because `forbids:` matches the
+  literal `TypestateOp` tag, not its ancestors.
+- **User-supplied tags become an upper bound.** When the user writes
+  `{.transition, tags: [SomeNarrowTag].}`, the macro appends only
+  `TypestateOp` (not `RootEffect`). If the transition body needs broader
+  effects, the user must add `RootEffect` to their tag list themselves.
+  This is documented in the README's "Note: user-supplied tags become an
+  upper bound" subsection.
+
+### Known issues for 0.11.0
+
+- **Idempotency check is identifier-based.** The "already-listed
+  `TypestateOp`" check uses `eqIdent` on `nnkIdent` / `nnkSym` entries.
+  Module-qualified forms (`pragmas.TypestateOp`, an `nnkDotExpr`) and
+  backtick-quoted forms (`` `TypestateOp` ``, an `nnkAccQuoted`) bypass
+  the dedup and produce a harmless duplicate entry; Nim's semantic
+  layer de-duplicates them, so behaviour is correct but the AST has
+  a redundant node. To be widened in a follow-up release.
+
+### Withdrawn (2026-05-28)
+
+- **`{.transition(tag: SomeTag).}` pragma sugar** was explored and
+  withdrawn before release. Two independent blockers:
+  1. **Nim parser rejects the form.** `{.transition(tag: X).}` parses as
+     `nkObjConstr` inside the pragma list, which is not in the compiler's
+     `nkPragmaCallKinds` set (`compiler/pragmas.nim:803-817` plus
+     `compiler/ast.nim:923`). There is no parser-level workaround that
+     keeps the colon-form `tag:` keyword syntax.
+  2. **Semantic conflation.** Even if it parsed, attaching a value-level
+     role tag (`tag: ProducerOp`) to the transition pragma conflated
+     two orthogonal axes — value-level typestates (what state a value
+     is in) and proc-level effects (what a proc is permitted to do).
+     Keeping them separate via the explicit composed form
+     `{.transition, tags: [ProducerOp, TypestateOp], gcsafe.}` is
+     clearer and matches Nim's own pragma vocabulary.
+
+  Consumers compose explicit pragma lists instead. The combined-pragma
+  form is fully supported by the v0.10.0 AST verifier (no text-scanner
+  blind spots).
+
 ## [0.10.0] - 2026-05-24
 
 ### Changed
