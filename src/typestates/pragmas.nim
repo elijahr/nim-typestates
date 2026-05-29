@@ -965,11 +965,33 @@ macro transition*(procDef: untyped): untyped =
     )
   else:
     # Idempotency check: skip if the user already listed TypestateOp.
+    # Round-2 widening (Gemini Finding 1): also recognize module-qualified
+    # (`pragmas.TypestateOp`, an `nnkDotExpr` whose rightmost component is
+    # `TypestateOp`) and backtick-quoted (`` `TypestateOp` ``, an
+    # `nnkAccQuoted` whose inner ident is `TypestateOp`) entries. Pre-fix
+    # both forms slipped past the dedup and produced a redundant
+    # `TypestateOp` node in the same bracket — harmless at the effect-set
+    # level but cluttered AST.
     var alreadyPresent = false
     for entry in tagsNode:
-      if entry.kind in {nnkIdent, nnkSym} and entry.eqIdent("TypestateOp"):
-        alreadyPresent = true
-        break
+      case entry.kind
+      of nnkIdent, nnkSym:
+        if entry.eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      of nnkDotExpr:
+        # Rightmost component of `a.b.TypestateOp` is the bare identifier.
+        let rhs = entry[^1]
+        if rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      of nnkAccQuoted:
+        if entry.len >= 1 and entry[0].kind in {nnkIdent, nnkSym} and
+            entry[0].eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      else:
+        discard
     if not alreadyPresent:
       tagsNode.add(opIdent)
 
