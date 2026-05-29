@@ -46,6 +46,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The proc now synthesizes a placeholder `ParseFailure` describing the
   missing exception so callers continue to receive a structured
   diagnostic. (Gemini round-2 Finding 2 on PR #15.)
+- **`parseTypestatesAstWithNodes.handleFile` now catches
+  `CatchableError`**, not only `ParseError`. The underlying
+  `parsePNode` -> `readFile` chain can raise `IOError`/`OSError` for
+  permission-denied, path-is-directory, and similar I/O conditions.
+  Pre-fix, a single unreadable `.nim` file in a batch aborted the
+  entire `typestates verify` run instead of recording a per-file
+  failure and continuing. The handler now wraps the I/O exception as a
+  synthetic `ParseError` so the rest of the formatter pipeline (JSON
+  envelope, GitHub annotations, human formatter) reports it
+  identically to a syntax error. Regression test:
+  `tests/thandleFile_io_error.nim`. (Gemini round-3 HIGH on PR #15.)
+- **Defensive `nkEmpty` guard on `peelToBaseTypeName`** in
+  `src/typestates/ast_parser.nim`. The proc already handled `nil`,
+  but an `nkEmpty` node (which the parser produces for missing type
+  slots, e.g. an inferred-type parameter) would fall through to the
+  `else` arm and pay for a `renderTree` that returns "" anyway. The
+  guard makes the "no usable type name" precondition explicit at the
+  proc entry and avoids the wasted render. (Gemini round-3 MEDIUM on
+  PR #15.)
 
 ### Added
 
