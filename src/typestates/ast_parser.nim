@@ -1208,6 +1208,17 @@ proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
       project.nodes[file] = tree
     except ParseError as e:
       recordFailure(project.parse, file, e)
+    except CatchableError as e:
+      # Gemini round-3 HIGH: `parsePNode` -> `readFile` can raise
+      # `IOError`/`OSError` (permission denied, path is dir, etc.). Pre-fix
+      # only `ParseError` was caught, so a single unreadable file would
+      # abort the entire batch instead of producing a structured failure.
+      # Wrap as a `ParseError` so the rest of the pipeline (formatters,
+      # JSON envelope, GitHub annotations) handles it identically to a
+      # syntax error.
+      let pe = newException(ParseError, "I/O error reading " & file & ": " & e.msg)
+      pe.path = file
+      recordFailure(project.parse, file, pe)
 
   for path in paths:
     if path.endsWith(".nim"):
