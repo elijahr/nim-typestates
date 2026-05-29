@@ -65,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   guard makes the "no usable type name" precondition explicit at the
   proc entry and avoids the wasted render. (Gemini round-3 MEDIUM on
   PR #15.)
+- Defensive guard against empty `nnkDotExpr`/`nnkAccQuoted` AST nodes
+  in TypestateOp idempotency check (prevents potential compiler crash
+  on macro-generated malformed AST). (Gemini round-4 on PR #15.)
 
 ### Added
 
