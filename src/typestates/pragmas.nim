@@ -931,8 +931,8 @@ macro transition*(procDef: untyped): untyped =
             tagsNode = wrapped
           break
       of nnkCall:
-        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags") and
-            child.len > 1:
+        if child.len > 1 and child[0].kind in {nnkIdent, nnkSym} and
+            child[0].eqIdent("tags"):
           if child[1].kind == nnkBracket:
             tagsNode = child[1]
           else:

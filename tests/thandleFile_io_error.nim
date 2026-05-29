@@ -22,7 +22,9 @@
 ## report a false green — root masking the failure mode is itself a hazard
 ## the operator should know about.
 
-import std/[unittest, os, posix, tables]
+import std/[unittest, os, tables]
+when not defined(windows):
+  import std/posix
 import ../src/typestates/ast_parser
 
 suite "handleFile IOError handling (Gemini round-3 HIGH)":

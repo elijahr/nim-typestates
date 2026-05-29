@@ -79,6 +79,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `` pragmas.`TypestateOp` ``). Previously, only bare ident/sym RHS
   was matched, so a backticked qualified form would have produced a
   duplicate `TypestateOp` entry. (Gemini round-7 on PR #15.)
+- Cross-platform fix: `tests/thandleFile_io_error.nim` no longer
+  imports `std/posix` unconditionally (the module is unavailable on
+  Windows). The import is now gated by `when not defined(windows):`;
+  the test itself was already Windows-skipped at runtime. (Gemini
+  round-8 HIGH on PR #15.)
+- Reordered `nnkCall` guard in `transition` macro to check
+  `child.len > 1` before `child[0]` to prevent compile-time index
+  out-of-bounds on macro-generated empty `nnkCall` nodes. (Gemini
+  round-8 MEDIUM on PR #15.)
 
 ### Added
 
