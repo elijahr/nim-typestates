@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.0] - 2026-05-28
+## [0.11.0] - 2026-05-29
+
+### Fixed
+
+- **Bracketless `{.tags: SingleTag.}` form on `{.transition.}` procs**
+  no longer causes the macro to append a duplicate `tags:` pragma.
+  Previously the merge logic only recognized the bracketed form
+  (`{.tags: [X].}`) and silently appended a second `{.tags: [TypestateOp,
+  RootEffect].}` pragma when the user wrote the bracketless single-tag
+  form. Nim treats only the last `tags:` pragma as authoritative, so the
+  user's tag was silently dropped from the proc's effect set, defeating
+  any `{.forbids: [...].}` regions that depended on it. The macro now
+  normalizes the bracketless form into a bracket node in-place and
+  merges `TypestateOp` into it idempotently, preserving the user's
+  original tag and source location. (Gemini Finding 2 on PR #15.)
+- **CLI `typestates verify` path validation** now correctly flags any
+  non-existent path or directory with the dedicated `fcFileNotFound`
+  diagnostic, not only paths ending in `.nim`. Previously a missing
+  directory (`src/missing/`) or an extensionless path was silently
+  dropped into the parser and surfaced as a generic parse error,
+  obscuring the actual problem. (Gemini Finding 1 on PR #15.)
 
 ### Added
 
@@ -44,13 +64,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known issues for 0.11.0
 
-- **Idempotency check is identifier-based.** The "already-listed
-  `TypestateOp`" check uses `eqIdent` on `nnkIdent` / `nnkSym` entries.
-  Module-qualified forms (`pragmas.TypestateOp`, an `nnkDotExpr`) and
-  backtick-quoted forms (`` `TypestateOp` ``, an `nnkAccQuoted`) bypass
-  the dedup and produce a harmless duplicate entry; Nim's semantic
-  layer de-duplicates them, so behaviour is correct but the AST has
-  a redundant node. To be widened in a follow-up release.
+- **Idempotency check is identifier-based for qualified forms.** The
+  "already-listed `TypestateOp`" check uses `eqIdent` on `nnkIdent` /
+  `nnkSym` entries inside the bracketed tag list. Module-qualified
+  forms (`pragmas.TypestateOp`, an `nnkDotExpr`) and backtick-quoted
+  forms (`` `TypestateOp` ``, an `nnkAccQuoted`) bypass the dedup and
+  produce a harmless duplicate entry inside the same bracket; Nim's
+  semantic layer de-duplicates them, so behaviour is correct but the
+  AST has a redundant node. To be widened in a follow-up release. (The
+  bracketless surface form `{.tags: SingleTag.}` is correctly handled
+  as of the v0.11.0 fix above.)
 
 ### Withdrawn (2026-05-28)
 
