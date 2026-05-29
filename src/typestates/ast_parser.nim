@@ -104,6 +104,20 @@ proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError)
   ## inside `parseTypestatesAst` and `parseTypestatesAstWithNodes`. Prefers the
   ## structured `e.path` and falls back to the as-encountered `fallbackPath`
   ## when the error carries no path (e.g. a file-not-found raised before parse).
+  ##
+  ## Defensive nil guard (Gemini round-2 Finding 2): no current call site
+  ## passes `nil`, but future refactors might (e.g. an `except CatchableError`
+  ## branch that forgets to construct a `ParseError`). Without the guard,
+  ## dereferencing `e.path` would crash with a hard SIGSEGV instead of
+  ## producing a useful failure record. Synthesize a placeholder failure
+  ## describing the missing exception so the caller still gets a structured
+  ## diagnostic.
+  if e == nil:
+    pr.failures.add ParseFailure(
+      path: fallbackPath, line: 0, column: 0,
+      message: "internal error: recordFailure called with nil exception"
+    )
+    return
   let p = if e.path.len > 0: e.path else: fallbackPath
   pr.failures.add ParseFailure(path: p, line: e.line, column: e.column, message: e.msg)
 
