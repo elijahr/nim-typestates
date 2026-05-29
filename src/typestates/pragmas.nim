@@ -13,6 +13,18 @@ import types, registry, verify
 
 export verify
 
+type TypestateOp* = object of RootEffect
+  ## Implicit effect tag injected into every `{.transition.}` proc.
+  ##
+  ## Under `{.experimental: "strictEffects".}` this enables
+  ## `{.forbids: [TypestateOp].}` regions to statically assert that no
+  ## typestate transition reaches them — even transitively through
+  ## untagged intermediate callers.  The injection is additive (merges
+  ## into any existing `tags: [...]` list) and idempotent (no duplicate
+  ## entry if the user has already named `TypestateOp` themselves).
+  ## Outside `strictEffects` Nim does not enforce tag propagation, so
+  ## existing callers see zero behaviour change.
+
 # Compile-time tracking of which modules have sealed typestates
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
@@ -868,6 +880,72 @@ macro transition*(procDef: untyped): untyped =
   # If no raises pragma, add {.raises: [].} to enable compiler checking
   if not hasRaises:
     result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
+
+  # Inject the implicit `TypestateOp` effect tag (Task A4).
+  #
+  # Every `{.transition.}` proc carries `TypestateOp` in its effect tag
+  # set so that, under `{.experimental: "strictEffects".}`, a region
+  # declared `{.forbids: [TypestateOp].}` can statically reject any
+  # caller that reaches a transition (even transitively through an
+  # untagged intermediary).
+  #
+  # Merge rules:
+  #   * additive — if the user already wrote `{.tags: [X].}`, the
+  #     result becomes `{.tags: [X, TypestateOp].}` (X is preserved).
+  #   * idempotent — if the user wrote `{.tags: [TypestateOp, ...].}`
+  #     themselves, no second entry is added.
+  #   * if no `tags:` pragma exists, a fresh
+  #     `{.tags: [TypestateOp].}` colon-expr is appended.
+  #
+  # Outside `strictEffects` Nim performs no tag propagation, so
+  # existing callsites that opt out see zero behaviour change.
+  let opIdent = ident("TypestateOp")
+  var tagsNode: NimNode = nil
+  let resultPragma = result.pragma
+  if resultPragma.kind != nnkEmpty:
+    for child in resultPragma:
+      case child.kind
+      of nnkExprColonExpr:
+        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags") and
+            child[1].kind == nnkBracket:
+          tagsNode = child[1]
+          break
+      of nnkCall:
+        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags") and
+            child.len > 1 and child[1].kind == nnkBracket:
+          tagsNode = child[1]
+          break
+      else:
+        discard
+
+  # Backward-compat note: when the macro synthesises a fresh `tags:`
+  # pragma we ALSO include `RootEffect` alongside `TypestateOp`.  Nim's
+  # tag system treats `tags: [...]` as an upper bound on the proc's
+  # effect set, so a bare `tags: [TypestateOp]` would reject any
+  # transition whose body (or wrapper macros like chronos `async`)
+  # exercises additional effects.  Listing `RootEffect` re-admits the
+  # universal supertype without weakening the `forbids: [TypestateOp]`
+  # check — forbids matches the literal `TypestateOp` tag, not its
+  # ancestors.  When the user has already declared their own `tags:`
+  # list we trust their declaration and only append `TypestateOp`
+  # (idempotently).
+  let rootEffectIdent = ident("RootEffect")
+  if tagsNode == nil:
+    # No existing tags pragma — synthesise `tags: [TypestateOp, RootEffect]`.
+    result.addPragma(
+      nnkExprColonExpr.newTree(
+        ident("tags"), nnkBracket.newTree(opIdent, rootEffectIdent)
+      )
+    )
+  else:
+    # Idempotency check: skip if the user already listed TypestateOp.
+    var alreadyPresent = false
+    for entry in tagsNode:
+      if entry.kind in {nnkIdent, nnkSym} and entry.eqIdent("TypestateOp"):
+        alreadyPresent = true
+        break
+    if not alreadyPresent:
+      tagsNode.add(opIdent)
 
   # F5: register the transition for state-aware error decoy emission.
   #

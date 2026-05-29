@@ -38,7 +38,7 @@ proc bindIt(u: Unbound): Bound {.transition.} =
 # would not trip.  The compile-fail sibling test covers the forbid path
 # (the load-bearing assertion); this file verifies the happy-path call
 # under an explicitly tagged caller compiles AND runs.
-proc forwarder(u: Unbound): Bound {.tags: [TypestateOp].} =
+proc forwarder(u: Unbound): Bound {.tags: [TypestateOp, RootEffect].} =
   bindIt(u)
 
 verifyTypestates()
