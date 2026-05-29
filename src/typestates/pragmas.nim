@@ -991,7 +991,12 @@ macro transition*(procDef: untyped): untyped =
         if entry.len < 2:
           continue
         let rhs = entry[^1]
-        if rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp"):
+        # Round-7 widening (Gemini): the RHS of a qualified form may itself
+        # be `nnkAccQuoted` (e.g., `pragmas.` followed by a backticked
+        # identifier). Treat both forms equivalently.
+        if (rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp")) or
+            (rhs.kind == nnkAccQuoted and rhs.len >= 1 and
+             rhs[0].kind in {nnkIdent, nnkSym} and rhs[0].eqIdent("TypestateOp")):
           alreadyPresent = true
           break
       of nnkAccQuoted:

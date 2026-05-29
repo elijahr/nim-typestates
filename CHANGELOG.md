@@ -74,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `entry[^1]` to resolve to the LHS rather than the rightmost
   identifier, producing a false idempotency match. (Gemini round-6
   on PR #15.)
+- Widened qualified-form idempotency check to recognize the RHS of
+  `nnkDotExpr` when it is itself `nnkAccQuoted` (e.g.,
+  `` pragmas.`TypestateOp` ``). Previously, only bare ident/sym RHS
+  was matched, so a backticked qualified form would have produced a
+  duplicate `TypestateOp` entry. (Gemini round-7 on PR #15.)
 
 ### Added
 
