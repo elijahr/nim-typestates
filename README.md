@@ -123,7 +123,7 @@ typestate Container[T]:
 ### TypestateOp implicit effect
 
 Every `{.transition.}` proc carries `TypestateOp` (defined in
-`typestates/pragmas`, a `distinct object of RootEffect`) in its effect
+`typestates/pragmas`, an `object of RootEffect`) in its effect
 tag set. Under `{.experimental: "strictEffects".}` you can declare
 `{.forbids: [TypestateOp].}` on a region to statically assert "no
 typestate transition reaches me — not directly, not transitively through
