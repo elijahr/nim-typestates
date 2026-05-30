@@ -13,6 +13,18 @@ import types, registry, verify
 
 export verify
 
+type TypestateOp* = object of RootEffect
+  ## Implicit effect tag injected into every `{.transition.}` proc.
+  ##
+  ## Under `{.experimental: "strictEffects".}` this enables
+  ## `{.forbids: [TypestateOp].}` regions to statically assert that no
+  ## typestate transition reaches them — even transitively through
+  ## untagged intermediate callers.  The injection is additive (merges
+  ## into any existing `tags: [...]` list) and idempotent (no duplicate
+  ## entry if the user has already named `TypestateOp` themselves).
+  ## Outside `strictEffects` Nim does not enforce tag propagation, so
+  ## existing callers see zero behaviour change.
+
 # Compile-time tracking of which modules have sealed typestates
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
@@ -81,6 +93,113 @@ template transparentWrapper*() {.pragma.}
   ## type-level AST interactions simple and consistent with the
   ## `notATransition` marker pattern.
 
+template transitionError*(msg: string) {.pragma.}
+  ## Author-site diagnostic-string override for `{.transition.}` and
+  ## `{.destructorTransition.}` declaration-time errors.
+  ##
+  ## Use as a sibling pragma to pin a custom error message that the Nim
+  ## compiler emits (verbatim, with the standard file:line prefix) when a
+  ## transition declaration is invalid (e.g., the source/destination edge
+  ## is not in the typestate's transition graph, or the destructor's
+  ## terminal target is not declared).
+  ##
+  ## The pragma itself is a no-op marker — its EFFECT is realized by the
+  ## `transition` and `destructorTransitionCore` macros, which scan the
+  ## host proc's pragma list for a sibling `transitionError: "msg"` and,
+  ## when present, substitute the literal string for the built-in
+  ## diagnostic at every transition-validity `error(...)` site.
+  ##
+  ## **Static-literal only.** The right-hand side must be a string
+  ## literal (no concatenation, no `fmt`, no runtime `var`). All static
+  ## string-literal forms are accepted: plain (`nnkStrLit`), raw
+  ## (`r"..."`, `nnkRStrLit`), and triple-quoted multi-line
+  ## (`"""..."""`, `nnkTripleStrLit`). The extractor fires a compile-time
+  ## error if the rhs is none of these:
+  ## `transitionError must be a static string literal (no concatenation,
+  ## no fmt)`.
+  ##
+  ## **Backwards compatible.** Omitting `transitionError` preserves every
+  ## existing diagnostic byte-for-byte.
+  ##
+  ## **Author-site only.** This pragma customizes the declaration-time
+  ## error message emitted when the typestate author writes an invalid
+  ## transition. It does NOT customize the consumer-call-site CFG-001
+  ## diagnostic emitted from `verify.nim:validateExitEdge` when a caller
+  ## invokes a proc whose required entry state does not match the
+  ## current state of the typestate-attached value. Consumer-call-site
+  ## substitution would require CFG-analyzer changes and is out of scope
+  ## for v0.9.3.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc lock(f: Open): Locked {.transition, transitionError:
+  ##     "Cannot lock an open file: call close() first".} =
+  ##   Locked(f)
+  ##
+  ## proc `=destroy`(c: var Halfopen)
+  ##     {.destructorTransition: Halfopen -> Closed,
+  ##       transitionError: "Halfopen must close before destruction".} =
+  ##   discard
+  ## ```
+  ##
+  ## **v0.9.3 sibling-pragma sweep.** A search of `pragmas.nim` for other
+  ## macro/template decls that emit transition-validity diagnostics
+  ## found only `transition` and `destructorTransition` (via
+  ## `destructorTransitionCore`). The sibling pragmas
+  ## `transparentWrapper`, `skipCfgAnalysis`, and `notATransition` do
+  ## NOT emit transition-validity diagnostics and are out of scope.
+  ## `attachTypestateCore` emits TA-001..TA-004 attachment-validity
+  ## diagnostics (not transition-validity); attachment-error
+  ## customization is a separate feature, not included in v0.9.3.
+
+proc getStaticStringValue(node: NimNode): string {.compileTime.} =
+  ## Enforce static-string-literal rhs for a `transitionError:` sibling
+  ## pragma and return its value.
+  ##
+  ## Shared by the `nnkExprColonExpr` (canonical `transitionError: "msg"`)
+  ## and `nnkCall` (defensive `transitionError("msg")`) branches of
+  ## `extractTransitionErrorPragma`: both accept only string-literal forms
+  ## (`nnkStrLit`, `nnkRStrLit`, `nnkTripleStrLit`) and fire the same
+  ## compile-time error otherwise.
+  ##
+  ## :param node: The pragma rhs node (`pragma[1]`)
+  ## :returns: The literal string value of `node`
+  if node.kind notin {nnkStrLit, nnkRStrLit, nnkTripleStrLit}:
+    error(
+      "transitionError must be a static string literal " & "(no concatenation, no fmt)",
+      node,
+    )
+  return node.strVal
+
+proc extractTransitionErrorPragma*(pragmaNode: NimNode): string {.compileTime.} =
+  ## Scan a proc's `nnkPragma` node for a sibling `transitionError: "msg"`
+  ## pragma and return the literal string, or `""` if absent.
+  ##
+  ## Enforces static-literal: when the LHS is `transitionError` but the
+  ## RHS is not a string literal (`nnkStrLit`, `nnkRStrLit`, or
+  ## `nnkTripleStrLit`), fires a compile-time error.
+  ##
+  ## :param pragmaNode: The `procDef.pragma` node (kind `nnkPragma` or
+  ##                    `nnkEmpty` for procs with no pragmas)
+  ## :returns: The extracted string, or `""` if no `transitionError:`
+  ##           sibling is present.
+  result = ""
+  if pragmaNode.kind == nnkEmpty:
+    return ""
+  for pragma in pragmaNode:
+    case pragma.kind
+    of nnkExprColonExpr, nnkCall:
+      # Accept both the canonical sibling-pragma syntax
+      # (`transitionError: "msg"`, an `nnkExprColonExpr`) and the defensive
+      # call form (`transitionError("msg")`, an `nnkCall`) so users who type
+      # the call form get the same behavior rather than a silent miss.
+      if pragma.len >= 2 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].eqIdent("transitionError"):
+        return getStaticStringValue(pragma[1])
+    else:
+      discard
+
 proc registerTransparentWrapper*(name: string) {.compileTime.} =
   ## Register a generic wrapper type as transparent for `{.transition.}`
   ## return-type validation. Name may be a base name (`"MyResult"`) or a
@@ -105,6 +224,54 @@ proc isTransparentWrapper*(name: string): bool {.compileTime.} =
   result =
     transparentWrappers.contains(name) or
     transparentWrappers.contains(extractBaseName(name))
+
+proc peelNameWrappers*(n: NimNode): NimNode {.compileTime.} =
+  ## Peel `nnkPragmaExpr` then `nnkPostfix` wrappers off a name-position
+  ## node and return the underlying identifier-bearing node.
+  ##
+  ## Param names, proc names, and type-decl heads can nest wrappers in
+  ## either order:
+  ##
+  ## - `p`                 (nnkIdent / nnkSym)             -> unchanged
+  ## - `p*`                (nnkPostfix)                    -> peel Postfix
+  ## - `p {.pragma.}`      (nnkPragmaExpr)                 -> peel PragmaExpr
+  ## - `p* {.pragma.}`     (nnkPragmaExpr(Postfix(*, p)))  -> peel both
+  ## - `` `name` ``        (nnkAccQuoted)                  -> unchanged
+  ##
+  ## AccQuoted, BracketExpr, and other non-wrapper leaves pass through
+  ## untouched — callers must dispatch on the returned node's kind.
+  ##
+  ## The loop form (vs. a single PragmaExpr-then-Postfix pass) handles
+  ## arbitrary wrapper nesting and the inverse `Postfix(PragmaExpr(...))`
+  ## order. Nim's parser only produces the `PragmaExpr(Postfix(...))`
+  ## shape for `T* {.pragma.}`, but downstream macros that hand-build
+  ## TypeDef / ProcDef / IdentDefs ASTs may emit either order or recurse
+  ## deeper; round-18 defensive consistency.
+  result = n
+  while result.kind in {nnkPragmaExpr, nnkPostfix}:
+    if result.kind == nnkPragmaExpr and result.len >= 1:
+      result = result[0]
+    elif result.kind == nnkPostfix and result.len >= 2:
+      result = result[1]
+    else:
+      break
+
+proc accQuotedToStr*(n: NimNode): string {.compileTime.} =
+  ## Reassemble the string form of a backticked identifier from its
+  ## `nnkAccQuoted` AST.
+  ##
+  ## Walks the children of `n` and concatenates `strVal` for each
+  ## `nnkIdent`/`nnkSym` child. Operator-idents like `=destroy` parse as
+  ## `AccQuoted(Ident("="), Ident("destroy"))` and round-trip back to
+  ## `"=destroy"`.
+  ##
+  ## :param n: A node with `n.kind == nnkAccQuoted`
+  ## :returns: The reassembled identifier string. Empty when no
+  ##           Ident/Sym children are present.
+  assert n.kind == nnkAccQuoted, "accQuotedToStr expects nnkAccQuoted; got " & $n.kind
+  for c in n:
+    if c.kind in {nnkIdent, nnkSym}:
+      result.add c.strVal
 
 proc extractTypeName(node: NimNode): string =
   ## Extract the type name from a type AST node.
@@ -301,6 +468,205 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   else:
     result = @[node.repr]
 
+proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileTime.} =
+  ## Walk a procDef's formal parameters and capture every typestate-bearing
+  ## `var T` or `sink T` parameter's name + state type + owning graph name
+  ## + ownership flag.
+  ##
+  ## Round-2 Finding #2: the CFG analyzer (verify.nim, `runCfgAnalyzer`)
+  ## pre-populates `LiveState` with `var T` entries at proc entry so a proc
+  ## that takes `var f: Open` and returns early without consuming `f`
+  ## correctly fires CFG-001.
+  ##
+  ## Round-9 Finding #1: the entry set now ALSO includes `sink T`
+  ## typestate-bearing params (with `isSink=true`). The source-state-aware
+  ## overload lookup (`findTransitionByCalleeAndArgStates`) needs every
+  ## typestate-bearing param's positional index + source state to
+  ## disambiguate overloads whose only difference is the source state of a
+  ## trailing sink param (e.g., `proc tx(a: int, b: sink Open): Closed` vs.
+  ## `proc tx(a: int, b: sink HalfOpen): Closed`). Position-0 sink params
+  ## are already disambiguated by `RegisteredProc.sourceState`, but
+  ## trailing-position sink params were silently excluded by the var-only
+  ## filter — `argStates[paramIndex]` couldn't constrain the search and the
+  ## last-registered overload won by name-only countdown.
+  ##
+  ## Parameter shape: nnkFormalParams is `[returnType, identDefs1, identDefs2, ...]`.
+  ## Each `nnkIdentDefs` is `[name1, name2, ..., type, default]`. Grouped
+  ## leading names (e.g. `proc f(a, b: var Open)`) share a single type slot
+  ## at index `^2`.
+  ##
+  ## Recognised param-kind shapes:
+  ## - `var T`: `nnkVarTy(T)`. `isSink=false`. Pre-populated AND used for
+  ##   overload disambiguation.
+  ## - `sink T`: `nnkCommand(ident("sink"), T)`. `isSink=true`.
+  ##   Pre-populated AND used for overload disambiguation. Round-14
+  ##   reversed the round-9 skip on sink params; canonical conversion
+  ##   bodies (e.g. `result = Dst(s.Base)`) still verify cleanly
+  ##   because `applyCallTransitions`' conversion-consume path drops
+  ##   the sink param from tracking when the body produces its result
+  ##   via the canonical conversion. Symmetric tracking with `var T`
+  ##   closes the gap where a sink-T transition that never references
+  ##   its sink param silently passed the analyzer.
+  ##
+  ## Explicitly EXCLUDED param-kind shapes (no entry produced):
+  ## - bare value `T` (e.g., `proc f(p: Open)`): no Nim modifier wrapper;
+  ##   the param is a copy/move local to the proc with no caller-visible
+  ##   post-state and no positional disambiguation requirement at present
+  ##   (value-T transitions are uncommon in the test suite; if needed,
+  ##   extending the matcher to detect bare typestate-bearing idents would
+  ##   be a future round). The current source-state-aware lookup only
+  ##   exercises var-T and sink-T shapes.
+  ## - `ref T` / `ptr T` / `lent T`: reference-like modifiers; the analyzer
+  ##   does not model heap aliasing today.
+  ## - `static T`, `typedesc[T]`: compile-time-only; never a runtime
+  ##   typestate-bearing local.
+  ##
+  ## Union-source param types (e.g. `var (A | B)`, `sink (A | B)`) are
+  ## skipped: the param's "current state" is ambiguous until the overload
+  ## is resolved at the call site.
+  ##
+  ## Resolution: each leading name's declared type is run through
+  ## `extractTypeName` (peels generic brackets, etc.) and looked up
+  ## against the typestate registry via `findTypestateForState`.
+  ## Non-typestate-bearing params are skipped.
+  result = @[]
+  let params = procDef.params
+  if params.kind != nnkFormalParams:
+    return
+  # Track the running 0-based positional index of the next proc parameter
+  # across IdentDefs entries. Grouped names share a single IdentDefs slot
+  # (e.g. `proc f(a, b: var Open)` has one IdentDefs with two names that
+  # occupy proc positions 0 and 1 respectively). Round-5 Finding #1: the
+  # source-state-aware overload lookup needs each typestate-bearing param's
+  # original positional index to align with the call-site `argStates` seq
+  # (which has one entry per call-site arg position, including non-
+  # typestate-bearing args).
+  var paramPos = 0
+  for i in 1 ..< params.len:
+    let identDefs = params[i]
+    if identDefs.kind != nnkIdentDefs:
+      continue
+    if identDefs.len < 3:
+      continue
+    let nameCount = identDefs.len - 2
+    let typeSlot = identDefs[^2]
+    # Round-9 Finding #1 — recognise BOTH `var T` and `sink T` shapes.
+    # `nnkVarTy(T)` is `var T` (borrowed, isSink=false).
+    # `nnkCommand(ident("sink"), T)` is `sink T` (owned, isSink=true).
+    # Other modifiers (`ref T`, `ptr T`, bare `T`, `static T`, etc.) are
+    # excluded — see proc doc for the full rationale.
+    var isSink = false
+    if typeSlot.kind == nnkVarTy:
+      isSink = false
+    elif typeSlot.kind == nnkCommand and typeSlot.len == 2 and
+        typeSlot[0].kind in {nnkIdent, nnkSym} and typeSlot[0].strVal == "sink":
+      isSink = true
+    else:
+      paramPos += nameCount
+      continue
+    let paramTypes = extractAllSourceTypeNames(typeSlot)
+    if paramTypes.len != 1:
+      # Union-source (`A | B`) or unresolvable: defer to call-site
+      # resolution; the analyzer cannot pre-bind without per-overload
+      # source disambiguation.
+      paramPos += nameCount
+      continue
+    let typeName = paramTypes[0]
+    let typeBase = extractBaseName(typeName)
+    # Round-6 §3.7 ↔ analyzer integration (findings #1 + #4): resolve the
+    # param type by either path:
+    #
+    # 1. Path (a) — typestate-state-typed param: `findTypestateForState`
+    #    returns the owning graph; `stateBase` is the typestate state
+    #    name; `attachedTypeName` is empty.
+    # 2. Path (b) — attached-object param: the param type is bound to a
+    #    typestate via the §3.7 attachment pragma. `findAttachmentForType`
+    #    returns the attachment record; the param's INITIAL state is the
+    #    attachment's `initialState` (NOT the object type name, which is
+    #    not itself a registered state). `attachedTypeName` captures the
+    #    object type name so the analyzer's destructor lookup can key on
+    #    it (destructors on attached object types are registered against
+    #    the object type, not against the state).
+    var graph: TypestateGraph
+    var stateBase: string
+    var attachedTypeNameForParam = ""
+    let graphOpt = findTypestateForState(typeName)
+    if graphOpt.isSome:
+      graph = graphOpt.get
+      stateBase = typeBase
+    else:
+      let attOpt = findAttachmentForType(typeBase)
+      if attOpt.isNone:
+        paramPos += nameCount
+        continue
+      let att = attOpt.get
+      if att.typestateName notin typestateRegistry:
+        # Defensive: registry has the attachment record but the named
+        # typestate is missing. Cannot resolve a coherent initial state;
+        # skip pre-population for this param.
+        paramPos += nameCount
+        continue
+      graph = typestateRegistry[att.typestateName]
+      stateBase = extractBaseName(att.initialState)
+      attachedTypeNameForParam = typeBase
+    for j in 0 ..< nameCount:
+      # Unwrap precedence mirrors `extractTypeDeclName` and
+      # `destructorTransitionCore` proc-name extraction. Param names can
+      # nest wrappers in either order: a plain `p`, an exported `p*`, a
+      # pragma-decorated `p {.x.}`, and the combined exported + pragma form
+      # `p* {.x.}` which Nim parses as `PragmaExpr(Postfix(*, p), Pragma)`.
+      # Backticked names (`nnkAccQuoted`) are also accepted as a leaf
+      # shape. `peelNameWrappers` strips PragmaExpr then Postfix; dispatch
+      # on the final ident-bearing node.
+      let nameNode = peelNameWrappers(identDefs[j])
+      var nameStr: string
+      case nameNode.kind
+      of nnkIdent, nnkSym:
+        nameStr = nameNode.strVal
+      of nnkAccQuoted:
+        let parts = accQuotedToStr(nameNode)
+        if parts.len == 0:
+          continue
+        nameStr = parts
+      else:
+        continue
+      result.add TypestatedParam(
+        name: nameStr,
+        stateType: stateBase,
+        graphName: graph.name,
+        paramIndex: paramPos + j,
+        attachedTypeName: attachedTypeNameForParam,
+        isSink: isSink,
+      )
+    paramPos += nameCount
+
+proc hasSkipCfgAnalysisPragma(pragmaNode: NimNode): bool {.compileTime.} =
+  ## AST scan for `{.skipCfgAnalysis.}` on a procDef's pragma node.
+  ##
+  ## Walks the `nnkPragma` children and matches `nnkIdent`/`nnkSym` with
+  ## strVal `"skipCfgAnalysis"`. Combined forms like
+  ## `{.raises: [], skipCfgAnalysis.}` or
+  ## `{.destructorTransition, skipCfgAnalysis.}` are recognized because
+  ## the scan iterates ALL children, not a single substring.
+  ##
+  ## Critically: this is NOT a CLI substring match (which the verifier
+  ## documentation calls out as broken — see
+  ## `project_typestates_verify_substring_matcher` memory).
+  result = false
+  if pragmaNode.kind == nnkEmpty:
+    return
+  for pragma in pragmaNode:
+    case pragma.kind
+    of nnkIdent, nnkSym:
+      if pragma.eqIdent("skipCfgAnalysis"):
+        return true
+    of nnkExprColonExpr, nnkCall:
+      if pragma.len >= 1 and pragma[0].kind in {nnkIdent, nnkSym} and
+          pragma[0].eqIdent("skipCfgAnalysis"):
+        return true
+    else:
+      discard
+
 macro transition*(procDef: untyped): untyped =
   ## Mark a proc as a state transition and verify it at compile time.
   ##
@@ -330,6 +696,14 @@ macro transition*(procDef: untyped): untyped =
   ##   Hint: Add 'Open -> Locked' to the transitions block.
   ## ```
   result = procDef
+
+  # v0.9.3: validate `{.transitionError: "msg".}` sibling pragma upfront.
+  # Calling the extractor here (rather than inside the error branch
+  # below) ensures the static-string-literal check fires even on
+  # transitions that are otherwise valid — catching authoring mistakes
+  # at the declaration site instead of only when the transition is
+  # broken.
+  let customMsg = extractTransitionErrorPragma(procDef.pragma)
 
   # Extract signature info
   let params = procDef.params
@@ -445,7 +819,17 @@ macro transition*(procDef: untyped): untyped =
         )
 
   if allDiagnostics.len > 0:
-    error(allDiagnostics.join("\n"), procDef)
+    # v0.9.3: if the proc declares `{.transitionError: "msg".}` as a
+    # sibling pragma, replace the built-in diagnostic wholesale. The
+    # custom string surfaces verbatim with the compiler's standard
+    # file:line prefix. Absent / empty preserves the built-in
+    # diagnostic byte-for-byte. `customMsg` is harvested upfront (see
+    # the top of this macro) so the static-string-literal check fires
+    # even for transitions that are otherwise valid.
+    if customMsg.len > 0:
+      error(customMsg, procDef)
+    else:
+      error(allDiagnostics.join("\n"), procDef)
 
   # Check for {.raises.} pragma and enforce {.raises: [].}
   var hasRaises = false
@@ -454,22 +838,17 @@ macro transition*(procDef: untyped): untyped =
 
   if pragmaNode.kind != nnkEmpty:
     for pragma in pragmaNode:
-      var pragmaName = ""
       case pragma.kind
-      of nnkIdent, nnkSym:
-        pragmaName = pragma.strVal
       of nnkExprColonExpr:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # Check if the raises list is non-empty
             if pragma[1].kind == nnkBracket and pragma[1].len > 0:
               raisesIsEmpty = false
       of nnkCall:
         if pragma[0].kind in {nnkIdent, nnkSym}:
-          pragmaName = pragma[0].strVal
-          if pragmaName == "raises":
+          if pragma[0].eqIdent("raises"):
             hasRaises = true
             # raises() or raises([...])
             if pragma.len > 1:
@@ -501,6 +880,136 @@ macro transition*(procDef: untyped): untyped =
   # If no raises pragma, add {.raises: [].} to enable compiler checking
   if not hasRaises:
     result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
+
+  # Inject the implicit `TypestateOp` effect tag (Task A4).
+  #
+  # Every `{.transition.}` proc carries `TypestateOp` in its effect tag
+  # set so that, under `{.experimental: "strictEffects".}`, a region
+  # declared `{.forbids: [TypestateOp].}` can statically reject any
+  # caller that reaches a transition (even transitively through an
+  # untagged intermediary).
+  #
+  # Merge rules:
+  #   * additive — if the user already wrote `{.tags: [X].}`, the
+  #     result becomes `{.tags: [X, TypestateOp].}` (X is preserved).
+  #   * idempotent — if the user wrote `{.tags: [TypestateOp, ...].}`
+  #     themselves, no second entry is added.
+  #   * if no `tags:` pragma exists, a fresh
+  #     `{.tags: [TypestateOp].}` colon-expr is appended.
+  #
+  # Outside `strictEffects` Nim performs no tag propagation, so
+  # existing callsites that opt out see zero behaviour change.
+  let opIdent = ident("TypestateOp")
+  var tagsNode: NimNode = nil
+  let resultPragma = result.pragma
+  if resultPragma.kind != nnkEmpty:
+    # Walk the pragma list looking for an existing `tags:` entry. Two
+    # surface forms exist that we must merge into:
+    #   * bracketed   — `{.tags: [A, B].}`   (child[1] is nnkBracket)
+    #   * bracketless — `{.tags: A.}`        (child[1] is nnkIdent/nnkSym)
+    # Pre-v0.11.0 the bracketless form was missed by this scanner, which
+    # caused the macro to append a SECOND `tags:` pragma; under Nim's
+    # effect tracking only the last `tags:` survives, silently dropping
+    # the user's single tag (Gemini Finding 2). The fix below normalizes
+    # the bracketless form into a bracket in-place so the merge logic
+    # downstream can append TypestateOp idempotently regardless of which
+    # syntactic form the user wrote.
+    for child in resultPragma:
+      case child.kind
+      of nnkExprColonExpr:
+        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags"):
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            # Bracketless: wrap the single tag into a fresh nnkBracket so
+            # the rest of this pass (and any future passes) treat it
+            # uniformly. Mutating child[1] preserves the user's original
+            # tag identity and source location.
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
+          break
+      of nnkCall:
+        if child.len > 1 and child[0].kind in {nnkIdent, nnkSym} and
+            child[0].eqIdent("tags"):
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
+          break
+      else:
+        discard
+
+  # Backward-compat note: when the macro synthesises a fresh `tags:`
+  # pragma we ALSO include `RootEffect` alongside `TypestateOp`.  Nim's
+  # tag system treats `tags: [...]` as an upper bound on the proc's
+  # effect set, so a bare `tags: [TypestateOp]` would reject any
+  # transition whose body (or wrapper macros like chronos `async`)
+  # exercises additional effects.  Listing `RootEffect` re-admits the
+  # universal supertype without weakening the `forbids: [TypestateOp]`
+  # check — forbids matches the literal `TypestateOp` tag, not its
+  # ancestors.  When the user has already declared their own `tags:`
+  # list we trust their declaration and only append `TypestateOp`
+  # (idempotently).
+  let rootEffectIdent = ident("RootEffect")
+  if tagsNode == nil:
+    # No existing tags pragma — synthesise `tags: [TypestateOp, RootEffect]`.
+    result.addPragma(
+      nnkExprColonExpr.newTree(
+        ident("tags"), nnkBracket.newTree(opIdent, rootEffectIdent)
+      )
+    )
+  else:
+    # Idempotency check: skip if the user already listed TypestateOp.
+    # Round-2 widening (Gemini Finding 1): also recognize module-qualified
+    # (`pragmas.TypestateOp`, an `nnkDotExpr` whose rightmost component is
+    # `TypestateOp`) and backtick-quoted (`` `TypestateOp` ``, an
+    # `nnkAccQuoted` whose inner ident is `TypestateOp`) entries. Pre-fix
+    # both forms slipped past the dedup and produced a redundant
+    # `TypestateOp` node in the same bracket — harmless at the effect-set
+    # level but cluttered AST.
+    var alreadyPresent = false
+    for entry in tagsNode:
+      case entry.kind
+      of nnkIdent, nnkSym:
+        if entry.eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      of nnkDotExpr:
+        # Rightmost component of `a.b.TypestateOp` is the bare identifier.
+        # Round-4 (Gemini): guard against empty nnkDotExpr nodes that may
+        # arise from macro-generated or malformed AST; treat as non-match
+        # rather than indexing out-of-bounds and crashing the compiler.
+        # Round-6 tightening (Gemini): a valid `nnkDotExpr` has >= 2 children
+        # (LHS + RHS); a 1-child form would resolve `entry[^1]` to the LHS,
+        # producing a false match. Reject anything narrower than the canonical
+        # `a.b` shape.
+        if entry.len < 2:
+          continue
+        let rhs = entry[^1]
+        # Round-7 widening (Gemini): the RHS of a qualified form may itself
+        # be `nnkAccQuoted` (e.g., `pragmas.` followed by a backticked
+        # identifier). Treat both forms equivalently.
+        if (rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp")) or (
+          rhs.kind == nnkAccQuoted and rhs.len >= 1 and rhs[0].kind in {
+            nnkIdent, nnkSym
+          } and rhs[0].eqIdent("TypestateOp")
+        ):
+          alreadyPresent = true
+          break
+      of nnkAccQuoted:
+        if entry.len >= 1 and entry[0].kind in {nnkIdent, nnkSym} and
+            entry[0].eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      else:
+        discard
+    if not alreadyPresent:
+      tagsNode.add(opIdent)
 
   # F5: register the transition for state-aware error decoy emission.
   #
@@ -537,8 +1046,506 @@ macro transition*(procDef: untyped): untyped =
         modulePath: procDef.lineInfoObj.filename,
         firstParamType: allParams[1][^2].copyNimTree,
         extraParams: extraParams,
+        body: procDef.body,
+        skipCfg: hasSkipCfgAnalysisPragma(procDef.pragma),
+        typestatedParams: extractTypestatedParams(procDef),
       )
     )
+
+template skipCfgAnalysis*() {.pragma.}
+  ## Marker pragma: suppress the v0.9.0 CFG analyzer for this proc.
+  ##
+  ## When applied to a proc registered via `{.transition.}` or
+  ## `{.destructorTransition.}`, the registered proc's `skipCfg` flag is
+  ## set to `true`, telling the CFG analyzer (§3.3) to skip per-local
+  ## terminal-reachability checks for the proc body. Useful as an escape
+  ## hatch when the analyzer cannot model a proc's control flow (e.g.,
+  ## opaque exit via FFI / setjmp-style continuations / asyncdispatch
+  ## bodies the analyzer doesn't yet understand).
+  ##
+  ## The pragma itself is a no-op marker — its EFFECT is realized in the
+  ## destructorTransition / transition macro's pragma-scan pass, which
+  ## inspects `procDef.pragma` as AST nodes (NOT a stringified CLI
+  ## substring scan, which would mis-handle combined pragmas like
+  ## `{.raises: [], skipCfgAnalysis.}`).
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc tricky(x: A): B {.transition, skipCfgAnalysis.} =
+  ##   ## CFG analyzer skips this proc.
+  ##   B(x)
+  ## ```
+
+proc destructorTransitionCore(
+    spec: NimNode, destrDef: NimNode
+): NimNode {.compileTime.} =
+  ## Shared core for both arities of `{.destructorTransition.}`.
+  ##
+  ## :param spec: `nil` for single-arg form; `nnkInfix(->,Src,Dst)` for two-arg form
+  ## :param destrDef: The `=destroy` proc definition
+  ##
+  ## Implements:
+  ##
+  ## - DT-001: not a proc def
+  ## - DT-002: proc name != `=destroy`
+  ## - DT-003: wrong arity
+  ## - DT-004: param not `var T`
+  ## - DT-005: non-empty raises
+  ## - DT-006: param type unknown to typestate registry + attachment registry
+  ## - DT-007: typestate has no terminal states (single-arg only)
+  ## - DT-008: source type is already terminal
+  ## - DT-009: spec malformed (two-arg only)
+  ## - DT-010: spec SrcState mismatch (two-arg only)
+  ## - DT-011: spec DstState not terminal (two-arg only)
+  ## - DT-013: attached-object-param SrcState mismatch (two-arg only)
+  ##
+  ## See: design-destructortransition-cfg-analyzer-20260516.md §3.1, §3.1.1
+  result = destrDef
+  let hasSpec = spec != nil
+
+  # v0.9.3: extract `{.transitionError: "msg".}` sibling pragma once and
+  # thread it into every transition-validity diagnostic below. Empty
+  # string means "no override; preserve the built-in message". The
+  # extractor enforces static-string-literal rhs.
+  #
+  # Triage of `error(...)` sites inside this proc:
+  #   - DT-006, DT-007, DT-008, DT-010, DT-011, DT-013: transition-validity
+  #     (the declaration's relationship to the typestate's state graph is
+  #     invalid) — these substitute `customMsg` when non-empty.
+  #   - DT-001 (not proc def), DT-002 (wrong name), DT-003 (wrong arity),
+  #     DT-004 (not var), DT-005 (non-empty raises), DT-009 (spec
+  #     malformed): shape errors (the destructor declaration is
+  #     syntactically wrong). Keep built-in defaults.
+  #   - "internal:" prefixed errors: invariant violations, not user-facing
+  #     transition-validity. Keep defaults.
+  #
+  # DT-001 fires before we can safely read `destrDef.pragma`, so the
+  # extraction is deferred until after the proc-def shape check.
+  var customMsg = ""
+
+  # Phase 0: Two-arg form — parse spec eagerly so spec-shape errors precede
+  # proc-shape errors when both are present.
+  var parsedSrcStateName, parsedDstStateName: string
+  if hasSpec:
+    if spec.kind != nnkInfix or spec[0].kind notin {nnkIdent, nnkSym} or
+        spec[0].strVal != "->":
+      error(
+        "`destructorTransition` spec must be of the form " &
+          "`SrcState -> DstState`; got `" & spec.repr & "`",
+        spec,
+      )
+    parsedSrcStateName = extractTypeName(spec[1])
+    parsedDstStateName = extractTypeName(spec[2])
+
+  # Phase 1: Shape validation
+  if destrDef.kind != nnkProcDef:
+    error("`destructorTransition` may only be applied to a proc definition", destrDef)
+
+  # v0.9.3: now that we know destrDef is a proc def, safely harvest the
+  # `transitionError:` sibling pragma (if any) for downstream
+  # transition-validity diagnostic substitution.
+  customMsg = extractTransitionErrorPragma(destrDef.pragma)
+
+  # Unwrap precedence mirrors `extractTypeDeclName`: `nnkPragmaExpr` wraps
+  # the export/name node when extra pragmas sit on the proc decl alongside
+  # `{.destructorTransition.}` (e.g. `proc `=destroy`* {.inline,
+  # destructorTransition.}(...)` parses as `PragmaExpr(Postfix(*,
+  # AccQuoted), Pragma)`). `peelNameWrappers` strips the PragmaExpr then
+  # the Postfix, leaving the bare name node (AccQuoted / Ident / Sym) for
+  # the case-dispatch below. Without the PragmaExpr peel the case fell
+  # through to `procNameNode.repr` and returned the entire wrapped form,
+  # failing the `=destroy` discriminator with a misleading "may only be
+  # applied to a `=destroy` hook" diagnostic.
+  let procNameNode = peelNameWrappers(destrDef[0])
+  # For `=destroy`, AccQuoted has two children: `=` and `destroy`;
+  # `accQuotedToStr` concatenates them to recover the operator-ident name.
+  let procName =
+    case procNameNode.kind
+    of nnkAccQuoted:
+      accQuotedToStr(procNameNode)
+    of nnkIdent, nnkSym:
+      procNameNode.strVal
+    else:
+      procNameNode.repr
+  if procName != "=destroy":
+    error(
+      "`destructorTransition` may only be applied to a `=destroy` hook " & "(got `" &
+        procName & "`); use `{.transition.}` for non-destructor procs",
+      destrDef,
+    )
+
+  if destrDef.params.len != 2:
+    # params[0] is return type, params[1..N] are formal params.
+    # destructors take exactly one var-self param.
+    error(
+      "`=destroy` hook with `{.destructorTransition.}` must take exactly one " &
+        "parameter (the var self); got " & $(destrDef.params.len - 1),
+      destrDef,
+    )
+
+  let paramTypeNode = destrDef.params[1][^2]
+  if paramTypeNode.kind != nnkVarTy:
+    error(
+      "`=destroy` hook with `{.destructorTransition.}` must take its parameter " &
+        "by `var`; got `" & paramTypeNode.repr & "`",
+      destrDef,
+    )
+
+  let paramTypeName = extractTypeName(paramTypeNode[0])
+
+  # Phase 2: Resolve the typestate graph and source state. Two paths:
+  #   (a) state-typed param: param type IS a registered typestate state
+  #   (b) attached-object param: param type is bound via §3.7 attachment
+  #
+  # The §3.7 attachment registry is populated by `attachTypestateCore`
+  # (below) when a per-typestate attachment pragma fires on a type
+  # decl. `findAttachmentForType` returns real bindings as of 0.9.0;
+  # path (b) resolves the graph and source state from the attachment
+  # record. Path (a) is tried first so that state-typed params (the
+  # common case) short-circuit the registry lookup.
+  var graph: TypestateGraph
+  var sourceStateName: string
+  var attachedObjectTypeNameOpt = none(string)
+
+  let graphOpt = findTypestateForState(paramTypeName)
+  if graphOpt.isSome:
+    graph = graphOpt.get
+    sourceStateName = paramTypeName
+  else:
+    let attOpt = findAttachmentForType(paramTypeName)
+    if attOpt.isNone:
+      # DT-006: both lookups failed.
+      if customMsg.len > 0:
+        error(customMsg, paramTypeNode)
+      else:
+        error(
+          "`destructorTransition` parameter type `" & paramTypeName &
+            "` is not part of any registered typestate AND no " &
+            "typestate-attachment pragma (§3.7) was found for it.",
+          paramTypeNode,
+        )
+    let att = attOpt.get
+    if att.typestateName notin typestateRegistry:
+      error(
+        "internal: attachment registry references unknown typestate `" &
+          att.typestateName & "`",
+        paramTypeNode,
+      )
+    graph = typestateRegistry[att.typestateName]
+    sourceStateName = att.initialState
+    attachedObjectTypeNameOpt = some(paramTypeName)
+
+  # Phase 3: Terminal-state sanity (DT-007, DT-008)
+  if graph.terminalStates.len == 0:
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` requires the typestate `" & graph.name &
+          "` to declare at least one terminal state via `terminal:`; " &
+          "destructors model terminal transitions and need an explicit terminal.",
+        destrDef,
+      )
+  if graph.isTerminalState(sourceStateName):
+    if customMsg.len > 0:
+      error(customMsg, destrDef)
+    else:
+      error(
+        "`destructorTransition` source type `" & sourceStateName &
+          "` is already a terminal state of typestate `" & graph.name &
+          "`; destructor cannot perform a transition",
+        destrDef,
+      )
+
+  # Phase 4: Two-arg form cross-check (DT-010, DT-011, DT-013)
+  if hasSpec:
+    let srcMatches = parsedSrcStateName == sourceStateName
+    if not srcMatches:
+      if attachedObjectTypeNameOpt.isSome:
+        # DT-013: attached-object-param SrcState mismatch.
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "two-arg `destructorTransition` SrcState (`" & parsedSrcStateName &
+              "`) does not match the attached object's initial state (`" &
+              sourceStateName & "`); attached object type `" & paramTypeName &
+              "` is bound to typestate `" & graph.name & "` with initial state `" &
+              sourceStateName & "`.",
+            spec,
+          )
+      else:
+        # DT-010: state-typed-param mismatch.
+        if customMsg.len > 0:
+          error(customMsg, spec)
+        else:
+          error(
+            "`destructorTransition` spec SrcState `" & parsedSrcStateName &
+              "` does not match destructor parameter type `" & paramTypeName & "`",
+            spec,
+          )
+    # Normalize both sides to bare names before comparing: parser stores
+    # terminal state reprs verbatim (e.g. "Closed[N, T]" for generic
+    # terminals), while `parsedDstStateName` comes from `extractTypeName`
+    # which already strips brackets. Without this normalization, the
+    # membership check rejects any generic-state terminal target.
+    let parsedDstBare = extractBaseName(parsedDstStateName)
+    var dstIsTerminal = false
+    for t in graph.terminalStates:
+      if extractBaseName(t) == parsedDstBare:
+        dstIsTerminal = true
+        break
+    if not dstIsTerminal:
+      let terminals = graph.terminalStates.join(", ")
+      if customMsg.len > 0:
+        error(customMsg, spec)
+      else:
+        error(
+          "`destructorTransition` spec DstState `" & parsedDstStateName &
+            "` is not a terminal state of typestate `" & graph.name &
+            "`; declared terminals: " & terminals,
+          spec,
+        )
+
+  # Phase 5: raises validation + auto-injection (mirrors transition* logic)
+  var hasRaises = false
+  var raisesIsEmpty = true
+  let pragmaNode = destrDef.pragma
+  if pragmaNode.kind != nnkEmpty:
+    for pragma in pragmaNode:
+      case pragma.kind
+      of nnkIdent, nnkSym:
+        discard
+      of nnkExprColonExpr:
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
+          hasRaises = true
+          if pragma[1].kind == nnkBracket and pragma[1].len > 0:
+            raisesIsEmpty = false
+      of nnkCall:
+        if pragma[0].kind in {nnkIdent, nnkSym} and pragma[0].eqIdent("raises"):
+          hasRaises = true
+          if pragma.len > 1:
+            let arg = pragma[1]
+            if arg.kind == nnkBracket and arg.len > 0:
+              raisesIsEmpty = false
+      else:
+        discard
+  if hasRaises and not raisesIsEmpty:
+    error(
+      "`destructorTransition` destructor `" & procName &
+        "` has non-empty raises list; destructors must have `{.raises: [].}`",
+      destrDef,
+    )
+  if not hasRaises:
+    result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
+
+  # Phase 6: Register the destructor in the proc registry.
+  let destStates =
+    if hasSpec:
+      @[parsedDstStateName]
+    else:
+      graph.terminalStates
+  let skipCfg = hasSkipCfgAnalysisPragma(destrDef.pragma)
+  registerProc(
+    RegisteredProc(
+      name: "=destroy",
+      sourceState: sourceStateName,
+      destStates: destStates,
+      kind: pkDestructorTransition,
+      declaredAt: destrDef.lineInfoObj,
+      modulePath: destrDef.lineInfoObj.filename,
+      firstParamType: paramTypeNode.copyNimTree,
+      extraParams: @[],
+      body: destrDef.body,
+      skipCfg: skipCfg,
+      attachedObjectTypeName: attachedObjectTypeNameOpt,
+      typestatedParams: extractTypestatedParams(destrDef),
+    )
+  )
+
+macro destructorTransition*(destrDef: untyped): untyped =
+  ## Mark a `=destroy` hook as a terminal state transition (single-arg form).
+  ##
+  ## Use when the typestate declares exactly one terminal state OR when the
+  ## destructor consumes the union of all terminals; the destination is
+  ## inferred as the typestate's `terminalStates` set.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## typestate Connection:
+  ##   states Open, Closed
+  ##   terminal: Closed
+  ##   transitions:
+  ##     Open -> Closed
+  ##
+  ## proc `=destroy`(c: var Open) {.destructorTransition.} =
+  ##   discard
+  ## ```
+  ##
+  ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
+  destructorTransitionCore(nil, destrDef)
+
+macro destructorTransition*(spec: untyped, destrDef: untyped): untyped =
+  ## Mark a `=destroy` hook as a terminal state transition (two-arg form).
+  ##
+  ## Use when the typestate declares multiple terminal states and the
+  ## destructor pins exactly one. The spec syntax `SrcState -> DstState`
+  ## mirrors `{.transition: A -> B.}` for visual symmetry.
+  ##
+  ## Example:
+  ##
+  ## ```nim
+  ## proc `=destroy`(c: var Open)
+  ##     {.destructorTransition: Open -> Closed.} =
+  ##   discard
+  ## ```
+  ##
+  ## See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md
+  destructorTransitionCore(spec, destrDef)
+
+proc extractTypeDeclName*(typeDef: NimNode): string {.compileTime.} =
+  ## Extract the base type name from a `nnkTypeDef` node, stripping
+  ## visibility postfix (`*`) and generic params (`[T]`).
+  ##
+  ## Examples (input node[0] shape -> result):
+  ## - `PinnedScope`           (nnkIdent)                  -> `"PinnedScope"`
+  ## - `PinnedScope*`          (nnkPostfix)                -> `"PinnedScope"`
+  ## - `PinnedScope[MT, CC]`   (nnkBracketExpr)            -> `"PinnedScope"`
+  ## - `PinnedScope*[MT, CC]`  (nnkPragmaExpr->Postfix)    -> `"PinnedScope"`
+  ##
+  ## NOTE: when a pragma is on a type decl, `typeDef[0]` may be wrapped in
+  ## an `nnkPragmaExpr` whose `[0]` is the name node and `[1]` is the
+  ## pragma. We accept `typeDef` here so the caller can pass the raw
+  ## TypeDef without prior unwrapping.
+  # `peelNameWrappers` strips the natural Nim parse shapes:
+  # PragmaExpr(Postfix(*, name)) for `T* {.pragma.}`, Postfix(*, name)
+  # for `T*`, PragmaExpr(name) for `T {.pragma.}`, leaving the bare
+  # ident / sym / BracketExpr for the case-dispatch below.
+  let nameNode = peelNameWrappers(typeDef[0])
+  case nameNode.kind
+  of nnkIdent, nnkSym:
+    return nameNode.strVal
+  of nnkAccQuoted:
+    # Backticked type names like `type \`foo\` = object` arrive here as
+    # `AccQuoted(Ident("foo"))`. Round-18 defensive consistency: reassemble
+    # the bare identifier via `accQuotedToStr` (matching
+    # `extractTypestatedParams` and `destructorTransitionCore`) so
+    # attachment-registry lookups key off the bare name rather than the
+    # `.repr` form with surrounding backticks preserved.
+    return accQuotedToStr(nameNode)
+  of nnkBracketExpr:
+    # `name[T]` — generic. Head is typically Ident/Sym, but for a
+    # manually-built or unusual AST shape it may itself wrap an
+    # `nnkPostfix(*, Ident)` (the exported-generic form
+    # `BracketExpr(Postfix(*, T), G)`). Peel the head so the returned
+    # base name never carries a stale export marker. The natural Nim
+    # parse of `type T*[G] = object` puts `Postfix` at the TypeDef head
+    # (handled by the outer peel above) rather than inside a
+    # BracketExpr, but this defensive peel keeps the proc robust
+    # against any caller that builds the BracketExpr-first shape and
+    # is the path exercised by `textract_type_decl_name`'s hand-built
+    # AST for the `T*[G]` case.
+    let head = peelNameWrappers(nameNode[0])
+    case head.kind
+    of nnkIdent, nnkSym:
+      return head.strVal
+    of nnkAccQuoted:
+      # Backticked head inside a BracketExpr (`\`foo\`[G]` or
+      # `\`foo\`*[G]`). Round-18 defensive consistency.
+      return accQuotedToStr(head)
+    else:
+      return head.repr
+  else:
+    return nameNode.repr
+
+proc attachTypestateCore*(
+    typestateName: string, initial: NimNode, typeDef: NimNode
+): NimNode {.compileTime.} =
+  ## Shared core for the per-typestate attachment-pragma macros emitted
+  ## by the `typestate` macro (see `codegen.generateAttachmentMarker`).
+  ##
+  ## Implements §3.7 verification rules TA-001..TA-004 and registers the
+  ## binding in `typestateAttachments` so destructorTransition's path (b)
+  ## source resolution and CFG analyzer scope detection can recover the
+  ## initial state from the attached object type name.
+  ##
+  ## TA-001 is unreachable through this entry point — the per-typestate
+  ## macro emitter only runs WHEN the typestate is declared, so an
+  ## undeclared `<TypestateName>` surfaces as Nim's "undeclared identifier"
+  ## error at parse time, attributed to the pragma site. We still emit
+  ## the TA-001 message defensively in case the registry is concurrently
+  ## mutated.
+  ##
+  ## :param typestateName: Name of the typestate whose marker pragma fired
+  ## :param initial: The initial-state argument as written in the pragma
+  ## :param typeDef: The TypeDef AST the pragma decorates
+  ## :returns: `typeDef` unchanged (the pragma is registration-only)
+  if typestateName notin typestateRegistry:
+    # TA-001 (defensive — see proc doc).
+    error(
+      "typestate-attachment pragma: `" & typestateName &
+        "` is not a declared typestate; declare it with `typestate " & typestateName &
+        ": ...` before attaching",
+      initial,
+    )
+  let graph = typestateRegistry[typestateName]
+  let initialStateName = extractTypeName(initial)
+
+  # TA-002: initial state must exist in the typestate's state list.
+  var stateExists = false
+  var declaredStates: seq[string] = @[]
+  for stateKey, state in graph.states:
+    declaredStates.add state.name
+    if state.name == initialStateName:
+      stateExists = true
+  if not stateExists:
+    error(
+      "typestate-attachment pragma: `" & initialStateName &
+        "` is not a state of typestate `" & typestateName & "`; declared states: " &
+        $declaredStates,
+      initial,
+    )
+
+  # TA-003: initial state must not be terminal.
+  if graph.isTerminalState(initialStateName):
+    error(
+      "typestate-attachment pragma: initial state `" & initialStateName &
+        "` is a terminal state of typestate `" & typestateName & "`; instances of `" &
+        extractTypeDeclName(typeDef) &
+        "` would start in a terminal state with no valid transitions",
+      initial,
+    )
+
+  let typeName = extractTypeDeclName(typeDef)
+  let typeKey = extractBaseName(typeName)
+
+  # TA-004: duplicate attachment.
+  let prior = findAttachmentForType(typeKey)
+  if prior.isSome:
+    let p = prior.get
+    error(
+      "typestate-attachment pragma: type `" & typeName &
+        "` is already attached to typestate `" & p.typestateName &
+        "`; a type may attach to at most one typestate",
+      initial,
+    )
+
+  # Register the attachment. We use the LineInfo of the `initial` node
+  # because that pins the diagnostic to the pragma site, not the type
+  # body — useful for downstream tooling.
+  addAttachment(
+    typeKey,
+    AttachmentInfo(
+      typestateName: typestateName,
+      initialState: initialStateName,
+      declaredAt: initial.lineInfoObj,
+    ),
+  )
+
+  # Pragma is registration-only — return the type decl unchanged.
+  result = typeDef
 
 template notATransition*() {.pragma.}
   ## Mark a proc as intentionally not a state transition.

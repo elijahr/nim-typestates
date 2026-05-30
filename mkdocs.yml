@@ -92,6 +92,8 @@ nav:
     - Examples: guide/examples.md
     - Strict Mode: guide/strict-mode.md
     - Cast Protection: guide/cast-protection.md
+    - Destructor Transitions: guide/destructor-transitions.md
+    - CFG Analyzer: guide/cfg-analyzer.md
     - Verification: guide/verification.md
     - CI Integration: guide/ci-integration.md
     - CLI Reference: guide/cli.md

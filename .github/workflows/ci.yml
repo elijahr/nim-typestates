@@ -22,7 +22,11 @@ jobs:
           nim-version: 'stable'
 
       - name: Install nph
-        run: nimble install -y nph
+        # Pinned to match the version documented in .pre-commit-config.yaml.
+        # Floating on latest causes spurious format-diff churn between local
+        # pre-commit and CI when nph's formatting output changes across
+        # releases.
+        run: nimble install -y nph@0.7.0
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1

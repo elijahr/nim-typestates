@@ -145,7 +145,7 @@ func orderId(order: OrderStates): string =
   ## Get order ID.
   order.Order.id
 
-func trackingNumber(order: Shipped): string =
+func trackingNumber(order: Shipped): string {.notATransition.} =
   ## Get tracking number.
   order.Order.trackingNumber
 

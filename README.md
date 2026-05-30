@@ -120,6 +120,85 @@ typestate Container[T]:
     Empty[T] -> Full[T]
 ```
 
+### TypestateOp implicit effect
+
+Every `{.transition.}` proc carries `TypestateOp` (defined in
+`typestates/pragmas`, an `object of RootEffect`) in its effect
+tag set. Under `{.experimental: "strictEffects".}` you can declare
+`{.forbids: [TypestateOp].}` on a region to statically assert "no
+typestate transition reaches me — not directly, not transitively through
+an untagged intermediate caller."
+
+```nim
+{.experimental: "strictEffects".}
+import typestates
+
+type
+  EndpointBase = object
+  Unbound = distinct EndpointBase
+  Bound = distinct EndpointBase
+
+typestate Endpoint:
+  consumeOnTransition = false
+  strictTransitions = false
+  states Unbound, Bound
+  transitions:
+    Unbound -> Bound
+
+proc bindIt(u: Unbound): Bound {.transition.} =
+  Bound(EndpointBase(u))
+
+proc pureRegion() {.forbids: [TypestateOp].} =
+  discard  # OK: no transition reachable from here.
+
+# proc badRegion() {.forbids: [TypestateOp].} =
+#   let u = Unbound(EndpointBase())
+#   discard bindIt(u)   # would fail to compile: TypestateOp forbidden here.
+
+verifyTypestates()
+```
+
+The injection is **additive** and **idempotent**:
+
+- **Additive.** If you already wrote `{.tags: [MyEffect].}` on a
+  transition, the macro appends `TypestateOp` so the final list is
+  `[MyEffect, TypestateOp]`. Your own tag is preserved.
+- **Idempotent.** If you explicitly listed `TypestateOp` yourself, no
+  duplicate is added. (The check uses `eqIdent` on `nnkIdent` / `nnkSym`;
+  module-qualified forms like `pragmas.TypestateOp` or backtick-quoted
+  forms produce a harmless duplicate entry — Nim de-duplicates them
+  semantically. Will be widened in a follow-up.)
+
+Outside `strictEffects` Nim performs no tag propagation, so existing
+callers see zero behaviour change.
+
+**Effects are orthogonal to typestates.** Typestates describe a value's
+position in a state graph; effects describe what a proc can do. The
+`TypestateOp` injection lets you assert the orthogonal property "this
+region performs no state transitions" without forcing every author to
+remember a separate marker pragma. Combined-pragma forms like
+`{.transition, tags: [ProducerOp], gcsafe.}` work because the v0.10.0
+AST verifier walks pragma nodes structurally (no text-scanner).
+
+#### Note: user-supplied tags become an upper bound
+
+When you write `{.transition, tags: [SomeNarrowTag].}`, the macro appends
+`TypestateOp` (without `RootEffect`). Nim's `tags:` is an **upper bound**
+on the proc's effect set, so if your transition body needs broader
+effects (allocation, IO, etc.) you must add `RootEffect` yourself:
+
+```nim
+proc bindIt(u: Unbound): Bound
+    {.transition, tags: [SomeNarrowTag, RootEffect], gcsafe.} =
+  Bound(EndpointBase(u))
+```
+
+Bare `{.transition.}` procs get `{.tags: [TypestateOp, RootEffect].}`
+synthesised by the macro for exactly this reason — `RootEffect` keeps
+the bound permissive while `TypestateOp` keeps the `forbids:` check
+load-bearing (`forbids` matches the literal `TypestateOp` tag, not its
+ancestors).
+
 ### Cross-type bridges
 
 If finishing one typestate hands control to another (auth flow into a session, for example), declare the bridge:
@@ -152,6 +231,7 @@ Bridges show up in the generated diagrams alongside ordinary transitions.
 - Strict mode that requires every proc on a state to be marked `{.transition.}` or `{.notATransition.}`
 - Opt-in cast-bypass lint via `opaqueStates = true` (CLI-only, warnings only)
 - Sealed typestates that restrict transitions to the defining module
+- Implicit `TypestateOp` effect tag on every `{.transition.}` proc, enabling `{.forbids: [TypestateOp].}` regions under `{.experimental: "strictEffects".}`
 - A `typestates` CLI that verifies a project tree and exports diagrams
 
 ## CLI
@@ -208,7 +288,7 @@ Fork, create a branch, run `nimble test` and `nimble compileExamples` before ope
 ## Prior art
 
 - [Typestate pattern in Rust](https://cliffle.com/blog/rust-typestate/) (Cliff Biffle)
-- [`typestate` crate for Rust](https://github.com/rustype/typestate)
+- [`typestate` crate for Rust](https://github.com/rustype/typestate-rs)
 - [Plaid](http://www.cs.cmu.edu/~aldrich/plaid/), a research language with first-class typestate
 - Strom & Yemini, ["Typestate: A programming language concept for enhancing software reliability"](https://doi.org/10.1109/TSE.1986.6312929) (1986) — the original paper
 
