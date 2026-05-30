@@ -104,6 +104,22 @@ proc recordFailure(pr: var ParseResult, fallbackPath: string, e: ref ParseError)
   ## inside `parseTypestatesAst` and `parseTypestatesAstWithNodes`. Prefers the
   ## structured `e.path` and falls back to the as-encountered `fallbackPath`
   ## when the error carries no path (e.g. a file-not-found raised before parse).
+  ##
+  ## Defensive nil guard (Gemini round-2 Finding 2): no current call site
+  ## passes `nil`, but future refactors might (e.g. an `except CatchableError`
+  ## branch that forgets to construct a `ParseError`). Without the guard,
+  ## dereferencing `e.path` would crash with a hard SIGSEGV instead of
+  ## producing a useful failure record. Synthesize a placeholder failure
+  ## describing the missing exception so the caller still gets a structured
+  ## diagnostic.
+  if e == nil:
+    pr.failures.add ParseFailure(
+      path: fallbackPath,
+      line: 0,
+      column: 0,
+      message: "internal error: recordFailure called with nil exception",
+    )
+    return
   let p = if e.path.len > 0: e.path else: fallbackPath
   pr.failures.add ParseFailure(path: p, line: e.line, column: e.column, message: e.msg)
 
@@ -743,7 +759,13 @@ proc peelToBaseTypeName*(node: PNode): string =
   ## `nkDistinctTy` has no name of its own, so this returns "" for it rather
   ## than transitively peeling to the underlying `T`. (A named distinct alias is
   ## referenced by its alias name, which arrives here as an `nkIdent`.)
-  if node == nil:
+  if node == nil or node.kind == nkEmpty:
+    # Gemini round-3 MEDIUM: tighten the defensive guard. A bare `nil` was
+    # already covered, but an `nkEmpty` node (which the parser produces for
+    # missing type slots, e.g. an inferred-type parameter) would fall through
+    # to the `else` branch and pay for a `renderTree` that returns "" anyway.
+    # Treat them identically up front to avoid pointless work and to make the
+    # "no usable type name" precondition explicit at the proc entry.
     return ""
   case node.kind
   of peelableModifierTyKinds:
@@ -1192,6 +1214,17 @@ proc parseTypestatesAstWithNodes*(paths: seq[string]): ParsedProject =
       project.nodes[file] = tree
     except ParseError as e:
       recordFailure(project.parse, file, e)
+    except CatchableError as e:
+      # Gemini round-3 HIGH: `parsePNode` -> `readFile` can raise
+      # `IOError`/`OSError` (permission denied, path is dir, etc.). Pre-fix
+      # only `ParseError` was caught, so a single unreadable file would
+      # abort the entire batch instead of producing a structured failure.
+      # Wrap as a `ParseError` so the rest of the pipeline (formatters,
+      # JSON envelope, GitHub annotations) handles it identically to a
+      # syntax error.
+      let pe = newException(ParseError, "I/O error reading " & file & ": " & e.msg)
+      pe.path = file
+      recordFailure(project.parse, file, pe)
 
   for path in paths:
     if path.endsWith(".nim"):

@@ -7,6 +7,158 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-29
+
+Defensive fixes on top of v0.11.0. No new public API; semver-minor bump for
+clarity over a patch. v0.11.0 remains frozen at commit `8412986`; the
+additional Gemini-round-6/7/8 fixes ship as v0.12.0.
+
+### Fixed
+
+- Tightened `nnkDotExpr` defensive guard from `entry.len == 0` to
+  `entry.len < 2`. A valid dot-access expression has at least two
+  children (LHS + RHS); a single-child node would have caused
+  `entry[^1]` to resolve to the LHS rather than the rightmost
+  identifier, producing a false idempotency match. (Gemini round-6
+  on PR #15.)
+- Widened qualified-form idempotency check to recognize the RHS of
+  `nnkDotExpr` when it is itself `nnkAccQuoted` (e.g.,
+  `` pragmas.`TypestateOp` ``). Previously, only bare ident/sym RHS
+  was matched, so a backticked qualified form would have produced a
+  duplicate `TypestateOp` entry. (Gemini round-7 on PR #15.)
+- Cross-platform fix: `tests/thandleFile_io_error.nim` no longer
+  imports `std/posix` unconditionally (the module is unavailable on
+  Windows). The import is now gated by `when not defined(windows):`;
+  the test itself was already Windows-skipped at runtime. (Gemini
+  round-8 HIGH on PR #15.)
+- Reordered `nnkCall` guard in `transition` macro to check
+  `child.len > 1` before `child[0]` to prevent compile-time index
+  out-of-bounds on macro-generated empty `nnkCall` nodes. (Gemini
+  round-8 MEDIUM on PR #15.)
+
+## [0.11.0] - 2026-05-28
+
+### Fixed
+
+- **Bracketless `{.tags: SingleTag.}` form on `{.transition.}` procs**
+  no longer causes the macro to append a duplicate `tags:` pragma.
+  Previously the merge logic only recognized the bracketed form
+  (`{.tags: [X].}`) and silently appended a second `{.tags: [TypestateOp,
+  RootEffect].}` pragma when the user wrote the bracketless single-tag
+  form. Nim treats only the last `tags:` pragma as authoritative, so the
+  user's tag was silently dropped from the proc's effect set, defeating
+  any `{.forbids: [...].}` regions that depended on it. The macro now
+  normalizes the bracketless form into a bracket node in-place and
+  merges `TypestateOp` into it idempotently, preserving the user's
+  original tag and source location. (Gemini round-1 Finding 2 on PR #15.)
+- **CLI `typestates verify` path validation** now correctly flags any
+  non-existent path or directory with the dedicated `fcFileNotFound`
+  diagnostic, not only paths ending in `.nim`. Previously a missing
+  directory (`src/missing/`) or an extensionless path was silently
+  dropped into the parser and surfaced as a generic parse error,
+  obscuring the actual problem. (Gemini round-1 Finding 1 on PR #15.)
+- **`TypestateOp` idempotency check widened to module-qualified and
+  backtick-quoted forms.** The "already-listed `TypestateOp`" dedup
+  inside the `{.transition.}` macro previously recognized only
+  `nnkIdent` / `nnkSym` entries. A user who wrote
+  `{.tags: [pragmas.TypestateOp].}` (`nnkDotExpr`) or
+  ``{.tags: [`TypestateOp`].}`` (`nnkAccQuoted`) bypassed the dedup,
+  and the macro appended a redundant `TypestateOp` to the same bracket.
+  Behavior was correct (Nim de-duplicates at the effect-set layer) but
+  the AST carried a redundant node. The check now compares the
+  rightmost component of `nnkDotExpr` and the inner ident of
+  `nnkAccQuoted`. (Gemini round-2 Finding 1 on PR #15.)
+- **Defensive nil guard on `recordFailure`'s exception parameter** in
+  `src/typestates/ast_parser.nim`. No current call site passes `nil`,
+  but a future `except CatchableError` branch that forgets to construct
+  a `ParseError` would dereference nil and crash with a hard SIGSEGV.
+  The proc now synthesizes a placeholder `ParseFailure` describing the
+  missing exception so callers continue to receive a structured
+  diagnostic. (Gemini round-2 Finding 2 on PR #15.)
+- **`parseTypestatesAstWithNodes.handleFile` now catches
+  `CatchableError`**, not only `ParseError`. The underlying
+  `parsePNode` -> `readFile` chain can raise `IOError`/`OSError` for
+  permission-denied, path-is-directory, and similar I/O conditions.
+  Pre-fix, a single unreadable `.nim` file in a batch aborted the
+  entire `typestates verify` run instead of recording a per-file
+  failure and continuing. The handler now wraps the I/O exception as a
+  synthetic `ParseError` so the rest of the formatter pipeline (JSON
+  envelope, GitHub annotations, human formatter) reports it
+  identically to a syntax error. Regression test:
+  `tests/thandleFile_io_error.nim`. (Gemini round-3 HIGH on PR #15.)
+- **Defensive `nkEmpty` guard on `peelToBaseTypeName`** in
+  `src/typestates/ast_parser.nim`. The proc already handled `nil`,
+  but an `nkEmpty` node (which the parser produces for missing type
+  slots, e.g. an inferred-type parameter) would fall through to the
+  `else` arm and pay for a `renderTree` that returns "" anyway. The
+  guard makes the "no usable type name" precondition explicit at the
+  proc entry and avoids the wasted render. (Gemini round-3 MEDIUM on
+  PR #15.)
+- Defensive guard against empty `nnkDotExpr`/`nnkAccQuoted` AST nodes
+  in TypestateOp idempotency check (prevents potential compiler crash
+  on macro-generated malformed AST). (Gemini round-4 on PR #15.)
+
+### Added
+
+- **Implicit `TypestateOp` effect tag** injected by the `{.transition.}`
+  macro on every transition proc. `TypestateOp` is a new
+  `object of RootEffect` exported from `typestates/pragmas`. Under
+  `{.experimental: "strictEffects".}` callers can declare
+  `{.forbids: [TypestateOp].}` on a region to statically assert that no
+  typestate transition is reachable — directly or transitively through
+  an untagged intermediate caller. The injection is **additive** (merges
+  into any user-supplied `tags: [...]` list, preserving existing
+  entries) and **idempotent** (no second `TypestateOp` entry when the
+  user has already listed it). Outside `strictEffects` Nim performs no
+  tag propagation, so existing callers see zero behaviour change. See
+  the "TypestateOp implicit effect" section of the README.
+- **Runnable example: `examples/typestate_op.nim`.** Demonstrates a
+  minimal Unbound -> Bound -> Closed FSM with `{.transition.}` procs,
+  a `{.tags: [TypestateOp, RootEffect].}` driver region that permits
+  transitions, and a `{.forbids: [TypestateOp].}` audited region that
+  statically rejects them. Includes a `compiles()` witness proving the
+  forbids: form actually rejects a transition call. Runs with
+  `nim c -r examples/typestate_op.nim`.
+
+### Design notes
+
+- **`RootEffect` co-injection on bare `{.transition.}` procs.** When the
+  user supplies no `tags:` pragma, the macro synthesises
+  `{.tags: [TypestateOp, RootEffect].}`. Nim's `tags:` is an upper bound
+  on the proc's effect set, so a bare `{.tags: [TypestateOp].}` would
+  reject any transition body that exercises additional effects
+  (allocation, IO, `chronos.async` wrappers, etc.). `RootEffect`
+  re-admits the universal supertype without weakening the
+  `{.forbids: [TypestateOp].}` check, because `forbids:` matches the
+  literal `TypestateOp` tag, not its ancestors.
+- **User-supplied tags become an upper bound.** When the user writes
+  `{.transition, tags: [SomeNarrowTag].}`, the macro appends only
+  `TypestateOp` (not `RootEffect`). If the transition body needs broader
+  effects, the user must add `RootEffect` to their tag list themselves.
+  This is documented in the README's "Note: user-supplied tags become an
+  upper bound" subsection.
+
+### Withdrawn (2026-05-28)
+
+- **`{.transition(tag: SomeTag).}` pragma sugar** was explored and
+  withdrawn before release. Two independent blockers:
+  1. **Nim parser rejects the form.** `{.transition(tag: X).}` parses as
+     `nkObjConstr` inside the pragma list, which is not in the compiler's
+     `nkPragmaCallKinds` set (`compiler/pragmas.nim:803-817` plus
+     `compiler/ast.nim:923`). There is no parser-level workaround that
+     keeps the colon-form `tag:` keyword syntax.
+  2. **Semantic conflation.** Even if it parsed, attaching a value-level
+     role tag (`tag: ProducerOp`) to the transition pragma conflated
+     two orthogonal axes — value-level typestates (what state a value
+     is in) and proc-level effects (what a proc is permitted to do).
+     Keeping them separate via the explicit composed form
+     `{.transition, tags: [ProducerOp, TypestateOp], gcsafe.}` is
+     clearer and matches Nim's own pragma vocabulary.
+
+  Consumers compose explicit pragma lists instead. The combined-pragma
+  form is fully supported by the v0.10.0 AST verifier (no text-scanner
+  blind spots).
+
 ## [0.10.0] - 2026-05-24
 
 ### Changed

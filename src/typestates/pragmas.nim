@@ -13,6 +13,18 @@ import types, registry, verify
 
 export verify
 
+type TypestateOp* = object of RootEffect
+  ## Implicit effect tag injected into every `{.transition.}` proc.
+  ##
+  ## Under `{.experimental: "strictEffects".}` this enables
+  ## `{.forbids: [TypestateOp].}` regions to statically assert that no
+  ## typestate transition reaches them — even transitively through
+  ## untagged intermediate callers.  The injection is additive (merges
+  ## into any existing `tags: [...]` list) and idempotent (no duplicate
+  ## entry if the user has already named `TypestateOp` themselves).
+  ## Outside `strictEffects` Nim does not enforce tag propagation, so
+  ## existing callers see zero behaviour change.
+
 # Compile-time tracking of which modules have sealed typestates
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
@@ -868,6 +880,136 @@ macro transition*(procDef: untyped): untyped =
   # If no raises pragma, add {.raises: [].} to enable compiler checking
   if not hasRaises:
     result.addPragma(nnkExprColonExpr.newTree(ident("raises"), nnkBracket.newTree()))
+
+  # Inject the implicit `TypestateOp` effect tag (Task A4).
+  #
+  # Every `{.transition.}` proc carries `TypestateOp` in its effect tag
+  # set so that, under `{.experimental: "strictEffects".}`, a region
+  # declared `{.forbids: [TypestateOp].}` can statically reject any
+  # caller that reaches a transition (even transitively through an
+  # untagged intermediary).
+  #
+  # Merge rules:
+  #   * additive — if the user already wrote `{.tags: [X].}`, the
+  #     result becomes `{.tags: [X, TypestateOp].}` (X is preserved).
+  #   * idempotent — if the user wrote `{.tags: [TypestateOp, ...].}`
+  #     themselves, no second entry is added.
+  #   * if no `tags:` pragma exists, a fresh
+  #     `{.tags: [TypestateOp].}` colon-expr is appended.
+  #
+  # Outside `strictEffects` Nim performs no tag propagation, so
+  # existing callsites that opt out see zero behaviour change.
+  let opIdent = ident("TypestateOp")
+  var tagsNode: NimNode = nil
+  let resultPragma = result.pragma
+  if resultPragma.kind != nnkEmpty:
+    # Walk the pragma list looking for an existing `tags:` entry. Two
+    # surface forms exist that we must merge into:
+    #   * bracketed   — `{.tags: [A, B].}`   (child[1] is nnkBracket)
+    #   * bracketless — `{.tags: A.}`        (child[1] is nnkIdent/nnkSym)
+    # Pre-v0.11.0 the bracketless form was missed by this scanner, which
+    # caused the macro to append a SECOND `tags:` pragma; under Nim's
+    # effect tracking only the last `tags:` survives, silently dropping
+    # the user's single tag (Gemini Finding 2). The fix below normalizes
+    # the bracketless form into a bracket in-place so the merge logic
+    # downstream can append TypestateOp idempotently regardless of which
+    # syntactic form the user wrote.
+    for child in resultPragma:
+      case child.kind
+      of nnkExprColonExpr:
+        if child[0].kind in {nnkIdent, nnkSym} and child[0].eqIdent("tags"):
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            # Bracketless: wrap the single tag into a fresh nnkBracket so
+            # the rest of this pass (and any future passes) treat it
+            # uniformly. Mutating child[1] preserves the user's original
+            # tag identity and source location.
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
+          break
+      of nnkCall:
+        if child.len > 1 and child[0].kind in {nnkIdent, nnkSym} and
+            child[0].eqIdent("tags"):
+          if child[1].kind == nnkBracket:
+            tagsNode = child[1]
+          else:
+            let single = child[1]
+            let wrapped = nnkBracket.newTree(single)
+            child[1] = wrapped
+            tagsNode = wrapped
+          break
+      else:
+        discard
+
+  # Backward-compat note: when the macro synthesises a fresh `tags:`
+  # pragma we ALSO include `RootEffect` alongside `TypestateOp`.  Nim's
+  # tag system treats `tags: [...]` as an upper bound on the proc's
+  # effect set, so a bare `tags: [TypestateOp]` would reject any
+  # transition whose body (or wrapper macros like chronos `async`)
+  # exercises additional effects.  Listing `RootEffect` re-admits the
+  # universal supertype without weakening the `forbids: [TypestateOp]`
+  # check — forbids matches the literal `TypestateOp` tag, not its
+  # ancestors.  When the user has already declared their own `tags:`
+  # list we trust their declaration and only append `TypestateOp`
+  # (idempotently).
+  let rootEffectIdent = ident("RootEffect")
+  if tagsNode == nil:
+    # No existing tags pragma — synthesise `tags: [TypestateOp, RootEffect]`.
+    result.addPragma(
+      nnkExprColonExpr.newTree(
+        ident("tags"), nnkBracket.newTree(opIdent, rootEffectIdent)
+      )
+    )
+  else:
+    # Idempotency check: skip if the user already listed TypestateOp.
+    # Round-2 widening (Gemini Finding 1): also recognize module-qualified
+    # (`pragmas.TypestateOp`, an `nnkDotExpr` whose rightmost component is
+    # `TypestateOp`) and backtick-quoted (`` `TypestateOp` ``, an
+    # `nnkAccQuoted` whose inner ident is `TypestateOp`) entries. Pre-fix
+    # both forms slipped past the dedup and produced a redundant
+    # `TypestateOp` node in the same bracket — harmless at the effect-set
+    # level but cluttered AST.
+    var alreadyPresent = false
+    for entry in tagsNode:
+      case entry.kind
+      of nnkIdent, nnkSym:
+        if entry.eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      of nnkDotExpr:
+        # Rightmost component of `a.b.TypestateOp` is the bare identifier.
+        # Round-4 (Gemini): guard against empty nnkDotExpr nodes that may
+        # arise from macro-generated or malformed AST; treat as non-match
+        # rather than indexing out-of-bounds and crashing the compiler.
+        # Round-6 tightening (Gemini): a valid `nnkDotExpr` has >= 2 children
+        # (LHS + RHS); a 1-child form would resolve `entry[^1]` to the LHS,
+        # producing a false match. Reject anything narrower than the canonical
+        # `a.b` shape.
+        if entry.len < 2:
+          continue
+        let rhs = entry[^1]
+        # Round-7 widening (Gemini): the RHS of a qualified form may itself
+        # be `nnkAccQuoted` (e.g., `pragmas.` followed by a backticked
+        # identifier). Treat both forms equivalently.
+        if (rhs.kind in {nnkIdent, nnkSym} and rhs.eqIdent("TypestateOp")) or (
+          rhs.kind == nnkAccQuoted and rhs.len >= 1 and rhs[0].kind in {
+            nnkIdent, nnkSym
+          } and rhs[0].eqIdent("TypestateOp")
+        ):
+          alreadyPresent = true
+          break
+      of nnkAccQuoted:
+        if entry.len >= 1 and entry[0].kind in {nnkIdent, nnkSym} and
+            entry[0].eqIdent("TypestateOp"):
+          alreadyPresent = true
+          break
+      else:
+        discard
+    if not alreadyPresent:
+      tagsNode.add(opIdent)
 
   # F5: register the transition for state-aware error decoy emission.
   #

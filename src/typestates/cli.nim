@@ -603,14 +603,22 @@ proc verify*(paths: seq[string]): VerifyResult =
   ## :returns: Verification results with structured findings and counts
   result = VerifyResult()
 
-  # File-not-found (RC-2): an explicit `.nim` path that does not exist is a
+  # File-not-found (RC-2): an explicit path that does not exist is a
   # distinct, user-actionable error code (`fcFileNotFound`), not a parse
   # error. Detect these BEFORE parsing so the dedicated code/message is
   # preserved and the missing file is excluded from the shared parse (whose
   # `parsePNode` would otherwise record it as a generic `fcParseError`).
+  #
+  # v0.11.0 (Gemini Finding 1): previously this check only fired for paths
+  # ending in `.nim`, so `typestates verify src/missing/` (a missing dir)
+  # or `typestates verify missing_no_ext` silently dropped the path into
+  # the parser, where it surfaced as a generic parse error instead of the
+  # dedicated "file not found" diagnostic. The widened check flags any
+  # input path that resolves to neither an existing file nor an existing
+  # directory.
   var notFoundPaths = initHashSet[string]()
   for path in paths:
-    if path.endsWith(".nim") and not fileExists(path):
+    if not (fileExists(path) or dirExists(path)):
       result.findings.add mkError(fcFileNotFound, path, 0, "File not found: " & path)
       notFoundPaths.incl(absolutePath(path))
 
