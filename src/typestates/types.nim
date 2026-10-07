@@ -56,6 +56,17 @@ type
     fullRepr*: string
     typeName*: NimNode
 
+  EventDef* = object
+    ## Represents a declared event in the typestate DSL.
+    ##
+    ## Events can carry typed parameters:
+    ## e.g. `WakeWord(word: string, angle: int)`
+    ## or be parameterless:
+    ## e.g. `SpeechEnded`
+    name*: string
+    params*: seq[tuple[name: string, typeNode: NimNode]]
+    declaredAt*: LineInfo
+
   Transition* = object
     ## Represents a valid state transition in the typestate graph.
     ##
@@ -64,6 +75,7 @@ type
     ## - **Simple**: `Closed -> Open` (one source, one destination)
     ## - **Branching**: `Closed -> (Open | Errored) as OpenResult` (one source, multiple destinations)
     ## - **Wildcard**: `* -> Closed` (any state can transition to Closed)
+    ## - **Event-driven**: `Closed on OpenFile -> Open`
     ##
     ## Example:
     ##
@@ -83,6 +95,7 @@ type
     ## :var toStates: List of valid destination states
     ## :var branchTypeName: User-defined name for the branch result type (required for branching)
     ## :var branchTypeNode: AST node for the branch type (supports generics)
+    ## :var eventName: Event triggering this transition, if any
     ## :var isWildcard: True if this is a wildcard transition (`* -> X`)
     ## :var declaredAt: Source location for error messages
     fromState*: string
@@ -90,6 +103,7 @@ type
     branchTypeName*: string ## Empty for non-branching, required for branching
     branchTypeNode*: NimNode
       ## Raw AST node for codegen (supports generics like Result[T])
+    eventName*: string ## Empty if event-less, or event name
     isWildcard*: bool
     declaredAt*: LineInfo
 
@@ -183,6 +197,7 @@ type
       ## section. Always the same length as `typeParams` once parsing
       ## completes.
     states*: Table[string, State]
+    events*: Table[string, EventDef]
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
@@ -198,14 +213,14 @@ proc `==`*(a, b: Transition): bool =
   ## Compare two transitions for equality.
   ##
   ## Two transitions are equal if they have the same source state,
-  ## destination states, and wildcard status. The declaration location
+  ## destination states, event name, and wildcard status. The declaration location
   ## is not considered for equality.
   ##
   ## :param a: First transition to compare
   ## :param b: Second transition to compare
   ## :returns: `true` if transitions are semantically equivalent
   a.fromState == b.fromState and a.toStates == b.toStates and
-    a.isWildcard == b.isWildcard
+    a.eventName == b.eventName and a.isWildcard == b.isWildcard
 
 proc `==`*(a, b: Bridge): bool =
   ## Compare two bridges for equality.

@@ -166,90 +166,95 @@ proc collectBranchTargets(node: NimNode): seq[string] =
 proc parseTransition*(node: NimNode): Transition =
   ## Parse a single transition declaration.
   ##
-  ## Supports three forms:
+  ## Supports forms:
   ##
   ## - **Simple**: `Closed -> Open`
   ## - **Branching**: `Closed -> Open | Errored`
   ## - **Wildcard**: `* -> Closed`
-  ##
-  ## Example AST for `Closed -> Open | Errored`:
-  ##
-  ## ```
-  ## Infix
-  ##   Ident "->"
-  ##   Ident "Closed"
-  ##   Infix
-  ##     Ident "|"
-  ##     Ident "Open"
-  ##     Ident "Errored"
-  ## ```
-  ##
-  ## Example AST for `* -> Closed` (wildcard parsed as nested prefix):
-  ##
-  ## ```
-  ## Prefix
-  ##   Ident "*"
-  ##   Prefix
-  ##     Ident "->"
-  ##     Ident "Closed"
-  ## ```
+  ## - **Event-driven**: `Closed on OpenFile -> Open`
+  ## - **Event-driven Wildcard**: `* on Reset -> Closed`
   ##
   ## :param node: AST node of the transition expression
   ## :returns: A `Transition` object
   ## :raises: Compile-time error if syntax is invalid
 
-  # Handle wildcard syntax: * -> X parses as nested Prefix nodes
+  var fromState: string = ""
+  var eventName: string = ""
+  var isWildcard: bool = false
+  var targetsNode: NimNode = nil
+
+  # Form 1: Wildcard `* -> X` or `* on Event -> X`
   if node.kind == nnkPrefix and node[0].strVal == "*":
-    let innerNode = node[1]
-    if innerNode.kind == nnkPrefix and innerNode[0].strVal == "->":
-      let toStates = collectBranchTargets(innerNode[1])
-      return Transition(
-        fromState: "*",
-        toStates: toStates,
-        isWildcard: true,
-        declaredAt: node.lineInfoObj,
-      )
-
-  expectKind(node, nnkInfix)
-
-  if node[0].strVal != "->":
-    error("Expected '->' in transition", node[0])
-
-  # Parse source state (can be any type expression)
-  let sourceNode = node[1]
-  var fromState: string
-  var isWildcard = false
-
-  case sourceNode.kind
-  of nnkIdent:
-    fromState = sourceNode.strVal
-    if fromState == "*":
+    let inner = node[1]
+    if inner.kind == nnkCommand and inner.len >= 2 and inner[0].eqIdent("on") and
+        inner[1].kind == nnkInfix and inner[1][0].strVal == "->":
+      fromState = "*"
       isWildcard = true
-  of nnkPrefix:
-    # Handle * as prefix operator
-    if sourceNode[0].strVal == "*":
+      eventName = extractBaseName(inner[1][1])
+      targetsNode = inner[1][2]
+    elif inner.kind == nnkPrefix and inner[0].strVal == "->":
+      fromState = "*"
+      isWildcard = true
+      targetsNode = inner[1]
+    else:
+      error("Invalid wildcard transition syntax", node)
+
+  # Form 2: `State on Event -> NextState`
+  elif node.kind == nnkCommand and node.len == 2 and node[1].kind == nnkCommand and
+      node[1].len >= 2 and node[1][0].eqIdent("on") and
+      node[1][1].kind == nnkInfix and node[1][1][0].strVal == "->":
+    let sourceNode = node[0]
+    if sourceNode.kind == nnkPrefix and sourceNode[0].strVal == "*":
+      fromState = "*"
+      isWildcard = true
+    elif sourceNode.kind == nnkIdent:
+      fromState = sourceNode.strVal
+      if fromState == "*": isWildcard = true
+    else:
+      fromState = sourceNode.repr
+    eventName = extractBaseName(node[1][1][1])
+    targetsNode = node[1][1][2]
+
+  # Form 3: `Infix "->"` (classic or variations)
+  elif node.kind == nnkInfix and node[0].strVal == "->":
+    let sourceNode = node[1]
+    targetsNode = node[2]
+
+    # Check if source is parenthesized `(State on Event)`
+    if sourceNode.kind == nnkPar and sourceNode.len == 1 and
+        sourceNode[0].kind == nnkCommand and sourceNode[0].len >= 3 and
+        sourceNode[0][1].eqIdent("on"):
+      let actualSource = sourceNode[0][0]
+      if actualSource.kind == nnkIdent and actualSource.strVal == "*":
+        fromState = "*"
+        isWildcard = true
+      else:
+        fromState = actualSource.repr
+      eventName = extractBaseName(sourceNode[0][2])
+    elif sourceNode.kind == nnkIdent:
+      fromState = sourceNode.strVal
+      if fromState == "*": isWildcard = true
+    elif sourceNode.kind == nnkPrefix and sourceNode[0].strVal == "*":
       fromState = "*"
       isWildcard = true
     else:
-      error("Unexpected prefix in transition source", sourceNode)
-  of nnkBracketExpr, nnkRefTy, nnkPtrTy, nnkDotExpr:
-    # Generic, ref, ptr, or qualified type - use repr
-    fromState = sourceNode.repr
+      fromState = sourceNode.repr
+
+    # Check if target is `NextState on Event`
+    if targetsNode.kind == nnkCommand and targetsNode.len == 2 and
+        targetsNode[1].kind == nnkCommand and targetsNode[1].len >= 2 and
+        targetsNode[1][0].eqIdent("on"):
+      eventName = extractBaseName(targetsNode[1][1])
+      targetsNode = targetsNode[0]
+
   else:
-    # Fallback: try repr for any other valid type expression
-    fromState = sourceNode.repr
+    error("Expected transition declaration with '->'", node)
 
   # Parse target state(s) and optional "as TypeName"
-  # A -> B | C as ResultType parses as:
-  #   Infix("->", A, Infix("as", Infix("|", B, C), ResultType))
-  var targetsNode = node[2]
   var branchTypeName = ""
-
   var branchTypeNode: NimNode = nil
 
   if targetsNode.kind == nnkInfix and targetsNode[0].strVal == "as":
-    # Extract the branch type name from RHS of "as"
-    # Store both the string repr and the AST node (for generics like ResultType[T])
     branchTypeNode = targetsNode[2]
     branchTypeName = branchTypeNode.repr
     targetsNode = targetsNode[1]
@@ -277,6 +282,7 @@ proc parseTransition*(node: NimNode): Transition =
     toStates: toStates,
     branchTypeName: branchTypeName,
     branchTypeNode: branchTypeNode,
+    eventName: eventName,
     isWildcard: isWildcard,
     declaredAt: node.lineInfoObj,
   )
@@ -537,6 +543,97 @@ proc parseTerminalBlock*(graph: var TypestateGraph, node: NimNode) =
   ## :param graph: The typestate graph to populate
   ## :param node: AST node of the terminal block
   graph.terminalStates = parseStateList(node)
+
+proc parseEventDef*(node: NimNode): EventDef =
+  ## Parse a single event declaration.
+  ## Supports:
+  ## - Bare identifier: `SpeechEnded`
+  ## - Call with parameters: `WakeWord(word: string, angle: int)`
+  ## - Call with empty parens: `SpeechEnded()`
+  ## - Object construction shape: `WakeWord(word: string, angle: int)`
+  case node.kind
+  of nnkIdent, nnkSym:
+    result = EventDef(
+      name: node.strVal,
+      params: @[],
+      declaredAt: node.lineInfoObj
+    )
+  of nnkCall, nnkObjConstr:
+    let eventName =
+      if node[0].kind in {nnkIdent, nnkSym}: node[0].strVal
+      else: extractBaseName(node[0])
+    var params: seq[tuple[name: string, typeNode: NimNode]] = @[]
+    for i in 1 ..< node.len:
+      let arg = node[i]
+      case arg.kind
+      of nnkExprColonExpr, nnkExprEqExpr:
+        let pName =
+          if arg[0].kind in {nnkIdent, nnkSym}: arg[0].strVal
+          else: arg[0].repr
+        params.add (name: pName, typeNode: arg[1].copyNimTree)
+      of nnkIdentDefs:
+        for j in 0 .. arg.len - 3:
+          let pName = arg[j].strVal
+          let pType = arg[^2]
+          params.add (name: pName, typeNode: pType.copyNimTree)
+      else:
+        error("Expected `name: Type` in event parameters, got: " & arg.repr, arg)
+    result = EventDef(name: eventName, params: params, declaredAt: node.lineInfoObj)
+  of nnkCommand:
+    let eventName =
+      if node[0].kind in {nnkIdent, nnkSym}: node[0].strVal
+      else: extractBaseName(node[0])
+    var params: seq[tuple[name: string, typeNode: NimNode]] = @[]
+    for i in 1 ..< node.len:
+      let arg = node[i]
+      if arg.kind in {nnkExprColonExpr, nnkExprEqExpr}:
+        let pName =
+          if arg[0].kind in {nnkIdent, nnkSym}: arg[0].strVal
+          else: arg[0].repr
+        params.add (name: pName, typeNode: arg[1].copyNimTree)
+      else:
+        error("Expected `name: Type` in event parameters, got: " & arg.repr, arg)
+    result = EventDef(name: eventName, params: params, declaredAt: node.lineInfoObj)
+  else:
+    error("Invalid event declaration: " & node.repr, node)
+
+proc parseEventsBlock*(graph: var TypestateGraph, node: NimNode) =
+  ## Parse the events block and add all events to the graph.
+  ##
+  ## Example input:
+  ##
+  ## ```nim
+  ## events:
+  ##   WakeWord(word: string, angle: int)
+  ##   SpeechEnded
+  ##   SilenceTimeout
+  ## ```
+  if node.kind notin {nnkCall, nnkCommand}:
+    error("Expected call or command for events block", node)
+  if node.len < 2:
+    error("events block is empty", node)
+
+  let eventsBlock = node[1]
+  expectKind(eventsBlock, nnkStmtList)
+
+  for child in eventsBlock:
+    if child.kind in {nnkEmpty, nnkCommentStmt}:
+      continue
+    let ev = parseEventDef(child)
+    if ev.name in graph.events:
+      error("Duplicate event declaration '" & ev.name & "'", child)
+    graph.events[ev.name] = ev
+
+proc validateEvents(graph: TypestateGraph, declNode: NimNode) =
+  ## Validate that all events referenced in transitions are declared in the events block.
+  for t in graph.transitions:
+    if t.eventName.len > 0:
+      if t.eventName notin graph.events:
+        error(
+          "Undeclared event '" & t.eventName & "' in transition. " &
+            "Declare it in an 'events:' block.",
+          declNode,
+        )
 
 proc paramName(typeParam: NimNode): string =
   ## Extract the name of a typeParam node.
@@ -959,6 +1056,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
     name: baseName,
     typeParams: typeParams,
     typeParamDefaults: typeParamDefaults,
+    events: initTable[string, EventDef](),
     declaredAt: name.lineInfoObj,
     declaredInModule: name.lineInfoObj.filename,
   )
@@ -983,6 +1081,8 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
       # section error message.
       if child[0].eqIdent("states"):
         parseStates(result, child)
+      elif child[0].eqIdent("events"):
+        parseEventsBlock(result, child)
       elif child[0].eqIdent("transitions"):
         parseTransitionsBlock(result, child)
       elif child[0].eqIdent("bridges"):
@@ -1004,6 +1104,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   validateNoBranchTypeStateCollision(result, name)
   validateInitialTerminal(result, name)
   validateTransitionsRespectInitialTerminal(result, name)
+  validateEvents(result, name)
 
   # Reachability/liveness analysis (opt-in: only fires when the user has
   # declared `initial:` or `terminal:`, so existing typestates produce no
