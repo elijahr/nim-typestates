@@ -1,12 +1,8 @@
 # AGENTS.md: Operational Invariants & System Guidelines
 
-## 1. Absolute Git Policy: ZERO GIT PUSH BAN
-<CRITICAL>
-- **LOCAL COMMITS & VINE STRANDS**: Local `git commit`, `git checkout`, `vine new`, `vine gate`, and local branch management ARE FULLY PERMITTED.
-- **NO REMOTE PUSH**: **DO NOT EXECUTE `git push` UNDER ANY CIRCUMSTANCES**.
-- All work must remain 100% local. Pushing to origin or any remote is strictly forbidden across both repositories (`nim-typestates` and `home-assistant-vibecode-agent`).
-- **ZERO SENSITIVE ASSETS**: Never stage or commit custom wake-word models, audio samples, or sensitive credentials.
-</CRITICAL>
+## 1. Repository & Asset Policy
+- **SENSITIVE ASSETS**: Never stage or commit custom wake-word models, audio samples, or sensitive credentials.
+
 
 ## 2. Reified Event-Typestate Architectural Rules
 All state machines in this codebase (`satellite_fsm.nim` and `nim-typestates`) must adhere to the 5 Reified Event-Typestate rules:
