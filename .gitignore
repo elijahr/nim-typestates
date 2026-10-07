@@ -36,6 +36,7 @@ tests/debug_*
 **/*.dSYM/
 ## Source binaries
 src/[a-z_]*
+!src/typestates/
 !src/*.nim
 !src/**/*.nim
 ## Example binaries
