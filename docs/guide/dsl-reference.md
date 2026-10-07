@@ -83,6 +83,74 @@ Any state can transition to a destination using `*`:
 
 Wildcards are useful for "reset" or "cleanup" operations that work from any state.
 
+### Event-Driven Transitions
+
+Transitions can be bound to explicit events using the `on Event ->` syntax:
+
+```nim
+Idle on WakeWordDetected -> Listening
+* on Reset -> Idle
+(Paused | Stopped) on Play -> Playing
+```
+
+Event-driven transitions require an `events:` block in the typestate declaration.
+
+## Events Block
+
+Declare the alphabet of events and optional typed payloads accepted by the state machine:
+
+```nim
+events:
+  WakeWordDetected(name: string)
+  SpeechEnded
+  IntentResolved(intent: string, confidence: float)
+  Error(message: string, code: int)
+  Reset
+```
+
+Each event declaration consists of an identifier optionally followed by parenthesized parameter declarations:
+
+```nim
+EventName
+EventName(param1: Type1, param2: Type2)
+```
+
+When an `events:` block is present, the macro synthesizes:
+- `<Name>EventKind`: An enum of all declared events (`ev<EventName>`).
+- `<Name>Event`: A tagged union object variant containing event parameters.
+- Constructor helper procs (e.g. `wakeWordDetected(name)`, `speechEnded()`).
+- `<Name>FSM`: An object variant container wrapping active state values.
+- `proc dispatch*(fsm: var <Name>FSM, event: <Name>Event): bool`: A synchronous 2D compile-time exhaustive dispatcher.
+
+See [Event-Driven Typestates](event-typestates.md) for full architectural guidelines.
+
+### Formal Grammar for Events and Transitions
+
+```ebnf
+TypestateDef    ::= 'typestate' Ident ':' TypestateBody
+TypestateBody   ::= ( StatesDecl | EventsDecl | TransitionsDecl | InitialDecl | TerminalDecl | BridgesDecl )*
+
+EventsDecl      ::= 'events' ':' ( EventDecl )+
+EventDecl       ::= Ident [ '(' ParamList ')' ]
+ParamList       ::= Param ( ',' Param )*
+Param           ::= Ident ':' TypeExpr
+
+TransitionsDecl ::= 'transitions' ':' ( TransitionDef )+
+TransitionDef   ::= SourceExpr [ 'on' EventIdent ] '->' TargetExpr
+SourceExpr      ::= Ident | '*' | '(' Ident ( '|' Ident )* ')'
+TargetExpr      ::= Ident | '(' Ident ( '|' Ident )* ')' 'as' Ident
+```
+
+### Compile-Time Validation Rules for Events
+
+1. **Undeclared Event Detection**: Any event referenced in a transition (`on EventName`) must be declared in the `events:` block. Referencing an undeclared event produces a compile-time error at macro expansion time:
+   ```text
+   Error: Undeclared event 'UnknownEvent' in transition. Declare it in an 'events:' block.
+   ```
+2. **Missing Events Block**: Using `State on Event -> NextState` without declaring an `events:` block will fail compilation because the event is undeclared.
+3. **Parameter Collision Safety**: Generated tagged union variants automatically namespace event fields (`<event><Param>`) so distinct events may safely share parameter names (such as `id` or `message`) without Nim object variant field definition collisions.
+4. **2D Exhaustiveness**: The generated synchronous dispatcher evaluates every `(State, Event)` combination. Unhandled events return `false` without modifying the active FSM state.
+
 ## Initial and Terminal States
 
 Declare entry and exit points for your typestate:

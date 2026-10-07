@@ -120,6 +120,36 @@ typestate Container[T]:
     Empty[T] -> Full[T]
 ```
 
+### Event-driven typestates
+
+Declare state machines driven by asynchronous events with synchronous 2D dispatching. The macro synthesizes a tagged union event ADT, ergonomic constructor helpers, an FSM container, and an exhaustive `dispatch*(fsm, event)` proc:
+
+```nim
+typestate VoiceAssistant:
+  consumeOnTransition = false
+  states Idle, Listening, Thinking, Speaking
+
+  events:
+    WakeWordDetected(keyword: string)
+    SpeechEnded
+    IntentResolved(intent: string)
+    PlaybackFinished
+    Reset
+
+  transitions:
+    Idle on WakeWordDetected -> Listening
+    Listening on SpeechEnded -> Thinking
+    Thinking on IntentResolved -> Speaking
+    Speaking on PlaybackFinished -> Idle
+    * on Reset -> Idle
+
+var fsm = Idle(VoiceAssistant(deviceId: "sat-01")).toVoiceAssistantFSM()
+discard fsm.dispatch(wakeWordDetected("hey_assistant")) # state is now fsListening
+discard fsm.dispatch(speechEnded())                     # state is now fsThinking
+```
+
+See [Event-Driven Typestates](https://elijahr.github.io/nim-typestates/guide/event-typestates/) for complete architectural details, generated artifacts, and the 5 core invariants.
+
 ### TypestateOp implicit effect
 
 Every `{.transition.}` proc carries `TypestateOp` (defined in

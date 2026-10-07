@@ -179,6 +179,20 @@ A reusable pattern for entities that progress through a fixed sequence of stages
 
 ---
 
+## Event-Driven Voice Assistant Workflow
+
+Voice assistant satellites, embedded hardware controllers, and reactive state machines process incoming events asynchronously and transition through discrete operational states synchronously. The `events:` DSL synthesizes a tagged union event ADT, constructor helpers, an FSM wrapper, and a 2D exhaustive dispatcher (`dispatch*(fsm, event)`).
+
+**Bugs prevented:** Processing voice events in the wrong state, unhandled events causing crashes, payload mismatch between event and state transition, and asynchronous race conditions during transitions.
+
+```nim
+{% include-markdown "../../examples/events_workflow.nim" %}
+```
+
+[:material-file-code: View full source](https://github.com/elijahr/nim-typestates/blob/main/examples/events_workflow.nim)
+
+---
+
 ## Tips for Designing Typestates
 
 ### 1. Start with the State Diagram

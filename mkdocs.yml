@@ -87,6 +87,7 @@ nav:
     - Cross-Type Bridges: guide/bridges.md
     - Library Modularity: guide/library-modularity.md
     - Generic Typestates: guide/generics.md
+    - Event-Driven Typestates: guide/event-typestates.md
     - Formal Guarantees: guide/formal-guarantees.md
     - Error Handling: guide/error-handling.md
     - Examples: guide/examples.md
