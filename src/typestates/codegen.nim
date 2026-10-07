@@ -1201,10 +1201,11 @@ proc capitalizeAscii(s: string): string =
 
 proc fsmTypeName*(graph: TypestateGraph): string =
   ## Returns the synthesized FSM type name for a typestate.
-  ## If graph.name already ends with FSM (e.g. SatelliteFSM), uses it directly;
+  ## If graph.name already ends with FSM (e.g. SatelliteFSM), appends "Machine"
+  ## to avoid identifier collision with the typestate attachment macro;
   ## otherwise appends FSM (e.g. Door -> DoorFSM).
   if graph.name.endsWith("FSM"):
-    graph.name
+    graph.name & "Machine"
   else:
     graph.name & "FSM"
 
