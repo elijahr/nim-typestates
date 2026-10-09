@@ -122,7 +122,7 @@ typestate Container[T]:
 
 ### Event-driven typestates
 
-Declare state machines driven by asynchronous events with synchronous 2D dispatching. The macro synthesizes a tagged union event ADT, ergonomic constructor helpers, an FSM container, and an exhaustive `dispatch*(fsm, event)` proc:
+Define state machines that react to events instantly. The macro writes all the boilerplate for you: event types with shortcut constructors, a state-tracking container, and a `dispatch*(fsm, event)` function that guarantees at compile time that every possible event is handled:
 
 ```nim
 typestate VoiceAssistant:
