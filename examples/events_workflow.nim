@@ -48,8 +48,8 @@ typestate VoiceAssistant:
     Listening on SpeechEnded -> Thinking
     Thinking on IntentResolved -> Speaking
     Speaking on PlaybackFinished -> Idle
-    * on ErrorOccurred -> ErrorState
-    * on Reset -> Idle
+    *on ErrorOccurred -> ErrorState
+    *on Reset -> Idle
 
 proc main() =
   echo "=== Voice Assistant Event-Driven Typestate Workflow ==="

@@ -201,15 +201,16 @@ proc parseTransition*(node: NimNode): Transition =
 
   # Form 2: `State on Event -> NextState`
   elif node.kind == nnkCommand and node.len == 2 and node[1].kind == nnkCommand and
-      node[1].len >= 2 and node[1][0].eqIdent("on") and
-      node[1][1].kind == nnkInfix and node[1][1][0].strVal == "->":
+      node[1].len >= 2 and node[1][0].eqIdent("on") and node[1][1].kind == nnkInfix and
+      node[1][1][0].strVal == "->":
     let sourceNode = node[0]
     if sourceNode.kind == nnkPrefix and sourceNode[0].strVal == "*":
       fromState = "*"
       isWildcard = true
     elif sourceNode.kind == nnkIdent:
       fromState = sourceNode.strVal
-      if fromState == "*": isWildcard = true
+      if fromState == "*":
+        isWildcard = true
     else:
       fromState = sourceNode.repr
     eventName = extractBaseName(node[1][1][1])
@@ -233,7 +234,8 @@ proc parseTransition*(node: NimNode): Transition =
       eventName = extractBaseName(sourceNode[0][2])
     elif sourceNode.kind == nnkIdent:
       fromState = sourceNode.strVal
-      if fromState == "*": isWildcard = true
+      if fromState == "*":
+        isWildcard = true
     elif sourceNode.kind == nnkPrefix and sourceNode[0].strVal == "*":
       fromState = "*"
       isWildcard = true
@@ -246,7 +248,6 @@ proc parseTransition*(node: NimNode): Transition =
         targetsNode[1][0].eqIdent("on"):
       eventName = extractBaseName(targetsNode[1][1])
       targetsNode = targetsNode[0]
-
   else:
     error("Expected transition declaration with '->'", node)
 
@@ -553,23 +554,23 @@ proc parseEventDef*(node: NimNode): EventDef =
   ## - Object construction shape: `WakeWord(word: string, angle: int)`
   case node.kind
   of nnkIdent, nnkSym:
-    result = EventDef(
-      name: node.strVal,
-      params: @[],
-      declaredAt: node.lineInfoObj
-    )
+    result = EventDef(name: node.strVal, params: @[], declaredAt: node.lineInfoObj)
   of nnkCall, nnkObjConstr:
     let eventName =
-      if node[0].kind in {nnkIdent, nnkSym}: node[0].strVal
-      else: extractBaseName(node[0])
+      if node[0].kind in {nnkIdent, nnkSym}:
+        node[0].strVal
+      else:
+        extractBaseName(node[0])
     var params: seq[tuple[name: string, typeNode: NimNode]] = @[]
     for i in 1 ..< node.len:
       let arg = node[i]
       case arg.kind
       of nnkExprColonExpr, nnkExprEqExpr:
         let pName =
-          if arg[0].kind in {nnkIdent, nnkSym}: arg[0].strVal
-          else: arg[0].repr
+          if arg[0].kind in {nnkIdent, nnkSym}:
+            arg[0].strVal
+          else:
+            arg[0].repr
         params.add (name: pName, typeNode: arg[1].copyNimTree)
       of nnkIdentDefs:
         for j in 0 .. arg.len - 3:
@@ -581,15 +582,19 @@ proc parseEventDef*(node: NimNode): EventDef =
     result = EventDef(name: eventName, params: params, declaredAt: node.lineInfoObj)
   of nnkCommand:
     let eventName =
-      if node[0].kind in {nnkIdent, nnkSym}: node[0].strVal
-      else: extractBaseName(node[0])
+      if node[0].kind in {nnkIdent, nnkSym}:
+        node[0].strVal
+      else:
+        extractBaseName(node[0])
     var params: seq[tuple[name: string, typeNode: NimNode]] = @[]
     for i in 1 ..< node.len:
       let arg = node[i]
       if arg.kind in {nnkExprColonExpr, nnkExprEqExpr}:
         let pName =
-          if arg[0].kind in {nnkIdent, nnkSym}: arg[0].strVal
-          else: arg[0].repr
+          if arg[0].kind in {nnkIdent, nnkSym}:
+            arg[0].strVal
+          else:
+            arg[0].repr
         params.add (name: pName, typeNode: arg[1].copyNimTree)
       else:
         error("Expected `name: Type` in event parameters, got: " & arg.repr, arg)

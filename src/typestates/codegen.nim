@@ -1196,8 +1196,10 @@ proc generateAttachmentMarker*(graph: TypestateGraph): NimNode =
       {.warning: `warnLit`.}
 
 proc capitalizeAscii(s: string): string =
-  if s.len == 0: ""
-  else: s[0].toUpperAscii & s[1..^1]
+  if s.len == 0:
+    ""
+  else:
+    s[0].toUpperAscii & s[1 ..^ 1]
 
 proc fsmTypeName*(graph: TypestateGraph): string =
   ## Returns the synthesized FSM type name for a typestate.
@@ -1228,17 +1230,13 @@ proc generateEventTypes*(graph: TypestateGraph): NimNode =
     enumFields.add ident("ev" & ev.name)
 
   let enumDef = nnkTypeDef.newTree(
-    nnkPostfix.newTree(ident("*"), kindEnumName),
-    newEmptyNode(),
-    enumFields
+    nnkPostfix.newTree(ident("*"), kindEnumName), newEmptyNode(), enumFields
   )
 
   # 2. Event variant type
   var recCase = nnkRecCase.newTree(
     nnkIdentDefs.newTree(
-      nnkPostfix.newTree(ident("*"), ident("kind")),
-      kindEnumName,
-      newEmptyNode()
+      nnkPostfix.newTree(ident("*"), ident("kind")), kindEnumName, newEmptyNode()
     )
   )
 
@@ -1251,16 +1249,14 @@ proc generateEventTypes*(graph: TypestateGraph): NimNode =
       for p in ev.params:
         let fName = ident(eventFieldName(ev.name, p.name))
         fieldsList.add nnkIdentDefs.newTree(
-          nnkPostfix.newTree(ident("*"), fName),
-          p.typeNode.copyNimTree,
-          newEmptyNode()
+          nnkPostfix.newTree(ident("*"), fName), p.typeNode.copyNimTree, newEmptyNode()
         )
       recCase.add nnkOfBranch.newTree(branchLabel, fieldsList)
 
   let objectDef = nnkTypeDef.newTree(
     nnkPostfix.newTree(ident("*"), eventTypeName),
     newEmptyNode(),
-    nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase))
+    nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase)),
   )
 
   result.add nnkTypeSection.newTree(enumDef, objectDef)
@@ -1282,21 +1278,22 @@ proc generateEventConstructors*(graph: TypestateGraph): NimNode =
     var formalParams1 = nnkFormalParams.newTree(eventTypeName)
     var formalParams2 = nnkFormalParams.newTree(eventTypeName)
     var objConstr = nnkObjConstr.newTree(
-      eventTypeName,
-      nnkExprColonExpr.newTree(ident("kind"), kindField)
+      eventTypeName, nnkExprColonExpr.newTree(ident("kind"), kindField)
     )
 
     for p in ev.params:
       let pIdent = ident(p.name)
       let pType = p.typeNode.copyNimTree
       formalParams1.add nnkIdentDefs.newTree(pIdent, pType, newEmptyNode())
-      formalParams2.add nnkIdentDefs.newTree(pIdent.copyNimTree, pType.copyNimTree, newEmptyNode())
+      formalParams2.add nnkIdentDefs.newTree(
+        pIdent.copyNimTree, pType.copyNimTree, newEmptyNode()
+      )
 
       let fName = ident(eventFieldName(ev.name, p.name))
       objConstr.add nnkExprColonExpr.newTree(fName, pIdent.copyNimTree)
 
     # Constructor 1: lower-cased event name (e.g. wakeWord)
-    let lowerName = ev.name[0].toLowerAscii & ev.name[1..^1]
+    let lowerName = ev.name[0].toLowerAscii & ev.name[1 ..^ 1]
     let proc1 = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), ident(lowerName)),
       newEmptyNode(),
@@ -1304,7 +1301,7 @@ proc generateEventConstructors*(graph: TypestateGraph): NimNode =
       formalParams1,
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(objConstr.copyNimTree)
+      nnkStmtList.newTree(objConstr.copyNimTree),
     )
     result.add proc1
 
@@ -1317,7 +1314,7 @@ proc generateEventConstructors*(graph: TypestateGraph): NimNode =
       formalParams2,
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(objConstr.copyNimTree)
+      nnkStmtList.newTree(objConstr.copyNimTree),
     )
     result.add proc2
 
@@ -1330,7 +1327,7 @@ proc generateEventConstructors*(graph: TypestateGraph): NimNode =
       formalParams1.copyNimTree,
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(objConstr)
+      nnkStmtList.newTree(objConstr),
     )
     result.add proc3
 
@@ -1363,16 +1360,15 @@ proc generateStateDotAccess*(graph: TypestateGraph): NimNode =
       nnkFormalParams.newTree(
         ident("untyped"),
         nnkIdentDefs.newTree(ident("s"), stateType.copyNimTree, newEmptyNode()),
-        nnkIdentDefs.newTree(ident("field"), ident("untyped"), newEmptyNode())
+        nnkIdentDefs.newTree(ident("field"), ident("untyped"), newEmptyNode()),
       ),
       newEmptyNode(),
       newEmptyNode(),
       nnkStmtList.newTree(
         nnkDotExpr.newTree(
-          nnkCall.newTree(baseTypeExpr.copyNimTree, ident("s")),
-          ident("field")
+          nnkCall.newTree(baseTypeExpr.copyNimTree, ident("s")), ident("field")
         )
-      )
+      ),
     )
     result.add getter
 
@@ -1382,21 +1378,22 @@ proc generateStateDotAccess*(graph: TypestateGraph): NimNode =
       buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         ident("untyped"),
-        nnkIdentDefs.newTree(ident("s"), nnkVarTy.newTree(stateType.copyNimTree), newEmptyNode()),
+        nnkIdentDefs.newTree(
+          ident("s"), nnkVarTy.newTree(stateType.copyNimTree), newEmptyNode()
+        ),
         nnkIdentDefs.newTree(ident("field"), ident("untyped"), newEmptyNode()),
-        nnkIdentDefs.newTree(ident("val"), ident("untyped"), newEmptyNode())
+        nnkIdentDefs.newTree(ident("val"), ident("untyped"), newEmptyNode()),
       ),
       newEmptyNode(),
       newEmptyNode(),
       nnkStmtList.newTree(
         nnkAsgn.newTree(
           nnkDotExpr.newTree(
-            nnkCall.newTree(baseTypeExpr.copyNimTree, ident("s")),
-            ident("field")
+            nnkCall.newTree(baseTypeExpr.copyNimTree, ident("s")), ident("field")
           ),
-          ident("val")
+          ident("val"),
         )
-      )
+      ),
     )
     result.add setter
 
@@ -1412,9 +1409,7 @@ proc generateFSMType*(graph: TypestateGraph): NimNode =
 
   var recCase = nnkRecCase.newTree(
     nnkIdentDefs.newTree(
-      nnkPostfix.newTree(ident("*"), ident("state")),
-      stateEnumName,
-      newEmptyNode()
+      nnkPostfix.newTree(ident("*"), ident("state")), stateEnumName, newEmptyNode()
     )
   )
 
@@ -1427,17 +1422,15 @@ proc generateFSMType*(graph: TypestateGraph): NimNode =
       stateEnumField,
       nnkRecList.newTree(
         nnkIdentDefs.newTree(
-          nnkPostfix.newTree(ident("*"), varFieldName),
-          stateType,
-          newEmptyNode()
+          nnkPostfix.newTree(ident("*"), varFieldName), stateType, newEmptyNode()
         )
-      )
+      ),
     )
 
   let fsmTypeDef = nnkTypeDef.newTree(
     nnkPostfix.newTree(ident("*"), fsmName),
     buildGenericParams(graph.typeParams, graph.typeParamDefaults),
-    nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase))
+    nnkObjectTy.newTree(newEmptyNode(), newEmptyNode(), nnkRecList.newTree(recCase)),
   )
 
   var typeSection = nnkTypeSection.newTree(fsmTypeDef)
@@ -1453,7 +1446,7 @@ proc generateFSMType*(graph: TypestateGraph): NimNode =
     let constr = nnkObjConstr.newTree(
       fsmName,
       nnkExprColonExpr.newTree(ident("state"), stateEnumField),
-      nnkExprColonExpr.newTree(varFieldName, ident("s"))
+      nnkExprColonExpr.newTree(varFieldName, ident("s")),
     )
 
     let convProc = nnkProcDef.newTree(
@@ -1461,12 +1454,11 @@ proc generateFSMType*(graph: TypestateGraph): NimNode =
       newEmptyNode(),
       buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
-        fsmName,
-        nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
+        fsmName, nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(constr)
+      nnkStmtList.newTree(constr),
     )
     result.add convProc
 
@@ -1476,14 +1468,11 @@ proc generateFSMType*(graph: TypestateGraph): NimNode =
       newEmptyNode(),
       buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
-        fsmName,
-        nnkIdentDefs.newTree(ident("s"), stateType.copyNimTree, newEmptyNode())
+        fsmName, nnkIdentDefs.newTree(ident("s"), stateType.copyNimTree, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(
-        nnkCall.newTree(ident("to" & fsmNameStr), ident("s"))
-      )
+      nnkStmtList.newTree(nnkCall.newTree(ident("to" & fsmNameStr), ident("s"))),
     )
     result.add toFsmProc
 
@@ -1492,7 +1481,7 @@ proc makeTransitionStmt*(
     fsmName: NimNode,
     sourceState: string,
     targetState: string,
-    eventName: string
+    eventName: string,
 ): NimNode =
   ## Synthesize transition statement preserving prior context and applying event parameters.
   let sourceField = ident(sourceState.toLowerAscii)
@@ -1535,7 +1524,7 @@ proc makeTransitionStmt*(
     nnkIdentDefs.newTree(
       ident("newCtx"),
       newEmptyNode(),
-      nnkCall.newTree(baseTypeExpr.copyNimTree, curStateAccess.copyNimTree)
+      nnkCall.newTree(baseTypeExpr.copyNimTree, curStateAccess.copyNimTree),
     )
   )
 
@@ -1544,10 +1533,10 @@ proc makeTransitionStmt*(
     let fName = ident(eventFieldName(eventName, p.name))
     let eventParamAccess = nnkDotExpr.newTree(ident("event"), fName)
 
-    let cond = nnkCall.newTree(ident("compiles"), nnkDotExpr.newTree(ident("newCtx"), pIdent))
+    let cond =
+      nnkCall.newTree(ident("compiles"), nnkDotExpr.newTree(ident("newCtx"), pIdent))
     let assignStmt = nnkAsgn.newTree(
-      nnkDotExpr.newTree(ident("newCtx"), pIdent.copyNimTree),
-      eventParamAccess
+      nnkDotExpr.newTree(ident("newCtx"), pIdent.copyNimTree), eventParamAccess
     )
     fallbackStmts.add nnkWhenStmt.newTree(
       nnkElifBranch.newTree(cond, nnkStmtList.newTree(assignStmt))
@@ -1567,7 +1556,7 @@ proc makeTransitionStmt*(
           nnkLetSection.newTree(
             nnkIdentDefs.newTree(ident("targetVal"), newEmptyNode(), hookCallFull)
           )
-        )
+        ),
       ),
       nnkElifBranch.newTree(
         nnkCall.newTree(ident("compiles"), hookCallCurOnly.copyNimTree),
@@ -1575,9 +1564,9 @@ proc makeTransitionStmt*(
           nnkLetSection.newTree(
             nnkIdentDefs.newTree(ident("targetVal"), newEmptyNode(), hookCallCurOnly)
           )
-        )
+        ),
       ),
-      nnkElse.newTree(fallbackStmts)
+      nnkElse.newTree(fallbackStmts),
     )
   else:
     hookBranch = nnkWhenStmt.newTree(
@@ -1587,9 +1576,9 @@ proc makeTransitionStmt*(
           nnkLetSection.newTree(
             nnkIdentDefs.newTree(ident("targetVal"), newEmptyNode(), hookCallCurOnly)
           )
-        )
+        ),
       ),
-      nnkElse.newTree(fallbackStmts)
+      nnkElse.newTree(fallbackStmts),
     )
 
   let assignFsm = nnkAsgn.newTree(
@@ -1597,15 +1586,11 @@ proc makeTransitionStmt*(
     nnkObjConstr.newTree(
       fsmName,
       nnkExprColonExpr.newTree(ident("state"), targetEnumField),
-      nnkExprColonExpr.newTree(targetField, ident("targetVal"))
-    )
+      nnkExprColonExpr.newTree(targetField, ident("targetVal")),
+    ),
   )
 
-  result = newStmtList(
-    hookBranch,
-    assignFsm,
-    nnkReturnStmt.newTree(ident("true"))
-  )
+  result = newStmtList(hookBranch, assignFsm, nnkReturnStmt.newTree(ident("true")))
 
 proc generateDispatchProc*(graph: TypestateGraph): NimNode =
   ## Synthesize proc dispatch*(fsm: var <Name>FSM, event: <Name>Event): bool
@@ -1618,9 +1603,7 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
   let eventTypeName = ident(graph.name & "Event")
 
   # Outer case: case fsm.state
-  var outerCase = nnkCaseStmt.newTree(
-    nnkDotExpr.newTree(ident("fsm"), ident("state"))
-  )
+  var outerCase = nnkCaseStmt.newTree(nnkDotExpr.newTree(ident("fsm"), ident("state")))
 
   # Collect wildcard event transitions
   var wildcardTransitions: seq[Transition] = @[]
@@ -1635,13 +1618,13 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
     # Collect transitions originating from this state with an event
     var stateTransitions: seq[Transition] = @[]
     for t in graph.transitions:
-      if not t.isWildcard and extractBaseName(t.fromState) == state.name and t.eventName.len > 0:
+      if not t.isWildcard and extractBaseName(t.fromState) == state.name and
+          t.eventName.len > 0:
         stateTransitions.add t
 
     # Inner case: case event.kind
-    var innerCase = nnkCaseStmt.newTree(
-      nnkDotExpr.newTree(ident("event"), ident("kind"))
-    )
+    var innerCase =
+      nnkCaseStmt.newTree(nnkDotExpr.newTree(ident("event"), ident("kind")))
 
     var handledEvents: seq[string] = @[]
 
@@ -1652,7 +1635,8 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
       handledEvents.add t.eventName
       let eventKindIdent = ident("ev" & t.eventName)
       let targetState = extractBaseName(t.toStates[0])
-      let transitionStmt = makeTransitionStmt(graph, fsmName, state.name, targetState, t.eventName)
+      let transitionStmt =
+        makeTransitionStmt(graph, fsmName, state.name, targetState, t.eventName)
       innerCase.add nnkOfBranch.newTree(eventKindIdent, transitionStmt)
 
     # 2. Wildcard transitions (if state is not terminal)
@@ -1663,13 +1647,12 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
         handledEvents.add t.eventName
         let eventKindIdent = ident("ev" & t.eventName)
         let targetState = extractBaseName(t.toStates[0])
-        let transitionStmt = makeTransitionStmt(graph, fsmName, state.name, targetState, t.eventName)
+        let transitionStmt =
+          makeTransitionStmt(graph, fsmName, state.name, targetState, t.eventName)
         innerCase.add nnkOfBranch.newTree(eventKindIdent, transitionStmt)
 
     # 3. Else: unhandled event returns false
-    innerCase.add nnkElse.newTree(
-      nnkReturnStmt.newTree(ident("false"))
-    )
+    innerCase.add nnkElse.newTree(nnkReturnStmt.newTree(ident("false")))
 
     outerCase.add nnkOfBranch.newTree(stateEnumField, innerCase)
 
@@ -1686,11 +1669,11 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
     nnkFormalParams.newTree(
       ident("bool"),
       nnkIdentDefs.newTree(ident("fsm"), nnkVarTy.newTree(fsmName), newEmptyNode()),
-      nnkIdentDefs.newTree(ident("event"), eventTypeName, newEmptyNode())
+      nnkIdentDefs.newTree(ident("event"), eventTypeName, newEmptyNode()),
     ),
     newEmptyNode(),
     newEmptyNode(),
-    nnkStmtList.newTree(docComment, outerCase)
+    nnkStmtList.newTree(docComment, outerCase),
   )
 
   result.add procDef

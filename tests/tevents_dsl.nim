@@ -26,7 +26,7 @@ typestate VoiceAssistant:
     Idle on WakeWord -> Woken
     Woken on ChimeDone -> Listening
     Listening on SpeechEnded -> Thinking
-    * on Reset -> Idle
+    *on Reset -> Idle
 
 suite "Events DSL & Dispatcher Codegen":
   test "Synthesized EventKind enum and Event tagged union":

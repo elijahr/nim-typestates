@@ -219,8 +219,8 @@ proc `==`*(a, b: Transition): bool =
   ## :param a: First transition to compare
   ## :param b: Second transition to compare
   ## :returns: `true` if transitions are semantically equivalent
-  a.fromState == b.fromState and a.toStates == b.toStates and
-    a.eventName == b.eventName and a.isWildcard == b.isWildcard
+  a.fromState == b.fromState and a.toStates == b.toStates and a.eventName == b.eventName and
+    a.isWildcard == b.isWildcard
 
 proc `==`*(a, b: Bridge): bool =
   ## Compare two bridges for equality.
