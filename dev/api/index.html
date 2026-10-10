@@ -1544,10 +1544,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stateToSealedModule" class="md-nav__link">
+  <a href="#stateToSealedModules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        stateToSealedModule
+        stateToSealedModules
       
     </span>
   </a>
@@ -2924,10 +2924,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stateToSealedModule" class="md-nav__link">
+  <a href="#stateToSealedModules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        stateToSealedModule
+        stateToSealedModules
       
     </span>
   </a>
@@ -7188,14 +7188,14 @@ existing callers see zero behaviour change.</p>
         <div class="doc doc-object doc-var">
   
 
-  <h4 id="stateToSealedModule" class="doc doc-heading">
+  <h4 id="stateToSealedModules" class="doc doc-heading">
     <code class="doc-symbol doc-symbol-heading doc-symbol-var"></code>
-    <span class="doc doc-object-name doc-var-name">stateToSealedModule</span>
-  <a href="#stateToSealedModule" class="headerlink" title="Permanent link">¶</a></h4>
+    <span class="doc doc-object-name doc-var-name">stateToSealedModules</span>
+  <a href="#stateToSealedModules" class="headerlink" title="Permanent link">¶</a></h4>
 
   
     <div class="doc-signature highlight">
-      <pre><code class="language-nim highlight"><span class="kd">var</span><span class="w"> </span><span class="n">stateToSealedModule</span><span class="p">:</span><span class="w"> </span><span class="n">Table</span><span class="o">[</span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="nb">string</span><span class="o">]</span>
+      <pre><code class="language-nim highlight"><span class="kd">var</span><span class="w"> </span><span class="n">stateToSealedModules</span><span class="p">:</span><span class="w"> </span><span class="n">Table</span><span class="o">[</span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="nb">seq</span><span class="o">[</span><span class="nb">string</span><span class="o">]]</span>
 </code></pre>
     </div>
   
@@ -7203,13 +7203,13 @@ existing callers see zero behaviour change.</p>
   <div class="doc doc-contents">
     
       <div class="doc-description">
-        <p>Fast O(1) index from state name to owning sealed module path</p>
+        <p>Fast O(1) index from state name to owning sealed module paths (multimap)</p>
       </div>
     
 
     
       <div class="doc-section doc-section-type">
-        <p><strong>Type:</strong> <code>Table[string, string]</code></p>
+        <p><strong>Type:</strong> <code>Table[string, seq[string]]</code></p>
       </div>
     
 
@@ -7402,8 +7402,8 @@ existing callers see zero behaviour change.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L58" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:58
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L61" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:61
           </a>
         
       </div>
@@ -7474,8 +7474,8 @@ type-level AST interactions simple and consistent with the
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L76" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:76
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L82" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:82
           </a>
         
       </div>
@@ -7586,8 +7586,8 @@ customization is a separate feature, not included in v0.9.3.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L105" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:105
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L111" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:111
           </a>
         
       </div>
@@ -7661,8 +7661,8 @@ sibling is present.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L184" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:184
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L190" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:190
           </a>
         
       </div>
@@ -7728,8 +7728,8 @@ forms via <code>isTransparentWrapper</code>.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L212" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:212
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L218" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:218
           </a>
         
       </div>
@@ -7796,8 +7796,8 @@ typestate declaration, before the <code>{.transition.}</code> procs that use it.
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L219" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:219
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L225" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:225
           </a>
         
       </div>
@@ -7868,8 +7868,8 @@ both hit the registry.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L227" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:227
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L233" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:233
           </a>
         
       </div>
@@ -7955,8 +7955,8 @@ deeper; round-18 defensive consistency.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L237" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:237
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L243" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:243
           </a>
         
       </div>
@@ -8030,8 +8030,8 @@ Ident/Sym children are present.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L268" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:268
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L274" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:274
           </a>
         
       </div>
@@ -8151,8 +8151,8 @@ Non-typestate-bearing params are skipped.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L480" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:480
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L486" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:486
           </a>
         
       </div>
@@ -8234,8 +8234,8 @@ transitions can be implemented.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L679" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:679
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L685" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:685
           </a>
         
       </div>
@@ -8302,8 +8302,8 @@ substring scan, which would mis-handle combined pragmas like
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1064" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1064
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1070" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1070
           </a>
         
       </div>
@@ -8381,8 +8381,8 @@ inferred as the typestate's <code>terminalStates</code> set.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1376" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1376
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1382" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1382
           </a>
         
       </div>
@@ -8461,8 +8461,8 @@ mirrors <code>{.transition: A -&gt; B.}</code> for visual symmetry.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1399" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1399
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1405" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1405
           </a>
         
       </div>
@@ -8540,8 +8540,8 @@ TypeDef without prior unwrapping.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1417" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1417
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1423" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1423
           </a>
         
       </div>
@@ -8632,8 +8632,8 @@ mutated.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1472" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1472
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1478" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1478
           </a>
         
       </div>
@@ -8700,8 +8700,8 @@ enabled on the typestate.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1559" target="_blank" rel="noopener">
-            src/typestates/pragmas.nim:1559
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/pragmas.nim#L1565" target="_blank" rel="noopener">
+            src/typestates/pragmas.nim:1565
           </a>
         
       </div>
