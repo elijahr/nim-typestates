@@ -29,8 +29,8 @@ type TypestateOp* = object of RootEffect
 var sealedTypestateModules* {.compileTime.}: Table[string, seq[string]]
   ## Maps module filename -> list of state type names from sealed typestates
 
-var stateToSealedModule* {.compileTime.}: Table[string, string]
-  ## Fast O(1) index from state name to owning sealed module path
+var stateToSealedModules* {.compileTime.}: Table[string, seq[string]]
+  ## Fast O(1) index from state name to owning sealed module paths (multimap)
 
 # Compile-time registry of transparent wrapper type names. Seeded with the
 # common cases Result (nim-results), Option (std/options), and Future
@@ -51,7 +51,10 @@ proc registerSealedStates*(
   if modulePath notin sealedTypestateModules:
     sealedTypestateModules[modulePath] = @[]
   for state in stateNames:
-    stateToSealedModule[state] = modulePath
+    if state notin stateToSealedModules:
+      stateToSealedModules[state] = @[]
+    if modulePath notin stateToSealedModules[state]:
+      stateToSealedModules[state].add modulePath
     if state notin sealedTypestateModules[modulePath]:
       sealedTypestateModules[modulePath].add state
 
@@ -63,10 +66,13 @@ proc isStateFromSealedTypestate*(
   ## :param stateName: The state type name to check
   ## :param currentModule: The current module's filename
   ## :returns: `some(modulePath)` if from external sealed typestate, `none` otherwise
-  if stateName in stateToSealedModule:
-    let modPath = stateToSealedModule[stateName]
-    if modPath != currentModule:
-      return some(modPath)
+  if stateName in stateToSealedModules:
+    let owners = stateToSealedModules[stateName]
+    if currentModule in owners:
+      return none(string)
+    for modPath in owners:
+      if modPath != currentModule:
+        return some(modPath)
     return none(string)
   for modulePath, states in sealedTypestateModules:
     if modulePath != currentModule and stateName in states:
