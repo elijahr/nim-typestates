@@ -14,7 +14,7 @@
 ## Used by both the macro-side parser (compile-time `warning(...)`
 ## emission) and the CLI verifier (populates `VerifyResult.warnings`).
 
-import std/[tables, sets, sequtils, strutils, deques]
+import std/[tables, sets, sequtils, strutils]
 import types
 import findings
 
@@ -94,11 +94,12 @@ proc buildAdjacency(
     result.reverse[s] = @[]
 
   let terminalBases = inp.terminalStates.mapIt(extractBaseName(it))
+  let terminalSet = toHashSet(terminalBases)
 
   for t in inp.edges:
     let sources =
       if t.isWildcard:
-        inp.states.filterIt(it notin terminalBases)
+        inp.states.filterIt(it notin terminalSet)
       else:
         @[t.fromState]
     for src in sources:
@@ -111,18 +112,20 @@ proc buildAdjacency(
 proc bfs(adj: Table[string, seq[string]], starts: seq[string]): HashSet[string] =
   ## Standard BFS reachability over a directed adjacency table.
   result = initHashSet[string]()
-  var queue = initDeque[string]()
+  var queue: seq[string] = @[]
   for s in starts:
     if s notin result:
       result.incl s
-      queue.addLast s
-  while queue.len > 0:
-    let n = queue.popFirst()
+      queue.add s
+  var head = 0
+  while head < queue.len:
+    let n = queue[head]
+    inc head
     if n in adj:
       for nbr in adj[n]:
         if nbr notin result:
           result.incl nbr
-          queue.addLast nbr
+          queue.add nbr
 
 proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
   ## Run reachability/liveness analysis on a `ReachabilityInput`.
@@ -182,8 +185,10 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
     let bridgeBases = inp.bridgeSources.mapIt(extractBaseName(it))
     let liveSeeds = terminalBases & bridgeBases
     let liveSet = bfs(rev, liveSeeds)
+    let terminalSet = toHashSet(terminalBases)
+    let bridgeSet = toHashSet(bridgeBases)
     for s in reachable:
-      if s notin liveSet and s notin terminalBases and s notin bridgeBases:
+      if s notin liveSet and s notin terminalSet and s notin bridgeSet:
         result.findings.add ReachabilityFinding(
           kind: rfTrap, stateName: s, typestateName: inp.typestateName
         )

@@ -1110,6 +1110,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   validateInitialTerminal(result, name)
   validateTransitionsRespectInitialTerminal(result, name)
   validateEvents(result, name)
+  finalizeGraph(result)
 
   # Reachability/liveness analysis (opt-in: only fires when the user has
   # declared `initial:` or `terminal:`, so existing typestates produce no
