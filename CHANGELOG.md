@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-10-10
+
+### Fixed
+
+- Remediated multi-module sealed state collision (MED-01): converted `stateToSealedModule` to a multimap `stateToSealedModules: Table[string, seq[string]]` in `src/typestates/pragmas.nim`, ensuring distinct modules declaring sealed typestates with identical state base names (e.g. `Closed`, `Open`) do not clobber each other or falsely report local states as external.
+- Added comprehensive unit and multi-module integration regression tests in `tests/tsealed_multimodule.nim` and fixtures in `tests/fixtures/sealed_multimodule/`.
+
+### Performance
+
+- Pre-indexed state-specific transitions in `generateDispatchProc` (`codegen.nim`), eliminating quadratic `O(T * S)` scans.
+- Hoisted loop invariants and utilized `HashSet` lookup in `verifyTypestatesImpl` decoy generation (`verify.nim`).
+
 ## [0.12.1] - 2026-10-10
 
 ### Performance
