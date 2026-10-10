@@ -1605,22 +1605,22 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
   # Outer case: case fsm.state
   var outerCase = nnkCaseStmt.newTree(nnkDotExpr.newTree(ident("fsm"), ident("state")))
 
-  # Collect wildcard event transitions
+  # Collect wildcard event transitions and pre-index state-specific transitions
   var wildcardTransitions: seq[Transition] = @[]
+  var transitionsBySource = initTable[string, seq[Transition]]()
   for t in graph.transitions:
-    if t.isWildcard and t.eventName.len > 0:
-      wildcardTransitions.add t
+    if t.eventName.len > 0:
+      if t.isWildcard:
+        wildcardTransitions.add t
+      else:
+        let src = extractBaseName(t.fromState)
+        transitionsBySource.mgetOrPut(src, @[]).add t
 
   for state in graph.states.values:
     let stateEnumField = ident("fs" & state.name)
     let stateIsTerminal = graph.isTerminalState(state.name)
 
-    # Collect transitions originating from this state with an event
-    var stateTransitions: seq[Transition] = @[]
-    for t in graph.transitions:
-      if not t.isWildcard and extractBaseName(t.fromState) == state.name and
-          t.eventName.len > 0:
-        stateTransitions.add t
+    let stateTransitions = transitionsBySource.getOrDefault(state.name, @[])
 
     # Inner case: case event.kind
     var innerCase =
@@ -1651,8 +1651,9 @@ proc generateDispatchProc*(graph: TypestateGraph): NimNode =
           makeTransitionStmt(graph, fsmName, state.name, targetState, t.eventName)
         innerCase.add nnkOfBranch.newTree(eventKindIdent, transitionStmt)
 
-    # 3. Else: unhandled event returns false
-    innerCase.add nnkElse.newTree(nnkReturnStmt.newTree(ident("false")))
+    # 3. Else: unhandled event returns false (only when unhandled events exist)
+    if handledEvents.len < graph.events.len:
+      innerCase.add nnkElse.newTree(nnkReturnStmt.newTree(ident("false")))
 
     outerCase.add nnkOfBranch.newTree(stateEnumField, innerCase)
 

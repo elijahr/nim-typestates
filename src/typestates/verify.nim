@@ -2187,24 +2187,25 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
     if info.destStates.len != 1:
       continue # branching-return deferred
 
+    let expectedList = info.coveredSources.join("' or '")
+    let moduleFilename = extractFilename(info.modulePath)
+    let procIdent = ident(info.name)
+    let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
+    let coveredSet = toHashSet(info.coveredSources)
+
     for stateName, state in info.typestate.states:
       let stateBase = extractBaseName(stateName)
-      if stateBase in info.coveredSources:
+      if stateBase in coveredSet:
         continue
       # Build the tailored error message naming the proc, the wrong state,
       # the expected (one of) source state(s), and the location of the real
       # transition for navigability.
-      let expectedList = info.coveredSources.join("' or '")
       let errorMsg =
         "Cannot call '" & info.name & "' on a value in state '" & stateBase &
         "'. Expected '" & expectedList & "'. (Defined at " &
-        extractFilename(info.modulePath) & ")"
+        moduleFilename & ")"
 
       let stateIdent = ident(stateBase)
-      let procIdent = ident(info.name)
-      # The decoy is exported (`*`) so it is visible at call sites in
-      # downstream modules. Transitions are typically exported.
-      let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
       # Decoys carry only {.error.} — other pragmas like {.async.} aren't
       # propagated because {.error.} short-circuits before they would matter.
       let errorPragma =
