@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-10-10
+
+### Performance
+
+- Compile-time macro execution optimization: eliminated quadratic AST scans and memoized hot compile-time lookups across `registry.nim`, `verify.nim`, `reachability.nim`, and `types.nim`.
+- Added `stateToTypestate` compile-time table for O(1) typestate lookup by state base name (-69.4% VM instructions in `findTypestateForState`).
+- Added `branchTypeRegistry` table for O(1) branch type resolution in `findBranchTypeInfo`.
+- Precomputed `terminalBases`, `initialBases`, `transitionMap`, and `wildcardDests` on `TypestateGraph`, turning `isTerminalState`, `isInitialState`, and `hasTransition` into O(1) lookups.
+- Added `stateToSealedModule` table in `pragmas.nim` for O(1) sealed module lookup.
+- Indexed `registeredProcs` by proc name, module path, and destructor kind in `verify.nim` (-88.1% VM instructions in `runCfgAnalyzer`).
+- Replaced `Deque` BFS with flat `seq` + head index in `reachability.nim`.
+
 ## [0.12.0] - 2026-05-29
 
 Defensive fixes on top of v0.11.0. No new public API; semver-minor bump for
