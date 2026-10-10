@@ -6,7 +6,7 @@
 ## - `verifyTypestates()` macro for in-module verification
 ## - CLI tool support for full-project verification
 
-import std/[macros, options, os, sets, strutils, tables]
+import std/[macros, options, os, sets, strutils, tables, sequtils]
 import types, registry
 
 type
@@ -123,11 +123,31 @@ type
 var registeredProcs* {.compileTime.}: seq[RegisteredProc]
   ## Compile-time list of all procs registered for verification.
 
+var procsByName* {.compileTime.}: Table[string, seq[int]]
+  ## Index mapping proc name to indices in registeredProcs
+
+var procsByModule* {.compileTime.}: Table[string, seq[int]]
+  ## Index mapping module path to indices in registeredProcs
+
+var destructorProcIndices* {.compileTime.}: seq[int]
+  ## Indices of pkDestructorTransition procs in registeredProcs
+
 proc registerProc*(info: RegisteredProc) {.compileTime.} =
   ## Register a proc for later verification.
   ##
   ## :param info: The proc information to register
+  let idx = registeredProcs.len
   registeredProcs.add info
+  if info.name in procsByName:
+    procsByName[info.name].add idx
+  else:
+    procsByName[info.name] = @[idx]
+  if info.modulePath in procsByModule:
+    procsByModule[info.modulePath].add idx
+  else:
+    procsByModule[info.modulePath] = @[idx]
+  if info.kind == pkDestructorTransition:
+    destructorProcIndices.add idx
 
 ## --------------------------------------------------------------------------
 ## CFG analyzer (v0.9.0 §3.3)
@@ -197,9 +217,8 @@ proc buildDestructorTypes(): Table[string, TypestateGraph] {.compileTime.} =
   ## the analyzer's per-local lookup is by the local's declared type's base
   ## name, which uniquely identifies which path applies.
   result = initTable[string, TypestateGraph]()
-  for procInfo in registeredProcs:
-    if procInfo.kind != pkDestructorTransition:
-      continue
+  for idx in destructorProcIndices:
+    let procInfo = registeredProcs[idx]
     let graphOpt = findTypestateForState(procInfo.sourceState)
     if graphOpt.isNone:
       continue
@@ -290,6 +309,8 @@ proc isTerminalForGraph*(
 ): bool {.compileTime.} =
   ## Return `true` if `stateType` (a base name) is one of the typestate's
   ## terminal states.
+  if graph.terminalBases.len > 0:
+    return stateType in graph.terminalBases
   for term in graph.terminalStates:
     if extractBaseName(term) == stateType:
       return true
@@ -414,7 +435,7 @@ proc findTransitionByCalleeAndArgStates*(
   ##
   ## Returns `none(RegisteredProc)` when zero registered procs match;
   ## the caller should treat that as "no LHS binding" (conservative drop).
-  if callee.len == 0:
+  if callee.len == 0 or callee notin procsByName:
     return none(RegisteredProc)
   # Determine whether ANY argStates entry constrains the search. When every
   # entry is `none`, the caller has no source-state information to share, so
@@ -424,11 +445,11 @@ proc findTransitionByCalleeAndArgStates*(
     if s.isSome:
       anyConstraint = true
       break
-  for i in countdown(registeredProcs.len - 1, 0):
+  let candidateIndices = procsByName[callee]
+  for k in countdown(candidateIndices.len - 1, 0):
+    let i = candidateIndices[k]
     let p = registeredProcs[i]
     if p.kind notin {pkTransition, pkDestructorTransition}:
-      continue
-    if p.name != callee:
       continue
     if p.destStates.len != 1:
       continue
@@ -1976,12 +1997,18 @@ proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
   ## prior analyzer silently missed — a proc taking `var f: Open` and
   ## returning without consuming `f` correctly fires CFG-001.
   let destructorTypes = buildDestructorTypes()
-  for procInfo in registeredProcs:
+  let indices =
+    if callerModulePath.len > 0 and callerModulePath in procsByModule:
+      procsByModule[callerModulePath]
+    elif callerModulePath.len > 0:
+      @[]
+    else:
+      toSeq(0 ..< registeredProcs.len)
+  for idx in indices:
+    let procInfo = registeredProcs[idx]
     if procHasSkipCfgPragma(procInfo):
       continue
     if procInfo.body.isNil or procInfo.body.kind == nnkEmpty:
-      continue
-    if callerModulePath.len > 0 and procInfo.modulePath != callerModulePath:
       continue
     var state = initLiveState()
     # Round-2 Finding #2: pre-populate live-set with typestate-bearing
@@ -2078,13 +2105,16 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
   # groups in O(N+M) instead of O(N*M).
   var unionProcNames: HashSet[string]
 
-  for procInfo in registeredProcs:
-    # Round-2 Finding #3: only emit F5 decoys for transitions registered in
-    # the caller's module. The decoys are added to this module's output via
-    # `result.add`; emitting decoys for foreign-module procs would inject
-    # them into the wrong module.
-    if procInfo.modulePath != callerFile:
-      continue
+  let callerIndices =
+    if callerFile.len > 0 and callerFile in procsByModule:
+      procsByModule[callerFile]
+    elif callerFile.len > 0:
+      @[]
+    else:
+      toSeq(0 ..< registeredProcs.len)
+
+  for idx in callerIndices:
+    let procInfo = registeredProcs[idx]
     if procInfo.kind != pkTransition:
       continue
     if procInfo.sourceState.len == 0:

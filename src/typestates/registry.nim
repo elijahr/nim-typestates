@@ -24,6 +24,21 @@ var typestateRegistry* {.compileTime.}: Table[string, TypestateGraph]
   ## This variable is populated by the `typestate` macro and queried
   ## by the `{.transition.}` pragma.
 
+var stateToTypestate* {.compileTime.}: Table[string, string]
+  ## Fast O(1) index from state base name to owning typestate name.
+
+type BranchTypeInfo* = object
+  ## Information about a user-defined branch type.
+  ##
+  ## When a branching transition like `Created -> (Approved | Declined) as ProcessResult`
+  ## is declared, the user provides the type name. This object captures the
+  ## relationship between the branch type name and the original transition.
+  sourceState*: string ## The source state name ("Created")
+  destinations*: seq[string] ## The destination states (["Approved", "Declined"])
+
+var branchTypeRegistry* {.compileTime.}: Table[string, BranchTypeInfo]
+  ## Fast O(1) index from branch type base name to BranchTypeInfo.
+
 proc validateBridgeDestinations(graph: TypestateGraph) {.compileTime.} =
   ## Validate that all bridge destinations reference existing states.
   ##
@@ -82,10 +97,24 @@ template registerTypestate*(graph: TypestateGraph) =
         "Each typestate can only be declared once."
     )
 
-  typestateRegistry[graph.name] = graph
+  var g = graph
+  finalizeGraph(g)
+  typestateRegistry[g.name] = g
+
+  for stateKey, state in g.states:
+    stateToTypestate[state.name] = g.name
+
+  for trans in g.transitions:
+    if trans.toStates.len > 1 and not trans.isWildcard:
+      let bName = extractBaseName(trans.branchTypeName)
+      if bName.len > 0:
+        branchTypeRegistry[bName] = BranchTypeInfo(
+          sourceState: extractBaseName(trans.fromState),
+          destinations: trans.toStates,
+        )
 
   # Validate bridge destinations after registration
-  validateBridgeDestinations(graph)
+  validateBridgeDestinations(g)
 
 template hasTypestate*(name: string): bool =
   ## Check if a typestate with the given name exists in the registry.
@@ -129,9 +158,14 @@ proc findTypestateForState*(stateName: string): Option[TypestateGraph] {.compile
   ## :param stateName: The state type name (base name, e.g., "Closed", "Empty")
   ## :returns: `some(graph)` if found, `none` if state is not in any typestate
   let searchBase = extractBaseName(stateName)
+  if searchBase in stateToTypestate:
+    let tsName = stateToTypestate[searchBase]
+    if tsName in typestateRegistry:
+      return some(typestateRegistry[tsName])
   for name, graph in typestateRegistry:
     for stateKey, state in graph.states:
       if state.name == searchBase:
+        stateToTypestate[searchBase] = name
         return some(graph)
   return none(TypestateGraph)
 
@@ -185,15 +219,6 @@ proc addAttachment*(typeName: string, info: AttachmentInfo) {.compileTime.} =
   let key = extractBaseName(typeName)
   typestateAttachments[key] = info
 
-type BranchTypeInfo* = object
-  ## Information about a user-defined branch type.
-  ##
-  ## When a branching transition like `Created -> (Approved | Declined) as ProcessResult`
-  ## is declared, the user provides the type name. This object captures the
-  ## relationship between the branch type name and the original transition.
-  sourceState*: string ## The source state name ("Created")
-  destinations*: seq[string] ## The destination states (["Approved", "Declined"])
-
 proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime.} =
   ## Check if a type name is a user-defined branch type.
   ##
@@ -219,17 +244,20 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
   ## :returns: `some(info)` if it's a branch type, `none` otherwise
   let typeBase = extractBaseName(typeName)
 
+  if typeBase in branchTypeRegistry:
+    return some(branchTypeRegistry[typeBase])
+
   # Search for a branching transition with this user-provided type name
   for name, graph in typestateRegistry:
     for trans in graph.transitions:
       if trans.toStates.len > 1 and not trans.isWildcard:
         # Compare base names (handles generic branch types like EmptyCheck[N])
         if extractBaseName(trans.branchTypeName) == typeBase:
-          return some(
-            BranchTypeInfo(
-              sourceState: extractBaseName(trans.fromState),
-              destinations: trans.toStates,
-            )
+          let info = BranchTypeInfo(
+            sourceState: extractBaseName(trans.fromState),
+            destinations: trans.toStates,
           )
+          branchTypeRegistry[typeBase] = info
+          return some(info)
 
   return none(BranchTypeInfo)

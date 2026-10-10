@@ -6,7 +6,7 @@
 ## These types are primarily used internally by the `typestate` macro and
 ## `{.transition.}` pragma. Most users won't interact with them directly.
 
-import std/[macros, tables, strutils]
+import std/[macros, tables, strutils, sets]
 
 proc extractBaseName*(stateRepr: string): string =
   ## Extract the base type name from a state repr string.
@@ -206,6 +206,10 @@ type
     opaqueStates*: bool = false ## Opt-in cast-bypass lint (CLI-side only)
     initialStates*: seq[string] ## States that cannot be transitioned TO
     terminalStates*: seq[string] ## States that cannot transition FROM
+    initialBases*: HashSet[string] ## Precomputed base names of initialStates
+    terminalBases*: HashSet[string] ## Precomputed base names of terminalStates
+    transitionMap*: Table[string, seq[string]] ## Precomputed fromBase -> seq of toBases
+    wildcardDests*: seq[string] ## Precomputed wildcard toBases
     declaredAt*: LineInfo
     declaredInModule*: string
 
@@ -235,6 +239,30 @@ proc `==`*(a, b: Bridge): bool =
   a.fromState == b.fromState and a.toModule == b.toModule and
     a.toTypestate == b.toTypestate and a.toState == b.toState
 
+proc finalizeGraph*(graph: var TypestateGraph) =
+  ## Precompute base-name indices for O(1) membership and transition queries.
+  graph.initialBases = initHashSet[string]()
+  for s in graph.initialStates:
+    graph.initialBases.incl extractBaseName(s)
+  graph.terminalBases = initHashSet[string]()
+  for s in graph.terminalStates:
+    graph.terminalBases.incl extractBaseName(s)
+  graph.wildcardDests = @[]
+  graph.transitionMap = initTable[string, seq[string]]()
+  for t in graph.transitions:
+    if t.isWildcard:
+      for dest in t.toStates:
+        graph.wildcardDests.add extractBaseName(dest)
+    else:
+      let f = extractBaseName(t.fromState)
+      var dests: seq[string] = @[]
+      for dest in t.toStates:
+        dests.add extractBaseName(dest)
+      if f in graph.transitionMap:
+        graph.transitionMap[f].add dests
+      else:
+        graph.transitionMap[f] = dests
+
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Check if a transition from `fromState` to `toState` is valid.
   ##
@@ -261,6 +289,15 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## :returns: `true` if the transition is allowed, `false` otherwise
   let fromBase = extractBaseName(fromState)
   let toBase = extractBaseName(toState)
+  if graph.transitionMap.len > 0 or graph.wildcardDests.len > 0:
+    for dest in graph.wildcardDests:
+      if dest == toBase:
+        return true
+    if fromBase in graph.transitionMap:
+      for dest in graph.transitionMap[fromBase]:
+        if dest == toBase:
+          return true
+    return false
   for t in graph.transitions:
     let tFromBase = extractBaseName(t.fromState)
     if t.isWildcard or tFromBase == fromBase:
@@ -427,6 +464,8 @@ proc isInitialState*(graph: TypestateGraph, stateName: string): bool =
   ## :param stateName: The state name to check
   ## :returns: `true` if the state is initial, `false` otherwise
   let base = extractBaseName(stateName)
+  if graph.initialBases.len > 0:
+    return base in graph.initialBases
   for s in graph.initialStates:
     if extractBaseName(s) == base:
       return true
@@ -450,6 +489,8 @@ proc isTerminalState*(graph: TypestateGraph, stateName: string): bool =
   ## :param stateName: The state name to check
   ## :returns: `true` if the state is terminal, `false` otherwise
   let base = extractBaseName(stateName)
+  if graph.terminalBases.len > 0:
+    return base in graph.terminalBases
   for s in graph.terminalStates:
     if extractBaseName(s) == base:
       return true
