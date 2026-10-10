@@ -109,8 +109,7 @@ template registerTypestate*(graph: TypestateGraph) =
       let bName = extractBaseName(trans.branchTypeName)
       if bName.len > 0:
         branchTypeRegistry[bName] = BranchTypeInfo(
-          sourceState: extractBaseName(trans.fromState),
-          destinations: trans.toStates,
+          sourceState: extractBaseName(trans.fromState), destinations: trans.toStates
         )
 
   # Validate bridge destinations after registration
@@ -254,8 +253,7 @@ proc findBranchTypeInfo*(typeName: string): Option[BranchTypeInfo] {.compileTime
         # Compare base names (handles generic branch types like EmptyCheck[N])
         if extractBaseName(trans.branchTypeName) == typeBase:
           let info = BranchTypeInfo(
-            sourceState: extractBaseName(trans.fromState),
-            destinations: trans.toStates,
+            sourceState: extractBaseName(trans.fromState), destinations: trans.toStates
           )
           branchTypeRegistry[typeBase] = info
           return some(info)
