@@ -358,7 +358,6 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
 
   for t in branchingTransitions:
     let branchTypeName = t.branchTypeName
-    let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
     # Use typestate's type params (with constraints) instead of extracting from branch type.
     # Defaults flow through so generated variants inherit them via the same
