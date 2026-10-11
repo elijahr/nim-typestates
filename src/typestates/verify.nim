@@ -2187,19 +2187,21 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
       let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
       let unionName = ident(info.typestate.name & "States")
 
+      doAssert info.coveredSources.len > 0,
+        "Internal invariant violated: transition group '" & info.name &
+          "' has no covered sources"
+
       # Build `not (Source1 or Source2 ...)`
       var notCovered: NimNode
       if info.coveredSources.len == 1:
         notCovered = nnkPrefix.newTree(ident("not"), ident(info.coveredSources[0]))
-      elif info.coveredSources.len > 1:
+      else:
         var orChain = nnkInfix.newTree(
           ident("or"), ident(info.coveredSources[0]), ident(info.coveredSources[1])
         )
         for s in info.coveredSources[2 ..^ 1]:
           orChain = nnkInfix.newTree(ident("or"), orChain, ident(s))
         notCovered = nnkPrefix.newTree(ident("not"), nnkPar.newTree(orChain))
-      else:
-        continue
 
       let typeclassExpr = nnkInfix.newTree(ident("and"), unionName, notCovered)
       let typeVar = ident("T")
