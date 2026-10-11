@@ -2067,8 +2067,8 @@ macro reportStateMismatch*(
 ): untyped =
   let stateName = extractBaseName(node.getTypeInst.repr)
   let msg =
-    "Cannot call '" & procName & "' on a value in state '" & stateName &
-    "'. Expected '" & expectedList & "'. (Defined at " & moduleFilename & ")"
+    "Cannot call '" & procName & "' on a value in state '" & stateName & "'. Expected '" &
+    expectedList & "'. (Defined at " & moduleFilename & ")"
   error(msg, node)
 
 macro verifyTypestatesImpl*(callerFile: static[string]): untyped =

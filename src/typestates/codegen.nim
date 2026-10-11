@@ -1111,8 +1111,7 @@ proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
     let macroBody = newStmtList(
       matchDoc,
       nnkAsgn.newTree(
-        ident("result"),
-        nnkCall.newTree(helperSym, ident("value"), ident("arms")),
+        ident("result"), nnkCall.newTree(helperSym, ident("value"), ident("arms"))
       ),
     )
 

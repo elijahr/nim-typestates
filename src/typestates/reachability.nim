@@ -80,13 +80,12 @@ proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
   for b in graph.bridges:
     result.bridgeSources.add extractBaseName(b.fromState)
 
-type
-  IndexedGraph = object
-    states: seq[string]
-    nameToIndex: Table[string, int]
-    fwd: seq[seq[int]]
-    rev: seq[seq[int]]
-    isTerminal: seq[bool]
+type IndexedGraph = object
+  states: seq[string]
+  nameToIndex: Table[string, int]
+  fwd: seq[seq[int]]
+  rev: seq[seq[int]]
+  isTerminal: seq[bool]
 
 proc buildIndexedGraph(inp: ReachabilityInput): IndexedGraph =
   ## Build indexed graph mapping state names to compact ordinals.
