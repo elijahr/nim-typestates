@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-10
+
+Major compile-time performance release delivering up to **5.89x faster compile times** and **99.5% reduction** in emitted decoy procedures on large finite state machines, without degrading custom state-aware error diagnostics.
+
+### Added
+
+- Added compile-time opt-out defines for boilerplate codegen pruning:
+  - `-d:typestatesNoSingleTargetMatch`: disables single-target `match` macro emission.
+  - `-d:typestatesNoDollar`: disables `$()` stringifier proc generation for states.
+  - `-d:typestatesNoBranchDollar`: disables `$()` stringifier proc generation for branch types.
+  - `-d:typestatesNoStateProcs`: disables `state()` enum accessor proc generation.
+
+### Performance
+
+- **Generic Fallback Error Procedures** (`verify.nim`): Replaced $O(M \times N)$ concrete decoy procedure generation with a single generic fallback procedure per transition group (`proc tx*[T: TypestateStates and not (CoveredSources)](p: T, args: varargs[untyped])`) calling compile-time macro `reportStateMismatch`. Emitted decoy AST procedures drop from 39,601 down to 199 on a 200-state FSM (99.5% reduction), while preserving 100% of custom state-aware error messages naming the invalid state, expected states, and definition site.
+- **Flat Indexed Bitset Reachability Engine** (`reachability.nim`): Converted string-keyed `Table[string, seq[string]]` and `HashSet[string]` to `IndexedGraph` using dense integer ordinals and flat `seq[bool]` arrays for forward reachability and backward liveness BFS, eliminating heap allocations and string hash churn during macro execution.
+- **Boilerplate Single-Target Match Consolidation** (`codegen.nim`): Replaced $|S|$ individual state overload macros with 1 single union-type macro per typestate (`match*(value: TypestateStates, ...)`), resolving active state dynamically via `value.getTypeInst`.
+- **Pre-indexed Transitions & Invariant Hoisting** (`codegen.nim`, `verify.nim`): Pre-indexed transitions by source state in `generateDispatchProc` and hoisted loop invariants.
+
+### Fixed
+
+- **Silenced Unreachable Compiler Warnings**: Pruned dead `else: return false` branches in 2D dispatch generation when all events are exhaustively handled, eliminating compiler warnings on large event matrices.
+- **Hardened Invariant Assertion**: Replaced defensive dead continue branch in fallback proc generation with an explicit `doAssert info.coveredSources.len > 0` compile-time invariant check.
+
 ## [0.12.2] - 2026-10-10
 
 ### Fixed
@@ -1699,7 +1723,16 @@ compile and produce the same diagnostics as in v0.9.2.
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/elijahr/nim-typestates/compare/v0.12.2...v0.13.0
+[0.12.2]: https://github.com/elijahr/nim-typestates/compare/v0.12.1...v0.12.2
+[0.12.1]: https://github.com/elijahr/nim-typestates/compare/v0.12.0...v0.12.1
+[0.12.0]: https://github.com/elijahr/nim-typestates/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/elijahr/nim-typestates/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/elijahr/nim-typestates/compare/v0.9.3...v0.10.0
+[0.9.3]: https://github.com/elijahr/nim-typestates/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/elijahr/nim-typestates/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/elijahr/nim-typestates/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/elijahr/nim-typestates/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/elijahr/nim-typestates/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/elijahr/nim-typestates/compare/v0.7.1...v0.7.2
