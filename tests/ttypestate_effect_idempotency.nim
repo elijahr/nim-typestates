@@ -57,8 +57,14 @@ verifyTypestates()
 # can distinguish "missing tags" from "duplicate tags".
 macro countTypestateOpInTags(procSym: typed): int =
   var sym = procSym
-  if sym.kind == nnkClosedSymChoice or sym.kind == nnkOpenSymChoice:
-    sym = sym[0]
+  if sym.kind in {nnkClosedSymChoice, nnkOpenSymChoice}:
+    for c in sym:
+      let cImpl = c.getImpl()
+      if cImpl.kind in {nnkProcDef, nnkFuncDef, nnkConverterDef} and cImpl.pragma.len > 0:
+        sym = c
+        break
+    if sym.kind in {nnkClosedSymChoice, nnkOpenSymChoice}:
+      sym = sym[0]
   let impl = sym.getImpl()
   expectKind(impl, {nnkProcDef, nnkFuncDef, nnkConverterDef})
   let pragmas = impl.pragma

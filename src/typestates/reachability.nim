@@ -14,7 +14,7 @@
 ## Used by both the macro-side parser (compile-time `warning(...)`
 ## emission) and the CLI verifier (populates `VerifyResult.warnings`).
 
-import std/[tables, sets, sequtils, strutils]
+import std/[tables, sequtils, strutils]
 import types
 import findings
 
@@ -80,59 +80,73 @@ proc fromGraph*(graph: TypestateGraph): ReachabilityInput =
   for b in graph.bridges:
     result.bridgeSources.add extractBaseName(b.fromState)
 
-proc buildAdjacency(
-    inp: ReachabilityInput
-): tuple[forward, reverse: Table[string, seq[string]]] =
-  ## Build adjacency tables keyed by base state names.
-  ##
-  ## - Wildcard sources expand to every state except those declared terminal.
-  ## - Branching destinations expand to one edge per destination.
-  result.forward = initTable[string, seq[string]]()
-  result.reverse = initTable[string, seq[string]]()
-  for s in inp.states:
-    result.forward[s] = @[]
-    result.reverse[s] = @[]
+type IndexedGraph = object
+  states: seq[string]
+  nameToIndex: Table[string, int]
+  fwd: seq[seq[int]]
+  rev: seq[seq[int]]
+  isTerminal: seq[bool]
 
-  let terminalBases = inp.terminalStates.mapIt(extractBaseName(it))
-  let terminalSet = toHashSet(terminalBases)
+proc buildIndexedGraph(inp: ReachabilityInput): IndexedGraph =
+  ## Build indexed graph mapping state names to compact ordinals.
+  ## All forward/reverse edges and terminal checks use direct array lookups.
+  result.states = inp.states
+  let n = inp.states.len
+  result.nameToIndex = initTable[string, int](n)
+  for i, s in inp.states:
+    result.nameToIndex[s] = i
+  result.fwd = newSeq[seq[int]](n)
+  result.rev = newSeq[seq[int]](n)
+  result.isTerminal = newSeq[bool](n)
 
-  for t in inp.edges:
-    let sources =
-      if t.isWildcard:
-        inp.states.filterIt(it notin terminalSet)
-      else:
-        @[t.fromState]
-    for src in sources:
-      for dst in t.toStates:
-        if src in result.forward:
-          result.forward[src].add dst
-        if dst in result.reverse:
-          result.reverse[dst].add src
+  for t in inp.terminalStates:
+    let base = extractBaseName(t)
+    if base in result.nameToIndex:
+      result.isTerminal[result.nameToIndex[base]] = true
 
-proc bfs(adj: Table[string, seq[string]], starts: seq[string]): HashSet[string] =
-  ## Standard BFS reachability over a directed adjacency table.
-  result = initHashSet[string]()
-  var queue: seq[string] = @[]
-  for s in starts:
-    if s notin result:
-      result.incl s
+  for edge in inp.edges:
+    if edge.isWildcard:
+      for srcIdx in 0 ..< n:
+        if not result.isTerminal[srcIdx]:
+          for dst in edge.toStates:
+            if dst in result.nameToIndex:
+              let dstIdx = result.nameToIndex[dst]
+              result.fwd[srcIdx].add dstIdx
+              result.rev[dstIdx].add srcIdx
+    else:
+      if edge.fromState in result.nameToIndex:
+        let srcIdx = result.nameToIndex[edge.fromState]
+        for dst in edge.toStates:
+          if dst in result.nameToIndex:
+            let dstIdx = result.nameToIndex[dst]
+            result.fwd[srcIdx].add dstIdx
+            result.rev[dstIdx].add srcIdx
+
+proc bfsIndexed(adj: seq[seq[int]], startIndices: seq[int]): seq[bool] =
+  ## BFS reachability over indexed adjacency array using flat boolean array.
+  let n = adj.len
+  result = newSeq[bool](n)
+  var queue: seq[int] = @[]
+  for s in startIndices:
+    if s >= 0 and s < n and not result[s]:
+      result[s] = true
       queue.add s
   var head = 0
   while head < queue.len:
-    let n = queue[head]
+    let u = queue[head]
     inc head
-    if n in adj:
-      for nbr in adj[n]:
-        if nbr notin result:
-          result.incl nbr
-          queue.add nbr
+    for v in adj[u]:
+      if not result[v]:
+        result[v] = true
+        queue.add v
 
 proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
   ## Run reachability/liveness analysis on a `ReachabilityInput`.
   ##
   ## See module documentation for the categories of finding produced.
   result.findings = @[]
-  let (fwd, rev) = buildAdjacency(inp)
+  let g = buildIndexedGraph(inp)
+  let n = g.states.len
 
   # Normalize initial/terminal to base names (input stores them as user-written).
   let initialBases = inp.initialStates.mapIt(extractBaseName(it))
@@ -140,15 +154,19 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
 
   # 1. Determine effective initial set: explicit if provided, else implicit
   #    (states with no incoming edges).
-  var initials: seq[string]
+  var initialIndices: seq[int] = @[]
+  var initials: seq[string] = @[]
   if initialBases.len > 0:
-    initials = initialBases
+    for b in initialBases:
+      if b in g.nameToIndex:
+        initialIndices.add g.nameToIndex[b]
+        initials.add b
     result.implicitInitialFallback = false
   else:
-    initials = @[]
-    for s in inp.states:
-      if rev.getOrDefault(s, @[]).len == 0:
-        initials.add s
+    for i in 0 ..< n:
+      if g.rev[i].len == 0:
+        initialIndices.add i
+        initials.add g.states[i]
     result.implicitInitialFallback = true
   result.initialStatesUsed = initials
   result.terminalStatesUsed = terminalBases
@@ -161,20 +179,18 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
     return
 
   # 3. Dead states: unreachable from any initial. A state with no incoming
-  #    edges and not declared `initial:` is reported as an orphan instead
-  #    (more specific finding — orphans need a different fix from dead
-  #    states reachable only via other dead states).
-  let reachable = bfs(fwd, initials)
-  for s in inp.states:
-    if s notin reachable:
-      let isOrphan = rev.getOrDefault(s, @[]).len == 0 and s notin initials
+  #    edges and not declared `initial:` is reported as an orphan instead.
+  let reachable = bfsIndexed(g.fwd, initialIndices)
+  for i in 0 ..< n:
+    if not reachable[i]:
+      let isOrphan = g.rev[i].len == 0 and i notin initialIndices
       if isOrphan:
         result.findings.add ReachabilityFinding(
-          kind: rfOrphan, stateName: s, typestateName: inp.typestateName
+          kind: rfOrphan, stateName: g.states[i], typestateName: inp.typestateName
         )
       else:
         result.findings.add ReachabilityFinding(
-          kind: rfDead, stateName: s, typestateName: inp.typestateName
+          kind: rfDead, stateName: g.states[i], typestateName: inp.typestateName
         )
 
   # 4. Trap states: reachable, but cannot reach any terminal. Only meaningful
@@ -182,15 +198,23 @@ proc analyzeReachability*(inp: ReachabilityInput): ReachabilityReport =
   if terminalBases.len > 0:
     # A bridge to another typestate is a legitimate exit from this typestate,
     # so seed the backward liveness BFS with bridge sources alongside terminals.
-    let bridgeBases = inp.bridgeSources.mapIt(extractBaseName(it))
-    let liveSeeds = terminalBases & bridgeBases
-    let liveSet = bfs(rev, liveSeeds)
-    let terminalSet = toHashSet(terminalBases)
-    let bridgeSet = toHashSet(bridgeBases)
-    for s in reachable:
-      if s notin liveSet and s notin terminalSet and s notin bridgeSet:
+    var liveSeedIndices: seq[int] = @[]
+    var isBridge = newSeq[bool](n)
+    for t in terminalBases:
+      if t in g.nameToIndex:
+        liveSeedIndices.add g.nameToIndex[t]
+    for b in inp.bridgeSources:
+      let base = extractBaseName(b)
+      if base in g.nameToIndex:
+        let bIdx = g.nameToIndex[base]
+        liveSeedIndices.add bIdx
+        isBridge[bIdx] = true
+
+    let liveSet = bfsIndexed(g.rev, liveSeedIndices)
+    for i in 0 ..< n:
+      if reachable[i] and not liveSet[i] and not g.isTerminal[i] and not isBridge[i]:
         result.findings.add ReachabilityFinding(
-          kind: rfTrap, stateName: s, typestateName: inp.typestateName
+          kind: rfTrap, stateName: g.states[i], typestateName: inp.typestateName
         )
 
 proc analyzeReachability*(graph: TypestateGraph): ReachabilityReport =

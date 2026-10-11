@@ -2059,6 +2059,18 @@ proc runCfgAnalyzer*(callerModulePath: string = "") {.compileTime.} =
     if endState.reachable:
       validateExitEdge(endState, procInfo.body, "fall-through", destructorTypes)
 
+macro reportStateMismatch*(
+    node: typed,
+    procName: static[string],
+    expectedList: static[string],
+    moduleFilename: static[string],
+): untyped =
+  let stateName = extractBaseName(node.getTypeInst.repr)
+  let msg =
+    "Cannot call '" & procName & "' on a value in state '" & stateName & "'. Expected '" &
+    expectedList & "'. (Defined at " & moduleFilename & ")"
+  error(msg, node)
+
 macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
   ## Implementation macro for `verifyTypestates`. Receives the caller's
   ## absolute module file path captured via `instantiationInfo` at the
@@ -2158,80 +2170,74 @@ macro verifyTypestatesImpl*(callerFile: static[string]): untyped =
     if key.name in unionProcNames:
       info.anySkipped = true
 
-  # Helper: produce a new first-param type AST that preserves the original
-  # modifier shape (sink T, var T, ref T, ptr T, plain T) but swaps the
-  # leaf type ident for the new state ident.
-  proc replaceLeafState(node: NimNode, newIdent: NimNode): NimNode =
-    case node.kind
-    of nnkIdent, nnkSym:
-      result = newIdent
-    of nnkCommand:
-      if node.len == 2 and node[0].kind == nnkIdent and node[0].strVal == "sink":
-        result = nnkCommand.newTree(node[0].copyNimTree, newIdent)
-      else:
-        result = newIdent
-    of nnkVarTy:
-      result = nnkVarTy.newTree(newIdent)
-    of nnkRefTy:
-      result = nnkRefTy.newTree(newIdent)
-    of nnkPtrTy:
-      result = nnkPtrTy.newTree(newIdent)
-    else:
-      result = newIdent
-
-  for key, info in groups:
-    if info.anySkipped:
-      continue
-    if info.typestate.typeParams.len > 0:
-      continue # v0.6: generic typestates deferred
-    if info.destStates.len != 1:
-      continue # branching-return deferred
-
-    let expectedList = info.coveredSources.join("' or '")
-    let moduleFilename = extractFilename(info.modulePath)
-    let procIdent = ident(info.name)
-    let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
-    let coveredSet = toHashSet(info.coveredSources)
-
-    for stateName, state in info.typestate.states:
-      let stateBase = extractBaseName(stateName)
-      if stateBase in coveredSet:
+  when not defined(typestatesNoDecoys):
+    for key, info in groups:
+      if info.anySkipped:
         continue
-      # Build the tailored error message naming the proc, the wrong state,
-      # the expected (one of) source state(s), and the location of the real
-      # transition for navigability.
-      let errorMsg =
-        "Cannot call '" & info.name & "' on a value in state '" & stateBase &
-        "'. Expected '" & expectedList & "'. (Defined at " &
-        moduleFilename & ")"
+      if info.typestate.typeParams.len > 0:
+        continue # v0.6: generic typestates deferred
+      if info.destStates.len != 1:
+        continue # branching-return deferred
+      if info.coveredSources.len >= info.typestate.states.len:
+        continue # all states already covered
 
-      let stateIdent = ident(stateBase)
-      # Decoys carry only {.error.} — other pragmas like {.async.} aren't
-      # propagated because {.error.} short-circuits before they would matter.
-      let errorPragma =
-        nnkPragma.newTree(nnkExprColonExpr.newTree(ident("error"), newLit(errorMsg)))
-      # Build formal params: `auto` return (never reached — `{.error.}`
-      # short-circuits) + first param with the wrong-state type + the same
-      # trailing parameters as the real overload so `proc close(a, reason)`
-      # generates `proc close(p: sink Frozen, reason: string)` decoys that
-      # match the user's call shape.
-      var formalParams = nnkFormalParams.newNimNode()
-      formalParams.add ident("auto")
-      formalParams.add nnkIdentDefs.newTree(
-        ident("p"), replaceLeafState(info.firstParamType, stateIdent), newEmptyNode()
+      let expectedList = info.coveredSources.join("' or '")
+      let moduleFilename = extractFilename(info.modulePath)
+      let procIdent = ident(info.name)
+      let exportedName = nnkPostfix.newTree(ident("*"), procIdent)
+      let unionName = ident(info.typestate.name & "States")
+
+      doAssert info.coveredSources.len > 0,
+        "Internal invariant violated: transition group '" & info.name &
+          "' has no covered sources"
+
+      # Build `not (Source1 or Source2 ...)`
+      var notCovered: NimNode
+      if info.coveredSources.len == 1:
+        notCovered = nnkPrefix.newTree(ident("not"), ident(info.coveredSources[0]))
+      else:
+        var orChain = nnkInfix.newTree(
+          ident("or"), ident(info.coveredSources[0]), ident(info.coveredSources[1])
+        )
+        for s in info.coveredSources[2 ..^ 1]:
+          orChain = nnkInfix.newTree(ident("or"), orChain, ident(s))
+        notCovered = nnkPrefix.newTree(ident("not"), nnkPar.newTree(orChain))
+
+      let typeclassExpr = nnkInfix.newTree(ident("and"), unionName, notCovered)
+      let typeVar = ident("T")
+      let genericParams = nnkGenericParams.newTree(
+        nnkIdentDefs.newTree(typeVar, typeclassExpr, newEmptyNode())
       )
-      for extra in info.extraParams:
-        formalParams.add extra.copyNimTree
-      let decoyProc = nnkProcDef.newTree(
+
+      # Proc parameters: (p: T, args: varargs[untyped])
+      var formalParams = nnkFormalParams.newTree(
+        newEmptyNode(),
+        nnkIdentDefs.newTree(ident("p"), typeVar, newEmptyNode()),
+        nnkIdentDefs.newTree(
+          ident("args"),
+          nnkBracketExpr.newTree(ident("varargs"), ident("untyped")),
+          newEmptyNode(),
+        ),
+      )
+
+      let callStmt = nnkCall.newTree(
+        bindSym("reportStateMismatch"),
+        ident("p"),
+        newLit(info.name),
+        newLit(expectedList),
+        newLit(moduleFilename),
+      )
+
+      let fallbackProc = nnkProcDef.newTree(
         exportedName,
         newEmptyNode(),
-        newEmptyNode(),
+        genericParams,
         formalParams,
-        errorPragma,
         newEmptyNode(),
-        nnkStmtList.newTree(nnkDiscardStmt.newTree(newEmptyNode())),
+        newEmptyNode(),
+        nnkStmtList.newTree(callStmt),
       )
-      result.add decoyProc
+      result.add fallbackProc
 
   # CFG analyzer pass (v0.9.0 §3.3). Runs AFTER F5 decoy emission so the
   # emitted decoys do not pollute the per-proc body walks below.

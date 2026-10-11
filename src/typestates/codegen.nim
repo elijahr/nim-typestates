@@ -184,36 +184,38 @@ proc generateStateProcs*(graph: TypestateGraph): NimNode =
   ## proc state*[T](f: Full[T]): ContainerState = fsFull
   ## ```
   ##
+  ## Can be omitted via `--define:typestatesNoStateProcs`.
+  ##
   ## :param graph: The typestate graph to generate from
   ## :returns: AST for all state() proc definitions
   result = newStmtList()
+  when not defined(typestatesNoStateProcs):
+    let enumName = ident(graph.name & "State")
 
-  let enumName = ident(graph.name & "State")
+    for state in graph.states.values:
+      # Use base name for enum field: "fsEmpty" from "Empty[T]"
+      let fieldName = ident("fs" & state.name)
+      # Use stored AST node for parameter type
+      let stateType = state.typeName.copyNimTree
 
-  for state in graph.states.values:
-    # Use base name for enum field: "fsEmpty" from "Empty[T]"
-    let fieldName = ident("fs" & state.name)
-    # Use stored AST node for parameter type
-    let stateType = state.typeName.copyNimTree
+      # Build proc with doc comment
+      let docComment = newCommentStmtNode(
+        "Runtime state inspection for " & state.name & ".\n" &
+          "Returns the enum value for pattern matching in case expressions."
+      )
+      let procDef = nnkProcDef.newTree(
+        nnkPostfix.newTree(ident("*"), ident("state")),
+        newEmptyNode(),
+        buildGenericParams(graph.typeParams, graph.typeParamDefaults),
+        nnkFormalParams.newTree(
+          enumName, nnkIdentDefs.newTree(ident("f"), stateType, newEmptyNode())
+        ),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkStmtList.newTree(docComment, fieldName),
+      )
 
-    # Build proc with doc comment
-    let docComment = newCommentStmtNode(
-      "Runtime state inspection for " & state.name & ".\n" &
-        "Returns the enum value for pattern matching in case expressions."
-    )
-    let procDef = nnkProcDef.newTree(
-      nnkPostfix.newTree(ident("*"), ident("state")),
-      newEmptyNode(),
-      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
-      nnkFormalParams.newTree(
-        enumName, nnkIdentDefs.newTree(ident("f"), stateType, newEmptyNode())
-      ),
-      newEmptyNode(),
-      newEmptyNode(),
-      nnkStmtList.newTree(docComment, fieldName),
-    )
-
-    result.add procDef
+      result.add procDef
 
 proc generateStateDollar*(graph: TypestateGraph): NimNode =
   ## Generate `$` overload for each leaf state type and the state enum.
@@ -234,57 +236,59 @@ proc generateStateDollar*(graph: TypestateGraph): NimNode =
   ##   of fsOpen: "Open"
   ## ```
   ##
+  ## Can be omitted via `--define:typestatesNoDollar`.
+  ##
   ## :param graph: The typestate graph
   ## :returns: AST for `$` overloads (one per state + one over the enum)
   result = newStmtList()
+  when not defined(typestatesNoDollar):
+    let dollarIdent = nnkAccQuoted.newTree(ident("$"))
+    let stringIdent = ident("string")
+    let enumName = ident(graph.name & "State")
 
-  let dollarIdent = nnkAccQuoted.newTree(ident("$"))
-  let stringIdent = ident("string")
-  let enumName = ident(graph.name & "State")
+    # Per-state $ overload. Mirrors the signature of `generateStateProcs` so the
+    # last-read consume rules are identical.
+    for state in graph.states.values:
+      let stateType = state.typeName.copyNimTree
+      let nameLit = newLit(state.name)
+      let docComment = newCommentStmtNode(
+        "String representation for state '" & state.name & "'.\n" &
+          "Returns the bare state name (no fs prefix)."
+      )
+      let procDef = nnkProcDef.newTree(
+        nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
+        newEmptyNode(),
+        buildGenericParams(graph.typeParams, graph.typeParamDefaults),
+        nnkFormalParams.newTree(
+          stringIdent, nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
+        ),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkStmtList.newTree(docComment, nameLit),
+      )
+      result.add procDef
 
-  # Per-state $ overload. Mirrors the signature of `generateStateProcs` so the
-  # last-read consume rules are identical.
-  for state in graph.states.values:
-    let stateType = state.typeName.copyNimTree
-    let nameLit = newLit(state.name)
-    let docComment = newCommentStmtNode(
-      "String representation for state '" & state.name & "'.\n" &
-        "Returns the bare state name (no fs prefix)."
+    # Enum $ overload (strips fs prefix)
+    var caseStmt = nnkCaseStmt.newTree(ident("s"))
+    for state in graph.states.values:
+      let fieldName = ident("fs" & state.name)
+      caseStmt.add nnkOfBranch.newTree(fieldName, newLit(state.name))
+    let enumDocComment = newCommentStmtNode(
+      "String representation of " & graph.name & "State enum.\n" &
+        "Strips the fs prefix for human-friendly output."
     )
-    let procDef = nnkProcDef.newTree(
+    let enumProcDef = nnkProcDef.newTree(
       nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
       newEmptyNode(),
-      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
+      newEmptyNode(), # enum $ is not generic
       nnkFormalParams.newTree(
-        stringIdent, nnkIdentDefs.newTree(ident("s"), stateType, newEmptyNode())
+        stringIdent, nnkIdentDefs.newTree(ident("s"), enumName, newEmptyNode())
       ),
       newEmptyNode(),
       newEmptyNode(),
-      nnkStmtList.newTree(docComment, nameLit),
+      nnkStmtList.newTree(enumDocComment, caseStmt),
     )
-    result.add procDef
-
-  # Enum $ overload (strips fs prefix)
-  var caseStmt = nnkCaseStmt.newTree(ident("s"))
-  for state in graph.states.values:
-    let fieldName = ident("fs" & state.name)
-    caseStmt.add nnkOfBranch.newTree(fieldName, newLit(state.name))
-  let enumDocComment = newCommentStmtNode(
-    "String representation of " & graph.name & "State enum.\n" &
-      "Strips the fs prefix for human-friendly output."
-  )
-  let enumProcDef = nnkProcDef.newTree(
-    nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
-    newEmptyNode(),
-    newEmptyNode(), # enum $ is not generic
-    nnkFormalParams.newTree(
-      stringIdent, nnkIdentDefs.newTree(ident("s"), enumName, newEmptyNode())
-    ),
-    newEmptyNode(),
-    newEmptyNode(),
-    nnkStmtList.newTree(enumDocComment, caseStmt),
-  )
-  result.add enumProcDef
+    result.add enumProcDef
 
 proc hasGenericStates*(graph: TypestateGraph): bool =
   ## Check if any states use generic type parameters.
@@ -354,7 +358,6 @@ proc generateBranchTypes*(graph: TypestateGraph): NimNode =
 
   for t in branchingTransitions:
     let branchTypeName = t.branchTypeName
-    let branchTypeNode = t.branchTypeNode
     let branchBaseName = extractBaseName(branchTypeName)
     # Use typestate's type params (with constraints) instead of extracting from branch type.
     # Defaults flow through so generated variants inherit them via the same
@@ -685,47 +688,49 @@ proc generateBranchDollar*(graph: TypestateGraph): NimNode =
   ## For generic typestates the union type includes the typestate's type
   ## parameters so the proc binds correctly under generic instantiation.
   ##
+  ## Can be omitted via `--define:typestatesNoDollar` or `--define:typestatesNoBranchDollar`.
+  ##
   ## :param graph: The typestate graph
   ## :returns: AST for `$` overloads over branching union types (one per union)
   result = newStmtList()
+  when not defined(typestatesNoDollar) and not defined(typestatesNoBranchDollar):
+    let dollarIdent = nnkAccQuoted.newTree(ident("$"))
+    let stringIdent = ident("string")
 
-  let dollarIdent = nnkAccQuoted.newTree(ident("$"))
-  let stringIdent = ident("string")
-
-  for t in getBranchingTransitions(graph):
-    if t.branchTypeName.len == 0:
-      continue # Only branching transitions with `as ResultName` produce a union type.
-    # For generic typestates we want the AST node (e.g. `Result[T]`) so the
-    # generated `$` proc binds correctly under generic instantiation. For
-    # non-generic typestates the bare ident is sufficient.
-    let unionTypeNode =
-      if graph.typeParams.len > 0 and t.branchTypeNode != nil:
-        t.branchTypeNode.copyNimTree
-      else:
-        ident(extractBaseName(t.branchTypeName))
-    let prefix = branchEnumPrefix(extractBaseName(t.branchTypeName))
-    let kindAccess = newDotExpr(ident("r"), ident("kind"))
-    var caseStmt = nnkCaseStmt.newTree(kindAccess)
-    for destBase in t.toStates:
-      let baseName = extractBaseName(destBase)
-      let kindField = ident(prefix & baseName)
-      caseStmt.add nnkOfBranch.newTree(kindField, newLit(baseName))
-    let docComment = newCommentStmtNode(
-      "String representation of branching union '" & t.branchTypeName &
-        "'.\nReturns the active branch's bare state name."
-    )
-    let procDef = nnkProcDef.newTree(
-      nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
-      newEmptyNode(),
-      buildGenericParams(graph.typeParams, graph.typeParamDefaults),
-      nnkFormalParams.newTree(
-        stringIdent, nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode())
-      ),
-      newEmptyNode(),
-      newEmptyNode(),
-      nnkStmtList.newTree(docComment, caseStmt),
-    )
-    result.add procDef
+    for t in getBranchingTransitions(graph):
+      if t.branchTypeName.len == 0:
+        continue # Only branching transitions with `as ResultName` produce a union type.
+      # For generic typestates we want the AST node (e.g. `Result[T]`) so the
+      # generated `$` proc binds correctly under generic instantiation. For
+      # non-generic typestates the bare ident is sufficient.
+      let unionTypeNode =
+        if graph.typeParams.len > 0 and t.branchTypeNode != nil:
+          t.branchTypeNode.copyNimTree
+        else:
+          ident(extractBaseName(t.branchTypeName))
+      let prefix = branchEnumPrefix(extractBaseName(t.branchTypeName))
+      let kindAccess = newDotExpr(ident("r"), ident("kind"))
+      var caseStmt = nnkCaseStmt.newTree(kindAccess)
+      for destBase in t.toStates:
+        let baseName = extractBaseName(destBase)
+        let kindField = ident(prefix & baseName)
+        caseStmt.add nnkOfBranch.newTree(kindField, newLit(baseName))
+      let docComment = newCommentStmtNode(
+        "String representation of branching union '" & t.branchTypeName &
+          "'.\nReturns the active branch's bare state name."
+      )
+      let procDef = nnkProcDef.newTree(
+        nnkPostfix.newTree(ident("*"), dollarIdent.copyNimTree),
+        newEmptyNode(),
+        buildGenericParams(graph.typeParams, graph.typeParamDefaults),
+        nnkFormalParams.newTree(
+          stringIdent, nnkIdentDefs.newTree(ident("r"), unionTypeNode, newEmptyNode())
+        ),
+        newEmptyNode(),
+        newEmptyNode(),
+        nnkStmtList.newTree(docComment, caseStmt),
+      )
+      result.add procDef
 
 proc buildMatchCase*(
     value: NimNode, arms: NimNode, validNames: seq[string], kindSyms: seq[NimNode]
@@ -1058,68 +1063,55 @@ proc generateBranchMatch*(graph: TypestateGraph): NimNode =
 
     result.add matchMacro
 
+proc buildSingleTargetMatchCaseDynamic*(value: NimNode, arms: NimNode): NimNode =
+  ## Internal helper used by generated single-target match macro via bindSym.
+  ## Extracts the valid state name directly from value's instantiated type.
+  let validStateName = extractBaseName(value.getTypeInst.repr)
+  result = buildSingleTargetMatchCase(value, arms, validStateName)
+
 proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
-  ## Generate a `match` macro for each state, supporting single-target match.
+  ## Generate a single `match` macro for the typestate's states union type.
   ##
-  ## For every state in the graph, emits a macro with this signature:
+  ## Emits a single macro matching `value: <TypestateName>States`:
   ##
   ## ```nim
-  ## macro match*(value: <StateType>; arms: untyped): untyped =
+  ## macro match*(value: <TypestateName>States; arms: untyped): untyped =
   ##   ## Single-target pattern match; rewrites to `block: let bind = move(value); body`.
   ## ```
   ##
-  ## Call-site syntax (exactly one arm naming the state):
-  ##
-  ## ```nim
-  ## match a:
-  ##   Approved(x):
-  ##     useApproved(x)
-  ## ```
-  ##
-  ## Rewritten to:
-  ##
-  ## ```nim
-  ## block:
-  ##   let x = move(a)
-  ##   useApproved(x)
-  ## ```
-  ##
-  ## R-value sources (e.g. call expressions) are first materialized into a
-  ## gensym'd `let` so `move()` has an l-value. Sink-on-construction avoids
-  ## the `=copy` error hook on distinct state types.
-  ##
-  ## The per-state `match` overloads coexist with the per-branching-union
-  ## `match` overloads emitted by `generateBranchMatch`; Nim disambiguates
-  ## by the typed first parameter. The parser-side collision validator
-  ## prevents same-name overload duplication between a state and a branch
-  ## wrapper type.
-  ##
-  ## :param graph: The typestate graph
-  ## :returns: AST for one `match` macro per state
+  ## Instead of generating |S| identical macro overloads, a single macro matches
+  ## all states in the typestate union and dynamically extracts the state name
+  ## via `value.getTypeInst`.
   result = newStmtList()
+  when not defined(typestatesNoSingleTargetMatch):
+    if graph.states.len == 0:
+      return
 
-  for state in graph.states.values:
-    if state.typeName == nil or state.name.len == 0:
-      continue
+    let unionIdent = ident(graph.name & "States")
+    let unionTypeNode =
+      if graph.typeParams.len > 0:
+        var bracket = nnkBracketExpr.newTree(unionIdent)
+        for p in graph.typeParams:
+          if p.kind == nnkIdent:
+            bracket.add p.copyNimTree
+          elif p.kind == nnkExprColonExpr:
+            bracket.add p[0].copyNimTree
+          else:
+            bracket.add p.copyNimTree
+        bracket
+      else:
+        unionIdent
 
-    let stateType = state.typeName.copyNimTree
-    let stateNameLit = newLit(state.name)
-
-    # The body of the generated `match` macro is a single call to the public
-    # helper `buildSingleTargetMatchCase`, mirroring `generateBranchMatch`.
-    # Using `bindSym` keeps the helper resolution inside the typestates
-    # package so user modules don't need `import std/macros`.
-    let helperSym = bindSym("buildSingleTargetMatchCase")
+    let helperSym = bindSym("buildSingleTargetMatchCaseDynamic")
     let matchDoc = newCommentStmtNode(
-      "Single-target pattern match on state '" & state.name &
-        "'; rewrites to `block: let bind = move(value); body`.\n" & "Syntax is `" &
-        state.name & "(bind):`, with exactly one arm."
+      "Single-target pattern match on states of typestate '" & graph.name &
+        "'; rewrites to `block: let bind = move(value); body`.\n" &
+        "Syntax is `<StateName>(bind):`, with exactly one arm."
     )
     let macroBody = newStmtList(
       matchDoc,
       nnkAsgn.newTree(
-        ident("result"),
-        nnkCall.newTree(helperSym, ident("value"), ident("arms"), stateNameLit),
+        ident("result"), nnkCall.newTree(helperSym, ident("value"), ident("arms"))
       ),
     )
 
@@ -1129,7 +1121,7 @@ proc generateSingleTargetMatch*(graph: TypestateGraph): NimNode =
       buildGenericParams(graph.typeParams, graph.typeParamDefaults),
       nnkFormalParams.newTree(
         ident("untyped"),
-        nnkIdentDefs.newTree(ident("value"), stateType, newEmptyNode()),
+        nnkIdentDefs.newTree(ident("value"), unionTypeNode, newEmptyNode()),
         nnkIdentDefs.newTree(ident("arms"), ident("untyped"), newEmptyNode()),
       ),
       newEmptyNode(),
