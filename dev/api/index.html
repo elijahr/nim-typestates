@@ -2001,6 +2001,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#buildSingleTargetMatchCaseDynamic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildSingleTargetMatchCaseDynamic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#generateSingleTargetMatch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3374,6 +3385,17 @@
     <span class="md-ellipsis">
       
         generateBranchMatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#buildSingleTargetMatchCaseDynamic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buildSingleTargetMatchCaseDynamic
       
     </span>
   </a>
@@ -9152,6 +9174,7 @@ generates:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsEmpty</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsFull</span>
 </code></pre></div>
+<p>Can be omitted via <code>--define:typestatesNoStateProcs</code>.</p>
       </div>
     
 
@@ -9227,6 +9250,7 @@ generates:</p>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"Closed"</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"Open"</span>
 </code></pre></div>
+<p>Can be omitted via <code>--define:typestatesNoDollar</code>.</p>
       </div>
     
 
@@ -9258,8 +9282,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L218" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:218
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L220" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:220
           </a>
         
       </div>
@@ -9323,8 +9347,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L289" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:289
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L293" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:293
           </a>
         
       </div>
@@ -9390,8 +9414,8 @@ generates:</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L296" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:296
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L300" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:300
           </a>
         
       </div>
@@ -9474,8 +9498,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L318" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:318
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L322" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:322
           </a>
         
       </div>
@@ -9550,8 +9574,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L422" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:422
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L425" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:425
           </a>
         
       </div>
@@ -9619,8 +9643,8 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L500" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:500
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L503" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:503
           </a>
         
       </div>
@@ -9687,8 +9711,8 @@ and any memory manager using hooks.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L542" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:542
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L545" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:545
           </a>
         
       </div>
@@ -9762,8 +9786,8 @@ See: https://github.com/nim-lang/Nim/issues/25341</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L560" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:560
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L563" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:563
           </a>
         
       </div>
@@ -9847,8 +9871,8 @@ in multiple branch types.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L581" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:581
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L584" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:584
           </a>
         
       </div>
@@ -9890,6 +9914,7 @@ in multiple branch types.</p>
 </code></pre></div>
 <p>For generic typestates the union type includes the typestate's type
 parameters so the proc binds correctly under generic instantiation.</p>
+<p>Can be omitted via <code>--define:typestatesNoDollar</code> or <code>--define:typestatesNoBranchDollar</code>.</p>
       </div>
     
 
@@ -9921,8 +9946,8 @@ parameters so the proc binds correctly under generic instantiation.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L672" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:672
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L675" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:675
           </a>
         
       </div>
@@ -10019,8 +10044,8 @@ resulting AST is sema-checked.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L730" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:730
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L735" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:735
           </a>
         
       </div>
@@ -10137,8 +10162,8 @@ mismatch.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L810" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:810
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L815" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:815
           </a>
         
       </div>
@@ -10228,8 +10253,80 @@ F4.A0 probe).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L942" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:942
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L947" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:947
+          </a>
+        
+      </div>
+    
+  </div>
+</div>
+      
+    
+      
+      
+        <div class="doc doc-object doc-proc">
+  
+
+  
+    <h4 id="buildSingleTargetMatchCaseDynamic" class="doc doc-heading">
+      
+      <span class="doc doc-object-name doc-proc-name">buildSingleTargetMatchCaseDynamic</span>
+      
+    <a href="#buildSingleTargetMatchCaseDynamic" class="headerlink" title="Permanent link">¶</a></h4>
+  
+
+  
+    <div class="doc-signature highlight">
+      <pre><code class="language-nim highlight"><span class="k">proc</span><span class="w"> </span><span class="nf">buildSingleTargetMatchCaseDynamic</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">NimNode</span><span class="p">):</span><span class="w"> </span><span class="n">NimNode</span>
+</code></pre>
+    </div>
+  
+
+  <div class="doc doc-contents first">
+    
+      <div class="doc-description">
+        <p>Internal helper used by generated single-target match macro via bindSym.</p>
+<p>Extracts the valid state name directly from value's instantiated type.</p>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-parameters">
+        <h5>Parameters</h5>
+        <ul>
+          
+            <li>
+              <code>value</code>
+              (<code>NimNode</code>)
+              
+            </li>
+          
+            <li>
+              <code>arms</code>
+              (<code>NimNode</code>)
+              
+            </li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="doc-section doc-section-returns">
+        <h5>Returns</h5>
+        <p><code>NimNode</code></p>
+      </div>
+    
+
+    
+
+    
+      <div class="doc-source">
+        <span class="doc-source-label">Source:</span>
+        
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1066" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1066
           </a>
         
       </div>
@@ -10261,29 +10358,14 @@ F4.A0 probe).</p>
   <div class="doc doc-contents first">
     
       <div class="doc-description">
-        <p>Generate a <code>match</code> macro for each state, supporting single-target match.</p>
-<p>For every state in the graph, emits a macro with this signature:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">StateType</span><span class="o">&gt;</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
+        <p>Generate a single <code>match</code> macro for the typestate's states union type.</p>
+<p>Emits a single macro matching <code>value: &lt;TypestateName&gt;States</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">TypestateName</span><span class="o">&gt;</span><span class="n">States</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Single-target pattern match; rewrites to `block: let bind = move(value); body`.</span>
 </code></pre></div>
-<p>Call-site syntax (exactly one arm naming the state):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">match</span><span class="w"> </span><span class="n">a</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">Approved</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">useApproved</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</code></pre></div>
-<p>Rewritten to:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">block</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">useApproved</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</code></pre></div>
-<p>R-value sources (e.g. call expressions) are first materialized into a
-gensym'd <code>let</code> so <code>move()</code> has an l-value. Sink-on-construction avoids
-the <code>=copy</code> error hook on distinct state types.</p>
-<p>The per-state <code>match</code> overloads coexist with the per-branching-union
-<code>match</code> overloads emitted by <code>generateBranchMatch</code>; Nim disambiguates
-by the typed first parameter. The parser-side collision validator
-prevents same-name overload duplication between a state and a branch
-wrapper type.</p>
+<p>Instead of generating |S| identical macro overloads, a single macro matches
+all states in the typestate union and dynamically extracts the state name
+via <code>value.getTypeInst</code>.</p>
       </div>
     
 
@@ -10295,7 +10377,7 @@ wrapper type.</p>
             <li>
               <code>graph</code>
               (<code>TypestateGraph</code>)
-               – The typestate graph
+              
             </li>
           
         </ul>
@@ -10305,7 +10387,7 @@ wrapper type.</p>
     
       <div class="doc-section doc-section-returns">
         <h5>Returns</h5>
-        <p><code>NimNode</code> – AST for one `match` macro per state</p>
+        <p><code>NimNode</code></p>
       </div>
     
 
@@ -10315,8 +10397,8 @@ wrapper type.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1061" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1061
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1072" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1072
           </a>
         
       </div>
@@ -10402,8 +10484,8 @@ doc comment for the unreachable-defense rationale).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1142" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1142
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1134" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1134
           </a>
         
       </div>
@@ -10470,8 +10552,8 @@ otherwise appends FSM (e.g. Door -&gt; DoorFSM).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1204" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1204
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1196" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1196
           </a>
         
       </div>
@@ -10541,8 +10623,8 @@ otherwise appends FSM (e.g. Door -&gt; DoorFSM).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1214" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1214
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1206" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1206
           </a>
         
       </div>
@@ -10606,8 +10688,8 @@ otherwise appends FSM (e.g. Door -&gt; DoorFSM).</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1218" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1218
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1210" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1210
           </a>
         
       </div>
@@ -10673,8 +10755,8 @@ and eventWakeWord</em>(word: string, angle: int): SatelliteEvent</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1264" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1264
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1256" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1256
           </a>
         
       </div>
@@ -10739,8 +10821,8 @@ and eventWakeWord</em>(word: string, angle: int): SatelliteEvent</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1334" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1334
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1326" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1326
           </a>
         
       </div>
@@ -10804,8 +10886,8 @@ and eventWakeWord</em>(word: string, angle: int): SatelliteEvent</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1400" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1400
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1392" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1392
           </a>
         
       </div>
@@ -10893,8 +10975,8 @@ and eventWakeWord</em>(word: string, angle: int): SatelliteEvent</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1479" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1479
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1471" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1471
           </a>
         
       </div>
@@ -10959,8 +11041,8 @@ and eventWakeWord</em>(word: string, angle: int): SatelliteEvent</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1595" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1595
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1587" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1587
           </a>
         
       </div>
@@ -11041,8 +11123,8 @@ and procs include proper type parameters.</p>
       <div class="doc-source">
         <span class="doc-source-label">Source:</span>
         
-          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1682" target="_blank" rel="noopener">
-            src/typestates/codegen.nim:1682
+          <a href="https://github.com/elijahr/nim-typestates/blob/main/src/typestates/codegen.nim#L1674" target="_blank" rel="noopener">
+            src/typestates/codegen.nim:1674
           </a>
         
       </div>
