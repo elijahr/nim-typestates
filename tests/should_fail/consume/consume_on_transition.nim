@@ -16,10 +16,10 @@ typestate File:
     Closed -> Open
     Open -> Closed
 
-proc open(f: Closed): Open {.transition.} =
+proc open(f: sink Closed): Open {.transition.} =
   Open(File(handle: 1))
 
-proc close(f: Open): Closed {.transition.} =
+proc close(f: sink Open): Closed {.transition.} =
   Closed(File(handle: 0))
 
 # This should FAIL to compile - trying to copy a state

@@ -60,6 +60,20 @@ static:
     doAssert "Errored" in dests
     doAssert "Closed" in dests # via wildcard
 
+  block test_terminal_state_wildcard:
+    var graph = TypestateGraph(name: "File")
+    graph.states["Closed"] = State(name: "Closed")
+    graph.states["Open"] = State(name: "Open")
+    graph.terminalStates.add("Closed")
+    graph.transitions.add Transition(
+      fromState: "*", toStates: @["Open"], isWildcard: true
+    )
+    finalizeGraph(graph)
+
+    # Terminal state must never transition anywhere, even with wildcard
+    doAssert not graph.hasTransition("Closed", "Open")
+    doAssert graph.validDestinations("Closed").len == 0
+
   # Test default flags
   block defaultFlags:
     var graph = TypestateGraph(name: "Test")

@@ -36,14 +36,18 @@ type
     fromState*: string
     toStates*: seq[string]
     isWildcard*: bool
+    eventName*: string ## Associated event name (if event-driven)
 
   ParsedTypestate* = object ## A typestate definition parsed from source code.
     name*: string
     states*: seq[string]
+    events*: seq[string] ## Events declared in `events:` block
     transitions*: seq[ParsedTransition]
     bridges*: seq[ParsedBridge]
     isSealed*: bool
     strictTransitions*: bool
+    strictEvents*: bool
+    consumeOnTransition*: bool
     opaqueStates*: bool ## Opt-in CLI lint for raw distinct casts to non-initial states
     initialStates*: seq[string] ## States declared in `initial:` block
     terminalStates*: seq[string] ## States declared in `terminal:` block
@@ -295,9 +299,62 @@ proc extractTerminalStates(node: PNode): seq[string] =
   for i in 1 ..< node.len:
     collectStateIdents(node[i], result)
 
+proc extractEvents(node: PNode): seq[string] =
+  ## Extract event names from an `events:` block or `events` command.
+  result = @[]
+  if node.kind notin {nkCommand, nkCall}:
+    return
+  if node.len < 2:
+    return
+  let kw = extractIdent(node[0])
+  if kw != "events":
+    return
+  let body = node[1]
+  if body.kind == nkStmtList:
+    for child in body:
+      case child.kind
+      of nkIdent:
+        result.add child.ident.s
+      of nkObjConstr, nkCall, nkCommand:
+        if child.len >= 1:
+          let name = extractIdent(child[0])
+          if name != "":
+            result.add name
+      else:
+        discard
+  else:
+    for i in 1 ..< node.len:
+      let child = node[i]
+      case child.kind
+      of nkIdent:
+        result.add child.ident.s
+      of nkInfix:
+        var current = child
+        while current.kind == nkInfix and current.len >= 3:
+          let op = extractIdent(current[0])
+          if op == ",":
+            let right = current[2]
+            let name = extractIdent(right)
+            if name != "":
+              result.add name
+            current = current[1]
+          else:
+            break
+        let name = extractIdent(current)
+        if name != "":
+          result.add name
+      else:
+        discard
+
 proc extractTransition(node: PNode): Option[ParsedTransition] =
-  ## Extract a transition from an infix or prefix node.
-  ## Handles: Closed -> Open, Closed -> (Open | Errored), * -> Closed
+  ## Extract a transition from an infix, prefix, or command node.
+  ## Handles:
+  ## - Closed -> Open
+  ## - Closed -> (Open | Errored)
+  ## - * -> Closed
+  ## - State on Event -> NextState
+  ## - * on Event -> NextState / *on Event -> NextState
+  ## - (State on Event) -> NextState
   ##
   ## Note: `* -> Stopped` is parsed as nested nkPrefix because `*` has higher
   ## precedence than `->`:
@@ -307,18 +364,49 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
   var toNode: PNode
 
   # Handle wildcard case: nkPrefix("*", nkPrefix("->", dest))
+  # or event wildcard: nkPrefix("*", nkCommand("on", nkInfix("->", Event, dest)))
   if node.kind == nkPrefix and node.len >= 2:
     let prefixOp = extractIdent(node[0])
-    if prefixOp == "*" and node[1].kind == nkPrefix:
-      let innerPrefix = node[1]
-      if innerPrefix.len >= 2 and extractIdent(innerPrefix[0]) == "->":
+    if prefixOp == "*":
+      let inner = node[1]
+      if inner.kind == nkPrefix and inner.len >= 2 and extractIdent(inner[0]) == "->":
         trans.fromState = "*"
         trans.isWildcard = true
-        toNode = innerPrefix[1]
+        toNode = inner[1]
+      elif inner.kind == nkCommand and inner.len >= 2 and
+          extractIdent(inner[0]) == "on" and inner[1].kind == nkInfix and
+          extractIdent(inner[1][0]) == "->":
+        trans.fromState = "*"
+        trans.isWildcard = true
+        trans.eventName = extractIdent(inner[1][1])
+        toNode = inner[1][2]
       else:
         return none(ParsedTransition)
     else:
       return none(ParsedTransition)
+
+  # Handle event-driven transition: `State on Event -> NextState`
+  # In AST: nkCommand(State, nkCommand("on", nkInfix("->", Event, NextState)))
+  elif node.kind == nkCommand and node.len == 2 and node[1].kind == nkCommand and
+      node[1].len >= 2 and extractIdent(node[1][0]) == "on" and
+      node[1][1].kind == nkInfix and extractIdent(node[1][1][0]) == "->":
+    let sourceNode = node[0]
+    case sourceNode.kind
+    of nkIdent:
+      trans.fromState = sourceNode.ident.s
+      trans.isWildcard = trans.fromState == "*"
+    of nkBracketExpr:
+      trans.fromState = renderTree(sourceNode, {})
+    of nkPrefix:
+      if sourceNode.len >= 1 and extractIdent(sourceNode[0]) == "*":
+        trans.fromState = "*"
+        trans.isWildcard = true
+      else:
+        return none(ParsedTransition)
+    else:
+      return none(ParsedTransition)
+    trans.eventName = extractIdent(node[1][1][1])
+    toNode = node[1][1][2]
 
   # Handle normal case: nkInfix("->", from, to)
   elif node.kind == nkInfix and node.len >= 3:
@@ -329,21 +417,67 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
     let fromNode = node[1]
     toNode = node[2]
 
-    # Extract from state
-    case fromNode.kind
-    of nkIdent:
-      trans.fromState = fromNode.ident.s
-      trans.isWildcard = trans.fromState == "*"
-    of nkBracketExpr:
-      # Generic state: Unpinned[MaxThreads]
-      trans.fromState = renderTree(fromNode, {})
-    of nkPrefix:
-      # Handle * (wildcard) - though this case may not occur with current grammar
-      if fromNode.len >= 1 and extractIdent(fromNode[0]) == "*":
-        trans.fromState = "*"
-        trans.isWildcard = true
+    # Check if fromNode is parenthesized `(State on Event)`
+    if fromNode.kind == nkPar and fromNode.len == 1 and fromNode[0].kind == nkCommand:
+      let cmd = fromNode[0]
+      if cmd.len == 2 and cmd[1].kind == nkCommand and cmd[1].len >= 2 and
+          extractIdent(cmd[1][0]) == "on":
+        let actualSource = cmd[0]
+        case actualSource.kind
+        of nkIdent:
+          trans.fromState = actualSource.ident.s
+          trans.isWildcard = trans.fromState == "*"
+        of nkBracketExpr:
+          trans.fromState = renderTree(actualSource, {})
+        of nkPrefix:
+          if actualSource.len >= 1 and extractIdent(actualSource[0]) == "*":
+            trans.fromState = "*"
+            trans.isWildcard = true
+        else:
+          trans.fromState = renderTree(actualSource, {})
+        trans.eventName = extractIdent(cmd[1][1])
+      elif cmd.len >= 3 and extractIdent(cmd[1]) == "on":
+        let actualSource = cmd[0]
+        case actualSource.kind
+        of nkIdent:
+          trans.fromState = actualSource.ident.s
+          trans.isWildcard = trans.fromState == "*"
+        of nkBracketExpr:
+          trans.fromState = renderTree(actualSource, {})
+        of nkPrefix:
+          if actualSource.len >= 1 and extractIdent(actualSource[0]) == "*":
+            trans.fromState = "*"
+            trans.isWildcard = true
+        else:
+          trans.fromState = renderTree(actualSource, {})
+        trans.eventName = extractIdent(cmd[2])
+      else:
+        return none(ParsedTransition)
     else:
-      return none(ParsedTransition)
+      # Extract from state
+      case fromNode.kind
+      of nkIdent:
+        trans.fromState = fromNode.ident.s
+        trans.isWildcard = trans.fromState == "*"
+      of nkBracketExpr:
+        # Generic state: Unpinned[MaxThreads]
+        trans.fromState = renderTree(fromNode, {})
+      of nkPrefix:
+        # Handle * (wildcard)
+        if fromNode.len >= 1 and extractIdent(fromNode[0]) == "*":
+          trans.fromState = "*"
+          trans.isWildcard = true
+        else:
+          return none(ParsedTransition)
+      else:
+        return none(ParsedTransition)
+
+    # Check if toNode is `NextState on Event`
+    if toNode.kind == nkCommand and toNode.len == 2 and
+        toNode[1].kind == nkCommand and toNode[1].len >= 2 and
+        extractIdent(toNode[1][0]) == "on":
+      trans.eventName = extractIdent(toNode[1][1])
+      toNode = toNode[0]
   else:
     return none(ParsedTransition)
 
@@ -518,6 +652,8 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
   var ts = ParsedTypestate(
     isSealed: true, # Default
     strictTransitions: true, # Default
+    strictEvents: false, # Default
+    consumeOnTransition: true, # Default
   )
 
   # Second node is the name (might be in a call with colon, or generic)
@@ -554,6 +690,11 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       if states.len > 0:
         ts.states = states
 
+      # Check for events block
+      let events = extractEvents(child)
+      if events.len > 0:
+        ts.events.add events
+
       # Check for transitions block
       let transitions = extractTransitions(child)
       if transitions.len > 0:
@@ -580,6 +721,14 @@ proc parseTypestateNode(node: PNode): Option[ParsedTypestate] =
       let strictFlag = extractFlag(child, "strictTransitions")
       if strictFlag.isSome:
         ts.strictTransitions = strictFlag.get
+
+      let strictEventsFlag = extractFlag(child, "strictEvents")
+      if strictEventsFlag.isSome:
+        ts.strictEvents = strictEventsFlag.get
+
+      let consumeFlag = extractFlag(child, "consumeOnTransition")
+      if consumeFlag.isSome:
+        ts.consumeOnTransition = consumeFlag.get
 
       let opaqueFlag = extractFlag(child, "opaqueStates")
       if opaqueFlag.isSome:

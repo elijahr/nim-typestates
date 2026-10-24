@@ -201,6 +201,7 @@ type
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
+    strictEvents*: bool = false ## If true, every non-terminal state must handle every declared event
     consumeOnTransition*: bool = true ## If true, states cannot be copied
     inheritsFromRootObj*: bool = false ## If true, skip static generic bug check
     opaqueStates*: bool = false ## Opt-in cast-bypass lint (CLI-side only)
@@ -263,6 +264,32 @@ proc finalizeGraph*(graph: var TypestateGraph) =
       else:
         graph.transitionMap[f] = dests
 
+proc isInitialState*(graph: TypestateGraph, stateName: string): bool =
+  ## Check if a state is declared as initial.
+  ##
+  ## Initial states can only be constructed, not transitioned to.
+  ## Comparisons use base names to support generic types.
+  let base = extractBaseName(stateName)
+  if graph.initialBases.len > 0:
+    return base in graph.initialBases
+  for s in graph.initialStates:
+    if extractBaseName(s) == base:
+      return true
+  return false
+
+proc isTerminalState*(graph: TypestateGraph, stateName: string): bool =
+  ## Check if a state is declared as terminal.
+  ##
+  ## Terminal states are end states with no outgoing transitions.
+  ## Comparisons use base names to support generic types.
+  let base = extractBaseName(stateName)
+  if graph.terminalBases.len > 0:
+    return base in graph.terminalBases
+  for s in graph.terminalStates:
+    if extractBaseName(s) == base:
+      return true
+  return false
+
 proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## Check if a transition from `fromState` to `toState` is valid.
   ##
@@ -289,6 +316,8 @@ proc hasTransition*(graph: TypestateGraph, fromState, toState: string): bool =
   ## :returns: `true` if the transition is allowed, `false` otherwise
   let fromBase = extractBaseName(fromState)
   let toBase = extractBaseName(toState)
+  if graph.isTerminalState(fromBase):
+    return false
   if graph.transitionMap.len > 0 or graph.wildcardDests.len > 0:
     for dest in graph.wildcardDests:
       if dest == toBase:
@@ -328,6 +357,8 @@ proc validDestinations*(graph: TypestateGraph, fromState: string): seq[string] =
   ## :returns: A sequence of state base names that can be transitioned to
   result = @[]
   let fromBase = extractBaseName(fromState)
+  if graph.isTerminalState(fromBase):
+    return result
   for t in graph.transitions:
     let tFromBase = extractBaseName(t.fromState)
     if t.isWildcard or tFromBase == fromBase:
@@ -445,53 +476,3 @@ proc validBridges*(graph: TypestateGraph, fromState: string): seq[string] =
         dest = b.toTypestate & "." & b.toState
       if dest notin result:
         result.add dest
-
-proc isInitialState*(graph: TypestateGraph, stateName: string): bool =
-  ## Check if a state is declared as initial.
-  ##
-  ## Initial states can only be constructed, not transitioned to.
-  ## Comparisons use base names to support generic types.
-  ##
-  ## Example:
-  ##
-  ## ```nim
-  ## # Given: initial: Disconnected
-  ## graph.isInitialState("Disconnected")  # true
-  ## graph.isInitialState("Connected")     # false
-  ## ```
-  ##
-  ## :param graph: The typestate graph to check
-  ## :param stateName: The state name to check
-  ## :returns: `true` if the state is initial, `false` otherwise
-  let base = extractBaseName(stateName)
-  if graph.initialBases.len > 0:
-    return base in graph.initialBases
-  for s in graph.initialStates:
-    if extractBaseName(s) == base:
-      return true
-  return false
-
-proc isTerminalState*(graph: TypestateGraph, stateName: string): bool =
-  ## Check if a state is declared as terminal.
-  ##
-  ## Terminal states are end states with no outgoing transitions.
-  ## Comparisons use base names to support generic types.
-  ##
-  ## Example:
-  ##
-  ## ```nim
-  ## # Given: terminal: Closed
-  ## graph.isTerminalState("Closed")  # true
-  ## graph.isTerminalState("Open")    # false
-  ## ```
-  ##
-  ## :param graph: The typestate graph to check
-  ## :param stateName: The state name to check
-  ## :returns: `true` if the state is terminal, `false` otherwise
-  let base = extractBaseName(stateName)
-  if graph.terminalBases.len > 0:
-    return base in graph.terminalBases
-  for s in graph.terminalStates:
-    if extractBaseName(s) == base:
-      return true
-  return false

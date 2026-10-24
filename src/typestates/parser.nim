@@ -307,6 +307,8 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
   case flagName
   of "strictTransitions":
     graph.strictTransitions = value
+  of "strictEvents":
+    graph.strictEvents = value
   of "consumeOnTransition":
     graph.consumeOnTransition = value
   of "inheritsFromRootObj":
@@ -316,7 +318,7 @@ proc parseFlag(graph: var TypestateGraph, node: NimNode) =
   else:
     error(
       "Unknown flag: " & flagName &
-        ". Valid flags: strictTransitions, consumeOnTransition, inheritsFromRootObj, opaqueStates",
+        ". Valid flags: strictTransitions, strictEvents, consumeOnTransition, inheritsFromRootObj, opaqueStates",
       node,
     )
 
@@ -639,6 +641,47 @@ proc validateEvents(graph: TypestateGraph, declNode: NimNode) =
             "Declare it in an 'events:' block.",
           declNode,
         )
+
+proc validateStrictEvents(graph: TypestateGraph, declNode: NimNode) =
+  ## When strictEvents = true, validate Total Event Accounting (AGENTS.md Rule 3):
+  ## Every non-terminal state must handle every declared event (via explicit
+  ## `State on Event -> ...` or wildcard `* on Event -> ...`).
+  if not graph.strictEvents:
+    return
+  if graph.events.len == 0:
+    return
+
+  # Precompute which events are handled via wildcard
+  var wildcardEvents = initHashSet[string]()
+  for t in graph.transitions:
+    if t.isWildcard and t.eventName.len > 0:
+      wildcardEvents.incl t.eventName
+
+  # Precompute (stateBase, eventName) pairs handled by explicit transitions
+  var handledPairs = initHashSet[string]()
+  for t in graph.transitions:
+    if not t.isWildcard and t.eventName.len > 0:
+      let stateBase = extractBaseName(t.fromState)
+      handledPairs.incl stateBase & "::" & t.eventName
+
+  var missing: seq[string] = @[]
+  for stateName, _ in graph.states:
+    let stateBase = extractBaseName(stateName)
+    # Terminal states have no outgoing transitions by definition
+    if graph.isTerminalState(stateBase):
+      continue
+
+    for evName, _ in graph.events:
+      if evName notin wildcardEvents and (stateBase & "::" & evName) notin handledPairs:
+        missing.add "State '" & stateBase & "' does not handle event '" & evName & "'"
+
+  if missing.len > 0:
+    error(
+      "Total Event Accounting violation in typestate '" & graph.name & "' (strictEvents = true):\n  " &
+        missing.join("\n  ") &
+        "\nHint: Declare explicit transitions (e.g. '<State> on <Event> -> ...') or a wildcard ('* on <Event> -> ...').",
+      declNode,
+    )
 
 proc paramName(typeParam: NimNode): string =
   ## Extract the name of a typeParam node.
@@ -1110,6 +1153,7 @@ proc parseTypestateBody*(name: NimNode, body: NimNode): TypestateGraph =
   validateInitialTerminal(result, name)
   validateTransitionsRespectInitialTerminal(result, name)
   validateEvents(result, name)
+  validateStrictEvents(result, name)
   finalizeGraph(result)
 
   # Reachability/liveness analysis (opt-in: only fires when the user has

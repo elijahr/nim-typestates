@@ -18,6 +18,6 @@ typestate Document:
     Empty -> Loaded
 
 # This should fail: readFile raises IOError, but we've enforced raises: []
-proc load(d: Empty, path: string): Loaded {.transition.} =
+proc load(d: sink Empty, path: string): Loaded {.transition.} =
   result = Loaded(d)
   result.Document.content = readFile(path) # raises IOError!
