@@ -57,12 +57,12 @@ proc consume(token: sink Valid): Used {.transition.} =
   echo "  [TOKEN] Consumed: ", t.id
   Used(t)
 
-proc expire(token: Valid): Expired {.transition.} =
+proc expire(token: sink Valid): Expired {.transition.} =
   ## Mark token as expired.
   echo "  [TOKEN] Expired: ", Token(token).id
   Expired(Token(token))
 
-proc revoke(token: Valid): Revoked {.transition.} =
+proc revoke(token: sink Valid): Revoked {.transition.} =
   ## Revoke the token.
   echo "  [TOKEN] Revoked: ", Token(token).id
   Revoked(Token(token))
