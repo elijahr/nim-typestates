@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-24
+
+### Added
+
+- **Events DSL in AST Parser & GraphViz DOT** (`ast_parser.nim`, `cli.nim`): Added full support for event-driven typestates in AST parsing, including `events:` declaration blocks, `strictEvents`, and event-driven transitions (`State on Event -> NextState`, `* on Event -> NextState`, `(State on Event) -> NextState`). GraphViz DOT edge rendering now includes event labels (`[label="EventName"]`).
+- **Strict Events Total Accounting** (`parser.nim`, `types.nim`): Implemented compile-time exhaustiveness validation under `strictEvents = true` (enforcing AGENTS.md Rule 3: Total Event Accounting). Every non-terminal state must explicitly declare transitions for all defined events or be covered by an incoming wildcard event handler.
+- **In-place Transitions with `var` Parameter Support** (`pragmas.nim`): Supported `var` source parameters on `{.transition.}` procs when `consumeOnTransition = true`, allowing state mutation in-place without triggering distinct type copy violations.
+
+### Changed
+
+- **Breaking: Enforced Linearity via `sink` Parameters** (`pragmas.nim`): When `consumeOnTransition = true`, transition procedures must now declare the source state parameter with `sink` (or `var`). Under Nim ARC/ORC, pass-by-value without `sink` is treated as a lent borrow, which previously allowed repeated calls on the same state variable without triggering `=copy` hooks. Transition procs lacking `sink` (or `var`) are now rejected at compile time.
+
+### Fixed
+
+- **Terminal State Wildcard Immunity** (`types.nim`): Fixed `hasTransition` and `validDestinations` to ensure terminal states can never have outgoing transitions, maintaining strict parity with `reachability.nim` and `codegen.nim` when wildcard transitions are defined.
+- **CLI Flag Documentation** (`typestates_bin.nim`): Documented `-W, --warnings-as-errors` and `--format=default|github|json` flags in CLI `--help` output.
+
+### Removed
+
+- **Dead Code & Stub Purge**: Removed abandoned stub `src/typestates/analyzer.nim` and placeholder `tests/tanalyzer.nim`. Cleaned up ~130 LOC of unused AST constraint inference and merger helpers in `src/typestates/constraints.nim`.
+
 ## [0.13.0] - 2026-10-10
 
 Major compile-time performance release delivering up to **5.89x faster compile times** and **99.5% reduction** in emitted decoy procedures on large finite state machines, without degrading custom state-aware error diagnostics.
@@ -1723,7 +1744,8 @@ compile and produce the same diagnostics as in v0.9.2.
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/elijahr/nim-typestates/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/elijahr/nim-typestates/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/elijahr/nim-typestates/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/elijahr/nim-typestates/compare/v0.12.0...v0.12.1
