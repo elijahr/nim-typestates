@@ -3809,24 +3809,24 @@ with properly constrained generic parameters.</p>
 <li><strong>transitions</strong>: Which state changes are allowed</li>
 </ul>
 <p>Basic syntax:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">Errored</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="w">    </span><span class="c"># Branching</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span><span class="w">                 </span><span class="c"># Wildcard</span>
+<div class="highlight"><pre><span></span><code><a id="typestate--__codelineno-0-1" name="typestate--__codelineno-0-1" href="#typestate--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="typestate--__codelineno-0-2" name="typestate--__codelineno-0-2" href="#typestate--__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">Errored</span>
+<a id="typestate--__codelineno-0-3" name="typestate--__codelineno-0-3" href="#typestate--__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="typestate--__codelineno-0-4" name="typestate--__codelineno-0-4" href="#typestate--__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span><span class="w">    </span><span class="c"># Branching</span>
+<a id="typestate--__codelineno-0-5" name="typestate--__codelineno-0-5" href="#typestate--__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="typestate--__codelineno-0-6" name="typestate--__codelineno-0-6" href="#typestate--__codelineno-0-6"></a><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span><span class="w">                 </span><span class="c"># Wildcard</span>
 </code></pre></div>
 <p>Generic typestates with constraint inference:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c"># N's constraint is automatically inferred from StateA/StateB</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">:</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">StateA</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StateB</span>
+<div class="highlight"><pre><span></span><code><a id="typestate--__codelineno-1-1" name="typestate--__codelineno-1-1" href="#typestate--__codelineno-1-1"></a><span class="k">type</span>
+<a id="typestate--__codelineno-1-2" name="typestate--__codelineno-1-2" href="#typestate--__codelineno-1-2"></a><span class="w">  </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="typestate--__codelineno-1-3" name="typestate--__codelineno-1-3" href="#typestate--__codelineno-1-3"></a><span class="w">  </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="typestate--__codelineno-1-4" name="typestate--__codelineno-1-4" href="#typestate--__codelineno-1-4"></a><span class="w">  </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">distinct</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="typestate--__codelineno-1-5" name="typestate--__codelineno-1-5" href="#typestate--__codelineno-1-5"></a>
+<a id="typestate--__codelineno-1-6" name="typestate--__codelineno-1-6" href="#typestate--__codelineno-1-6"></a><span class="c"># N's constraint is automatically inferred from StateA/StateB</span>
+<a id="typestate--__codelineno-1-7" name="typestate--__codelineno-1-7" href="#typestate--__codelineno-1-7"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Base</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">:</span>
+<a id="typestate--__codelineno-1-8" name="typestate--__codelineno-1-8" href="#typestate--__codelineno-1-8"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">StateA</span><span class="o">[</span><span class="n">N</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">StateB</span><span class="o">[</span><span class="n">N</span><span class="o">]</span>
+<a id="typestate--__codelineno-1-9" name="typestate--__codelineno-1-9" href="#typestate--__codelineno-1-9"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="typestate--__codelineno-1-10" name="typestate--__codelineno-1-10" href="#typestate--__codelineno-1-10"></a><span class="w">    </span><span class="n">StateA</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StateB</span>
 </code></pre></div>
 <p>What it generates:</p>
 <ul>
@@ -4183,15 +4183,15 @@ e.g. <code>SpeechEnded</code></p>
 <li><strong>Event-driven</strong>: <code>Closed on OpenFile -&gt; Open</code></li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># This DSL:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># Closed -&gt; (Open | Errored) as OpenResult</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c"># Becomes:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">Transition</span><span class="p">(</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">toStates</span><span class="p">:</span><span class="w"> </span><span class="o">@[</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Errored"</span><span class="o">]</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">branchTypeName</span><span class="p">:</span><span class="w"> </span><span class="s">"OpenResult"</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">isWildcard</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="Transition--__codelineno-0-1" name="Transition--__codelineno-0-1" href="#Transition--__codelineno-0-1"></a><span class="c"># This DSL:</span>
+<a id="Transition--__codelineno-0-2" name="Transition--__codelineno-0-2" href="#Transition--__codelineno-0-2"></a><span class="c"># Closed -&gt; (Open | Errored) as OpenResult</span>
+<a id="Transition--__codelineno-0-3" name="Transition--__codelineno-0-3" href="#Transition--__codelineno-0-3"></a><span class="c"># Becomes:</span>
+<a id="Transition--__codelineno-0-4" name="Transition--__codelineno-0-4" href="#Transition--__codelineno-0-4"></a><span class="n">Transition</span><span class="p">(</span>
+<a id="Transition--__codelineno-0-5" name="Transition--__codelineno-0-5" href="#Transition--__codelineno-0-5"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">,</span>
+<a id="Transition--__codelineno-0-6" name="Transition--__codelineno-0-6" href="#Transition--__codelineno-0-6"></a><span class="w">  </span><span class="n">toStates</span><span class="p">:</span><span class="w"> </span><span class="o">@[</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Errored"</span><span class="o">]</span><span class="p">,</span>
+<a id="Transition--__codelineno-0-7" name="Transition--__codelineno-0-7" href="#Transition--__codelineno-0-7"></a><span class="w">  </span><span class="n">branchTypeName</span><span class="p">:</span><span class="w"> </span><span class="s">"OpenResult"</span><span class="p">,</span>
+<a id="Transition--__codelineno-0-8" name="Transition--__codelineno-0-8" href="#Transition--__codelineno-0-8"></a><span class="w">  </span><span class="n">isWildcard</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="Transition--__codelineno-0-9" name="Transition--__codelineno-0-9" href="#Transition--__codelineno-0-9"></a><span class="p">)</span>
 </code></pre></div>
       </div>
     
@@ -4305,29 +4305,29 @@ e.g. <code>SpeechEnded</code></p>
 states of a completely different typestate. They enable modeling
 resource transformation, wrapping, and protocol handoff.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># In AuthFlow typestate:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># bridges:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c">#   Authenticated -&gt; Session.Active</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Becomes:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">Bridge</span><span class="p">(</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Authenticated"</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w">  </span><span class="c"># empty for same-module</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"Session.Active"</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c"># With module prefix:</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c"># bridges:</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c">#   SourceState -&gt; othermodule.Session.Active</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c"># Becomes:</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">Bridge</span><span class="p">(</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"SourceState"</span><span class="p">,</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule.Session.Active"</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="Bridge--__codelineno-0-1" name="Bridge--__codelineno-0-1" href="#Bridge--__codelineno-0-1"></a><span class="c"># In AuthFlow typestate:</span>
+<a id="Bridge--__codelineno-0-2" name="Bridge--__codelineno-0-2" href="#Bridge--__codelineno-0-2"></a><span class="c"># bridges:</span>
+<a id="Bridge--__codelineno-0-3" name="Bridge--__codelineno-0-3" href="#Bridge--__codelineno-0-3"></a><span class="c">#   Authenticated -&gt; Session.Active</span>
+<a id="Bridge--__codelineno-0-4" name="Bridge--__codelineno-0-4" href="#Bridge--__codelineno-0-4"></a><span class="c"># Becomes:</span>
+<a id="Bridge--__codelineno-0-5" name="Bridge--__codelineno-0-5" href="#Bridge--__codelineno-0-5"></a><span class="n">Bridge</span><span class="p">(</span>
+<a id="Bridge--__codelineno-0-6" name="Bridge--__codelineno-0-6" href="#Bridge--__codelineno-0-6"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"Authenticated"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-7" name="Bridge--__codelineno-0-7" href="#Bridge--__codelineno-0-7"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w">  </span><span class="c"># empty for same-module</span>
+<a id="Bridge--__codelineno-0-8" name="Bridge--__codelineno-0-8" href="#Bridge--__codelineno-0-8"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-9" name="Bridge--__codelineno-0-9" href="#Bridge--__codelineno-0-9"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-10" name="Bridge--__codelineno-0-10" href="#Bridge--__codelineno-0-10"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"Session.Active"</span>
+<a id="Bridge--__codelineno-0-11" name="Bridge--__codelineno-0-11" href="#Bridge--__codelineno-0-11"></a><span class="p">)</span>
+<a id="Bridge--__codelineno-0-12" name="Bridge--__codelineno-0-12" href="#Bridge--__codelineno-0-12"></a>
+<a id="Bridge--__codelineno-0-13" name="Bridge--__codelineno-0-13" href="#Bridge--__codelineno-0-13"></a><span class="c"># With module prefix:</span>
+<a id="Bridge--__codelineno-0-14" name="Bridge--__codelineno-0-14" href="#Bridge--__codelineno-0-14"></a><span class="c"># bridges:</span>
+<a id="Bridge--__codelineno-0-15" name="Bridge--__codelineno-0-15" href="#Bridge--__codelineno-0-15"></a><span class="c">#   SourceState -&gt; othermodule.Session.Active</span>
+<a id="Bridge--__codelineno-0-16" name="Bridge--__codelineno-0-16" href="#Bridge--__codelineno-0-16"></a><span class="c"># Becomes:</span>
+<a id="Bridge--__codelineno-0-17" name="Bridge--__codelineno-0-17" href="#Bridge--__codelineno-0-17"></a><span class="n">Bridge</span><span class="p">(</span>
+<a id="Bridge--__codelineno-0-18" name="Bridge--__codelineno-0-18" href="#Bridge--__codelineno-0-18"></a><span class="w">  </span><span class="n">fromState</span><span class="p">:</span><span class="w"> </span><span class="s">"SourceState"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-19" name="Bridge--__codelineno-0-19" href="#Bridge--__codelineno-0-19"></a><span class="w">  </span><span class="n">toModule</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-20" name="Bridge--__codelineno-0-20" href="#Bridge--__codelineno-0-20"></a><span class="w">  </span><span class="n">toTypestate</span><span class="p">:</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-21" name="Bridge--__codelineno-0-21" href="#Bridge--__codelineno-0-21"></a><span class="w">  </span><span class="n">toState</span><span class="p">:</span><span class="w"> </span><span class="s">"Active"</span><span class="p">,</span>
+<a id="Bridge--__codelineno-0-22" name="Bridge--__codelineno-0-22" href="#Bridge--__codelineno-0-22"></a><span class="w">  </span><span class="n">fullDestRepr</span><span class="p">:</span><span class="w"> </span><span class="s">"othermodule.Session.Active"</span>
+<a id="Bridge--__codelineno-0-23" name="Bridge--__codelineno-0-23" href="#Bridge--__codelineno-0-23"></a><span class="p">)</span>
 </code></pre></div>
       </div>
     
@@ -4433,11 +4433,11 @@ resource transformation, wrapping, and protocol handoff.</p>
 a typestate declaration. It is built by the parser from the DSL syntax
 and stored in the compile-time registry for later validation.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<div class="highlight"><pre><span></span><code><a id="TypestateGraph--__codelineno-0-1" name="TypestateGraph--__codelineno-0-1" href="#TypestateGraph--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="TypestateGraph--__codelineno-0-2" name="TypestateGraph--__codelineno-0-2" href="#TypestateGraph--__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="TypestateGraph--__codelineno-0-3" name="TypestateGraph--__codelineno-0-3" href="#TypestateGraph--__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="TypestateGraph--__codelineno-0-4" name="TypestateGraph--__codelineno-0-4" href="#TypestateGraph--__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="TypestateGraph--__codelineno-0-5" name="TypestateGraph--__codelineno-0-5" href="#TypestateGraph--__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
 <p>Creates a TypestateGraph with name="File", two states, and two transitions.</p>
       </div>
@@ -4865,11 +4865,11 @@ A transition is valid if there's an explicit transition
 <p>Comparisons use base names to support generic types:
 - <code>hasTransition(g, "Empty", "Full")</code> matches <code>Empty[T] -&gt; Full[T]</code></p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open, * -&gt; Closed</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">   </span><span class="c"># true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w">   </span><span class="c"># true (via wildcard)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w"> </span><span class="c"># true (via wildcard)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">     </span><span class="c"># false (not declared)</span>
+<div class="highlight"><pre><span></span><code><a id="hasTransition--__codelineno-0-1" name="hasTransition--__codelineno-0-1" href="#hasTransition--__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open, * -&gt; Closed</span>
+<a id="hasTransition--__codelineno-0-2" name="hasTransition--__codelineno-0-2" href="#hasTransition--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">   </span><span class="c"># true</span>
+<a id="hasTransition--__codelineno-0-3" name="hasTransition--__codelineno-0-3" href="#hasTransition--__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w">   </span><span class="c"># true (via wildcard)</span>
+<a id="hasTransition--__codelineno-0-4" name="hasTransition--__codelineno-0-4" href="#hasTransition--__codelineno-0-4"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">,</span><span class="w"> </span><span class="s">"Closed"</span><span class="p">)</span><span class="w"> </span><span class="c"># true (via wildcard)</span>
+<a id="hasTransition--__codelineno-0-5" name="hasTransition--__codelineno-0-5" href="#hasTransition--__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasTransition</span><span class="p">(</span><span class="s">"Open"</span><span class="p">,</span><span class="w"> </span><span class="s">"Open"</span><span class="p">)</span><span class="w">     </span><span class="c"># false (not declared)</span>
 </code></pre></div>
       </div>
     
@@ -4953,9 +4953,9 @@ destinations reachable via wildcard transitions.</p>
 <p>Comparisons use base names to support generic types.
 Returns base names for clearer error messages.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open | Errored, * -&gt; Closed</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Open", "Errored", "Closed"]</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># @["Closed"]</span>
+<div class="highlight"><pre><span></span><code><a id="validDestinations--__codelineno-0-1" name="validDestinations--__codelineno-0-1" href="#validDestinations--__codelineno-0-1"></a><span class="c"># Given: Closed -&gt; Open | Errored, * -&gt; Closed</span>
+<a id="validDestinations--__codelineno-0-2" name="validDestinations--__codelineno-0-2" href="#validDestinations--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Open", "Errored", "Closed"]</span>
+<a id="validDestinations--__codelineno-0-3" name="validDestinations--__codelineno-0-3" href="#validDestinations--__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validDestinations</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># @["Closed"]</span>
 </code></pre></div>
       </div>
     
@@ -5031,12 +5031,12 @@ Returns base names for clearer error messages.</p>
 <p>Comparisons use base names to support generic types.
 Module matching: both empty = match, both non-empty and equal = match.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (same module)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; othermodule.Session.Active</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># false (module mismatch)</span>
+<div class="highlight"><pre><span></span><code><a id="hasBridge--__codelineno-0-1" name="hasBridge--__codelineno-0-1" href="#hasBridge--__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
+<a id="hasBridge--__codelineno-0-2" name="hasBridge--__codelineno-0-2" href="#hasBridge--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (same module)</span>
+<a id="hasBridge--__codelineno-0-3" name="hasBridge--__codelineno-0-3" href="#hasBridge--__codelineno-0-3"></a>
+<a id="hasBridge--__codelineno-0-4" name="hasBridge--__codelineno-0-4" href="#hasBridge--__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; othermodule.Session.Active</span>
+<a id="hasBridge--__codelineno-0-5" name="hasBridge--__codelineno-0-5" href="#hasBridge--__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"othermodule"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="hasBridge--__codelineno-0-6" name="hasBridge--__codelineno-0-6" href="#hasBridge--__codelineno-0-6"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># false (module mismatch)</span>
 </code></pre></div>
       </div>
     
@@ -5131,11 +5131,11 @@ Module matching: both empty = match, both non-empty and equal = match.</p>
 for validation where we only know the destination typestate and state.</p>
 <p>Comparisons use base names to support generic types.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; mymodule.Session.Active</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (matches regardless of module)</span>
+<div class="highlight"><pre><span></span><code><a id="hasBridge--__codelineno-0-1" name="hasBridge--__codelineno-0-1" href="#hasBridge--__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active</span>
+<a id="hasBridge--__codelineno-0-2" name="hasBridge--__codelineno-0-2" href="#hasBridge--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="hasBridge--__codelineno-0-3" name="hasBridge--__codelineno-0-3" href="#hasBridge--__codelineno-0-3"></a>
+<a id="hasBridge--__codelineno-0-4" name="hasBridge--__codelineno-0-4" href="#hasBridge--__codelineno-0-4"></a><span class="c"># Given: StateA -&gt; mymodule.Session.Active</span>
+<a id="hasBridge--__codelineno-0-5" name="hasBridge--__codelineno-0-5" href="#hasBridge--__codelineno-0-5"></a><span class="n">graph</span><span class="p">.</span><span class="n">hasBridge</span><span class="p">(</span><span class="s">"StateA"</span><span class="p">,</span><span class="w"> </span><span class="s">"Session"</span><span class="p">,</span><span class="w"> </span><span class="s">"Active"</span><span class="p">)</span><span class="w">  </span><span class="c"># true (matches regardless of module)</span>
 </code></pre></div>
       </div>
     
@@ -5222,9 +5222,9 @@ for validation where we only know the destination typestate and state.</p>
         <p>Get all valid bridge destinations from a given state.</p>
 <p>Returns dotted notation strings like "Session.Active" or "module.Session.Active".</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active, Failed -&gt; othermodule.ErrorLog.Entry</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Session.Active"]</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["othermodule.ErrorLog.Entry"]</span>
+<div class="highlight"><pre><span></span><code><a id="validBridges--__codelineno-0-1" name="validBridges--__codelineno-0-1" href="#validBridges--__codelineno-0-1"></a><span class="c"># Given: Authenticated -&gt; Session.Active, Failed -&gt; othermodule.ErrorLog.Entry</span>
+<a id="validBridges--__codelineno-0-2" name="validBridges--__codelineno-0-2" href="#validBridges--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Authenticated"</span><span class="p">)</span><span class="w">  </span><span class="c"># @["Session.Active"]</span>
+<a id="validBridges--__codelineno-0-3" name="validBridges--__codelineno-0-3" href="#validBridges--__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">validBridges</span><span class="p">(</span><span class="s">"Failed"</span><span class="p">)</span><span class="w">         </span><span class="c"># @["othermodule.ErrorLog.Entry"]</span>
 </code></pre></div>
       </div>
     
@@ -5300,9 +5300,9 @@ for validation where we only know the destination typestate and state.</p>
 <p>Initial states can only be constructed, not transitioned to.
 Comparisons use base names to support generic types.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: initial: Disconnected</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Disconnected"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Connected"</span><span class="p">)</span><span class="w">     </span><span class="c"># false</span>
+<div class="highlight"><pre><span></span><code><a id="isInitialState--__codelineno-0-1" name="isInitialState--__codelineno-0-1" href="#isInitialState--__codelineno-0-1"></a><span class="c"># Given: initial: Disconnected</span>
+<a id="isInitialState--__codelineno-0-2" name="isInitialState--__codelineno-0-2" href="#isInitialState--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Disconnected"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="isInitialState--__codelineno-0-3" name="isInitialState--__codelineno-0-3" href="#isInitialState--__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isInitialState</span><span class="p">(</span><span class="s">"Connected"</span><span class="p">)</span><span class="w">     </span><span class="c"># false</span>
 </code></pre></div>
       </div>
     
@@ -5378,9 +5378,9 @@ Comparisons use base names to support generic types.</p>
 <p>Terminal states are end states with no outgoing transitions.
 Comparisons use base names to support generic types.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Given: terminal: Closed</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># false</span>
+<div class="highlight"><pre><span></span><code><a id="isTerminalState--__codelineno-0-1" name="isTerminalState--__codelineno-0-1" href="#isTerminalState--__codelineno-0-1"></a><span class="c"># Given: terminal: Closed</span>
+<a id="isTerminalState--__codelineno-0-2" name="isTerminalState--__codelineno-0-2" href="#isTerminalState--__codelineno-0-2"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># true</span>
+<a id="isTerminalState--__codelineno-0-3" name="isTerminalState--__codelineno-0-3" href="#isTerminalState--__codelineno-0-3"></a><span class="n">graph</span><span class="p">.</span><span class="n">isTerminalState</span><span class="p">(</span><span class="s">"Open"</span><span class="p">)</span><span class="w">    </span><span class="c"># false</span>
 </code></pre></div>
       </div>
     
@@ -5488,16 +5488,16 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <ul>
 <li>Inline: <code>states Closed, Open, Errored</code></li>
 <li>Multiline block:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>states:
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  Closed
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  Open
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  Errored
+  <div class="highlight"><pre><span></span><code><a id="parseStates--__codelineno-0-1" name="parseStates--__codelineno-0-1" href="#parseStates--__codelineno-0-1"></a>states:
+<a id="parseStates--__codelineno-0-2" name="parseStates--__codelineno-0-2" href="#parseStates--__codelineno-0-2"></a>  Closed
+<a id="parseStates--__codelineno-0-3" name="parseStates--__codelineno-0-3" href="#parseStates--__codelineno-0-3"></a>  Open
+<a id="parseStates--__codelineno-0-4" name="parseStates--__codelineno-0-4" href="#parseStates--__codelineno-0-4"></a>  Errored
 </code></pre></div></li>
 <li>Multiline with commas:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>states:
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Closed,
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  Open,
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  Errored
+  <div class="highlight"><pre><span></span><code><a id="parseStates--__codelineno-1-1" name="parseStates--__codelineno-1-1" href="#parseStates--__codelineno-1-1"></a>states:
+<a id="parseStates--__codelineno-1-2" name="parseStates--__codelineno-1-2" href="#parseStates--__codelineno-1-2"></a>  Closed,
+<a id="parseStates--__codelineno-1-3" name="parseStates--__codelineno-1-3" href="#parseStates--__codelineno-1-3"></a>  Open,
+<a id="parseStates--__codelineno-1-4" name="parseStates--__codelineno-1-4" href="#parseStates--__codelineno-1-4"></a>  Errored
 </code></pre></div></li>
 </ul>
 <p>States can be any valid Nim type expression:</p>
@@ -5508,30 +5508,30 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
 <li>Qualified names: <code>mymodule.State</code></li>
 </ul>
 <p>Example AST inputs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Simple: states Closed, Open
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Command
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  Ident "states"
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  Ident "Closed"
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  Ident "Open"
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># Generic: states Empty[T], Full[T]
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>Command
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  Ident "states"
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  BracketExpr
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    Ident "Empty"
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    Ident "T"
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>  BracketExpr
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    Ident "Full"
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    Ident "T"
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a># Multiline: states:
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>#             Closed
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>#             Open
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>Call
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>  Ident "states"
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>  StmtList
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>    Ident "Closed"
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    Ident "Open"
+<div class="highlight"><pre><span></span><code><a id="parseStates--__codelineno-2-1" name="parseStates--__codelineno-2-1" href="#parseStates--__codelineno-2-1"></a># Simple: states Closed, Open
+<a id="parseStates--__codelineno-2-2" name="parseStates--__codelineno-2-2" href="#parseStates--__codelineno-2-2"></a>Command
+<a id="parseStates--__codelineno-2-3" name="parseStates--__codelineno-2-3" href="#parseStates--__codelineno-2-3"></a>  Ident "states"
+<a id="parseStates--__codelineno-2-4" name="parseStates--__codelineno-2-4" href="#parseStates--__codelineno-2-4"></a>  Ident "Closed"
+<a id="parseStates--__codelineno-2-5" name="parseStates--__codelineno-2-5" href="#parseStates--__codelineno-2-5"></a>  Ident "Open"
+<a id="parseStates--__codelineno-2-6" name="parseStates--__codelineno-2-6" href="#parseStates--__codelineno-2-6"></a>
+<a id="parseStates--__codelineno-2-7" name="parseStates--__codelineno-2-7" href="#parseStates--__codelineno-2-7"></a># Generic: states Empty[T], Full[T]
+<a id="parseStates--__codelineno-2-8" name="parseStates--__codelineno-2-8" href="#parseStates--__codelineno-2-8"></a>Command
+<a id="parseStates--__codelineno-2-9" name="parseStates--__codelineno-2-9" href="#parseStates--__codelineno-2-9"></a>  Ident "states"
+<a id="parseStates--__codelineno-2-10" name="parseStates--__codelineno-2-10" href="#parseStates--__codelineno-2-10"></a>  BracketExpr
+<a id="parseStates--__codelineno-2-11" name="parseStates--__codelineno-2-11" href="#parseStates--__codelineno-2-11"></a>    Ident "Empty"
+<a id="parseStates--__codelineno-2-12" name="parseStates--__codelineno-2-12" href="#parseStates--__codelineno-2-12"></a>    Ident "T"
+<a id="parseStates--__codelineno-2-13" name="parseStates--__codelineno-2-13" href="#parseStates--__codelineno-2-13"></a>  BracketExpr
+<a id="parseStates--__codelineno-2-14" name="parseStates--__codelineno-2-14" href="#parseStates--__codelineno-2-14"></a>    Ident "Full"
+<a id="parseStates--__codelineno-2-15" name="parseStates--__codelineno-2-15" href="#parseStates--__codelineno-2-15"></a>    Ident "T"
+<a id="parseStates--__codelineno-2-16" name="parseStates--__codelineno-2-16" href="#parseStates--__codelineno-2-16"></a>
+<a id="parseStates--__codelineno-2-17" name="parseStates--__codelineno-2-17" href="#parseStates--__codelineno-2-17"></a># Multiline: states:
+<a id="parseStates--__codelineno-2-18" name="parseStates--__codelineno-2-18" href="#parseStates--__codelineno-2-18"></a>#             Closed
+<a id="parseStates--__codelineno-2-19" name="parseStates--__codelineno-2-19" href="#parseStates--__codelineno-2-19"></a>#             Open
+<a id="parseStates--__codelineno-2-20" name="parseStates--__codelineno-2-20" href="#parseStates--__codelineno-2-20"></a>Call
+<a id="parseStates--__codelineno-2-21" name="parseStates--__codelineno-2-21" href="#parseStates--__codelineno-2-21"></a>  Ident "states"
+<a id="parseStates--__codelineno-2-22" name="parseStates--__codelineno-2-22" href="#parseStates--__codelineno-2-22"></a>  StmtList
+<a id="parseStates--__codelineno-2-23" name="parseStates--__codelineno-2-23" href="#parseStates--__codelineno-2-23"></a>    Ident "Closed"
+<a id="parseStates--__codelineno-2-24" name="parseStates--__codelineno-2-24" href="#parseStates--__codelineno-2-24"></a>    Ident "Open"
 </code></pre></div>
       </div>
     
@@ -5673,10 +5673,10 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-description">
         <p>Parse the bridges block and add all bridges to the graph.</p>
 <p>Example input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bridges</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
+<div class="highlight"><pre><span></span><code><a id="parseBridgesBlock--__codelineno-0-1" name="parseBridgesBlock--__codelineno-0-1" href="#parseBridgesBlock--__codelineno-0-1"></a><span class="n">bridges</span><span class="p">:</span>
+<a id="parseBridgesBlock--__codelineno-0-2" name="parseBridgesBlock--__codelineno-0-2" href="#parseBridgesBlock--__codelineno-0-2"></a><span class="w">  </span><span class="n">Authenticated</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Session</span><span class="p">.</span><span class="n">Active</span>
+<a id="parseBridgesBlock--__codelineno-0-3" name="parseBridgesBlock--__codelineno-0-3" href="#parseBridgesBlock--__codelineno-0-3"></a><span class="w">  </span><span class="n">Failed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ErrorLog</span><span class="p">.</span><span class="n">Entry</span>
+<a id="parseBridgesBlock--__codelineno-0-4" name="parseBridgesBlock--__codelineno-0-4" href="#parseBridgesBlock--__codelineno-0-4"></a><span class="w">  </span><span class="o">*</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Shutdown</span><span class="p">.</span><span class="n">Terminal</span>
 </code></pre></div>
       </div>
     
@@ -5746,13 +5746,13 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
         <p>Parse the initial states block.</p>
 <p>Initial states can only be constructed, not transitioned to.</p>
 <p>Example input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># or</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">Starting</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># or</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">initial</span><span class="p">:</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">Disconnected</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">Starting</span>
+<div class="highlight"><pre><span></span><code><a id="parseInitialBlock--__codelineno-0-1" name="parseInitialBlock--__codelineno-0-1" href="#parseInitialBlock--__codelineno-0-1"></a><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span>
+<a id="parseInitialBlock--__codelineno-0-2" name="parseInitialBlock--__codelineno-0-2" href="#parseInitialBlock--__codelineno-0-2"></a><span class="c"># or</span>
+<a id="parseInitialBlock--__codelineno-0-3" name="parseInitialBlock--__codelineno-0-3" href="#parseInitialBlock--__codelineno-0-3"></a><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">Disconnected</span><span class="p">,</span><span class="w"> </span><span class="n">Starting</span>
+<a id="parseInitialBlock--__codelineno-0-4" name="parseInitialBlock--__codelineno-0-4" href="#parseInitialBlock--__codelineno-0-4"></a><span class="c"># or</span>
+<a id="parseInitialBlock--__codelineno-0-5" name="parseInitialBlock--__codelineno-0-5" href="#parseInitialBlock--__codelineno-0-5"></a><span class="n">initial</span><span class="p">:</span>
+<a id="parseInitialBlock--__codelineno-0-6" name="parseInitialBlock--__codelineno-0-6" href="#parseInitialBlock--__codelineno-0-6"></a><span class="w">  </span><span class="n">Disconnected</span>
+<a id="parseInitialBlock--__codelineno-0-7" name="parseInitialBlock--__codelineno-0-7" href="#parseInitialBlock--__codelineno-0-7"></a><span class="w">  </span><span class="n">Starting</span>
 </code></pre></div>
       </div>
     
@@ -5822,13 +5822,13 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
         <p>Parse the terminal states block.</p>
 <p>Terminal states are end states with no outgoing transitions.</p>
 <p>Example input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c"># or</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Failed</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># or</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">terminal</span><span class="p">:</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">Closed</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">Failed</span>
+<div class="highlight"><pre><span></span><code><a id="parseTerminalBlock--__codelineno-0-1" name="parseTerminalBlock--__codelineno-0-1" href="#parseTerminalBlock--__codelineno-0-1"></a><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span>
+<a id="parseTerminalBlock--__codelineno-0-2" name="parseTerminalBlock--__codelineno-0-2" href="#parseTerminalBlock--__codelineno-0-2"></a><span class="c"># or</span>
+<a id="parseTerminalBlock--__codelineno-0-3" name="parseTerminalBlock--__codelineno-0-3" href="#parseTerminalBlock--__codelineno-0-3"></a><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Failed</span>
+<a id="parseTerminalBlock--__codelineno-0-4" name="parseTerminalBlock--__codelineno-0-4" href="#parseTerminalBlock--__codelineno-0-4"></a><span class="c"># or</span>
+<a id="parseTerminalBlock--__codelineno-0-5" name="parseTerminalBlock--__codelineno-0-5" href="#parseTerminalBlock--__codelineno-0-5"></a><span class="n">terminal</span><span class="p">:</span>
+<a id="parseTerminalBlock--__codelineno-0-6" name="parseTerminalBlock--__codelineno-0-6" href="#parseTerminalBlock--__codelineno-0-6"></a><span class="w">  </span><span class="n">Closed</span>
+<a id="parseTerminalBlock--__codelineno-0-7" name="parseTerminalBlock--__codelineno-0-7" href="#parseTerminalBlock--__codelineno-0-7"></a><span class="w">  </span><span class="n">Failed</span>
 </code></pre></div>
       </div>
     
@@ -5967,10 +5967,10 @@ a <code>TypestateGraph</code> structure. It handles parsing of:</p>
       <div class="doc-description">
         <p>Parse the events block and add all events to the graph.</p>
 <p>Example input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">events</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">WakeWord</span><span class="p">(</span><span class="n">word</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">angle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">SpeechEnded</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">SilenceTimeout</span>
+<div class="highlight"><pre><span></span><code><a id="parseEventsBlock--__codelineno-0-1" name="parseEventsBlock--__codelineno-0-1" href="#parseEventsBlock--__codelineno-0-1"></a><span class="n">events</span><span class="p">:</span>
+<a id="parseEventsBlock--__codelineno-0-2" name="parseEventsBlock--__codelineno-0-2" href="#parseEventsBlock--__codelineno-0-2"></a><span class="w">  </span><span class="n">WakeWord</span><span class="p">(</span><span class="n">word</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">,</span><span class="w"> </span><span class="n">angle</span><span class="p">:</span><span class="w"> </span><span class="nb">int</span><span class="p">)</span>
+<a id="parseEventsBlock--__codelineno-0-3" name="parseEventsBlock--__codelineno-0-3" href="#parseEventsBlock--__codelineno-0-3"></a><span class="w">  </span><span class="n">SpeechEnded</span>
+<a id="parseEventsBlock--__codelineno-0-4" name="parseEventsBlock--__codelineno-0-4" href="#parseEventsBlock--__codelineno-0-4"></a><span class="w">  </span><span class="n">SilenceTimeout</span>
 </code></pre></div>
       </div>
     
@@ -6043,13 +6043,13 @@ generic parameters. Defaults flow through <code>buildGenericParams</code> into
 every generated type and proc (state distincts, variant types, the
 context type, <code>=copy</code> hooks, <code>state()</code> procs, <code>$</code> overloads, etc.).</p>
 <p>Example input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">RegistrationContext</span><span class="o">[</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">MaxThreads</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">PinScopeCardinality</span><span class="o">]</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">defaults</span><span class="p">:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="n">ccSingle</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">states</span><span class="p">:</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">Unregistered</span><span class="p">,</span><span class="w"> </span><span class="n">Registered</span>
+<div class="highlight"><pre><span></span><code><a id="parseDefaultsBlock--__codelineno-0-1" name="parseDefaultsBlock--__codelineno-0-1" href="#parseDefaultsBlock--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">RegistrationContext</span><span class="o">[</span>
+<a id="parseDefaultsBlock--__codelineno-0-2" name="parseDefaultsBlock--__codelineno-0-2" href="#parseDefaultsBlock--__codelineno-0-2"></a><span class="w">    </span><span class="n">MaxThreads</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="nb">int</span><span class="p">,</span>
+<a id="parseDefaultsBlock--__codelineno-0-3" name="parseDefaultsBlock--__codelineno-0-3" href="#parseDefaultsBlock--__codelineno-0-3"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">PinScopeCardinality</span><span class="o">]</span><span class="p">:</span>
+<a id="parseDefaultsBlock--__codelineno-0-4" name="parseDefaultsBlock--__codelineno-0-4" href="#parseDefaultsBlock--__codelineno-0-4"></a><span class="w">  </span><span class="n">defaults</span><span class="p">:</span>
+<a id="parseDefaultsBlock--__codelineno-0-5" name="parseDefaultsBlock--__codelineno-0-5" href="#parseDefaultsBlock--__codelineno-0-5"></a><span class="w">    </span><span class="n">CC</span><span class="p">:</span><span class="w"> </span><span class="n">ccSingle</span>
+<a id="parseDefaultsBlock--__codelineno-0-6" name="parseDefaultsBlock--__codelineno-0-6" href="#parseDefaultsBlock--__codelineno-0-6"></a><span class="w">  </span><span class="n">states</span><span class="p">:</span>
+<a id="parseDefaultsBlock--__codelineno-0-7" name="parseDefaultsBlock--__codelineno-0-7" href="#parseDefaultsBlock--__codelineno-0-7"></a><span class="w">    </span><span class="n">Unregistered</span><span class="p">,</span><span class="w"> </span><span class="n">Registered</span>
 </code></pre></div>
 <p>Validation rules (each rule fires a macro-time <code>error</code>):</p>
 <ul>
@@ -6137,15 +6137,15 @@ body of a <code>typestate</code> macro invocation.</p>
 <li>Generic: <code>typestate Container[T]:</code></li>
 </ul>
 <p>Examples:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span><span class="w">          </span><span class="c"># name = "File"</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Container</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span><span class="w">  </span><span class="c"># name = "Container", with type param T</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="parseTypestateBody--__codelineno-0-1" name="parseTypestateBody--__codelineno-0-1" href="#parseTypestateBody--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span><span class="w">          </span><span class="c"># name = "File"</span>
+<a id="parseTypestateBody--__codelineno-0-2" name="parseTypestateBody--__codelineno-0-2" href="#parseTypestateBody--__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="parseTypestateBody--__codelineno-0-3" name="parseTypestateBody--__codelineno-0-3" href="#parseTypestateBody--__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="parseTypestateBody--__codelineno-0-4" name="parseTypestateBody--__codelineno-0-4" href="#parseTypestateBody--__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="parseTypestateBody--__codelineno-0-5" name="parseTypestateBody--__codelineno-0-5" href="#parseTypestateBody--__codelineno-0-5"></a>
+<a id="parseTypestateBody--__codelineno-0-6" name="parseTypestateBody--__codelineno-0-6" href="#parseTypestateBody--__codelineno-0-6"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Container</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">:</span><span class="w">  </span><span class="c"># name = "Container", with type param T</span>
+<a id="parseTypestateBody--__codelineno-0-7" name="parseTypestateBody--__codelineno-0-7" href="#parseTypestateBody--__codelineno-0-7"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="parseTypestateBody--__codelineno-0-8" name="parseTypestateBody--__codelineno-0-8" href="#parseTypestateBody--__codelineno-0-8"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="parseTypestateBody--__codelineno-0-9" name="parseTypestateBody--__codelineno-0-9" href="#parseTypestateBody--__codelineno-0-9"></a><span class="w">    </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
 </code></pre></div>
       </div>
     
@@ -6459,11 +6459,11 @@ relationship between the branch type name and the original transition.</p>
 <p>Each typestate can only be defined once. Attempting to register
 a typestate with the same name twice results in a compile error.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<div class="highlight"><pre><span></span><code><a id="registerTypestate--__codelineno-0-1" name="registerTypestate--__codelineno-0-1" href="#registerTypestate--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">File</span><span class="p">:</span>
+<a id="registerTypestate--__codelineno-0-2" name="registerTypestate--__codelineno-0-2" href="#registerTypestate--__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">Open</span>
+<a id="registerTypestate--__codelineno-0-3" name="registerTypestate--__codelineno-0-3" href="#registerTypestate--__codelineno-0-3"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="registerTypestate--__codelineno-0-4" name="registerTypestate--__codelineno-0-4" href="#registerTypestate--__codelineno-0-4"></a><span class="w">    </span><span class="n">Closed</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Open</span>
+<a id="registerTypestate--__codelineno-0-5" name="registerTypestate--__codelineno-0-5" href="#registerTypestate--__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
 </code></pre></div>
       </div>
     
@@ -6665,12 +6665,12 @@ which typestate graph to validate against.</p>
 <p>Lookups use base names to support generic types:
 - <code>findTypestateForState("Empty")</code> finds <code>typestate Container</code> with <code>Empty[T]</code></p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If File typestate has states Closed, Open:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># some(FileGraph)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Unknown"</span><span class="p">)</span><span class="w"> </span><span class="c"># none</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c"># If Container typestate has states Empty[T], Full[T]:</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Empty"</span><span class="p">)</span><span class="w">   </span><span class="c"># some(ContainerGraph)</span>
+<div class="highlight"><pre><span></span><code><a id="findTypestateForState--__codelineno-0-1" name="findTypestateForState--__codelineno-0-1" href="#findTypestateForState--__codelineno-0-1"></a><span class="c"># If File typestate has states Closed, Open:</span>
+<a id="findTypestateForState--__codelineno-0-2" name="findTypestateForState--__codelineno-0-2" href="#findTypestateForState--__codelineno-0-2"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Closed"</span><span class="p">)</span><span class="w">  </span><span class="c"># some(FileGraph)</span>
+<a id="findTypestateForState--__codelineno-0-3" name="findTypestateForState--__codelineno-0-3" href="#findTypestateForState--__codelineno-0-3"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Unknown"</span><span class="p">)</span><span class="w"> </span><span class="c"># none</span>
+<a id="findTypestateForState--__codelineno-0-4" name="findTypestateForState--__codelineno-0-4" href="#findTypestateForState--__codelineno-0-4"></a>
+<a id="findTypestateForState--__codelineno-0-5" name="findTypestateForState--__codelineno-0-5" href="#findTypestateForState--__codelineno-0-5"></a><span class="c"># If Container typestate has states Empty[T], Full[T]:</span>
+<a id="findTypestateForState--__codelineno-0-6" name="findTypestateForState--__codelineno-0-6" href="#findTypestateForState--__codelineno-0-6"></a><span class="n">findTypestateForState</span><span class="p">(</span><span class="s">"Empty"</span><span class="p">)</span><span class="w">   </span><span class="c"># some(ContainerGraph)</span>
 </code></pre></div>
       </div>
     
@@ -7021,13 +7021,13 @@ branching transitions.</p>
 <p>This function searches all registered typestates for branching
 transitions that declare the given branch type name.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># If typestate has: Created -&gt; (Approved | Declined) as ProcessResult</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"ProcessResult"</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c"># Returns: some(BranchTypeInfo(sourceState: "Created",</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c">#                              destinations: @["Approved", "Declined"]))</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"NotABranch"</span><span class="p">)</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Returns: none(BranchTypeInfo)</span>
+<div class="highlight"><pre><span></span><code><a id="findBranchTypeInfo--__codelineno-0-1" name="findBranchTypeInfo--__codelineno-0-1" href="#findBranchTypeInfo--__codelineno-0-1"></a><span class="c"># If typestate has: Created -&gt; (Approved | Declined) as ProcessResult</span>
+<a id="findBranchTypeInfo--__codelineno-0-2" name="findBranchTypeInfo--__codelineno-0-2" href="#findBranchTypeInfo--__codelineno-0-2"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"ProcessResult"</span><span class="p">)</span>
+<a id="findBranchTypeInfo--__codelineno-0-3" name="findBranchTypeInfo--__codelineno-0-3" href="#findBranchTypeInfo--__codelineno-0-3"></a><span class="c"># Returns: some(BranchTypeInfo(sourceState: "Created",</span>
+<a id="findBranchTypeInfo--__codelineno-0-4" name="findBranchTypeInfo--__codelineno-0-4" href="#findBranchTypeInfo--__codelineno-0-4"></a><span class="c">#                              destinations: @["Approved", "Declined"]))</span>
+<a id="findBranchTypeInfo--__codelineno-0-5" name="findBranchTypeInfo--__codelineno-0-5" href="#findBranchTypeInfo--__codelineno-0-5"></a>
+<a id="findBranchTypeInfo--__codelineno-0-6" name="findBranchTypeInfo--__codelineno-0-6" href="#findBranchTypeInfo--__codelineno-0-6"></a><span class="n">findBranchTypeInfo</span><span class="p">(</span><span class="s">"NotABranch"</span><span class="p">)</span>
+<a id="findBranchTypeInfo--__codelineno-0-7" name="findBranchTypeInfo--__codelineno-0-7" href="#findBranchTypeInfo--__codelineno-0-7"></a><span class="c"># Returns: none(BranchTypeInfo)</span>
 </code></pre></div>
       </div>
     
@@ -7474,10 +7474,10 @@ destination. This matches the built-in seeds (<code>Result[T, E]</code>,
 other than position 0, do NOT register it — write a non-transparent
 wrapper and validate the transition at the call site instead.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">MyResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transparentWrapper.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">static</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">registerTransparentWrapper</span><span class="p">(</span><span class="s">"MyResult"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="transparentWrapper--__codelineno-0-1" name="transparentWrapper--__codelineno-0-1" href="#transparentWrapper--__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">MyResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="sx">{.transparentWrapper.}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="transparentWrapper--__codelineno-0-2" name="transparentWrapper--__codelineno-0-2" href="#transparentWrapper--__codelineno-0-2"></a><span class="w">  </span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">T</span>
+<a id="transparentWrapper--__codelineno-0-3" name="transparentWrapper--__codelineno-0-3" href="#transparentWrapper--__codelineno-0-3"></a><span class="k">static</span><span class="p">:</span>
+<a id="transparentWrapper--__codelineno-0-4" name="transparentWrapper--__codelineno-0-4" href="#transparentWrapper--__codelineno-0-4"></a><span class="w">  </span><span class="n">registerTransparentWrapper</span><span class="p">(</span><span class="s">"MyResult"</span><span class="p">)</span>
 </code></pre></div>
 <p>The pragma itself is a no-op in v1; actual registration is the
 separate <code>registerTransparentWrapper</code> call. The two-step form keeps
@@ -7564,14 +7564,14 @@ current state of the typestate-attached value. Consumer-call-site
 substitution would require CFG-analyzer changes and is out of scope
 for v0.9.3.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">lock</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Locked</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">transitionError</span>:
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sx">"Cannot</span><span class="w"> </span><span class="sx">lock</span><span class="w"> </span><span class="sx">an</span><span class="w"> </span><span class="sx">open</span><span class="w"> </span><span class="sx">file</span>:<span class="w"> </span><span class="sx">call</span><span class="w"> </span><span class="sx">close() first".} =</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sx">  Locked(f)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">`=destroy`(c</span>:<span class="w"> </span><span class="sx">var</span><span class="w"> </span><span class="sx">Halfopen)</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sx">    {.destructorTransition</span>:<span class="w"> </span><span class="sx">Halfopen</span><span class="w"> </span><span class="sx">-&gt; Closed</span>,
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="sx">transitionError</span>:<span class="w"> </span><span class="sx">"Halfopen</span><span class="w"> </span><span class="sx">must</span><span class="w"> </span><span class="sx">close</span><span class="w"> </span><span class="sx">before</span><span class="w"> </span><span class="sx">destruction".} =</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sx">  discard</span>
+<div class="highlight"><pre><span></span><code><a id="transitionError--__codelineno-0-1" name="transitionError--__codelineno-0-1" href="#transitionError--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">lock</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Locked</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">transitionError</span>:
+<a id="transitionError--__codelineno-0-2" name="transitionError--__codelineno-0-2" href="#transitionError--__codelineno-0-2"></a><span class="w">    </span><span class="sx">"Cannot</span><span class="w"> </span><span class="sx">lock</span><span class="w"> </span><span class="sx">an</span><span class="w"> </span><span class="sx">open</span><span class="w"> </span><span class="sx">file</span>:<span class="w"> </span><span class="sx">call</span><span class="w"> </span><span class="sx">close() first".} =</span>
+<a id="transitionError--__codelineno-0-3" name="transitionError--__codelineno-0-3" href="#transitionError--__codelineno-0-3"></a><span class="sx">  Locked(f)</span>
+<a id="transitionError--__codelineno-0-4" name="transitionError--__codelineno-0-4" href="#transitionError--__codelineno-0-4"></a>
+<a id="transitionError--__codelineno-0-5" name="transitionError--__codelineno-0-5" href="#transitionError--__codelineno-0-5"></a><span class="sx">proc</span><span class="w"> </span><span class="sx">`=destroy`(c</span>:<span class="w"> </span><span class="sx">var</span><span class="w"> </span><span class="sx">Halfopen)</span>
+<a id="transitionError--__codelineno-0-6" name="transitionError--__codelineno-0-6" href="#transitionError--__codelineno-0-6"></a><span class="sx">    {.destructorTransition</span>:<span class="w"> </span><span class="sx">Halfopen</span><span class="w"> </span><span class="sx">-&gt; Closed</span>,
+<a id="transitionError--__codelineno-0-7" name="transitionError--__codelineno-0-7" href="#transitionError--__codelineno-0-7"></a><span class="w">      </span><span class="sx">transitionError</span>:<span class="w"> </span><span class="sx">"Halfopen</span><span class="w"> </span><span class="sx">must</span><span class="w"> </span><span class="sx">close</span><span class="w"> </span><span class="sx">before</span><span class="w"> </span><span class="sx">destruction".} =</span>
+<a id="transitionError--__codelineno-0-8" name="transitionError--__codelineno-0-8" href="#transitionError--__codelineno-0-8"></a><span class="sx">  discard</span>
 </code></pre></div>
 <p><strong>v0.9.3 sibling-pragma sweep.</strong> A search of <code>pragmas.nim</code> for other
 macro/template decls that emit transition-validity diagnostics
@@ -8213,17 +8213,17 @@ If not, compilation fails with a diagnostic.</p>
 <p>This provides compile-time protocol enforcement: only declared
 transitions can be implemented.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="transition--__codelineno-0-1" name="transition--__codelineno-0-1" href="#transition--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="transition--__codelineno-0-2" name="transition--__codelineno-0-2" href="#transition--__codelineno-0-2"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="transition--__codelineno-0-3" name="transition--__codelineno-0-3" href="#transition--__codelineno-0-3"></a>
+<a id="transition--__codelineno-0-4" name="transition--__codelineno-0-4" href="#transition--__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="sx">{.transition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="transition--__codelineno-0-5" name="transition--__codelineno-0-5" href="#transition--__codelineno-0-5"></a><span class="w">  </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </code></pre></div>
 <p>Error example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Error: Undeclared transition: Open -&gt; Locked
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Typestate 'File' does not declare this transition.
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  Valid transitions from 'Open': @["Closed"]
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
+<div class="highlight"><pre><span></span><code><a id="transition--__codelineno-1-1" name="transition--__codelineno-1-1" href="#transition--__codelineno-1-1"></a>Error: Undeclared transition: Open -&gt; Locked
+<a id="transition--__codelineno-1-2" name="transition--__codelineno-1-2" href="#transition--__codelineno-1-2"></a>  Typestate 'File' does not declare this transition.
+<a id="transition--__codelineno-1-3" name="transition--__codelineno-1-3" href="#transition--__codelineno-1-3"></a>  Valid transitions from 'Open': @["Closed"]
+<a id="transition--__codelineno-1-4" name="transition--__codelineno-1-4" href="#transition--__codelineno-1-4"></a>  Hint: Add 'Open -&gt; Locked' to the transitions block.
 </code></pre></div>
       </div>
     
@@ -8307,9 +8307,9 @@ inspects <code>procDef.pragma</code> as AST nodes (NOT a stringified CLI
 substring scan, which would mis-handle combined pragmas like
 <code>{.raises: [], skipCfgAnalysis.}</code>).</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">tricky</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="w"> </span><span class="n">A</span><span class="p">):</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">skipCfgAnalysis.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="sd">## CFG analyzer skips this proc.</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">B</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="skipCfgAnalysis--__codelineno-0-1" name="skipCfgAnalysis--__codelineno-0-1" href="#skipCfgAnalysis--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">tricky</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="w"> </span><span class="n">A</span><span class="p">):</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="sx">{.transition</span>,<span class="w"> </span><span class="sx">skipCfgAnalysis.}</span><span class="w"> </span><span class="o">=</span>
+<a id="skipCfgAnalysis--__codelineno-0-2" name="skipCfgAnalysis--__codelineno-0-2" href="#skipCfgAnalysis--__codelineno-0-2"></a><span class="w">  </span><span class="sd">## CFG analyzer skips this proc.</span>
+<a id="skipCfgAnalysis--__codelineno-0-3" name="skipCfgAnalysis--__codelineno-0-3" href="#skipCfgAnalysis--__codelineno-0-3"></a><span class="w">  </span><span class="n">B</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </code></pre></div>
       </div>
     
@@ -8362,14 +8362,14 @@ substring scan, which would mis-handle combined pragmas like
 destructor consumes the union of all terminals; the destination is
 inferred as the typestate's <code>terminalStates</code> set.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=destroy`</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Open</span><span class="p">)</span><span class="w"> </span><span class="sx">{.destructorTransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">discard</span>
+<div class="highlight"><pre><span></span><code><a id="destructorTransition--__codelineno-0-1" name="destructorTransition--__codelineno-0-1" href="#destructorTransition--__codelineno-0-1"></a><span class="n">typestate</span><span class="w"> </span><span class="n">Connection</span><span class="p">:</span>
+<a id="destructorTransition--__codelineno-0-2" name="destructorTransition--__codelineno-0-2" href="#destructorTransition--__codelineno-0-2"></a><span class="w">  </span><span class="n">states</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">Closed</span>
+<a id="destructorTransition--__codelineno-0-3" name="destructorTransition--__codelineno-0-3" href="#destructorTransition--__codelineno-0-3"></a><span class="w">  </span><span class="n">terminal</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span>
+<a id="destructorTransition--__codelineno-0-4" name="destructorTransition--__codelineno-0-4" href="#destructorTransition--__codelineno-0-4"></a><span class="w">  </span><span class="n">transitions</span><span class="p">:</span>
+<a id="destructorTransition--__codelineno-0-5" name="destructorTransition--__codelineno-0-5" href="#destructorTransition--__codelineno-0-5"></a><span class="w">    </span><span class="n">Open</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Closed</span>
+<a id="destructorTransition--__codelineno-0-6" name="destructorTransition--__codelineno-0-6" href="#destructorTransition--__codelineno-0-6"></a>
+<a id="destructorTransition--__codelineno-0-7" name="destructorTransition--__codelineno-0-7" href="#destructorTransition--__codelineno-0-7"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=destroy`</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Open</span><span class="p">)</span><span class="w"> </span><span class="sx">{.destructorTransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="destructorTransition--__codelineno-0-8" name="destructorTransition--__codelineno-0-8" href="#destructorTransition--__codelineno-0-8"></a><span class="w">  </span><span class="k">discard</span>
 </code></pre></div>
 <p>See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md</p>
       </div>
@@ -8441,9 +8441,9 @@ inferred as the typestate's <code>terminalStates</code> set.</p>
 destructor pins exactly one. The spec syntax <code>SrcState -&gt; DstState</code>
 mirrors <code>{.transition: A -&gt; B.}</code> for visual symmetry.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=destroy`</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Open</span><span class="p">)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sx">{.destructorTransition</span>:<span class="w"> </span><span class="sx">Open</span><span class="w"> </span><span class="sx">-&gt; Closed.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="k">discard</span>
+<div class="highlight"><pre><span></span><code><a id="destructorTransition--__codelineno-0-1" name="destructorTransition--__codelineno-0-1" href="#destructorTransition--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=destroy`</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Open</span><span class="p">)</span>
+<a id="destructorTransition--__codelineno-0-2" name="destructorTransition--__codelineno-0-2" href="#destructorTransition--__codelineno-0-2"></a><span class="w">    </span><span class="sx">{.destructorTransition</span>:<span class="w"> </span><span class="sx">Open</span><span class="w"> </span><span class="sx">-&gt; Closed.}</span><span class="w"> </span><span class="o">=</span>
+<a id="destructorTransition--__codelineno-0-3" name="destructorTransition--__codelineno-0-3" href="#destructorTransition--__codelineno-0-3"></a><span class="w">  </span><span class="k">discard</span>
 </code></pre></div>
 <p>See: §3.1 of design-destructortransition-cfg-analyzer-20260516.md</p>
       </div>
@@ -8702,12 +8702,12 @@ enabled on the typestate.</p>
 <li>Procs that modify the underlying data without state transition</li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Side effects without state change</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">rawWrite</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c"># Pure functions don't need this (use `func` instead)</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">func</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span>
+<div class="highlight"><pre><span></span><code><a id="notATransition--__codelineno-0-1" name="notATransition--__codelineno-0-1" href="#notATransition--__codelineno-0-1"></a><span class="c"># Side effects without state change</span>
+<a id="notATransition--__codelineno-0-2" name="notATransition--__codelineno-0-2" href="#notATransition--__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">string</span><span class="p">)</span><span class="w"> </span><span class="sx">{.notATransition.}</span><span class="w"> </span><span class="o">=</span>
+<a id="notATransition--__codelineno-0-3" name="notATransition--__codelineno-0-3" href="#notATransition--__codelineno-0-3"></a><span class="w">  </span><span class="n">rawWrite</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<a id="notATransition--__codelineno-0-4" name="notATransition--__codelineno-0-4" href="#notATransition--__codelineno-0-4"></a>
+<a id="notATransition--__codelineno-0-5" name="notATransition--__codelineno-0-5" href="#notATransition--__codelineno-0-5"></a><span class="c"># Pure functions don't need this (use `func` instead)</span>
+<a id="notATransition--__codelineno-0-6" name="notATransition--__codelineno-0-6" href="#notATransition--__codelineno-0-6"></a><span class="k">func</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">File</span><span class="p">.</span><span class="n">path</span>
 </code></pre></div>
       </div>
     
@@ -9020,12 +9020,12 @@ For <code>Simple</code>, returns <code>@[]</code></p>
         <p>Generate a runtime enum representing all states.</p>
 <p>For a typestate named <code>File</code> with states <code>Closed</code>, <code>Open</code>, <code>Errored</code>,
 generates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span><span class="p">,</span><span class="w"> </span><span class="n">fsErrored</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateEnum--__codelineno-0-1" name="generateStateEnum--__codelineno-0-1" href="#generateStateEnum--__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+<a id="generateStateEnum--__codelineno-0-2" name="generateStateEnum--__codelineno-0-2" href="#generateStateEnum--__codelineno-0-2"></a><span class="w">  </span><span class="n">fsClosed</span><span class="p">,</span><span class="w"> </span><span class="n">fsOpen</span><span class="p">,</span><span class="w"> </span><span class="n">fsErrored</span>
 </code></pre></div>
 <p>For generic typestates like <code>Container[T]</code> with states <code>Empty[T]</code>, <code>Full[T]</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">fsEmpty</span><span class="p">,</span><span class="w"> </span><span class="n">fsFull</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateEnum--__codelineno-1-1" name="generateStateEnum--__codelineno-1-1" href="#generateStateEnum--__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerState</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span>
+<a id="generateStateEnum--__codelineno-1-2" name="generateStateEnum--__codelineno-1-2" href="#generateStateEnum--__codelineno-1-2"></a><span class="w">  </span><span class="n">fsEmpty</span><span class="p">,</span><span class="w"> </span><span class="n">fsFull</span>
 </code></pre></div>
 <p>The enum values use base names (without type params) prefixed with <code>fs</code>.</p>
       </div>
@@ -9095,10 +9095,10 @@ generates:</p>
         <p>Generate a type alias for "any state" using Nim's union types.</p>
 <p>For a typestate named <code>File</code> with states <code>Closed</code>, <code>Open</code>, <code>Errored</code>,
 generates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span>
+<div class="highlight"><pre><span></span><code><a id="generateUnionType--__codelineno-0-1" name="generateUnionType--__codelineno-0-1" href="#generateUnionType--__codelineno-0-1"></a><span class="k">type</span><span class="w"> </span><span class="n">FileStates</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Closed</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Open</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Errored</span>
 </code></pre></div>
 <p>For generic typestates like <code>Container[T]</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerStates</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="generateUnionType--__codelineno-1-1" name="generateUnionType--__codelineno-1-1" href="#generateUnionType--__codelineno-1-1"></a><span class="k">type</span><span class="w"> </span><span class="n">ContainerStates</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
 </code></pre></div>
 <p>This union type is useful for procs that can accept any state.</p>
       </div>
@@ -9167,12 +9167,12 @@ generates:</p>
       <div class="doc-description">
         <p>Generate <code>state()</code> procs for runtime state inspection.</p>
 <p>For each state, generates a proc that returns the enum value:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateProcs--__codelineno-0-1" name="generateStateProcs--__codelineno-0-1" href="#generateStateProcs--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsClosed</span>
+<a id="generateStateProcs--__codelineno-0-2" name="generateStateProcs--__codelineno-0-2" href="#generateStateProcs--__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Open</span><span class="p">):</span><span class="w"> </span><span class="n">FileState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsOpen</span>
 </code></pre></div>
 <p>For generic types:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsEmpty</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsFull</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateProcs--__codelineno-1-1" name="generateStateProcs--__codelineno-1-1" href="#generateStateProcs--__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsEmpty</span>
+<a id="generateStateProcs--__codelineno-1-2" name="generateStateProcs--__codelineno-1-2" href="#generateStateProcs--__codelineno-1-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">state</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">f</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">ContainerState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsFull</span>
 </code></pre></div>
 <p>Can be omitted via <code>--define:typestatesNoStateProcs</code>.</p>
       </div>
@@ -9241,14 +9241,14 @@ generates:</p>
       <div class="doc-description">
         <p>Generate <code>$</code> overload for each leaf state type and the state enum.</p>
 <p>For each state, emits a proc returning the bare state name:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Closed"</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Empty"</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateDollar--__codelineno-0-1" name="generateStateDollar--__codelineno-0-1" href="#generateStateDollar--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Closed"</span>
+<a id="generateStateDollar--__codelineno-0-2" name="generateStateDollar--__codelineno-0-2" href="#generateStateDollar--__codelineno-0-2"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Empty</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Empty"</span>
 </code></pre></div>
 <p>Also emits a <code>$</code> over the generated state enum that strips the <code>fs</code> prefix:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">FileState</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">s</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"Closed"</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"Open"</span>
+<div class="highlight"><pre><span></span><code><a id="generateStateDollar--__codelineno-1-1" name="generateStateDollar--__codelineno-1-1" href="#generateStateDollar--__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">FileState</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
+<a id="generateStateDollar--__codelineno-1-2" name="generateStateDollar--__codelineno-1-2" href="#generateStateDollar--__codelineno-1-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">s</span>
+<a id="generateStateDollar--__codelineno-1-3" name="generateStateDollar--__codelineno-1-3" href="#generateStateDollar--__codelineno-1-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsClosed</span><span class="o">:</span><span class="w"> </span><span class="s">"Closed"</span>
+<a id="generateStateDollar--__codelineno-1-4" name="generateStateDollar--__codelineno-1-4" href="#generateStateDollar--__codelineno-1-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">fsOpen</span><span class="o">:</span><span class="w"> </span><span class="s">"Open"</span>
 </code></pre></div>
 <p>Can be omitted via <code>--define:typestatesNoDollar</code>.</p>
       </div>
@@ -9450,20 +9450,20 @@ generates:</p>
         <p>Generate variant types for branching transitions.</p>
 <p>For a transition like <code>Created -&gt; (Approved | Declined) as ProcessResult</code>,
 generates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">type</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">pDeclined</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">ProcessResultKind</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span><span class="w"> </span><span class="n">approved</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span><span class="w"> </span><span class="n">declined</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchTypes--__codelineno-0-1" name="generateBranchTypes--__codelineno-0-1" href="#generateBranchTypes--__codelineno-0-1"></a><span class="k">type</span>
+<a id="generateBranchTypes--__codelineno-0-2" name="generateBranchTypes--__codelineno-0-2" href="#generateBranchTypes--__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">pDeclined</span>
+<a id="generateBranchTypes--__codelineno-0-3" name="generateBranchTypes--__codelineno-0-3" href="#generateBranchTypes--__codelineno-0-3"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="generateBranchTypes--__codelineno-0-4" name="generateBranchTypes--__codelineno-0-4" href="#generateBranchTypes--__codelineno-0-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">ProcessResultKind</span>
+<a id="generateBranchTypes--__codelineno-0-5" name="generateBranchTypes--__codelineno-0-5" href="#generateBranchTypes--__codelineno-0-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span><span class="w"> </span><span class="n">approved</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span>
+<a id="generateBranchTypes--__codelineno-0-6" name="generateBranchTypes--__codelineno-0-6" href="#generateBranchTypes--__codelineno-0-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span><span class="w"> </span><span class="n">declined</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span>
 </code></pre></div>
 <p>For generic types like <code>Empty[T] -&gt; Full[T] | Error[T] as FillResult[T]</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">type</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">fError</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">FillResultKind</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fFull</span><span class="o">:</span><span class="w"> </span><span class="n">full</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fError</span><span class="o">:</span><span class="w"> </span><span class="n">error</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Error</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchTypes--__codelineno-1-1" name="generateBranchTypes--__codelineno-1-1" href="#generateBranchTypes--__codelineno-1-1"></a><span class="k">type</span>
+<a id="generateBranchTypes--__codelineno-1-2" name="generateBranchTypes--__codelineno-1-2" href="#generateBranchTypes--__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResultKind</span><span class="o">*</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">fError</span>
+<a id="generateBranchTypes--__codelineno-1-3" name="generateBranchTypes--__codelineno-1-3" href="#generateBranchTypes--__codelineno-1-3"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">object</span>
+<a id="generateBranchTypes--__codelineno-1-4" name="generateBranchTypes--__codelineno-1-4" href="#generateBranchTypes--__codelineno-1-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">kind</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">FillResultKind</span>
+<a id="generateBranchTypes--__codelineno-1-5" name="generateBranchTypes--__codelineno-1-5" href="#generateBranchTypes--__codelineno-1-5"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fFull</span><span class="o">:</span><span class="w"> </span><span class="n">full</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
+<a id="generateBranchTypes--__codelineno-1-6" name="generateBranchTypes--__codelineno-1-6" href="#generateBranchTypes--__codelineno-1-6"></a><span class="w">    </span><span class="k">of</span><span class="w"> </span><span class="nl">fError</span><span class="o">:</span><span class="w"> </span><span class="n">error</span><span class="o">*</span><span class="p">:</span><span class="w"> </span><span class="n">Error</span><span class="o">[</span><span class="n">T</span><span class="o">]</span>
 </code></pre></div>
 <p>The type name comes from the <code>as TypeName</code> syntax in the DSL.
 Enum prefixes are derived from the first letter of the type name.</p>
@@ -9533,15 +9533,15 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-description">
         <p>Generate constructor procs for branch types.</p>
 <p>For <code>Created -&gt; (Approved | Declined) as ProcessResult</code>, generates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">approved</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pDeclined</span><span class="p">,</span><span class="w"> </span><span class="n">declined</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchConstructors--__codelineno-0-1" name="generateBranchConstructors--__codelineno-0-1" href="#generateBranchConstructors--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchConstructors--__codelineno-0-2" name="generateBranchConstructors--__codelineno-0-2" href="#generateBranchConstructors--__codelineno-0-2"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pApproved</span><span class="p">,</span><span class="w"> </span><span class="n">approved</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+<a id="generateBranchConstructors--__codelineno-0-3" name="generateBranchConstructors--__codelineno-0-3" href="#generateBranchConstructors--__codelineno-0-3"></a>
+<a id="generateBranchConstructors--__codelineno-0-4" name="generateBranchConstructors--__codelineno-0-4" href="#generateBranchConstructors--__codelineno-0-4"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toProcessResult</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Declined</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchConstructors--__codelineno-0-5" name="generateBranchConstructors--__codelineno-0-5" href="#generateBranchConstructors--__codelineno-0-5"></a><span class="w">  </span><span class="n">ProcessResult</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">pDeclined</span><span class="p">,</span><span class="w"> </span><span class="n">declined</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
 </code></pre></div>
 <p>For generic types:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toFillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">full</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchConstructors--__codelineno-1-1" name="generateBranchConstructors--__codelineno-1-1" href="#generateBranchConstructors--__codelineno-1-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">toFillResult</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchConstructors--__codelineno-1-2" name="generateBranchConstructors--__codelineno-1-2" href="#generateBranchConstructors--__codelineno-1-2"></a><span class="w">  </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span><span class="w"> </span><span class="n">fFull</span><span class="p">,</span><span class="w"> </span><span class="n">full</span><span class="p">:</span><span class="w"> </span><span class="n">s</span><span class="p">)</span>
 </code></pre></div>
       </div>
     
@@ -9609,7 +9609,7 @@ Enum prefixes are derived from the first letter of the type name.</p>
       <div class="doc-description">
         <p>Generate <code>=copy</code> error hooks to prevent state copying.</p>
 <p>When <code>consumeOnTransition = true</code>, generates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=copy`</span><span class="o">*</span><span class="p">(</span><span class="n">dest</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">src</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">)</span><span class="w"> </span><span class="sx">{.error</span>:<span class="w"> </span><span class="sx">"State</span><span class="w"> </span><span class="sx">'Closed' cannot</span><span class="w"> </span><span class="sx">be</span><span class="w"> </span><span class="sx">copied. Transitions</span><span class="w"> </span><span class="sx">consume</span><span class="w"> </span><span class="sx">the</span><span class="w"> </span><span class="sx">input</span><span class="w"> </span><span class="sx">state.".}</span>
+<div class="highlight"><pre><span></span><code><a id="generateCopyHooks--__codelineno-0-1" name="generateCopyHooks--__codelineno-0-1" href="#generateCopyHooks--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`=copy`</span><span class="o">*</span><span class="p">(</span><span class="n">dest</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="w"> </span><span class="n">Closed</span><span class="p">,</span><span class="w"> </span><span class="n">src</span><span class="p">:</span><span class="w"> </span><span class="n">Closed</span><span class="p">)</span><span class="w"> </span><span class="sx">{.error</span>:<span class="w"> </span><span class="sx">"State</span><span class="w"> </span><span class="sx">'Closed' cannot</span><span class="w"> </span><span class="sx">be</span><span class="w"> </span><span class="sx">copied. Transitions</span><span class="w"> </span><span class="sx">consume</span><span class="w"> </span><span class="sx">the</span><span class="w"> </span><span class="sx">input</span><span class="w"> </span><span class="sx">state.".}</span>
 </code></pre></div>
 <p>This enforces linear/affine typing - each state value can only be used once.</p>
       </div>
@@ -9822,21 +9822,21 @@ See: https://github.com/nim-lang/Nim/issues/25341</p>
         <p>Generate <code>-&gt;</code> operator templates for branch types.</p>
 <p>The <code>-&gt;</code> operator provides syntactic sugar for branch construction.
 It takes the branch type on the left and the state value on the right:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Usage (for: Created -&gt; Approved | Declined as ProcessResult):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Equivalent to:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">toProcessResult</span><span class="p">(</span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchOperators--__codelineno-0-1" name="generateBranchOperators--__codelineno-0-1" href="#generateBranchOperators--__codelineno-0-1"></a><span class="c"># Usage (for: Created -&gt; Approved | Declined as ProcessResult):</span>
+<a id="generateBranchOperators--__codelineno-0-2" name="generateBranchOperators--__codelineno-0-2" href="#generateBranchOperators--__codelineno-0-2"></a><span class="n">ProcessResult</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">)</span>
+<a id="generateBranchOperators--__codelineno-0-3" name="generateBranchOperators--__codelineno-0-3" href="#generateBranchOperators--__codelineno-0-3"></a>
+<a id="generateBranchOperators--__codelineno-0-4" name="generateBranchOperators--__codelineno-0-4" href="#generateBranchOperators--__codelineno-0-4"></a><span class="c"># Equivalent to:</span>
+<a id="generateBranchOperators--__codelineno-0-5" name="generateBranchOperators--__codelineno-0-5" href="#generateBranchOperators--__codelineno-0-5"></a><span class="n">toProcessResult</span><span class="p">(</span><span class="n">Approved</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">Payment</span><span class="p">))</span>
 </code></pre></div>
 <p>For generic types:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">FillResult</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchOperators--__codelineno-1-1" name="generateBranchOperators--__codelineno-1-1" href="#generateBranchOperators--__codelineno-1-1"></a><span class="n">FillResult</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="nb">int</span><span class="o">]</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
 </code></pre></div>
 <p>Generated templates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">ProcessResult</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">toProcessResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="n">toFillResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchOperators--__codelineno-2-1" name="generateBranchOperators--__codelineno-2-1" href="#generateBranchOperators--__codelineno-2-1"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">ProcessResult</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Approved</span><span class="p">):</span><span class="w"> </span><span class="n">ProcessResult</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchOperators--__codelineno-2-2" name="generateBranchOperators--__codelineno-2-2" href="#generateBranchOperators--__codelineno-2-2"></a><span class="w">  </span><span class="n">toProcessResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<a id="generateBranchOperators--__codelineno-2-3" name="generateBranchOperators--__codelineno-2-3" href="#generateBranchOperators--__codelineno-2-3"></a>
+<a id="generateBranchOperators--__codelineno-2-4" name="generateBranchOperators--__codelineno-2-4" href="#generateBranchOperators--__codelineno-2-4"></a><span class="k">template</span><span class="w"> </span><span class="nf">`-&gt;`</span><span class="o">*[</span><span class="n">T</span><span class="o">]</span><span class="p">(</span><span class="n">T</span><span class="p">:</span><span class="w"> </span><span class="n">typedesc</span><span class="o">[</span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]]</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">:</span><span class="w"> </span><span class="n">Full</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="p">):</span><span class="w"> </span><span class="n">FillResult</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchOperators--__codelineno-2-5" name="generateBranchOperators--__codelineno-2-5" href="#generateBranchOperators--__codelineno-2-5"></a><span class="w">  </span><span class="n">toFillResult</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>typedesc</code> parameter disambiguates when the same state appears
 in multiple branch types.</p>
@@ -9906,11 +9906,11 @@ in multiple branch types.</p>
       <div class="doc-description">
         <p>Generate <code>$</code> overload for each branching union type.</p>
 <p>For a branching transition <code>Created -&gt; A | B | C as Result</code>, emits:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Result</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">kind</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pA</span><span class="o">:</span><span class="w"> </span><span class="s">"A"</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pB</span><span class="o">:</span><span class="w"> </span><span class="s">"B"</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pC</span><span class="o">:</span><span class="w"> </span><span class="s">"C"</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchDollar--__codelineno-0-1" name="generateBranchDollar--__codelineno-0-1" href="#generateBranchDollar--__codelineno-0-1"></a><span class="k">proc</span><span class="w"> </span><span class="nf">`$`</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="p">:</span><span class="w"> </span><span class="n">Result</span><span class="p">):</span><span class="w"> </span><span class="nb">string</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchDollar--__codelineno-0-2" name="generateBranchDollar--__codelineno-0-2" href="#generateBranchDollar--__codelineno-0-2"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">kind</span>
+<a id="generateBranchDollar--__codelineno-0-3" name="generateBranchDollar--__codelineno-0-3" href="#generateBranchDollar--__codelineno-0-3"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pA</span><span class="o">:</span><span class="w"> </span><span class="s">"A"</span>
+<a id="generateBranchDollar--__codelineno-0-4" name="generateBranchDollar--__codelineno-0-4" href="#generateBranchDollar--__codelineno-0-4"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pB</span><span class="o">:</span><span class="w"> </span><span class="s">"B"</span>
+<a id="generateBranchDollar--__codelineno-0-5" name="generateBranchDollar--__codelineno-0-5" href="#generateBranchDollar--__codelineno-0-5"></a><span class="w">  </span><span class="k">of</span><span class="w"> </span><span class="nl">pC</span><span class="o">:</span><span class="w"> </span><span class="s">"C"</span>
 </code></pre></div>
 <p>For generic typestates the union type includes the typestate's type
 parameters so the proc binds correctly under generic instantiation.</p>
@@ -10092,9 +10092,9 @@ then runs the body.</p>
 <ul>
 <li>
 <p>L-value source (<code>nnkIdent</code>/<code>nnkSym</code>/<code>nnkDotExpr</code>/<code>nnkBracketExpr</code>):
-  </p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">block</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">body</span>
+  </p><div class="highlight"><pre><span></span><code><a id="buildSingleTargetMatchCase--__codelineno-0-1" name="buildSingleTargetMatchCase--__codelineno-0-1" href="#buildSingleTargetMatchCase--__codelineno-0-1"></a><span class="k">block</span><span class="p">:</span>
+<a id="buildSingleTargetMatchCase--__codelineno-0-2" name="buildSingleTargetMatchCase--__codelineno-0-2" href="#buildSingleTargetMatchCase--__codelineno-0-2"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<a id="buildSingleTargetMatchCase--__codelineno-0-3" name="buildSingleTargetMatchCase--__codelineno-0-3" href="#buildSingleTargetMatchCase--__codelineno-0-3"></a><span class="w">  </span><span class="n">body</span>
 </code></pre></div>
   <code>move()</code> accepts the l-value directly; no copy hook is invoked. The
   l-value MUST be a <code>var</code> binding (e.g. <code>var a = ...; match a:</code>) because
@@ -10104,10 +10104,10 @@ then runs the body.</p>
 </li>
 <li>
 <p>R-value source (call expressions, etc.):
-  </p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">block</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">value</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="p">)</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">body</span>
+  </p><div class="highlight"><pre><span></span><code><a id="buildSingleTargetMatchCase--__codelineno-1-1" name="buildSingleTargetMatchCase--__codelineno-1-1" href="#buildSingleTargetMatchCase--__codelineno-1-1"></a><span class="k">block</span><span class="p">:</span>
+<a id="buildSingleTargetMatchCase--__codelineno-1-2" name="buildSingleTargetMatchCase--__codelineno-1-2" href="#buildSingleTargetMatchCase--__codelineno-1-2"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">value</span>
+<a id="buildSingleTargetMatchCase--__codelineno-1-3" name="buildSingleTargetMatchCase--__codelineno-1-3" href="#buildSingleTargetMatchCase--__codelineno-1-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="k">bind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">valTmp</span><span class="p">`</span><span class="n">gensym</span><span class="p">)</span>
+<a id="buildSingleTargetMatchCase--__codelineno-1-4" name="buildSingleTargetMatchCase--__codelineno-1-4" href="#buildSingleTargetMatchCase--__codelineno-1-4"></a><span class="w">  </span><span class="n">body</span>
 </code></pre></div>
   Materializing the rvalue into a <code>var</code> goes through <code>=sink</code>
   (sink-on-construction), not <code>=copy</code>, so the <code>{.error.}</code> copy hook on
@@ -10198,23 +10198,23 @@ mismatch.</p>
         <p>Generate a <code>match</code> macro for each branching union type.</p>
 <p>For a transition <code>Created -&gt; (Approved | Declined) as ProcessResult</code>,
 emits a macro with this signature:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">ProcessResult</span><span class="p">;</span><span class="w"> </span><span class="n">body</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Pattern-match on a branching union; rewrites into a `case` over the</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="sd">## kind discriminator.</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchMatch--__codelineno-0-1" name="generateBranchMatch--__codelineno-0-1" href="#generateBranchMatch--__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="n">ProcessResult</span><span class="p">;</span><span class="w"> </span><span class="n">body</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
+<a id="generateBranchMatch--__codelineno-0-2" name="generateBranchMatch--__codelineno-0-2" href="#generateBranchMatch--__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Pattern-match on a branching union; rewrites into a `case` over the</span>
+<a id="generateBranchMatch--__codelineno-0-3" name="generateBranchMatch--__codelineno-0-3" href="#generateBranchMatch--__codelineno-0-3"></a><span class="w">  </span><span class="sd">## kind discriminator.</span>
 </code></pre></div>
 <p>Call-site syntax (the body is a list of <code>Call(StateIdent, bindIdent, body)</code>):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">match</span><span class="w"> </span><span class="n">r</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">Approved</span><span class="p">(</span><span class="n">a</span><span class="p">):</span><span class="w"> </span><span class="n">doSomething</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">Declined</span><span class="p">(</span><span class="n">d</span><span class="p">):</span><span class="w"> </span><span class="n">handleDecline</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchMatch--__codelineno-1-1" name="generateBranchMatch--__codelineno-1-1" href="#generateBranchMatch--__codelineno-1-1"></a><span class="n">match</span><span class="w"> </span><span class="n">r</span><span class="p">:</span>
+<a id="generateBranchMatch--__codelineno-1-2" name="generateBranchMatch--__codelineno-1-2" href="#generateBranchMatch--__codelineno-1-2"></a><span class="w">  </span><span class="n">Approved</span><span class="p">(</span><span class="n">a</span><span class="p">):</span><span class="w"> </span><span class="n">doSomething</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<a id="generateBranchMatch--__codelineno-1-3" name="generateBranchMatch--__codelineno-1-3" href="#generateBranchMatch--__codelineno-1-3"></a><span class="w">  </span><span class="n">Declined</span><span class="p">(</span><span class="n">d</span><span class="p">):</span><span class="w"> </span><span class="n">handleDecline</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </code></pre></div>
 <p>Rewritten to:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">case</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">kind</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">approved</span><span class="p">)</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">doSomething</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">declined</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">handleDecline</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateBranchMatch--__codelineno-2-1" name="generateBranchMatch--__codelineno-2-1" href="#generateBranchMatch--__codelineno-2-1"></a><span class="k">case</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">kind</span>
+<a id="generateBranchMatch--__codelineno-2-2" name="generateBranchMatch--__codelineno-2-2" href="#generateBranchMatch--__codelineno-2-2"></a><span class="k">of</span><span class="w"> </span><span class="nl">pApproved</span><span class="o">:</span>
+<a id="generateBranchMatch--__codelineno-2-3" name="generateBranchMatch--__codelineno-2-3" href="#generateBranchMatch--__codelineno-2-3"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">approved</span><span class="p">)</span>
+<a id="generateBranchMatch--__codelineno-2-4" name="generateBranchMatch--__codelineno-2-4" href="#generateBranchMatch--__codelineno-2-4"></a><span class="w">  </span><span class="n">doSomething</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<a id="generateBranchMatch--__codelineno-2-5" name="generateBranchMatch--__codelineno-2-5" href="#generateBranchMatch--__codelineno-2-5"></a><span class="k">of</span><span class="w"> </span><span class="nl">pDeclined</span><span class="o">:</span>
+<a id="generateBranchMatch--__codelineno-2-6" name="generateBranchMatch--__codelineno-2-6" href="#generateBranchMatch--__codelineno-2-6"></a><span class="w">  </span><span class="k">let</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">move</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">declined</span><span class="p">)</span>
+<a id="generateBranchMatch--__codelineno-2-7" name="generateBranchMatch--__codelineno-2-7" href="#generateBranchMatch--__codelineno-2-7"></a><span class="w">  </span><span class="n">handleDecline</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </code></pre></div>
 <p>Exhaustiveness is provided by Nim's <code>case</code> statement: missing branches
 produce "not all cases are covered" at compile time. Branches naming a
@@ -10360,8 +10360,8 @@ F4.A0 probe).</p>
       <div class="doc-description">
         <p>Generate a single <code>match</code> macro for the typestate's states union type.</p>
 <p>Emits a single macro matching <code>value: &lt;TypestateName&gt;States</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">TypestateName</span><span class="o">&gt;</span><span class="n">States</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Single-target pattern match; rewrites to `block: let bind = move(value); body`.</span>
+<div class="highlight"><pre><span></span><code><a id="generateSingleTargetMatch--__codelineno-0-1" name="generateSingleTargetMatch--__codelineno-0-1" href="#generateSingleTargetMatch--__codelineno-0-1"></a><span class="k">macro</span><span class="w"> </span><span class="nf">match</span><span class="o">*</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">TypestateName</span><span class="o">&gt;</span><span class="n">States</span><span class="p">;</span><span class="w"> </span><span class="n">arms</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
+<a id="generateSingleTargetMatch--__codelineno-0-2" name="generateSingleTargetMatch--__codelineno-0-2" href="#generateSingleTargetMatch--__codelineno-0-2"></a><span class="w">  </span><span class="sd">## Single-target pattern match; rewrites to `block: let bind = move(value); body`.</span>
 </code></pre></div>
 <p>Instead of generating |S| identical macro overloads, a single macro matches
 all states in the typestate union and dynamically extracts the state name
@@ -10432,9 +10432,9 @@ via <code>value.getTypeInst</code>.</p>
       <div class="doc-description">
         <p>Generate the per-typestate attachment-pragma macro (§3.7).</p>
 <p>For typestate <code>&lt;Name&gt;</code>, emits:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">when</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">declared</span><span class="p">(</span><span class="o">&lt;</span><span class="n">Name</span><span class="o">&gt;</span><span class="p">):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">macro</span><span class="w"> </span><span class="err">&lt;</span><span class="nf">Name</span><span class="o">&gt;*</span><span class="p">(</span><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">,</span><span class="w"> </span><span class="n">typeDef</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">attachTypestateCore</span><span class="p">(</span><span class="s">"&lt;Name&gt;"</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">,</span><span class="w"> </span><span class="n">typeDef</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="generateAttachmentMarker--__codelineno-0-1" name="generateAttachmentMarker--__codelineno-0-1" href="#generateAttachmentMarker--__codelineno-0-1"></a><span class="k">when</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">declared</span><span class="p">(</span><span class="o">&lt;</span><span class="n">Name</span><span class="o">&gt;</span><span class="p">):</span>
+<a id="generateAttachmentMarker--__codelineno-0-2" name="generateAttachmentMarker--__codelineno-0-2" href="#generateAttachmentMarker--__codelineno-0-2"></a><span class="w">  </span><span class="k">macro</span><span class="w"> </span><span class="err">&lt;</span><span class="nf">Name</span><span class="o">&gt;*</span><span class="p">(</span><span class="n">initial</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">,</span><span class="w"> </span><span class="n">typeDef</span><span class="p">:</span><span class="w"> </span><span class="n">untyped</span><span class="p">):</span><span class="w"> </span><span class="n">untyped</span><span class="w"> </span><span class="o">=</span>
+<a id="generateAttachmentMarker--__codelineno-0-3" name="generateAttachmentMarker--__codelineno-0-3" href="#generateAttachmentMarker--__codelineno-0-3"></a><span class="w">    </span><span class="n">attachTypestateCore</span><span class="p">(</span><span class="s">"&lt;Name&gt;"</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">,</span><span class="w"> </span><span class="n">typeDef</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>when not declared(&lt;Name&gt;)</code> guard prevents a redefinition error
 when the typestate name collides with an existing identifier in
@@ -11152,8 +11152,8 @@ and procs include proper type parameters.</p>
       <div class="doc-description">
         <p>Command-line tool for typestates.</p>
 <p>Usage:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">typestates</span><span class="w"> </span><span class="n">verify</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">typestates</span><span class="w"> </span><span class="n">dot</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="cli--__codelineno-0-1" name="cli--__codelineno-0-1" href="#cli--__codelineno-0-1"></a><span class="n">typestates</span><span class="w"> </span><span class="n">verify</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
+<a id="cli--__codelineno-0-2" name="cli--__codelineno-0-2" href="#cli--__codelineno-0-2"></a><span class="n">typestates</span><span class="w"> </span><span class="n">dot</span><span class="w"> </span><span class="o">[</span><span class="n">paths</span><span class="p">...</span><span class="o">]</span>
 </code></pre></div>
 <p>Parses source files using Nim's AST parser and verifies typestate rules
 or generates DOT output.</p>
