@@ -76,3 +76,48 @@ jobs:
             echo "Running: $f"
             nim c -r --hints:off "$f"
           done
+
+  downstream-lockfree:
+    name: 'downstream: lockfree'
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout typestates
+        uses: actions/checkout@v4
+        with:
+          path: nim-typestates
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: 'stable'
+
+      - name: Install local typestates and build CLI
+        run: |
+          cd nim-typestates
+          nimble install -y
+          nimble buildCli
+          sudo cp bin/typestates /usr/local/bin/typestates || true
+          mkdir -p ~/.nimble/bin
+          cp bin/typestates ~/.nimble/bin/typestates
+
+      - name: Checkout lockfree
+        uses: actions/checkout@v4
+        with:
+          repository: elijahr/lockfree
+          path: lockfree
+
+      - name: Test lockfree against typestates
+        run: |
+          cd lockfree
+          nimble refresh -y || true
+          CURRENT_VERSION=$(grep 'version       =' ../nim-typestates/typestates.nimble | cut -d'"' -f2)
+          sed -i.bak "s/requires \"typestates >= .*/requires \"typestates >= $CURRENT_VERSION\"/" lockfree.nimble
+          rm -f lockfree.nimble.bak
+          nimble install -dy
+          nimble setup
+          for d in $(find ~/.nimble/pkgs2 -maxdepth 1 -type d -name "typestates-*" 2>/dev/null); do
+            [ -e "$d/src" ] || ln -s . "$d/src"
+          done
+          typestates verify -W --format=github src/
+          LFQ_TEST_VARIANT=orc nimble test
