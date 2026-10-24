@@ -23,7 +23,7 @@ typestate Pipe:
     PipeOpen -> PipeClosed
 
 proc closePipe(
-    p: PipeOpen
+    p: sink PipeOpen
 ): PipeClosed {.transition, transitionError: "Pipe must close exactly once".} =
   PipeClosed(p)
 

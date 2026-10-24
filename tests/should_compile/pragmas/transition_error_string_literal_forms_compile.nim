@@ -30,7 +30,9 @@ typestate Pipe:
     PipeHalf -> PipeClosed
 
 # Triple-quoted (multi-line) message: nnkTripleStrLit
-proc halfClose(p: PipeOpen): PipeHalf {.
+proc halfClose(
+    p: sink PipeOpen
+): PipeHalf {.
     transition,
     transitionError: """Pipe is open.
 Call halfClose() before closePipe();
@@ -40,7 +42,7 @@ a pipe must pass through the half-closed state."""
 
 # Raw-string message: nnkRStrLit (backslashes survive verbatim)
 proc closePipe(
-    p: PipeHalf
+    p: sink PipeHalf
 ): PipeClosed {.
     transition, transitionError: r"Pipe path: C:\tmp\pipe must be closed once"
 .} =

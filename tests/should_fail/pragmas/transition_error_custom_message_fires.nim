@@ -32,6 +32,6 @@ typestate FileT:
     LockedFile -> ReleasedFile
 
 proc lockFile(
-    f: OpenFile
+    f: sink OpenFile
 ): LockedFile {.transition, transitionError: "Cannot lock an open file".} =
   LockedFile(f)

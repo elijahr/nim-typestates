@@ -118,6 +118,28 @@ suite "AST Parser":
     check ts.initialStates == @["A", "B"]
     check ts.terminalStates == @["D", "E"]
 
+  test "parse events and event-driven transitions":
+    let res = parseFileWithAst("tests/tevents_dsl.nim")
+    check res.typestates.len == 1
+    let ts = res.typestates[0]
+    check ts.name == "VoiceAssistant"
+    check ts.states == @["Idle", "Woken", "Listening", "Thinking"]
+    check ts.events == @["WakeWord", "ChimeDone", "SpeechEnded", "Reset"]
+    check ts.transitions.len == 4
+    check ts.transitions[0].fromState == "Idle"
+    check ts.transitions[0].eventName == "WakeWord"
+    check ts.transitions[0].toStates == @["Woken"]
+    check ts.transitions[1].fromState == "Woken"
+    check ts.transitions[1].eventName == "ChimeDone"
+    check ts.transitions[1].toStates == @["Listening"]
+    check ts.transitions[2].fromState == "Listening"
+    check ts.transitions[2].eventName == "SpeechEnded"
+    check ts.transitions[2].toStates == @["Thinking"]
+    check ts.transitions[3].fromState == "*"
+    check ts.transitions[3].isWildcard == true
+    check ts.transitions[3].eventName == "Reset"
+    check ts.transitions[3].toStates == @["Idle"]
+
   test "parse multiple files":
     # Parse specific valid files to avoid syntax_error.nim
     let result = parseTypestatesAst(

@@ -41,6 +41,7 @@ type
     toState: string
     isWildcard: bool
     headPort: string # Compass point for arrow head (only used with non-ortho splines)
+    label: string
 
 # `VerifyResult` is defined in `findings.nim` and re-exported above. It now
 # carries `findings: seq[Finding]` instead of the v0.6 `errors: seq[string]` /
@@ -91,7 +92,11 @@ proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
       for toState in trans.toStates:
         explicitEdges.add (trans.fromState, toState)
         allEdges.add EdgeInfo(
-          fromState: trans.fromState, toState: toState, isWildcard: false, headPort: ""
+          fromState: trans.fromState,
+          toState: toState,
+          isWildcard: false,
+          headPort: "",
+          label: trans.eventName,
         )
 
   # Add wildcard edges (skip if explicit exists)
@@ -101,7 +106,11 @@ proc computeEdges(ts: ParsedTypestate, useCompassPoints: bool): seq[EdgeInfo] =
         for toState in trans.toStates:
           if (fromState, toState) notin explicitEdges:
             allEdges.add EdgeInfo(
-              fromState: fromState, toState: toState, isWildcard: true, headPort: ""
+              fromState: fromState,
+              toState: toState,
+              isWildcard: true,
+              headPort: "",
+              label: trans.eventName,
             )
 
   # Assign compass points if enabled
@@ -144,12 +153,17 @@ proc formatEdge(edge: EdgeInfo, indent: string, noStyle: bool): string =
     else:
       toQuoted
 
+  var attrs: seq[string] = @[]
+  if edge.label.len > 0:
+    attrs.add "label=" & dotQuote(edge.label)
+
   if edge.isWildcard:
-    if noStyle:
-      result = indent & fromQuoted & " -> " & target & " [style=dotted];"
-    else:
-      result =
-        indent & fromQuoted & " -> " & target & " [style=dotted, color=\"#757575\"];"
+    attrs.add "style=dotted"
+    if not noStyle:
+      attrs.add "color=\"#757575\""
+
+  if attrs.len > 0:
+    result = indent & fromQuoted & " -> " & target & " [" & attrs.join(", ") & "];"
   else:
     result = indent & fromQuoted & " -> " & target & ";"
 

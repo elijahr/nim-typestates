@@ -483,6 +483,13 @@ proc extractAllTypeNames(node: NimNode): seq[string] =
   else:
     result = @[node.repr]
 
+proc isSinkParamNode*(node: NimNode): bool {.compileTime.} =
+  ## Check if a parameter type node is `sink T`.
+  if node.kind == nnkCommand and node.len >= 2:
+    if node[0].kind in {nnkIdent, nnkSym} and node[0].eqIdent("sink"):
+      return true
+  return false
+
 proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileTime.} =
   ## Walk a procDef's formal parameters and capture every typestate-bearing
   ## `var T` or `sink T` parameter's name + state type + owning graph name
@@ -573,8 +580,7 @@ proc extractTypestatedParams*(procDef: NimNode): seq[TypestatedParam] {.compileT
     var isSink = false
     if typeSlot.kind == nnkVarTy:
       isSink = false
-    elif typeSlot.kind == nnkCommand and typeSlot.len == 2 and
-        typeSlot[0].kind in {nnkIdent, nnkSym} and typeSlot[0].strVal == "sink":
+    elif isSinkParamNode(typeSlot):
       isSink = true
     else:
       paramPos += nameCount
@@ -762,6 +768,19 @@ macro transition*(procDef: untyped): untyped =
       continue
 
     let graph = graphOpt.get
+
+    # Check consumeOnTransition linearity invariant:
+    # Value transitions (returning a new state) must declare `sink` parameters
+    # to enforce move semantics and prevent use-after-move via lent borrows.
+    # In-place transitions using `var` are also permitted.
+    let paramTypeSlot = firstParam[^2]
+    if graph.consumeOnTransition and paramTypeSlot.kind != nnkVarTy and
+        not isSinkParamNode(paramTypeSlot):
+      allDiagnostics.add(
+        fmt"""Transition on typestate '{graph.name}' with consumeOnTransition=true requires 'sink' parameter to enforce move semantics.
+  Parameter is passed by lent borrow, allowing use-after-move without triggering copy hooks.
+  Fix: Declare parameter as 'sink {sourceTypeName}' (or 'var {sourceTypeName}' for in-place transitions)."""
+      )
 
     if not commonGraphSet:
       commonGraph = graph

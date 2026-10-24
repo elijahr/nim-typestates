@@ -24,5 +24,5 @@ typestate File:
 # This proc declares the correct transition (Closed -> Open)
 # but returns the wrong type (Closed instead of Open)
 # The transition pragma passes, but Nim's type checker catches the error
-proc open(f: Closed, path: string): Open {.transition.} =
+proc open(f: sink Closed, path: string): Open {.transition.} =
   result = Closed(f) # Wrong! Returns Closed, not Open

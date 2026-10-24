@@ -31,5 +31,5 @@ typestate FileT:
 
 # Same broken transition as `transition_error_custom_message_fires.nim`
 # but WITHOUT `transitionError:`. Built-in diagnostic must surface.
-proc lockFile(f: OpenFile): LockedFile {.transition.} =
+proc lockFile(f: sink OpenFile): LockedFile {.transition.} =
   LockedFile(f)

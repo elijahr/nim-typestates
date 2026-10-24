@@ -18,10 +18,10 @@ typestate File:
     Open -> Closed
     Open -> Errored
 
-proc open(f: Closed): Open {.transition.} =
+proc open(f: sink Closed): Open {.transition.} =
   Open(File())
 
-proc close(f: Open): Closed {.transition.} =
+proc close(f: sink Open): Closed {.transition.} =
   Closed(File())
 
 echo "Multiline states work!"

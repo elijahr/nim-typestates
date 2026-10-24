@@ -13,5 +13,5 @@ typestate Payment:
   transitions:
     Created -> Authorized
 
-proc authorize*(p: Created): Authorized {.transition.} =
+proc authorize*(p: sink Created): Authorized {.transition.} =
   result = Authorized(p.Payment)

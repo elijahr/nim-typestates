@@ -90,15 +90,15 @@ typestate Request:
   bridges:
     * ->Shutdown.Terminal
 
-proc emergency(r: Processing): Terminal {.transition.} =
+proc emergency(r: sink Processing): Terminal {.transition.} =
   result = Terminal(Shutdown())
 
-proc abort(r: Complete): Terminal {.transition.} =
+proc abort(r: sink Complete): Terminal {.transition.} =
   result = Terminal(Shutdown())
 
 block test_wildcard_bridge:
-  let req = Processing(Request())
-  let term = emergency(req)
+  var req = Processing(Request())
+  let term = emergency(move(req))
   doAssert term is Terminal
   echo "Wildcard bridge (* -> Shutdown.Terminal) works"
 

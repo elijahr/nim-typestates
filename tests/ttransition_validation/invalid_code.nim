@@ -15,5 +15,5 @@ typestate File:
     Open -> Closed
 
 # This should cause a compile error: Locked is not a valid state
-proc lock(f: Open): Locked {.transition.} =
+proc lock(f: sink Open): Locked {.transition.} =
   result = Locked(f)

@@ -14,5 +14,5 @@ typestate File:
     Closed -> Open
 
 # This should fail: explicit raises with non-empty list
-proc open(f: Closed): Open {.transition, raises: [IOError].} =
+proc open(f: sink Closed): Open {.transition, raises: [IOError].} =
   result = Open(f)
