@@ -30,7 +30,9 @@ typestate Pipe:
     PipeHalf -> PipeClosed
 
 # Triple-quoted (multi-line) message: nnkTripleStrLit
-proc halfClose(p: sink PipeOpen): PipeHalf {.
+proc halfClose(
+    p: sink PipeOpen
+): PipeHalf {.
     transition,
     transitionError: """Pipe is open.
 Call halfClose() before closePipe();

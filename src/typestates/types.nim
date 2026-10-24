@@ -201,7 +201,8 @@ type
     transitions*: seq[Transition]
     bridges*: seq[Bridge]
     strictTransitions*: bool = true
-    strictEvents*: bool = false ## If true, every non-terminal state must handle every declared event
+    strictEvents*: bool = false
+      ## If true, every non-terminal state must handle every declared event
     consumeOnTransition*: bool = true ## If true, states cannot be copied
     inheritsFromRootObj*: bool = false ## If true, skip static generic bug check
     opaqueStates*: bool = false ## Opt-in cast-bypass lint (CLI-side only)

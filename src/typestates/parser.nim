@@ -677,8 +677,8 @@ proc validateStrictEvents(graph: TypestateGraph, declNode: NimNode) =
 
   if missing.len > 0:
     error(
-      "Total Event Accounting violation in typestate '" & graph.name & "' (strictEvents = true):\n  " &
-        missing.join("\n  ") &
+      "Total Event Accounting violation in typestate '" & graph.name &
+        "' (strictEvents = true):\n  " & missing.join("\n  ") &
         "\nHint: Declare explicit transitions (e.g. '<State> on <Event> -> ...') or a wildcard ('* on <Event> -> ...').",
       declNode,
     )

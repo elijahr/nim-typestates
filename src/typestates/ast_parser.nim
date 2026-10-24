@@ -373,9 +373,8 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
         trans.fromState = "*"
         trans.isWildcard = true
         toNode = inner[1]
-      elif inner.kind == nkCommand and inner.len >= 2 and
-          extractIdent(inner[0]) == "on" and inner[1].kind == nkInfix and
-          extractIdent(inner[1][0]) == "->":
+      elif inner.kind == nkCommand and inner.len >= 2 and extractIdent(inner[0]) == "on" and
+          inner[1].kind == nkInfix and extractIdent(inner[1][0]) == "->":
         trans.fromState = "*"
         trans.isWildcard = true
         trans.eventName = extractIdent(inner[1][1])
@@ -473,9 +472,8 @@ proc extractTransition(node: PNode): Option[ParsedTransition] =
         return none(ParsedTransition)
 
     # Check if toNode is `NextState on Event`
-    if toNode.kind == nkCommand and toNode.len == 2 and
-        toNode[1].kind == nkCommand and toNode[1].len >= 2 and
-        extractIdent(toNode[1][0]) == "on":
+    if toNode.kind == nkCommand and toNode.len == 2 and toNode[1].kind == nkCommand and
+        toNode[1].len >= 2 and extractIdent(toNode[1][0]) == "on":
       trans.eventName = extractIdent(toNode[1][1])
       toNode = toNode[0]
   else:

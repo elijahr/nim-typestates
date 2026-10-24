@@ -15,7 +15,8 @@ typestate Device:
   consumeOnTransition = false
   strictEvents = true
   states Idle, Active, Done
-  terminal: Done
+  terminal:
+    Done
   events:
     Start
     Reset

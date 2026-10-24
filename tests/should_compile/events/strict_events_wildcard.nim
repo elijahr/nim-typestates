@@ -12,13 +12,14 @@ typestate Device:
   consumeOnTransition = false
   strictEvents = true
   states Idle, Active, Done
-  terminal: Done
+  terminal:
+    Done
   events:
     Start
     Reset
   transitions:
     Idle on Start -> Active
     Active on Start -> Active
-    * on Reset -> Idle
+    *on Reset -> Idle
 
 echo "strict_events_wildcard ok"

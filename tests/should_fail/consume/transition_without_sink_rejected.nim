@@ -8,6 +8,7 @@ import ../../../src/typestates
 type
   Device = object
     id: int
+
   Off = distinct Device
   On = distinct Device
 
