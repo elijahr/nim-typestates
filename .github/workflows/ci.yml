@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install and run Gitleaks
@@ -32,7 +32,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Nim
         uses: jiro4989/setup-nim-action@v2
@@ -54,7 +54,7 @@ jobs:
         nim-version: ['2.2.8', '2.2.0']
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Nim
         uses: jiro4989/setup-nim-action@v2
@@ -96,7 +96,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout typestates
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: nim-typestates
 
@@ -115,7 +115,7 @@ jobs:
           cp bin/typestates ~/.nimble/bin/typestates
 
       - name: Checkout lockfree
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: elijahr/lockfree
           path: lockfree
@@ -144,7 +144,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Extract release notes from CHANGELOG.md
         run: |
