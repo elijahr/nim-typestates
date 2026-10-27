@@ -201,7 +201,7 @@ proc preCheck(p: Proposed): Result[PreChecked, GateRejection] {.transition.} =
 ```
 
 Use this pattern when there is exactly one success state and the
-error channel carries data. Use branch types (`... as LoadResult`) 
+error channel carries data. Use branch types (`... as LoadResult`)
 when the "failure" is itself a distinct state in the machine.
 
 For async procs, return `Future[T]` or `Future[Result[T, E]]` with

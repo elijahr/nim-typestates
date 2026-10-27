@@ -9,9 +9,27 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install and run Gitleaks
+        run: |
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v8.24.0/gitleaks_8.24.0_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks detect --verbose --redact
+
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,10 +40,6 @@ jobs:
           nim-version: 'stable'
 
       - name: Install nph
-        # Pinned to match the version documented in .pre-commit-config.yaml.
-        # Floating on latest causes spurious format-diff churn between local
-        # pre-commit and CI when nph's formatting output changes across
-        # releases.
         run: nimble install -y nph@0.7.0
 
       - name: Run pre-commit
@@ -33,13 +47,10 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
-        # 2.2.0 is the minimum supported Nim (per typestates.nimble) and
-        # exercises the < 2.2.8 path of the codegen-bug gate. 2.2.8 is the
-        # boundary version containing the nim-lang/Nim#25341 fix and
-        # exercises the >= 2.2.8 path. Bump explicitly when supporting
-        # newer Nim; do NOT use `stable` (moves silently).
         nim-version: ['2.2.8', '2.2.0']
     steps:
       - name: Checkout
@@ -80,6 +91,8 @@ jobs:
   downstream-lockfree:
     name: 'downstream: lockfree'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout typestates

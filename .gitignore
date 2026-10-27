@@ -1,12 +1,24 @@
-# Nim build artifacts
+# Polyform standard ignore patterns
 nimcache/
-nimblecache/
-nimbledeps/
-bin/
 *.exe
+*.out
 *.dll
 *.so
 *.dylib
+nimblecache/
+.nimble/
+htmldocs/
+site/
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+justfile.local
+
+# Nim build artifacts & binaries
+nimbledeps/
+bin/
 
 # Compiled binaries (extensionless executables)
 ## Test binaries (t* or test, no extension)
@@ -14,16 +26,7 @@ tests/t[a-z_]*
 tests/test
 !tests/t*.nim
 !tests/test.nim
-## Nested test binaries (compiled extensionless executables next to .nim
-## sources under should_compile/<category>/, should_fail/<category>/,
-## should_warn/<category>/). Single `*` (not `**`) so the pattern targets
-## binaries one level below `should_*`, not the category dir itself —
-## git forbids re-including files under an ignored parent directory, so
-## a directory-level rule (the prior `tests/**/[a-z_]*/`) silently blocked
-## new .nim sources from `git add` and forced `git add -f` (this happened
-## in PR #9). Per gitignore glob semantics, `[a-z_]*` only constrains the
-## first character (the rest is a `*` non-slash wildcard), so `.nim`
-## sources also match and need an explicit re-include below.
+## Nested test binaries
 tests/should_compile/*/[a-z_]*
 tests/should_fail/*/[a-z_]*
 tests/should_warn/*/[a-z_]*
@@ -45,11 +48,7 @@ examples/[a-z_]*
 examples/**/[a-z_]*
 !examples/**/*.nim
 
-## Allow committed fixture/data files (preventive whitelist for v0.7+)
-## NOTE: the bare `!tests/fixtures/` line re-includes the directory itself,
-## which is required: git's gitignore rules forbid re-including a file if a
-## parent directory was excluded by a prior pattern. Without this line the
-## `!tests/fixtures/**` content rule would have no effect.
+## Allow committed fixture/data files
 !tests/fixtures/
 !tests/fixtures/**
 !src/typestates/**/*.md
@@ -59,25 +58,16 @@ examples/**/[a-z_]*
 !src/typestates/**/*.json
 
 # Generated docs
-htmldocs/
 docs/api/
-site/
-
-# IDE/editor
-.vscode/
-.idea/
-*.swp
-*.swo
 
 # OS
-.DS_Store
 Thumbs.db
 
 # Python
 .venv/
 __pycache__/
 
-# Claude planning documents (ephemeral)
+# Ephemeral planning documents
 docs/plans/
 logs/
 deps/
