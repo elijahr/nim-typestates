@@ -132,7 +132,6 @@ jobs:
           sed -i.bak "s/requires \"typestates >= .*/requires \"typestates >= $CURRENT_VERSION\"/" lockfree.nimble
           rm -f lockfree.nimble.bak
           nimble install -dy
-          nimble setup
           for d in $(find ~/.nimble/pkgs2 -maxdepth 1 -type d -name "typestates-*" 2>/dev/null); do
             [ -e "$d/src" ] || ln -s . "$d/src"
           done
