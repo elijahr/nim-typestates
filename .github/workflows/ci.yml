@@ -127,6 +127,7 @@ jobs:
       - name: Test lockfree against typestates
         run: |
           cd lockfree
+          rm -f nimble.lock
           nimble refresh -y || true
           CURRENT_VERSION=$(grep 'version       =' ../nim-typestates/typestates.nimble | cut -d'"' -f2)
           sed -i.bak "s/requires \"typestates >= .*/requires \"typestates >= $CURRENT_VERSION\"/" lockfree.nimble
