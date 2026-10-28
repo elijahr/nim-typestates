@@ -65,7 +65,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Nimble packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nimble
           key: ${{ runner.os }}-nimble-${{ matrix.nim-version }}-${{ hashFiles('*.nimble') }}
