@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-10-31
+
+### Changed
+
+- Adopted Polyform v0.2.2 template architecture (`pure_nim` flavor) with standardized CI, Dependabot/Renovate validation, Gitleaks secret scanning, and Renimble dependency automation.
+
 ## [0.14.0] - 2026-10-24
 
 ### Added
@@ -1744,7 +1750,8 @@ compile and produce the same diagnostics as in v0.9.2.
 - `{.raises: [].}` enforcement on transitions
 - CLI tool (`typestates`) for verification and DOT graph generation
 
-[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/elijahr/nim-typestates/compare/v0.14.1...HEAD
+[0.14.1]: https://github.com/elijahr/nim-typestates/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/elijahr/nim-typestates/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/elijahr/nim-typestates/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/elijahr/nim-typestates/compare/v0.12.1...v0.12.2
